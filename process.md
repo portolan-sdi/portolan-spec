@@ -4,13 +4,17 @@
 
 Portolan specification decisions are made collaboratively by the core team:
 
-- Chris Henrick
-- Maxym Borodin
-- Nissim Lebovits
+- Chris Holmes (@cholmes)
+- Nissim Lebovits (@nlebovits)
+- Maxym Malynowsky
 
 ## Open Questions
 
 Open questions and unresolved design issues are tracked in [QUESTIONS.md](QUESTIONS.md).
+
+## Architectural Decisions
+
+Key architectural decisions and their rationale are documented in [DECISIONS.md](DECISIONS.md).
 
 ## Changes and Contributions
 

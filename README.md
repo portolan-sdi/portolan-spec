@@ -19,6 +19,7 @@ Portolan provides a standardized way for municipalities, NGOs, and other organiz
   - [Raster data](formats/raster.md)
   - [Point clouds](formats/pointcloud.md)
 - [Best practices](best-practices.md) - Recommended conventions
+- [Architectural decisions](DECISIONS.md) - Key design decisions and rationale
 - [Process](process.md) - How we develop this spec
 
 ## Examples
