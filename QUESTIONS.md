@@ -7,6 +7,13 @@ This document tracks unresolved design questions for the Portolan specification.
 - [ ] **Metadata format**: Should metadata live in Parquet files, README files, both, or elsewhere? What's required vs. best practice?
 - [ ] **README template**: What are the minimum required fields/sections for a catalog README?
 - [ ] **Column descriptions**: Should column descriptions be a core requirement or remain a best practice long-term?
+- [ ] **Machine-readable metadata**: When datasets have many coded variables, is a parquet/CSV metadata file a best practice, or should we be more prescriptive? Context: Argentina census has dozens of coded variables; a metadata parquet file is queryable with DuckDB. README points to it rather than duplicating. Is this pattern worth standardizing?
+- [ ] **Filename standardization**: Should we standardize filenames (e.g., `overview.pmtiles`, `metadata.parquet`) or just asset roles? The STAC asset roles field already provides machine-readable semantics—filenames could be best practice rather than spec.
+
+## Visualization
+
+- [ ] **Thumbnail generation approach**: What's the best way to generate thumbnails from local data? Playwright requires HTTP server for PMTiles; other approaches may not use style.json. Need to determine recommended tooling.
+- [ ] **style.json requirement**: Should style.json be required if thumbnail can be generated without it?
 
 ## Data Relationships
 

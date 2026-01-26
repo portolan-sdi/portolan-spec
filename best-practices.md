@@ -29,5 +29,33 @@ These are recommended conventions, not requirements. Portolan linters will warn 
 
 ## Multi-file Relationships
 
-- TBD: Best practice for documenting join relationships between separate files
-- See [QUESTIONS.md](QUESTIONS.md) for open discussion
+### Join Relationships
+
+When geometry and attribute data are in separate files:
+
+- **SHOULD** document the join columns explicitly in the README
+- **SHOULD** include a working code example showing how to join the files
+
+Example:
+
+```markdown
+## Data Structure
+
+Geometry and attribute data are stored separately:
+- `departamentos.parquet` - polygon geometries with `codigo_depto` key
+- `attributes.parquet` - demographic attributes with `codigo_depto` key
+
+### Joining the data
+
+```python
+import geopandas as gpd
+import pandas as pd
+
+# Read files
+geometry = gpd.read_parquet("departamentos.parquet")
+attributes = pd.read_parquet("attributes.parquet")
+
+# Join on codigo_depto
+data = geometry.merge(attributes, on="codigo_depto")
+```
+```
