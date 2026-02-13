@@ -21,7 +21,7 @@ This document tracks unresolved design questions for the Portolan specification.
 
 ## Versioning
 
-- [ ] **versions.json format**: Is the current proposed format correct? What fields are required?
+- [x] **versions.json format**: Resolved in [versions.md](versions.md)
 - [ ] **Portolan Node definition**: What exactly constitutes a "Portolan Node" vs. just a valid STAC catalog that happens to follow Portolan conventions?
 
 ## Licensing & Governance
