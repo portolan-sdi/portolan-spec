@@ -6,17 +6,29 @@ Portolan tools classify files by extension to determine how they should be handl
 
 These extensions are recognized as importable geospatial data:
 
-| Extension | Format | Type | Cloud-Native |
-|-----------|--------|------|--------------|
-| `.parquet` | GeoParquet | Vector | Yes |
-| `.geojson` | GeoJSON | Vector | No (converts to GeoParquet) |
-| `.shp` | Shapefile | Vector | No (converts to GeoParquet) |
-| `.gpkg` | GeoPackage | Vector | No (converts to GeoParquet) |
-| `.fgb` | FlatGeobuf | Vector | No (converts to GeoParquet) |
-| `.tif`, `.tiff` | GeoTIFF/COG | Raster | Depends (validates/converts to COG) |
-| `.jp2` | JPEG2000 | Raster | No (converts to COG) |
+| Extension | Format | Type | Cloud-Native | Notes |
+|-----------|--------|------|--------------|-------|
+| `.parquet` | GeoParquet | Vector | Yes | Requires geo metadata (content inspection) |
+| `.geojson` | GeoJSON | Vector | No | Converts to GeoParquet |
+| `.json` | GeoJSON | Vector | No | Content inspected for GeoJSON structure |
+| `.shp` | Shapefile | Vector | No | Converts to GeoParquet |
+| `.gpkg` | GeoPackage | Vector | No | Converts to GeoParquet |
+| `.fgb` | FlatGeobuf | Vector | Yes | Cloud-native, passed through |
+| `.csv` | CSV with geometry | Vector | No | Converts to GeoParquet (requires lat/lon or WKT column) |
+| `.tif`, `.tiff` | GeoTIFF/COG | Raster | Depends | Content inspected for COG compliance |
+| `.jp2` | JPEG2000 | Raster | No | Converts to COG |
 
 Files with these extensions are candidates for `portolan dataset add`.
+
+### Content Inspection
+
+Some formats require content inspection to determine cloud-native status:
+
+- **`.parquet`**: Checked for GeoParquet metadata (geo column info)
+- **`.json`**: Checked for GeoJSON structure (FeatureCollection, Feature, or geometry)
+- **`.tif`/`.tiff`**: Validated against COG spec (internal tiling, overviews)
+
+Files that fail content inspection are treated as convertible (vector) or rejected (raster without geo info).
 
 ## Sidecar Files
 
@@ -58,9 +70,19 @@ These files have semantic meaning and are not imported as datasets.
 
 | Extension | Handling |
 |-----------|----------|
-| `.png`, `.jpg`, `.jpeg`, `.webp`, `.gif` | Treated as thumbnails if < 1MB |
+| `.png`, `.jpg`, `.jpeg`, `.webp`, `.gif` | Treated as thumbnails if < 1 MiB (1,048,576 bytes) |
 
 Small images are assumed to be previews, not raster data.
+
+## Unsupported Formats
+
+These formats are explicitly rejected with informative error messages:
+
+| Extension | Format | Reason |
+|-----------|--------|--------|
+| `.nc`, `.netcdf` | NetCDF | Not yet supported |
+| `.h5`, `.hdf5` | HDF5 | Not yet supported |
+| `.las`, `.laz` | LAS/LAZ | Use COPC format instead |
 
 ## Ignored Files
 
@@ -71,9 +93,11 @@ The following are skipped during directory scans:
 | `.exe`, `.dll`, `.so`, `.dylib` | Executables |
 | `.pyc`, `.pyo`, `.class`, `.o`, `.obj` | Compiled files |
 | `__pycache__/`, `.git/`, `.svn/`, `.hg/` | Build/VCS directories |
-| `.idea/`, `.vscode/`, `node_modules/` | IDE/tooling directories |
-| `.csv`, `.tsv`, `.xlsx`, `.xls` | Tabular data (not geospatial) |
-| `.md`, `.txt`, `.rst`, `.html` | Documentation |
+| `.idea/`, `.vscode/`, `node_modules/`, `.tox/`, `.pytest_cache/` | IDE/tooling directories |
+| `.tsv`, `.xlsx`, `.xls` | Tabular data (not geospatial) |
+| `.md`, `.txt`, `.rst`, `.html`, `.htm` | Documentation |
+
+Note: `.csv` files are listed as importable above (with geometry columns) but are also commonly non-geospatial. The scan command classifies them as tabular data; the import command performs content inspection.
 
 ## Extension vs. Role
 

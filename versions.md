@@ -22,17 +22,19 @@ Versioning is per-collection, not per-item. When any item in a collection change
       "created": "2024-01-15T10:30:00Z",
       "breaking": false,
       "assets": {
-        "districts/districts.parquet": {
+        "districts.parquet": {
           "sha256": "abc123def456...",
           "size_bytes": 1048576,
-          "href": "districts/districts.parquet"
+          "href": "districts.parquet"
         }
       },
-      "changes": ["districts/districts.parquet"]
+      "changes": ["districts.parquet"]
     }
   ]
 }
 ```
+
+Note: Asset keys and hrefs are filenames only (e.g., `districts.parquet`), not paths including the item directory. The item context is provided by the collection structure.
 
 ## Fields
 
@@ -106,31 +108,31 @@ The `versions.json` file serves as the sync manifest:
       "created": "2024-01-01T00:00:00Z",
       "breaking": false,
       "assets": {
-        "districts/districts.parquet": {
+        "districts.parquet": {
           "sha256": "abc123...",
           "size_bytes": 524288,
-          "href": "districts/districts.parquet"
+          "href": "districts.parquet"
         }
       },
-      "changes": ["districts/districts.parquet"]
+      "changes": ["districts.parquet"]
     },
     {
       "version": "1.1.0",
       "created": "2024-06-15T12:00:00Z",
       "breaking": false,
       "assets": {
-        "districts/districts.parquet": {
+        "districts.parquet": {
           "sha256": "def456...",
           "size_bytes": 786432,
-          "href": "districts/districts.parquet"
+          "href": "districts.parquet"
         },
-        "districts/districts.pmtiles": {
+        "districts.pmtiles": {
           "sha256": "ghi789...",
           "size_bytes": 262144,
-          "href": "districts/districts.pmtiles"
+          "href": "districts.pmtiles"
         }
       },
-      "changes": ["districts/districts.parquet", "districts/districts.pmtiles"]
+      "changes": ["districts.parquet", "districts.pmtiles"]
     }
   ]
 }

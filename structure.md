@@ -21,9 +21,11 @@ project/
 | File | Required | Description |
 |------|----------|-------------|
 | `catalog.json` | **MUST** | STAC Catalog (root metadata) |
-| `collections/` | **MUST** | Directory containing all collections |
+| `collections/` | — | Directory containing all collections (created on first dataset add) |
 
 The `.portolan` directory **MUST** exist at the project root. Tools **SHOULD** create this directory via `portolan init`.
+
+Note: The `collections/` directory is created lazily when the first dataset is added, not during `portolan init`.
 
 ## Collection Level
 
@@ -35,10 +37,12 @@ Each collection is a subdirectory of `collections/` named with the collection ID
 | `versions.json` | **MUST** | Version history and checksums (see [versions.md](versions.md)) |
 | `{item_id}/` | — | One directory per dataset item |
 
-Collection IDs **MUST**:
+Collection IDs **SHOULD**:
 - Contain only lowercase letters, numbers, hyphens, and underscores
 - Start with a letter
 - Be unique within the catalog
+
+Note: The CLI does not currently enforce these naming conventions. Validation may be added in a future release.
 
 ## Item Level
 
@@ -68,12 +72,22 @@ Portolan catalogs use a **flat hierarchy**: collections contain items directly, 
 
 This simplifies tooling and avoids ambiguity about where versioning boundaries lie.
 
-## STAC Catalog Type
+## STAC Conventions
 
 Portolan catalogs **MUST** be saved as `SELF_CONTAINED` (pystac terminology), meaning:
 - All links use relative paths
 - The catalog is portable across different hosting locations
 - No absolute filesystem paths leak into metadata
+
+### Defaults
+
+| Property | Default Value |
+|----------|---------------|
+| STAC version | `1.0.0` |
+| Catalog ID | `portolan-catalog` |
+| Collection license | `proprietary` (SPDX identifier) |
+
+These defaults can be overridden during catalog creation or dataset import.
 
 ## Example
 
