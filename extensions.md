@@ -20,6 +20,19 @@ These extensions are recognized as importable geospatial data:
 
 Files with these extensions are candidates for `portolan dataset add`.
 
+### Non-Cloud-Native Format Handling
+
+Portolan **accepts** non-cloud-native formats (GeoJSON, Shapefile, GeoPackage, etc.) but emits warnings encouraging conversion to cloud-native formats.
+
+**Behavior**:
+- Non-cloud-native files are imported with a warning
+- Users are encouraged to convert to GeoParquet (vector) or COG (raster)
+- Validation passes but reports the warning
+
+**Rationale**: Many users have legacy data in non-cloud-native formats. Rejecting these files would create friction. Instead, we warn and accept, guiding users toward best practices over time.
+
+See [ADR-0014: Accept non-cloud-native formats](https://github.com/portolan-sdi/portolan-cli/blob/main/context/shared/adr/0014-accept-non-cloud-native-formats.md) for the full decision record.
+
 ### Content Inspection
 
 Some formats require content inspection to determine cloud-native status:

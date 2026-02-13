@@ -2,6 +2,13 @@
 
 This document tracks unresolved design questions for the Portolan specification. These require discussion and consensus among the core team before being resolved.
 
+## Resolved
+
+- [x] **versions.json format**: Resolved in [versions.md](versions.md)
+- [x] **STAC-GeoParquet**: Best practice for now, required for > 1000 items. See [best-practices.md](best-practices.md#stac-geoparquet)
+- [x] **PMTiles**: Best practice for now, required for > 100 MB datasets. See [best-practices.md](best-practices.md#pmtiles)
+- [x] **Non-cloud-native formats**: Accepted with warnings. See [extensions.md](extensions.md) and [ADR: Accept non-cloud-native formats](https://github.com/portolan-sdi/portolan-cli/blob/main/context/shared/adr/0014-accept-non-cloud-native-formats.md)
+
 ## Metadata & Documentation
 
 - [ ] **Metadata format**: Should metadata live in Parquet files, README files, both, or elsewhere? What's required vs. best practice?
@@ -21,7 +28,6 @@ This document tracks unresolved design questions for the Portolan specification.
 
 ## Versioning
 
-- [x] **versions.json format**: Resolved in [versions.md](versions.md)
 - [ ] **Portolan Node definition**: What exactly constitutes a "Portolan Node" vs. just a valid STAC catalog that happens to follow Portolan conventions?
 
 ## Licensing & Governance

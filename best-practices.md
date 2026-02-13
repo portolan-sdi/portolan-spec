@@ -2,6 +2,47 @@
 
 These are recommended conventions, not requirements. Portolan linters will warn about deviations but will not fail validation.
 
+## Scalability
+
+### STAC-GeoParquet
+
+For catalogs with many items, **SHOULD** include a [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) file alongside JSON metadata.
+
+- **SHOULD** provide `items.parquet` when a collection contains > 100 items
+- **MUST** provide `items.parquet` when a collection contains > 1000 items
+
+STAC-GeoParquet enables efficient search and filtering without requiring a STAC API server:
+
+```python
+import geopandas as gpd
+
+# Query items by bbox without loading all JSON
+items = gpd.read_parquet(
+    "s3://bucket/collection/items.parquet",
+    bbox=(-122.5, 37.5, -122.0, 38.0)
+)
+```
+
+**Location**: Place `items.parquet` in the collection directory alongside `collection.json`.
+
+**When to use**:
+- Image collections with many individual COGs
+- Time-series data with frequent updates
+- Any collection where users need to search/filter items
+
+**Note**: This is currently a best practice while tooling matures. May be promoted to a core requirement in a future spec version.
+
+### PMTiles
+
+For vector datasets, **SHOULD** include PMTiles derivatives for web visualization.
+
+- **SHOULD** provide `.pmtiles` when a GeoParquet file exceeds 10 MB
+- **MUST** provide `.pmtiles` when a GeoParquet file exceeds 100 MB
+
+PMTiles enable efficient web map rendering without server-side tile generation.
+
+**Note**: PMTiles generation requires tippecanoe, which has platform-specific installation requirements. This is currently a best practice while tooling matures.
+
 ## Visualization
 
 - **SHOULD** include a thumbnail image generated from default styling
