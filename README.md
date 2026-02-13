@@ -14,6 +14,9 @@ Portolan provides a standardized way for municipalities, NGOs, and other organiz
 ## Specification
 
 - [Core requirements](core.md) - Mandatory requirements for all Portolan catalogs
+- [Catalog structure](structure.md) - Directory layout and file organization
+- [Version manifest](versions.md) - `versions.json` schema for version tracking
+- [File extensions](extensions.md) - Recognized file types and classification
 - [Format addenda](formats/) - Per-format specifications
   - [Vector data](formats/vector.md)
   - [Raster data](formats/raster.md)

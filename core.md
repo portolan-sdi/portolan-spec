@@ -2,10 +2,26 @@
 
 These requirements apply to all Portolan catalogs, regardless of data format.
 
+## Catalog Structure
+
+A Portolan catalog lives in a `.portolan` directory at the project root. See [structure.md](structure.md) for the full directory layout.
+
+```
+.portolan/
+├── catalog.json
+└── collections/
+    └── {collection_id}/
+        ├── collection.json
+        ├── versions.json
+        └── {item_id}/
+            └── data.parquet
+```
+
 ## STAC Compliance
 
 - **MUST** be a valid STAC Catalog or Collection
 - **MUST** follow STAC specification version 1.0.0 or later
+- **MUST** use `SELF_CONTAINED` catalog type (relative links, portable)
 
 ## Data Storage
 
@@ -60,12 +76,9 @@ This keeps the catalog portable if mirrored to a different bucket.
 
 ## Versioning
 
-- **MUST** include version tracking via:
-  - `versions.json` manifest file
-  - STAC link relations (rel: `predecessor-version`, `successor-version`, `latest-version`)
-- Format of `versions.json`: TBD (see [QUESTIONS.md](QUESTIONS.md))
-
-If versioning is used, **SHOULD** include a link to versions.json:
+- **MUST** include version tracking via `versions.json` manifest file (see [versions.md](versions.md))
+- **SHOULD** include STAC link relations (`predecessor-version`, `successor-version`, `latest-version`) when multiple versions exist
+- **SHOULD** include a link to versions.json in the collection:
 
 ```json
 {
@@ -75,6 +88,16 @@ If versioning is used, **SHOULD** include a link to versions.json:
 }
 ```
 
+The `versions.json` file tracks version history, asset checksums, and sync state per collection.
+
+## Recognized File Extensions
+
+See [extensions.md](extensions.md) for the complete list of file extensions recognized by Portolan tools, including:
+- Primary geospatial formats (GeoParquet, GeoJSON, Shapefile, COG, etc.)
+- Sidecar files (Shapefile components, aux.xml, etc.)
+- Visualization formats (PMTiles, MBTiles)
+- Files that are skipped during import
+
 ## Format-Specific Requirements
 
 Additional requirements apply based on data type. See format addenda:
@@ -83,4 +106,4 @@ Additional requirements apply based on data type. See format addenda:
 - [Raster data](formats/raster.md)
 - [Point cloud data](formats/pointcloud.md)
 
-Format addenda are normativethey define **MUST** requirements, not suggestions.
+Format addenda are normative and define **MUST** requirements, not suggestions.
