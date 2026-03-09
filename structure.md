@@ -1,35 +1,45 @@
 # Catalog Structure
 
-A Portolan catalog is a directory containing a `.portolan` folder with STAC metadata and cloud-native geospatial data.
+A Portolan catalog is a directory with STAC metadata and cloud-native geospatial data. Internal tooling state lives in `.portolan/`; all STAC-visible files live at the project root.
 
 ## Directory Layout
 
 ```
 project/
-└── .portolan/
-    ├── catalog.json
-    └── collections/
-        └── {collection_id}/
-            ├── collection.json
-            ├── versions.json
-            └── {item_id}/
-                └── {filename}.parquet
+├── .portolan/
+│   ├── config.yaml                    # Internal: catalog configuration
+│   └── state.json                     # Internal: local sync state
+├── catalog.json                       # STAC Catalog (root metadata)
+├── versions.json                      # Catalog-level versioning
+└── {collection_id}/
+    ├── collection.json                # STAC Collection metadata
+    ├── versions.json                  # Collection-level versioning
+    └── {item_id}/
+        └── {filename}.parquet         # Asset file
 ```
 
 ## Root Level
 
 | File | Required | Description |
 |------|----------|-------------|
+| `.portolan/` | **MUST** | Internal tooling directory (config, state) |
 | `catalog.json` | **MUST** | STAC Catalog (root metadata) |
-| `collections/` | — | Directory containing all collections (created on first dataset add) |
+| `versions.json` | **MUST** | Catalog-level version tracking |
 
 The `.portolan` directory **MUST** exist at the project root. Tools **SHOULD** create this directory via `portolan init`.
 
-Note: The `collections/` directory is created lazily when the first dataset is added, not during `portolan init`.
+### `.portolan/` Contents
+
+| File | Required | Description |
+|------|----------|-------------|
+| `config.yaml` | **MUST** | Catalog configuration (sentinel file) |
+| `state.json` | **SHOULD** | Local sync state |
+
+Only Portolan-internal tooling state lives in `.portolan/`. STAC metadata and version manifests live at the project root alongside the data they describe, making catalogs compatible with standard STAC tooling (STAC Browser, PySTAC, stac-validator).
 
 ## Collection Level
 
-Each collection is a subdirectory of `collections/` named with the collection ID.
+Each collection is a top-level subdirectory of the project root, named with the collection ID.
 
 | File | Required | Description |
 |------|----------|-------------|
@@ -55,7 +65,7 @@ Each item is a subdirectory of the collection named with the item ID.
 | `thumbnail.png` | **SHOULD** | Preview image (any format: `.png`, `.jpg`, `.webp`) |
 | `style.json` | **MAY** | MapLibre-compatible styling |
 
-Item IDs **SHOULD** derive from the source filename stem (e.g., `census.shp` → item ID `census`).
+Item IDs are derived from the item directory name. By convention, item directories **SHOULD** be named after the primary data file's stem (e.g., source file `census.shp` goes into item directory `census/`).
 
 ## Flat Hierarchy
 
@@ -63,11 +73,11 @@ Portolan catalogs use a **flat hierarchy**: collections contain items directly, 
 
 ```
 # Correct (flat)
-.portolan/collections/census-2020/tracts/tracts.parquet
-.portolan/collections/census-2020/blocks/blocks.parquet
+census-2020/tracts/tracts.parquet
+census-2020/blocks/blocks.parquet
 
 # Incorrect (nested)
-.portolan/collections/census/2020/tracts/tracts.parquet
+census/2020/tracts/tracts.parquet
 ```
 
 This simplifies tooling and avoids ambiguity about where versioning boundaries lie.
@@ -96,14 +106,15 @@ A catalog with one vector dataset:
 ```
 project/
 ├── .portolan/
-│   ├── catalog.json
-│   └── collections/
-│       └── boundaries/
-│           ├── collection.json
-│           ├── versions.json
-│           └── districts/
-│               ├── districts.parquet
-│               ├── districts.pmtiles
-│               └── thumbnail.png
-└── README.md
+│   ├── config.yaml
+│   └── state.json
+├── catalog.json
+├── versions.json
+└── boundaries/
+    ├── collection.json
+    ├── versions.json
+    └── districts/
+        ├── districts.parquet
+        ├── districts.pmtiles
+        └── thumbnail.png
 ```

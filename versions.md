@@ -5,7 +5,7 @@ Each collection **MUST** include a `versions.json` file that tracks version hist
 ## Location
 
 ```
-.portolan/collections/{collection_id}/versions.json
+{collection_id}/versions.json
 ```
 
 Versioning is per-collection, not per-item. When any item in a collection changes, the collection version increments.
@@ -22,19 +22,19 @@ Versioning is per-collection, not per-item. When any item in a collection change
       "created": "2024-01-15T10:30:00Z",
       "breaking": false,
       "assets": {
-        "districts.parquet": {
+        "districts/districts.parquet": {
           "sha256": "abc123def456...",
           "size_bytes": 1048576,
-          "href": "districts.parquet"
+          "href": "boundaries/districts/districts.parquet"
         }
       },
-      "changes": ["districts.parquet"]
+      "changes": ["districts/districts.parquet"]
     }
   ]
 }
 ```
 
-Note: Asset keys and hrefs are filenames only (e.g., `districts.parquet`), not paths including the item directory. The item context is provided by the collection structure.
+Asset keys use item-scoped paths (`{item_id}/{filename}`). Asset hrefs are catalog-root-relative paths (`{collection_id}/{item_id}/{filename}`), enabling `push` and `pull` to resolve files directly via `catalog_root / href`.
 
 ## Fields
 
@@ -53,8 +53,8 @@ Note: Asset keys and hrefs are filenames only (e.g., `districts.parquet`), not p
 | `version` | string | **MUST** | Semantic version string (e.g., `"1.0.0"`) |
 | `created` | string | **MUST** | ISO 8601 timestamp in UTC (e.g., `"2024-01-15T10:30:00Z"`) |
 | `breaking` | boolean | **MUST** | `true` if this version has breaking changes |
-| `assets` | object | **MUST** | Map of relative paths to asset metadata |
-| `changes` | array | **MUST** | List of asset paths that changed in this version |
+| `assets` | object | **MUST** | Map of item-scoped asset keys to asset metadata |
+| `changes` | array | **MUST** | List of asset keys that changed in this version |
 
 ### Asset Entry
 
@@ -62,7 +62,7 @@ Note: Asset keys and hrefs are filenames only (e.g., `districts.parquet`), not p
 |-------|------|----------|-------------|
 | `sha256` | string | **MUST** | SHA-256 checksum of the file content |
 | `size_bytes` | integer | **MUST** | File size in bytes |
-| `href` | string | **MUST** | Relative path to the asset within the collection |
+| `href` | string | **MUST** | Catalog-root-relative path to the asset (e.g., `"boundaries/districts/districts.parquet"`) |
 
 ## Versioning Rules
 
@@ -108,31 +108,31 @@ The `versions.json` file serves as the sync manifest:
       "created": "2024-01-01T00:00:00Z",
       "breaking": false,
       "assets": {
-        "districts.parquet": {
+        "districts/districts.parquet": {
           "sha256": "abc123...",
           "size_bytes": 524288,
-          "href": "districts.parquet"
+          "href": "boundaries/districts/districts.parquet"
         }
       },
-      "changes": ["districts.parquet"]
+      "changes": ["districts/districts.parquet"]
     },
     {
       "version": "1.1.0",
       "created": "2024-06-15T12:00:00Z",
       "breaking": false,
       "assets": {
-        "districts.parquet": {
+        "districts/districts.parquet": {
           "sha256": "def456...",
           "size_bytes": 786432,
-          "href": "districts.parquet"
+          "href": "boundaries/districts/districts.parquet"
         },
-        "districts.pmtiles": {
+        "districts/districts.pmtiles": {
           "sha256": "ghi789...",
           "size_bytes": 262144,
-          "href": "districts.pmtiles"
+          "href": "boundaries/districts/districts.pmtiles"
         }
       },
-      "changes": ["districts.parquet", "districts.pmtiles"]
+      "changes": ["districts/districts.parquet", "districts/districts.pmtiles"]
     }
   ]
 }
