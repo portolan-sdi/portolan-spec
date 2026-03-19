@@ -4,17 +4,20 @@ These requirements apply to all Portolan catalogs, regardless of data format.
 
 ## Catalog Structure
 
-A Portolan catalog lives in a `.portolan` directory at the project root. See [structure.md](structure.md) for the full directory layout.
+A Portolan catalog is a directory with STAC metadata at the project root and internal tooling state in `.portolan/`. See [structure.md](structure.md) for the full directory layout.
 
 ```
-.portolan/
+project/
+├── .portolan/
+│   ├── config.yaml
+│   └── state.json
 ├── catalog.json
-└── collections/
-    └── {collection_id}/
-        ├── collection.json
-        ├── versions.json
-        └── {item_id}/
-            └── data.parquet
+├── versions.json
+└── {collection_id}/
+    ├── collection.json
+    ├── versions.json
+    └── {item_id}/
+        └── data.parquet
 ```
 
 ## STAC Compliance
