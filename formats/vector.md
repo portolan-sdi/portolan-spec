@@ -102,7 +102,7 @@ Each partition file also has a corresponding STAC item linked from the collectio
   - Optimized for web map rendering
   - Cloud-native, range-request friendly
   - PMTiles **MUST** be represented as a collection-level asset, not only at the item level — this ensures the visualization derivative is always discoverable alongside the data without navigating into items
-  - When PMTiles are provided, **SHOULD** add a `rel: "pmtiles"` link following the [web-map-links](https://github.com/stac-extensions/web-map-links) STAC extension
+  - When PMTiles are provided, **MUST** add a `rel: "pmtiles"` link following the [web-map-links](https://github.com/stac-extensions/web-map-links) STAC extension
 
 ## Styling
 
