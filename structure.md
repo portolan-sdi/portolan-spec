@@ -54,7 +54,22 @@ Collection IDs **SHOULD**:
 
 Note: The CLI does not currently enforce these naming conventions. Validation may be added in a future release.
 
+## Single-File Collections
+
+When a collection contains a single data file (e.g., one GeoParquet file), the data **MUST** be represented as a collection-level asset. No item directory or item JSON is needed. See [vector format requirements](formats/vector.md#collection-level-assets) for details.
+
+```
+{collection_id}/
+  collection.json
+  versions.json
+  {filename}.parquet
+  {filename}.pmtiles          (recommended)
+  thumbnail.png               (recommended)
+```
+
 ## Item Level
+
+Items are used when a collection contains multiple data files — for example, partitioned datasets or multi-file raster mosaics.
 
 Each item is a subdirectory of the collection named with the item ID.
 
@@ -99,9 +114,9 @@ Portolan catalogs **MUST** be saved as `SELF_CONTAINED` (pystac terminology), me
 
 These defaults can be overridden during catalog creation or dataset import.
 
-## Example
+## Examples
 
-A catalog with one vector dataset:
+A catalog with a single-file vector collection:
 
 ```
 project/
@@ -110,11 +125,28 @@ project/
 │   └── state.json
 ├── catalog.json
 ├── versions.json
-└── boundaries/
+└── districts/
     ├── collection.json
     ├── versions.json
-    └── districts/
-        ├── districts.parquet
-        ├── districts.pmtiles
-        └── thumbnail.png
+    ├── districts.parquet
+    ├── districts.pmtiles
+    └── thumbnail.png
+```
+
+A catalog with a partitioned vector collection (data > 2 GB):
+
+```
+project/
+├── .portolan/
+│   ├── config.yaml
+│   └── state.json
+├── catalog.json
+├── versions.json
+└── buildings/
+    ├── collection.json
+    ├── versions.json
+    ├── buildings.pmtiles
+    ├── partition-001.parquet
+    ├── partition-002.parquet
+    └── partition-003.parquet
 ```
