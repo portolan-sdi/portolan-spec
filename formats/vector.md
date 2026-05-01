@@ -50,37 +50,9 @@ GeoParquet files larger than approximately 2 GB **SHOULD** be spatially partitio
 When a dataset is partitioned:
 
 - Each partition file **MUST** be represented as a STAC item within the collection, with its spatial extent (bbox) reflecting the data in that partition.
-- The collection **MUST** include a collection-level asset with a glob pattern that allows tools to access all partitions as a single dataset:
+- The collection description **SHOULD** include the glob pattern that tools can use to access all partitions as a single dataset, since most users want a single URL they can pass to their analysis tools rather than enumerating STAC items. For example:
 
-```json
-{
-  "type": "Collection",
-  "id": "buildings",
-  "assets": {
-    "data": {
-      "href": "./*.parquet",
-      "type": "application/vnd.apache.parquet",
-      "roles": ["data"],
-      "portolan:glob": "s3://bucket/buildings/*.parquet"
-    }
-  }
-}
-```
-
-The `portolan:glob` field provides the absolute glob URL that tools like DuckDB, GDAL, and PyArrow can use to read all partitions as a single dataset:
-
-```sql
--- DuckDB
-SELECT * FROM read_parquet('s3://bucket/buildings/*.parquet') WHERE ...;
-```
-
-```python
-# PyArrow
-import pyarrow.parquet as pq
-table = pq.read_table("s3://bucket/buildings/*.parquet")
-```
-
-This addresses a common usability gap: partitioned datasets described by STAC items are discoverable through metadata, but most users want a single URL they can pass to their analysis tools. The glob asset makes this possible without requiring users to enumerate items.
+  > Access all partitions: `s3://bucket/buildings/*.parquet`
 
 ### Directory Layout for Partitioned Datasets
 
