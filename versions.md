@@ -34,7 +34,31 @@ Versioning is per-collection, not per-item. When any item in a collection change
 }
 ```
 
-Asset keys use item-scoped paths (`{item_id}/{filename}`). Asset hrefs are catalog-root-relative paths (`{collection_id}/{item_id}/{filename}`), enabling `push` and `pull` to resolve files directly via `catalog_root / href`.
+### Path Resolution
+
+Asset keys and hrefs follow strict conventions to ensure `push` and `pull` can resolve files unambiguously.
+
+**Asset keys** are scoped relative to the collection directory:
+- For single-file collections (no items): the filename alone (e.g., `tunnels.parquet`)
+- For collections with items: `{item_id}/{filename}` (e.g., `districts/districts.parquet`)
+
+**Asset hrefs** are catalog-root-relative paths, enabling tools to resolve files via `catalog_root / href`:
+- For single-file collections: `{collection_id}/{filename}` (e.g., `tunnels/tunnels.parquet`)
+- For collections with items: `{collection_id}/{item_id}/{filename}` (e.g., `boundaries/districts/districts.parquet`)
+
+The collection directory name **MUST NOT** appear in the asset key. The asset key is resolved relative to the collection directory, not the catalog root.
+
+```
+# Correct — asset key is collection-relative
+"tunnels.parquet": {
+  "href": "tunnels/tunnels.parquet"
+}
+
+# Incorrect — asset key duplicates the collection directory
+"tunnels/tunnels.parquet": {
+  "href": "tunnels/tunnels/tunnels.parquet"
+}
+```
 
 ## Fields
 
@@ -96,7 +120,35 @@ The `versions.json` file serves as the sync manifest:
 2. Push files where local checksum differs from remote
 3. Update remote `versions.json` after successful push
 
-## Example: Multiple Versions
+## Example: Single-File Collection
+
+A collection at `tunnels/` with one GeoParquet file. The asset key is the filename alone, and the href is catalog-root-relative:
+
+```json
+{
+  "spec_version": "1.0.0",
+  "current_version": "1.0.0",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "created": "2024-01-15T10:30:00Z",
+      "breaking": false,
+      "assets": {
+        "tunnels.parquet": {
+          "sha256": "abc123...",
+          "size_bytes": 1048576,
+          "href": "tunnels/tunnels.parquet"
+        }
+      },
+      "changes": ["tunnels.parquet"]
+    }
+  ]
+}
+```
+
+## Example: Collection with Items
+
+A collection at `boundaries/` with item subdirectories. The asset key includes the item ID, and the href includes both collection and item:
 
 ```json
 {
