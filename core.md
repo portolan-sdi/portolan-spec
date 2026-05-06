@@ -72,6 +72,21 @@ This keeps the catalog portable if mirrored to a different bucket.
 ]
 ```
 
+## Source Provenance
+
+When data is extracted from an external source that is the canonical location for the data, the collection **MUST** include a `rel: "via"` link pointing to the original source URL:
+
+```json
+{
+  "rel": "via",
+  "href": "https://services-eu1.arcgis.com/example/FeatureServer",
+  "type": "text/html",
+  "title": "Source ArcGIS Feature Service"
+}
+```
+
+This is standard STAC practice for provenance and enables consumers to trace data back to its origin.
+
 ## Root Documentation
 
 - **MUST** include a `README.md` at the catalog root
