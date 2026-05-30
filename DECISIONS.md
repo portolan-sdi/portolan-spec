@@ -149,3 +149,25 @@ See: [best-practices.md#pmtiles](best-practices.md#pmtiles)
 - Simpler to understand and debug
 
 **Consequences**: All links are relative. Tooling must normalize hrefs before saving.
+
+---
+
+### ADR-007: Require llms.txt for AI/LLM Integration
+
+**Date**: 2026-05-30
+**Status**: Accepted
+
+**Decision**: Every Portolan catalog and collection must include an `llms.txt` file linked via `rel: "llms"` in the STAC JSON.
+
+**Context**: AI agents and LLMs are increasingly used to discover, query, and analyze geospatial data. Machine-readable STAC metadata alone is not enough — agents need plain-language context about what a dataset contains, how to query it, what the fields mean, and what pitfalls to avoid. The [llms.txt](https://llmstxt.org/) standard provides a convention for LLM-friendly documentation.
+
+**Rationale**:
+- AI agents are a primary audience for cloud-native geodata catalogs
+- STAC metadata describes structure but not semantics — agents need both
+- Markdown is the most natural format for LLMs to consume
+- The llms.txt convention is simple, co-located with the data, and versioned alongside it
+- Early experience with portolan-nl shows this pattern works well in practice
+
+**Consequences**: All catalogs and collections must maintain an `llms.txt` file. Content recommendations are provided but expected to evolve rapidly as best practices emerge.
+
+See: [ai-integration.md](ai-integration.md)
