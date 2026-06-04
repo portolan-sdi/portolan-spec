@@ -21,6 +21,7 @@ Portolan provides a standardized way for municipalities, NGOs, and other organiz
   - [Vector data](formats/vector.md)
   - [Raster data](formats/raster.md)
   - [Point clouds](formats/pointcloud.md)
+  - [Tabular (non-geospatial) data](formats/tabular.md) — *proposal (RFC)*
 - [Best practices](best-practices.md) - Recommended conventions
 - [Architectural decisions](DECISIONS.md) - Key design decisions and rationale
 - [Process](process.md) - How we develop this spec
