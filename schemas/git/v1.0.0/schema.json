@@ -8,7 +8,6 @@
     "git:repository": { "type": "string", "format": "uri", "description": "Source repository URL (catalog source of truth)." },
     "git:ref": { "type": "string", "description": "Branch or tag the catalog is built from." },
     "git:provider": { "type": "string", "enum": ["github", "gitlab", "forgejo", "gitea", "other"] },
-    "git:sovereign": { "type": "boolean", "description": "Whether the repository host is sovereign / self-hosted." },
     "git:path": { "type": "string", "description": "Path within the repository (monorepo)." },
     "git:edit_url": { "type": "string", "format": "uri", "description": "Deep link to edit this collection's source (Collection scope)." }
   },
