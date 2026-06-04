@@ -25,6 +25,10 @@ Portolan provides a standardized way for municipalities, NGOs, and other organiz
 - [Architectural decisions](DECISIONS.md) - Key design decisions and rationale
 - [Process](process.md) - How we develop this spec
 
+## Proposals (RFC)
+
+- [Git-Backed Catalog extension](git-backed-catalog.md) - declare that a catalog's source of truth is a git repository (contribution, change subscription, sovereignty) — proposal
+
 ## Examples
 
 See [examples/](examples/) for reference implementations.
