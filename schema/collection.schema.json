@@ -20,15 +20,12 @@
         },
         "stac_version": {
           "type": "string",
-          "pattern": "^1\\.",
-          "description": "STAC version MUST be 1.0.0 or later"
+          "pattern": "^1\\.[0-9]+\\.[0-9]+$",
+          "description": "STAC version MUST be 1.x.x format (e.g., 1.0.0, 1.1.0)"
         },
         "links": {
           "type": "array",
-          "description": "Collection links with Portolan requirements",
-          "contains": {
-            "$ref": "#/$defs/VersionHistoryLink"
-          },
+          "description": "Collection links with Portolan requirements. SHOULD include version-history link (see RULE-0070 in rules.yaml).",
           "items": {
             "$ref": "#/$defs/CollectionLink"
           }
@@ -92,6 +89,7 @@
           },
           "then": {
             "description": "PMTiles link per web-map-links STAC extension - MUST be present when PMTiles are provided",
+            "required": ["type"],
             "properties": {
               "type": {
                 "const": "application/vnd.pmtiles"

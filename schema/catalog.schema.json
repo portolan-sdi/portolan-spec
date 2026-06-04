@@ -20,8 +20,8 @@
         },
         "stac_version": {
           "type": "string",
-          "pattern": "^1\\.",
-          "description": "STAC version MUST be 1.0.0 or later"
+          "pattern": "^1\\.[0-9]+\\.[0-9]+$",
+          "description": "STAC version MUST be 1.x.x format (e.g., 1.0.0, 1.1.0)"
         },
         "id": {
           "type": "string",
@@ -75,9 +75,9 @@
           "then": {
             "properties": {
               "href": {
-                "description": "For structural links (root, self, parent, child), href SHOULD be a relative path for portability",
+                "description": "For structural links (root, self, parent, child), href MUST be a relative path for portability",
                 "not": {
-                  "pattern": "^https?://"
+                  "pattern": "^[a-zA-Z][a-zA-Z0-9+.-]*://"
                 }
               }
             }

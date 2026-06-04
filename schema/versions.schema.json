@@ -10,7 +10,7 @@
     "spec_version": {
       "type": "string",
       "description": "Schema version for the versions.json format",
-      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$",
       "examples": ["1.0.0"]
     },
     "current_version": {
@@ -18,7 +18,7 @@
         {
           "type": "string",
           "description": "The latest version string (semantic versioning)",
-          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
+          "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
         },
         {
           "type": "null",
@@ -44,7 +44,7 @@
         "version": {
           "type": "string",
           "description": "Semantic version string (e.g., '1.0.0', '1.0.0-beta', '1.0.0+build.123')",
-          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
+          "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
         },
         "created": {
           "type": "string",
@@ -106,11 +106,13 @@
           "description": "Optional relative path to the original source file (e.g., the GeoJSON that was converted to this GeoParquet)"
         },
         "source_mtime": {
-          "type": "number",
+          "type": "integer",
+          "minimum": 0,
           "description": "Optional Unix timestamp of the source file when conversion occurred. Used to detect when source has changed."
         },
         "mtime": {
-          "type": "number",
+          "type": "integer",
+          "minimum": 0,
           "description": "Optional Unix timestamp of the asset file itself. Used for fast-path change detection (ADR-0017)."
         }
       }

@@ -20,14 +20,21 @@ rules:
   - id: RULE-0001
     level: error
     scope: asset
-    description: Asset hrefs in published catalogs MUST be absolute S3 URLs
+    description: Asset hrefs in published catalogs MUST be absolute HTTPS URLs to S3-compatible storage
     rationale: |
       Portolan catalogs are designed for S3-compatible object storage.
       Absolute URLs ensure assets can be fetched without ambiguity.
     validation: |
       For each asset.href in collection.json or item.json:
         if catalog.is_published:
-          assert href.startswith("https://") and ".s3." in href
+          assert href.startswith("https://")
+          # Accepted providers (non-exhaustive):
+          # - AWS S3: *.s3.amazonaws.com, *.s3.*.amazonaws.com
+          # - DigitalOcean Spaces: *.digitaloceanspaces.com
+          # - Cloudflare R2: *.r2.cloudflarestorage.com
+          # - Backblaze B2: *.backblazeb2.com
+          # - Wasabi: *.wasabisys.com
+          # - MinIO: any hostname (custom deployments)
     references:
       - core.md#asset-urls
 
@@ -83,6 +90,56 @@ rules:
       valid:
         - "tunnels/tunnels.parquet"
         - "boundaries/districts/districts.parquet"
+
+  - id: RULE-0012
+    level: error
+    scope: versions
+    description: current_version MUST match the last entry in versions array
+    rationale: |
+      current_version is a convenience field that MUST be consistent with
+      the versions array. Inconsistency causes sync failures and confuses tooling.
+    validation: |
+      if current_version is not null:
+        assert versions is not empty
+        assert current_version == versions[-1].version
+      else:
+        assert versions is empty
+    references:
+      - versions.md#current-version
+
+  - id: RULE-0013
+    level: error
+    scope: versions
+    description: changes array MUST only reference keys that exist in assets
+    rationale: |
+      The changes array documents which assets changed in a version.
+      Referencing non-existent keys indicates data corruption or typos.
+    validation: |
+      For each version in versions:
+        for change_key in version.changes:
+          assert change_key in version.assets
+
+  - id: RULE-0014
+    level: error
+    scope: versions
+    description: Version strings MUST be unique within versions array
+    rationale: |
+      Each version represents a distinct point in time. Duplicate version
+      strings make history ambiguous and break rollback functionality.
+    validation: |
+      version_strings = [v.version for v in versions]
+      assert len(version_strings) == len(set(version_strings))
+
+  - id: RULE-0015
+    level: warning
+    scope: versions
+    description: Versions SHOULD be ordered chronologically (oldest first)
+    rationale: |
+      The spec defines versions array as "oldest first" for consistent tooling.
+      Out-of-order versions may cause incorrect diff calculations.
+    validation: |
+      timestamps = [parse_iso8601(v.created) for v in versions]
+      assert timestamps == sorted(timestamps)
 
   # =============================================================================
   # Collection ID Rules
@@ -159,8 +216,16 @@ rules:
       No absolute filesystem paths should leak into metadata.
     validation: |
       For each link in catalog.json with rel in [root, self, parent, child]:
+        # Unix absolute paths
         assert not link.href.startswith("/")
+        # file:// URLs
         assert not link.href.startswith("file://")
+        # Windows absolute paths (C:\, D:\, etc.)
+        assert not re.match(r'^[A-Za-z]:', link.href)
+        # Windows UNC paths (\\server\share)
+        assert not link.href.startswith("\\\\")
+        # Any URI scheme (http://, ftp://, s3://, etc.)
+        assert not re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*://', link.href)
     references:
       - structure.md#stac-conventions
       - core.md#link-paths
@@ -261,3 +326,25 @@ rules:
         assert any link has rel="pmtiles"
     references:
       - formats/vector.md#recommended-formats
+
+  # =============================================================================
+  # Version History Rules
+  # =============================================================================
+
+  - id: RULE-0070
+    level: warning
+    scope: collection
+    description: Collections SHOULD include a version-history link
+    rationale: |
+      The version-history link (rel="version-history") enables discovery of
+      the versions.json manifest. While not strictly required, it improves
+      STAC client compatibility and enables version-aware browsing.
+    validation: |
+      For each collection.json:
+        warn if no link has rel="version-history"
+        if link with rel="version-history" exists:
+          assert link.href ends with "versions.json"
+          assert link.type == "application/json"
+    references:
+      - core.md#version-history-link
+      - versions.md
