@@ -106,14 +106,14 @@
           "description": "Optional relative path to the original source file (e.g., the GeoJSON that was converted to this GeoParquet)"
         },
         "source_mtime": {
-          "type": "integer",
+          "type": "number",
           "minimum": 0,
-          "description": "Optional Unix timestamp of the source file when conversion occurred. Used to detect when source has changed."
+          "description": "Optional Unix timestamp of the source file when conversion occurred. Used to detect when source has changed. NOTE: Accepts number (not just integer) because Python's os.stat().st_mtime returns floats."
         },
         "mtime": {
-          "type": "integer",
+          "type": "number",
           "minimum": 0,
-          "description": "Optional Unix timestamp of the asset file itself. Used for fast-path change detection (ADR-0017)."
+          "description": "Optional Unix timestamp of the asset file itself. Used for fast-path change detection (ADR-0017). NOTE: Accepts number (not just integer) because Python's os.stat().st_mtime returns floats. This relaxation should be upstreamed to portolan-spec."
         }
       }
     },

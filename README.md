@@ -1,24 +1,16 @@
 # Portolan Specification
 
-> **This repository is a read-only mirror.**
->
-> The source of truth is [portolan-cli/spec](https://github.com/portolan-sdi/portolan-cli/tree/main/spec).
-> To propose changes, open a PR in [portolan-cli](https://github.com/portolan-sdi/portolan-cli).
->
-> See [ADR-0048](https://github.com/portolan-sdi/portolan-cli/blob/main/context/shared/adr/0048-cli-as-spec-source.md) for context.
+This directory contains the canonical Portolan specification.
 
----
-
-Portolan is a STAC profile—not a competing specification. It adds requirements and best practices on top of [STAC](https://stacspec.org/) for publishing cloud-native geospatial data.
+The **portolan-cli repository is the source of truth** for the spec. The
+[portolan-spec](https://github.com/portolan-sdi/portolan-spec) repository is a
+read-only mirror, automatically synced via CI on every merge to main.
 
 ## What is Portolan?
 
-Portolan provides a standardized way for municipalities, NGOs, and other organizations to share open geospatial data with:
-
-- **Sovereignty**: Full control over your data and infrastructure
-- **Low cost**: No servers required—static files on object storage
-- **AI-accessible**: Structured metadata that LLMs and agents can understand
-- **Cloud-native**: Built on modern formats like GeoParquet, COG, and COPC
+Portolan is a STAC profile—not a competing specification. It adds requirements
+and best practices on top of [STAC](https://stacspec.org/) for publishing
+cloud-native geospatial data.
 
 ## Specification
 
@@ -33,6 +25,20 @@ Portolan provides a standardized way for municipalities, NGOs, and other organiz
 - [Best practices](best-practices.md) - Recommended conventions
 - [Architectural decisions](DECISIONS.md) - Key design decisions and rationale
 
+## Machine-Readable Schemas
+
+- `schema/` — JSON schemas and validation rules for `versions.json`, `catalog.json`, etc.
+
 ## Examples
 
 See [examples/](examples/) for reference implementations.
+
+## Making Changes
+
+To propose spec changes:
+
+1. Open a PR in this repository (portolan-cli)
+2. Changes to `spec/` trigger review from spec maintainers
+3. On merge, CI syncs to portolan-spec automatically
+
+See [ADR-0048](../context/shared/adr/0048-cli-as-spec-source.md) for rationale.
