@@ -12,9 +12,11 @@ project/
 │   ├── config.yaml
 │   └── state.json
 ├── catalog.json
+├── llms.txt
 ├── versions.json
 └── {collection_id}/
     ├── collection.json
+    ├── llms.txt
     ├── versions.json
     └── {item_id}/
         └── data.parquet
@@ -25,6 +27,16 @@ project/
 - **MUST** be a valid STAC Catalog or Collection
 - **MUST** follow STAC specification version 1.0.0 or later
 - **MUST** use `SELF_CONTAINED` catalog type (relative links, portable)
+
+### Spatial Extent for Tabular Collections
+
+STAC requires `extent.spatial.bbox` for Collections. For **tabular (non-geospatial) collections** (`portolan:geospatial: false`):
+
+- `extent.spatial.bbox` represents the **area of interest** (AOI) the data pertains to, not a geometric footprint
+- Portolan CLI **always provides** `extent.spatial` via automatic AOI inheritance from sibling collections (or global fallback)
+- Portolan validators treat the bbox as informational metadata, not a constraint
+
+See [formats/tabular.md](formats/tabular.md) for full tabular collection requirements.
 
 ## Data Storage
 
@@ -92,6 +104,13 @@ This is standard STAC practice for provenance and enables consumers to trace dat
 - **MUST** include a `README.md` at the catalog root
 - README content requirements: Title, description, license, and data provenance at minimum
 
+## AI & LLM Integration
+
+- **MUST** include an `llms.txt` file at both the catalog root and each collection directory
+- **MUST** link `llms.txt` in the STAC JSON `links` array with `rel: "llms"`
+
+See [ai-integration.md](ai-integration.md) for full requirements and content recommendations.
+
 ## Versioning
 
 - **MUST** include version tracking via `versions.json` manifest file (see [versions.md](versions.md))
@@ -123,5 +142,6 @@ Additional requirements apply based on data type. See format addenda:
 - [Vector data](formats/vector.md)
 - [Raster data](formats/raster.md)
 - [Point cloud data](formats/pointcloud.md)
+- [Tabular (non-geospatial) data](formats/tabular.md)
 
 Format addenda are normative and define **MUST** requirements, not suggestions.
