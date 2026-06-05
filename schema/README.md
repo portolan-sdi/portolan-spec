@@ -71,9 +71,11 @@ Schemas follow the same versioning as the spec. The `spec_version` field in `ver
 
 ## Contributing
 
-When updating schemas:
+New schema fields require CLI implementation first — see [CONTRIBUTING.md](../CONTRIBUTING.md) for the proposal process.
+
+When updating schemas for implemented features:
 
 1. Update the JSON Schema files
 2. Update `rules.yaml` if needed
-3. Ensure CLI tests pass against new schemas (Phase 2)
-4. Update prose documentation to match (if schemas add new fields)
+3. Ensure CLI tests pass against new schemas
+4. Update prose documentation to match

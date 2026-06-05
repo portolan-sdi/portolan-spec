@@ -24,6 +24,7 @@ Portolan provides a standardized way for municipalities, NGOs, and other organiz
 - [Best practices](best-practices.md) - Recommended conventions
 - [Architectural decisions](DECISIONS.md) - Key design decisions and rationale
 - [Process](process.md) - How we develop this spec
+- [Proposals](PROPOSALS.md) - Features proposed but not yet implemented
 
 ## Examples
 
