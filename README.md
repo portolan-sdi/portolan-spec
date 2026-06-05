@@ -1,5 +1,14 @@
 # Portolan Specification
 
+> **This repository is a read-only mirror.**
+>
+> The source of truth is [portolan-cli/spec](https://github.com/portolan-sdi/portolan-cli/tree/main/spec).
+> To propose changes, open a PR in [portolan-cli](https://github.com/portolan-sdi/portolan-cli).
+>
+> See [ADR-0048](https://github.com/portolan-sdi/portolan-cli/blob/main/context/shared/adr/0048-cli-as-spec-source.md) for context.
+
+---
+
 Portolan is a STAC profile—not a competing specification. It adds requirements and best practices on top of [STAC](https://stacspec.org/) for publishing cloud-native geospatial data.
 
 ## What is Portolan?
@@ -23,8 +32,6 @@ Portolan provides a standardized way for municipalities, NGOs, and other organiz
   - [Point clouds](formats/pointcloud.md)
 - [Best practices](best-practices.md) - Recommended conventions
 - [Architectural decisions](DECISIONS.md) - Key design decisions and rationale
-- [Process](process.md) - How we develop this spec
-- [Proposals](PROPOSALS.md) - Features proposed but not yet implemented
 
 ## Examples
 
