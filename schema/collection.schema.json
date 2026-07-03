@@ -1,11 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://portolan.dev/schema/collection.schema.json",
+  "$comment": "Part of Portolan spec 0.1.0 (see spec/schema/spec-version.json).",
   "title": "Portolan STAC Collection",
   "description": "Schema for Portolan-compliant STAC Collections. Extends the STAC Collection schema with Portolan-specific requirements. See https://github.com/portolan-sdi/portolan-spec",
   "allOf": [
     {
-      "$ref": "https://schemas.stacspec.org/v1.0.0/collection-spec/json-schema/collection.json"
+      "$ref": "https://schemas.stacspec.org/v1.1.0/collection-spec/json-schema/collection.json"
     },
     {
       "$ref": "#/$defs/PortolanCollectionExtensions"
@@ -14,9 +15,20 @@
   "$defs": {
     "PortolanCollectionExtensions": {
       "type": "object",
+      "required": ["title", "description"],
       "properties": {
         "type": {
           "const": "Collection"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable collection title. MUST be present and human-readable (not a raw slug). See RULE-0101 in rules.yaml and core.md#human-readable-titles."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable collection description. MUST be non-empty. See RULE-0101 in rules.yaml."
         },
         "portolan:geospatial": {
           "type": "boolean",
@@ -82,6 +94,26 @@
         }
       },
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "rel": {
+                "enum": ["child", "item"]
+              }
+            },
+            "required": ["rel"]
+          },
+          "then": {
+            "description": "Child/item links MUST carry a human-readable title so clients can render them without dereferencing. See RULE-0102/RULE-0103 in rules.yaml.",
+            "required": ["title"],
+            "properties": {
+              "title": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
         {
           "if": {
             "properties": {
