@@ -19,7 +19,7 @@
 # spec/schema/spec-version.json; see spec/README.md#versioning for the bump
 # policy (e.g. raising a rule's level from warning to error is a breaking
 # change and bumps the spec version).
-spec_version: "0.1.0"
+spec_version: "0.1.1"
 
 rules:
   # =============================================================================
@@ -114,7 +114,7 @@ rules:
       else:
         assert versions is empty
     references:
-      - versions.md#current-version
+      - versions.md#root-level
 
   - id: RULE-0013
     level: error
@@ -242,22 +242,27 @@ rules:
   - id: RULE-0041
     level: error
     scope: catalog
-    description: Catalog MUST have flat hierarchy (no nested sub-collections)
+    description: Collections MUST be leaves; a collection MUST NOT contain a child collection
     rationale: |
-      Flat hierarchy simplifies tooling and versioning boundaries.
+      Hierarchy is built from nested catalogs, not nested collections (ADR-0032).
+      Intermediate levels are catalogs; collections are always leaves. Keeping
+      collections flat preserves STAC API compatibility (APIs index collections
+      flat) while catalogs above them provide thematic organization.
     validation: |
       For each collection in catalog:
-        assert collection has no child collections
-        # Collections contain items directly
+        for link in collection.links where link.rel == "child":
+          assert link points to a catalog.json, not a collection.json
+        # Collections hold assets or item subdirs directly, never child collections
     references:
-      - structure.md#flat-hierarchy
+      - structure.md#nested-catalogs-flat-collections
+      - ../context/shared/adr/0032-nested-catalogs-with-flat-collections.md
 
   - id: RULE-0042
     level: error
     scope: collection
-    description: Single-file datasets MUST be collection-level assets
+    description: Single-file collections MUST use collection-level assets
     rationale: |
-      Item indirection adds no value for single-file datasets.
+      Item indirection adds no value for single-file collections.
     validation: |
       If collection contains exactly one data file:
         assert file is in collection.assets, not wrapped in item
@@ -327,14 +332,21 @@ rules:
   - id: RULE-0061
     level: error
     scope: collection
-    description: PMTiles MUST have rel="pmtiles" link when provided
+    description: PMTiles MUST have a rel="pmtiles" web-map-links link when provided
     rationale: |
-      Follows web-map-links STAC extension for discoverability.
+      Follows the web-map-links STAC extension (v1.3.0) for discoverability: the
+      PMTiles derivative must be reachable as a collection-level link, not only as
+      an asset. The link and the asset coexist.
     validation: |
       If collection has PMTiles asset:
         assert any link has rel="pmtiles"
+        assert that link has type="application/vnd.pmtiles"
+        assert "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json"
+               in collection.stac_extensions
     references:
       - formats/vector.md#recommended-formats
+      - https://github.com/stac-extensions/web-map-links
+    code_rule: pmtiles_link
 
   # =============================================================================
   # Visualization Styles Rules
@@ -380,7 +392,7 @@ rules:
         for style_key in collection["portolan:styles"]:
           assert style_key in collection.assets
     references:
-      - best-practices.md#portolan-styles-manifest
+      - best-practices.md#portolanstyles-manifest
 
   - id: RULE-0068
     level: error
@@ -440,7 +452,7 @@ rules:
           assert file exists at link.href
     references:
       - ai-integration.md
-      - core.md#ai-llm-integration
+      - core.md#ai--llm-integration
 
   - id: RULE-0081
     level: error
@@ -448,7 +460,7 @@ rules:
     description: Collections MUST include llms.txt link
     rationale: |
       Collection-level llms.txt provides everything an agent needs to work
-      with a specific dataset: schema docs, query examples, data quality notes.
+      with a specific collection: schema docs, query examples, data quality notes.
     validation: |
       For each collection.json:
         assert any link has rel="llms"
@@ -458,7 +470,7 @@ rules:
           assert file exists at link.href
     references:
       - ai-integration.md
-      - core.md#ai-llm-integration
+      - core.md#ai--llm-integration
 
   - id: RULE-0082
     level: warning
@@ -469,7 +481,7 @@ rules:
       Missing key sections reduce the file's value to AI agents.
     validation: |
       For catalog llms.txt:
-        warn if file does not mention collections or datasets
+        warn if file does not mention collections or items
         warn if no code examples present
         warn if no license information present
     references:
@@ -569,7 +581,7 @@ rules:
     scope: collection
     description: Tabular collections MUST use collection-level assets
     rationale: |
-      Single-file tabular datasets should not be wrapped in STAC items.
+      Single-file tabular data should not be wrapped in STAC items.
       Collection-level assets are simpler and match the vector data pattern.
     validation: |
       If the collection is tabular (portolan:geospatial == false, or detected as
@@ -750,7 +762,7 @@ rules:
     description: Partitioned collections SHOULD have consistent Hive-style structure
     rationale: |
       Mixed partition keys, orphan data files at the collection root, or a
-      missing partition:scheme make a partitioned dataset ambiguous to query
+      missing partition:scheme make a partitioned collection ambiguous to query
       engines that rely on the Hive key=value convention.
     validation: |
       For each collection with key=value partition directories:
@@ -758,7 +770,7 @@ rules:
         warn if there are orphan .parquet files at the collection root
         warn if collection.json is missing the partition:scheme field
     references:
-      - formats/vector.md#partitioned-datasets
+      - formats/vector.md#partitioned-collections
     code_rule: partition_structure
 
   - id: RULE-0131
@@ -773,5 +785,5 @@ rules:
         read the Parquet schema (footer) of every partition file
         assert all files share the same set of column names
     references:
-      - formats/vector.md#partitioned-datasets
+      - formats/vector.md#partitioned-collections
     code_rule: partition_schema_consistency

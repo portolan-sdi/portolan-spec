@@ -10,15 +10,17 @@ These extensions are recognized as importable geospatial data:
 |-----------|--------|------|--------------|-------|
 | `.parquet` | GeoParquet | Vector | Yes | Requires geo metadata (content inspection) |
 | `.geojson` | GeoJSON | Vector | No | Converts to GeoParquet |
-| `.json` | GeoJSON | Vector | No | Content inspected for GeoJSON structure |
+| `.json` | JSON | Vector | No | Content-inspected: GeoJSON → GeoParquet; STAC metadata and other JSON are skipped |
 | `.shp` | Shapefile | Vector | No | Converts to GeoParquet |
 | `.gpkg` | GeoPackage | Vector | No | Converts to GeoParquet |
+| `.gdb` | FileGDB (Esri) | Vector | No | Directory format; converts all layers to GeoParquet |
 | `.fgb` | FlatGeobuf | Vector | Yes | Cloud-native, passed through |
 | `.csv` | CSV | Vector/Tabular | No | Content inspected: geometry columns → GeoParquet; no geometry → tabular (if enabled) |
+| `.tsv` | TSV | Vector/Tabular | No | Content inspected: geometry columns → GeoParquet; no geometry → tabular (if enabled) |
 | `.tif`, `.tiff` | GeoTIFF/COG | Raster | Depends | Content inspected for COG compliance |
 | `.jp2` | JPEG2000 | Raster | No | Converts to COG |
 
-Files with these extensions are candidates for `portolan dataset add`.
+Files with these extensions are candidates for `portolan add`.
 
 ### Non-Cloud-Native Format Handling
 
@@ -43,10 +45,21 @@ Some formats require content inspection to determine type and cloud-native statu
 - **`.csv`**: Checked for geometry columns (lat/lon, WKT, WKB)
   - If geometry columns found → GeoParquet conversion
   - If no geometry columns → tabular (requires `tabular.enabled: true`)
-- **`.json`**: Checked for GeoJSON structure (FeatureCollection, Feature, or geometry)
+- **`.json`**: Checked for GeoJSON structure (FeatureCollection, Feature, or geometry). STAC metadata (identified by `stac_version`) is **not** GeoJSON and is skipped.
 - **`.tif`/`.tiff`**: Validated against COG spec (internal tiling, overviews)
 
 Files that fail content inspection are treated as convertible (vector), tabular (if enabled), or rejected (raster without geo info).
+
+## Additional Cloud-Native Formats
+
+These are already cloud-native and passed through without conversion, but they
+are not plain single-suffix files, so they are recognized by dedicated handling
+rather than a simple extension lookup:
+
+| Extension | Format | Type | Notes |
+|-----------|--------|------|-------|
+| `.zarr` | Zarr | Raster/Array | Directory store; recognized as a directory, not a file extension |
+| `.copc.laz` | COPC | Point cloud | Compound extension; cloud-optimized point cloud. Distinct from plain `.las`/`.laz` (unsupported, see below) |
 
 ## Sidecar Files
 
@@ -58,11 +71,13 @@ These extensions are recognized as sidecar files belonging to a primary asset:
 | `.shx` | Shapefile index |
 | `.prj` | Shapefile projection |
 | `.cpg` | Shapefile code page |
-| `.sbn`, `.sbx` | Shapefile spatial index |
+| `.sbn`, `.sbx` | Shapefile spatial index (Esri) |
+| `.qix` | Shapefile spatial index (QGIS/GDAL) |
 | `.ovr` | Raster overview (pyramid) |
+| `.tfw` | Raster world file (georeferencing) |
 | `.xml` | Auxiliary metadata (aux.xml, etc.) |
 
-Sidecar files are **not** imported directly. When importing a `.shp` file, its sidecars are read automatically.
+Sidecar files are **not** imported directly. When importing a `.shp` file, its sidecars are read automatically. Compound sidecar names (e.g. `.shp.xml`, `.aux.xml`) are matched by appending the pattern to the primary file's stem; a bare `.xml` also catches them since `Path.suffix` returns only the last extension.
 
 ## Visualization Formats
 
@@ -82,25 +97,27 @@ These are **derivatives**, not primary data. PMTiles **SHOULD** be generated fro
 | `versions.json` | Portolan version manifest |
 | `styles/*.json` | Mapbox GL / MapLibre style definitions (see [best-practices.md#visualization-styles](best-practices.md#visualization-styles)) |
 
-These files have semantic meaning and are not imported as datasets.
+These files have semantic meaning and are not imported as data.
 
 ## Thumbnail/Preview
 
 | Extension | Handling |
 |-----------|----------|
-| `.png`, `.jpg`, `.jpeg`, `.webp`, `.gif` | Treated as thumbnails if < 1 MiB (1,048,576 bytes) |
+| `.png`, `.jpg`, `.jpeg`, `.webp`, `.gif`, `.svg` | Treated as thumbnails if < 1 MiB (1,048,576 bytes) |
 
 Small images are assumed to be previews, not raster data.
 
 ## Unsupported Formats
 
-These formats are explicitly rejected with informative error messages:
+These formats are explicitly rejected with informative error messages. They are
+still assigned a media type so that, if present as companion files, assets remain
+well-typed.
 
-| Extension | Format | Reason |
-|-----------|--------|--------|
-| `.nc`, `.netcdf` | NetCDF | Not yet supported |
-| `.h5`, `.hdf5` | HDF5 | Not yet supported |
-| `.las`, `.laz` | LAS/LAZ | Use COPC format instead |
+| Extension | Format | Media Type | Reason |
+|-----------|--------|------------|--------|
+| `.nc`, `.netcdf` | NetCDF | `application/x-netcdf` | Not yet supported |
+| `.h5`, `.hdf5` | HDF5 | `application/x-hdf5` | Not yet supported |
+| `.las`, `.laz` | LAS/LAZ | `application/vnd.las`, `application/vnd.laszip` | Plain point clouds; use COPC (`.copc.laz`) instead |
 
 ## Tabular Formats
 
@@ -134,7 +151,7 @@ The following are skipped during directory scans:
 ## Extension vs. Role
 
 STAC uses **asset roles** to describe purpose, not file extensions. The extensions above are used for:
-1. **Import classification** — determining if a file can be added as a dataset
+1. **Import classification** — determining if a file can be added as data
 2. **Format detection** — deciding which conversion pipeline to use
 
 Once imported, the STAC asset's `roles` field (e.g., `["data"]`, `["thumbnail"]`) provides machine-readable semantics.
