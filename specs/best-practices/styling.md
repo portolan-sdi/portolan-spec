@@ -4,7 +4,7 @@ Guidance for the visualization styles that [core](../portolan/core.md#visualizat
 requires. These are recommendations, not requirements.
 
 - **Create multiple data-driven styles for rich collections.** If a collection has
-  interesting categorical or numeric attributes, offer a style for each — e.g.
+  interesting categorical or numeric attributes, offer a style for each, e.g.
   buildings by age, by use, or by height. List the default first.
 
 - **Vary default colors across a catalog** so it is not monotone. Use the subject

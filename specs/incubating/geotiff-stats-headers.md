@@ -4,8 +4,7 @@
 
 The requirement that COGs carry embedded per-band statistics is normative and lives
 in [`formats.md` → Raster](../portolan/formats.md#raster). This document specifies
-the exact on-disk encoding. It is incubating because there is no official standard —
-Portolan follows the de-facto GDAL convention — and the encoding may be refined.
+the exact on-disk encoding. It is incubating because there is no official standard (Portolan follows the de-facto GDAL convention) and the encoding may be refined.
 
 ## Encoding
 
