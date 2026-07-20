@@ -1,0 +1,41 @@
+{
+  "type": "Catalog",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://portolan-sdi.github.io/portolan-spec/portolan/v0.1.0/schema.json"
+  ],
+  "id": "andalusia-open-geodata",
+  "title": "Andalusia Open Geodata",
+  "description": "Cloud-native mirror of open geospatial datasets for Andalusia, Spain. Vector data is published as GeoParquet with PMTiles visualization derivatives.",
+  "portolan:version": "0.1.0",
+  "links": [
+    {
+      "rel": "root",
+      "href": "https://data.example.org/andalusia/catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "self",
+      "href": "https://data.example.org/andalusia/catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "child",
+      "href": "./municipal-boundaries/collection.json",
+      "type": "application/json",
+      "title": "Municipal Boundaries of Andalusia"
+    },
+    {
+      "rel": "child",
+      "href": "./buildings/collection.json",
+      "type": "application/json",
+      "title": "Buildings of Andalusia"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents"
+    }
+  ]
+}

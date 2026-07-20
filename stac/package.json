@@ -1,0 +1,19 @@
+{
+  "name": "portolan-stac-profile",
+  "version": "0.1.0",
+  "description": "Portolan STAC profile — JSON Schema for the schema-checkable requirements plus a CEOS-ARD-style profile over reused STAC extensions",
+  "scripts": {
+    "test": "npm run check-markdown && npm run check-examples",
+    "check-markdown": "remark . --frail",
+    "check-examples": "stac-node-validator examples/*.json --schemaMap https://portolan-sdi.github.io/portolan-spec/portolan/v0.1.0/schema.json=./json-schema/schema.json",
+    "format-examples": "stac-node-validator examples/*.json --schemaMap https://portolan-sdi.github.io/portolan-spec/portolan/v0.1.0/schema.json=./json-schema/schema.json --format"
+  },
+  "devDependencies": {
+    "stac-node-validator": "^1.3.2",
+    "remark-cli": "^12.0.0",
+    "remark-lint": "^10.0.0",
+    "remark-preset-lint-consistent": "^6.0.0",
+    "remark-preset-lint-recommended": "^7.0.0",
+    "remark-validate-links": "^13.0.0"
+  }
+}
