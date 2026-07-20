@@ -1,34 +1,34 @@
-# Portolan Extension
+# Portolan STAC Profile
 
-> **Work in Progress** — This extension is under active development. Field names, requirement levels, and the extension URL may change before the first stable release.
+> **Work in Progress** — This profile is under active development. Requirement levels and the schema URL may change before the first stable release.
 
 - **Title:** Portolan
 - **Identifier:** <https://portolan-sdi.github.io/portolan-spec/portolan/v0.1.0/schema.json>
-- **Field Name Prefix:** portolan
-- **Scope:** Catalog, Collection, Item
+- **Field Name Prefix:** portolan (reserved; no fields defined in v0.1)
+- **Scope:** Catalog, Collection — Items inherit conformance from their collection
 - **[Extension Maturity Classification](https://github.com/radiantearth/stac-spec/tree/master/extensions#extension-maturity):** Proposal
 
-A [Portolan](https://github.com/portolan-sdi) catalog is a directory of STAC metadata and cloud-native geospatial data, served from plain object storage and consumable with zero infrastructure. Following the approach of the [CEOS-ARD extension](https://github.com/stac-extensions/ceos-ard), this repository is both a **minimal extension** — one field, `portolan:version`, plus a JSON Schema for the structural requirements checkable from STAC JSON alone — and a **profile**: how the Portolan specification uses STAC and existing extensions, which link relations, media types, and roles it requires, and where full validation happens.
+A [Portolan](https://github.com/portolan-sdi) catalog is a directory of STAC metadata and cloud-native geospatial data, served from plain object storage and consumable with zero infrastructure. Following the approach of the [CEOS-ARD extension](https://github.com/stac-extensions/ceos-ard), this directory is both a **minimal extension** — a JSON Schema for the structural requirements checkable from STAC JSON alone — and a **profile**: how the [Portolan specification](../specs/portolan/) uses STAC and existing extensions, which link relations, media types, and roles it requires, and where full validation happens.
 
 Declaring this extension is a claim of conformance, not proof of it: an object conforms only by passing the Portolan validator (see [Validation](#validation)).
 
 ## Fields
 
-| Field Name       | Type   | Description |
-| ---------------- | ------ | ----------- |
-| portolan:version | string | **REQUIRED.** The Portolan specification version the object was authored against (`0.1.0` for this schema), set to the same version as the declared schema URI, so tools can filter by specification version without resolving URIs. This is the *specification* version — dataset versioning uses the [version extension](https://github.com/stac-extensions/version). |
+This extension defines **no fields**. The versioned schema URI declared in `stac_extensions` is the single signal of specification version; no separate version property exists (spec: Conformance and Versioning). Dataset versioning uses the [version extension](https://github.com/stac-extensions/version), never `portolan:` fields.
 
-On Catalogs and Collections the field sits at the top level; on Items it sits in `properties`. All objects within a catalog SHOULD declare the same `portolan:version`; a validator flags a mismatch with the root catalog as a warning, not an error — a mixed-version catalog remains valid.
+Declaration happens at the catalog and collection level only — every catalog and collection MUST declare the schema URI in `stac_extensions`; items inherit conformance from their collection and do not declare it. All objects within a catalog SHOULD declare the same URI; a validator flags a mismatch with the root catalog as a warning, not an error — a mixed-version catalog remains valid.
 
-Other `portolan:`-prefixed fields are under discussion in the specification (e.g. the tabular marker, style manifests) and are intentionally neither validated nor rejected by this schema until settled — see [Open questions](#open-questions).
+The `portolan:` prefix stays reserved for future use.
 
 ## What the schema enforces
 
-Beyond `portolan:version`, the schema encodes the specification's structural requirements that STAC core leaves optional:
+The schema encodes the specification's structural requirements that STAC core leaves optional:
 
 - Every Catalog and Collection has a non-empty `title` and `description`; every `child` and `item` link carries a `title` (spec: Human-Readable Titles).
+- No object carries a `self` link, and structural links (`root`, `parent`, `child`, `item`, `collection`) are relative and carry `type: "application/json"` (`application/geo+json` for links to items), keeping a catalog fully portable (spec: Links).
 - Every asset has `href`, a media `type`, at least one `role`, and `file:size` + `file:checksum` (spec: Assets). The checksum's multihash encoding is verified by tooling, not schema.
 - Absolute asset hrefs use `https` — `s3://` and other bucket schemes are rejected; relative hrefs are allowed (spec: Assets).
+- Every Collection declares `providers` with at least one `producer` and a `host` reachable through `url` or `email`; that the host is exactly one and listed last is checked by tooling (spec: Providers).
 - Collection `license` is never the deprecated `proprietary`; SPDX validity and the `rel: "license"` link required with `other` are checked by tooling (spec: License).
 - Every `bbox` — collection extent and item — contains only in-range WGS84 coordinates, with no sentinel "effectively infinite" values (spec: Bounding Boxes and Spatial Extent).
 - Every Catalog and Collection links its `AGENTS.md` with `rel: "agents"` and `type: "text/markdown"` (spec: AGENTS.md).
@@ -41,9 +41,9 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 
 | Name                | Schema URI for `stac_extensions`                                            | Requirement | When / Usage |
 | ------------------- | --------------------------------------------------------------------------- | ----------- | ------------ |
-| [Portolan][] | `https://portolan-sdi.github.io/portolan-spec/portolan/v0.1.0/schema.json` | **MUST**    | Always — every catalog, collection, and item |
+| [Portolan][] | `https://portolan-sdi.github.io/portolan-spec/portolan/v0.1.0/schema.json` | **MUST**    | Always — every catalog and collection; items inherit conformance |
 | [File Info][] | `https://stac-extensions.github.io/file/v2.1.0/schema.json`                 | **MUST**    | Every object with assets: `file:size` + `file:checksum` (multihash) on each asset |
-| [Web Map Links][] | `https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json`        | **MUST**    | When a PMTiles asset is present: the `rel: "pmtiles"` link |
+| [Web Map Links][] | `https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json`        | **MUST**    | When PMTiles are provided: the `rel: "pmtiles"` link |
 | [Version][] | `https://stac-extensions.github.io/version/v1.2.0/schema.json`              | **MUST**    | When dataset versioning is used (never `portolan:` fields) |
 | [Raster][] | `https://stac-extensions.github.io/raster/v2.0.0/schema.json`               | **MUST**    | When band-level detail is provided |
 | [Vector][] | `https://stac-extensions.github.io/vector/v0.1.0/schema.json`               | **MUST**    | When layer-level detail is provided |
@@ -52,7 +52,7 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 | [Render][] | `https://stac-extensions.github.io/render/v2.0.0/schema.json`               | SHOULD      | Continuous rasters rendering from source (draw-time colorization) |
 | [Projection][] | `https://stac-extensions.github.io/projection/v2.0.0/schema.json`           | MAY         | CRS / projection of the data |
 | [Scientific][] | `https://stac-extensions.github.io/scientific/v1.0.0/schema.json`           | MAY         | Citation / DOI |
-| [Contacts][] | `https://stac-extensions.github.io/contacts/v0.1.1/schema.json`             | MAY         | Responsible parties |
+| [Contacts][] | `https://stac-extensions.github.io/contacts/v0.1.1/schema.json`             | MAY         | Richer contact info; never replaces url-or-email on the host provider |
 | [Attribution][] | `https://stac-extensions.github.io/attribution/v0.1.0/schema.json`          | MAY         | Display attribution |
 | [Themes][] | `https://stac-extensions.github.io/themes/v1.0.0/schema.json`               | MAY         | Thematic classification |
 
@@ -79,18 +79,20 @@ As the profile grows, per-format requirement sets (vector, raster, tabular) may 
 
 ### Link relations
 
+Objects MUST NOT include a `self` link, and all structural links MUST be relative (pystac `SELF_CONTAINED` convention), so a catalog can be moved or rehosted without rewriting any file.
+
 | `rel` | Where | Notes |
 | ----- | ----- | ----- |
-| `root`, `self`, `parent` | All objects (root catalog has no `parent`) | Structural links carry `type: "application/json"` (`application/geo+json` for links to items) |
-| `child` / `item` | Catalogs and collections, one per child | MUST carry a `title` |
-| `collection` | Items | — |
+| `root`, `parent` | All objects (root catalog has no `parent`) | Relative; `type: "application/json"` |
+| `child` / `item` | Catalogs and collections, one per child | Relative, typed (`application/geo+json` for items); MUST carry a `title` |
+| `collection` | Items | Relative; `type: "application/json"` |
 | `agents` | Catalog, Collection | Points to `AGENTS.md`, `type: "text/markdown"` |
-| `via` | Collection | Original canonical source when data is mirrored, `type: "text/html"` |
+| `via` | Collection | Mirror only: the original source, `type: "text/html"` |
 | `canonical` | Collection | Mirror only: the source's own STAC root, MUST when the source publishes STAC |
 | `license` | Collection | License text, MUST when `license` is `other` |
-| `pmtiles` | Collection | Per web-map-links v1.3.0, with `pmtiles:layers`, when a PMTiles asset is present |
+| `pmtiles` | Collection | Per web-map-links v1.3.0, with `pmtiles:layers`, when PMTiles are provided |
 
-Every link in a catalog MUST resolve — a link that 404s is a conformance failure. This is a crawling check, outside JSON Schema.
+Whether a catalog is official or a mirror is derived from its providers (producer = host means official); a mirror records each sync in the core `updated` field. Every link in a catalog MUST resolve — a link that 404s is a conformance failure. This is a crawling check, outside JSON Schema.
 
 ### Media types and roles
 
@@ -104,13 +106,15 @@ Every link in a catalog MUST resolve — a link that 404s is a conformance failu
 | Sidecar metadata | (format-specific) | `metadata`, `iso-19115` |
 | MapLibre style | `application/vnd.mapbox.style+json` | `style` (Portolan-defined role) |
 
+Styles are STAC assets: each style file is a collection-level asset with `roles: ["style"]`, discovered by filtering assets on that role — no separate manifest exists (spec: Visualization Styles).
+
 ### Formats
 
 Every collection and item is available in a cloud-optimized format; full requirements live in the specification's format sections, and the data-file internals are validated by tooling, not schema:
 
-- **Vector** — GeoParquet 1.1/2.0 (compression, spatial ordering, row-group statistics), paired with a PMTiles visualization derivative and MapLibre styles.
+- **Vector** — GeoParquet 1.1/2.0 (compression, spatial ordering, row-group statistics); a PMTiles visualization derivative SHOULD be provided, registered through the `rel: "pmtiles"` link (an asset only when also intended for distribution), with MapLibre styles as `style` assets.
 - **Raster** — COG with embedded per-band GDAL statistics in the leading header block.
-- **Tabular (non-geospatial)** — Parquet as a collection-level asset, columns documented with the table extension, spatial requirements relaxed.
+- **Tabular (non-geospatial)** — Parquet as a collection-level asset, columns documented with the table extension, spatial requirements relaxed. No marker property: a tabular collection is identified by its data, a Parquet asset with no geometry column.
 - **Point cloud** — reserved; COPC, pending a reference implementation.
 
 ## Validation
@@ -118,19 +122,16 @@ Every collection and item is available in a cloud-optimized format; full require
 Per the specification, validation runs in separable passes:
 
 1. **Structural** — STAC 1.1.0 core schemas.
-2. **Metadata** — every requirement checkable from metadata alone. This extension's schema is the machine-checkable core of this pass; link resolution needs a crawler.
+2. **Metadata** — every requirement checkable from metadata alone. This profile's schema is the machine-checkable core of this pass; link resolution needs a crawler.
 3. **Data** — requirements that need asset bytes (GeoParquet spatial ordering, row-group statistics, embedded COG statistics). Run by `portolan check`, MAY run independently.
 
 Hosting requirements (HTTP Range support, CORS on all metadata and asset files) are properties of the server, validated by probe.
 
 ## Open questions
 
-Tracked in the specification and deliberately **not** settled by this repository; the schema neither validates nor rejects the affected fields:
+Tracked in the specification and deliberately **not** settled by this schema:
 
-1. **The `portolan:version` property itself** — whether the duplicate property stays, or the versioned schema URI in `stac_extensions` becomes the single version signal. The schema currently requires the property, following the spec's Conformance and Versioning section; if it is removed, the extension remains valid STAC with no fields at all — the declared URI is then the only conformance and version claim (CEOS-ARD style).
-2. **Tabular marker** — explicit `portolan:geospatial: false` vs deriving non-spatial status from the data.
-3. **Styles as assets vs links** — and, downstream, whether a `portolan:styles` manifest is needed. The examples here show styles as assets with `roles: ["style"]`, illustrating one candidate; pending this ruling, they deliberately omit the `portolan:styles` manifest that the spec's PMTiles section currently mandates.
-4. **Relative vs absolute structural links** — note STAC 1.1 core already requires `self` hrefs to be absolute; the examples use relative structural links with an absolute `self`.
+1. **Raster styling** — how raster styles are expressed (colormaps, legends, continuous vs. categorical vs. multiband) is under discussion in [`specs/incubating/raster-styling.md`](../specs/incubating/raster-styling.md); the MapLibre style requirements are vector-only for now.
 
 ## Examples
 
@@ -138,11 +139,11 @@ Tracked in the specification and deliberately **not** settled by this repository
 - [Single-file vector collection](examples/vector-collection.json) — GeoParquet + PMTiles + style + thumbnail as collection-level assets
 - [Partitioned vector collection](examples/vector-partitioned-collection.json) and [partition item](examples/vector-partitioned-item.json)
 
-The files are stored flat in `examples/` for convenience, but their relative hrefs describe the specification's canonical directory layout (`{collection_id}/collection.json`, `{item_id}/item.json` beneath it) — so href targets such as `../catalog.json`, `AGENTS.md`, and the data files are illustrative and not present in this repository.
+The files are stored flat in `examples/` for convenience, but their relative hrefs describe the specification's canonical directory layout (`{collection_id}/collection.json`, `{item_id}/item.json` beneath it) — so href targets such as `../catalog.json`, `AGENTS.md`, and the data files are illustrative and not present in this repository. Per the spec's Links section the examples carry no `self` links and use only relative structural hrefs.
 
 ## Building and Testing
 
-This repository uses [stac-node-validator](https://github.com/stac-utils/stac-node-validator) to validate examples against the schema:
+The profile uses [stac-node-validator](https://github.com/stac-utils/stac-node-validator) to validate the examples against the schema. From `stac/`:
 
 ```bash
 npm install
@@ -151,7 +152,7 @@ npm test
 
 ## Contributing
 
-This extension is maintained by the [Portolan SDI](https://github.com/portolan-sdi) project. Issues and pull requests are welcome.
+This profile is maintained by the [Portolan SDI](https://github.com/portolan-sdi) project. Issues and pull requests are welcome.
 
 ## License
 

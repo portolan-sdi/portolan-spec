@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://portolan-sdi.github.io/portolan-spec/portolan/v0.1.0/schema.json#",
-  "title": "Portolan Extension",
-  "description": "The portolan:version field plus the schema-checkable structural requirements of the Portolan specification. Requirements that need link crawling, reading asset bytes, or probing the hosting server are defined in the Portolan specification and validated by Portolan tooling.",
+  "title": "Portolan STAC Profile",
+  "description": "The schema-checkable structural requirements of the Portolan specification. The versioned schema URI declared in stac_extensions is the single signal of specification version; no portolan-prefixed fields are defined. Requirements that need link crawling, reading asset bytes, or probing the hosting server are defined in the Portolan specification and validated by Portolan tooling.",
   "oneOf": [
     {
       "$comment": "STAC Catalogs.",
@@ -20,13 +20,10 @@
           "$ref": "#/definitions/stac_extensions"
         },
         {
-          "$ref": "#/definitions/fields"
-        },
-        {
           "$ref": "#/definitions/human_readable"
         },
         {
-          "$ref": "#/definitions/titled_links"
+          "$ref": "#/definitions/links_conformant"
         },
         {
           "$ref": "#/definitions/agents_link"
@@ -49,13 +46,10 @@
           "$ref": "#/definitions/stac_extensions"
         },
         {
-          "$ref": "#/definitions/fields"
-        },
-        {
           "$ref": "#/definitions/human_readable"
         },
         {
-          "$ref": "#/definitions/titled_links"
+          "$ref": "#/definitions/links_conformant"
         },
         {
           "$ref": "#/definitions/agents_link"
@@ -65,6 +59,9 @@
         },
         {
           "$ref": "#/definitions/license_not_proprietary"
+        },
+        {
+          "$ref": "#/definitions/providers_conformant"
         },
         {
           "properties": {
@@ -89,7 +86,7 @@
       ]
     },
     {
-      "$comment": "STAC Items. Portolan fields live in properties.",
+      "$comment": "STAC Items. Items do not declare the Portolan schema URI — declaration happens at the catalog and collection level only, and items inherit conformance from their collection. This branch is applied to items by the Portolan validator, not via stac_extensions.",
       "type": "object",
       "allOf": [
         {
@@ -101,14 +98,7 @@
           }
         },
         {
-          "$ref": "#/definitions/stac_extensions"
-        },
-        {
-          "required": ["properties"],
           "properties": {
-            "properties": {
-              "$ref": "#/definitions/fields"
-            },
             "bbox": {
               "$ref": "#/definitions/valid_bbox"
             }
@@ -118,7 +108,7 @@
           "$ref": "#/definitions/assets_typed_and_roled"
         },
         {
-          "$ref": "#/definitions/titled_links"
+          "$ref": "#/definitions/links_conformant"
         }
       ]
     }
@@ -133,18 +123,6 @@
           "contains": {
             "const": "https://portolan-sdi.github.io/portolan-spec/portolan/v0.1.0/schema.json"
           }
-        }
-      }
-    },
-    "fields": {
-      "$comment": "Only portolan:version is defined in v0.1. Other portolan-prefixed fields under discussion (e.g. portolan:geospatial, portolan:styles) are intentionally not validated and not rejected.",
-      "type": "object",
-      "required": ["portolan:version"],
-      "properties": {
-        "portolan:version": {
-          "type": "string",
-          "enum": ["0.1.0"],
-          "description": "Portolan specification version this object was authored against, set to the same version as the declared schema URI. This is the specification version, not the dataset version — dataset versioning uses the STAC version extension."
         }
       }
     },
@@ -163,30 +141,95 @@
         }
       }
     },
-    "titled_links": {
-      "$comment": "Every child and item link carries a human-readable title so browsers can render names without fetching every child.",
+    "links_conformant": {
+      "$comment": "Objects never carry a self link; a catalog is fully portable (pystac SELF_CONTAINED convention). Structural links (root, parent, child, item, collection) are relative and carry the required media type. Every child and item link carries a human-readable title so browsers can render names without fetching every child. Whether every link resolves is a crawling check performed by Portolan tooling.",
       "type": "object",
       "properties": {
         "links": {
           "type": "array",
           "items": {
-            "if": {
-              "required": ["rel"],
-              "properties": {
-                "rel": {
-                  "enum": ["child", "item"]
+            "allOf": [
+              {
+                "if": {
+                  "required": ["rel"],
+                  "properties": {
+                    "rel": {
+                      "const": "self"
+                    }
+                  }
+                },
+                "then": false
+              },
+              {
+                "if": {
+                  "required": ["rel"],
+                  "properties": {
+                    "rel": {
+                      "enum": ["root", "parent", "child", "collection"]
+                    }
+                  }
+                },
+                "then": {
+                  "required": ["type"],
+                  "properties": {
+                    "type": {
+                      "const": "application/json"
+                    },
+                    "href": {
+                      "type": "string",
+                      "minLength": 1,
+                      "not": {
+                        "pattern": "://"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "required": ["rel"],
+                  "properties": {
+                    "rel": {
+                      "const": "item"
+                    }
+                  }
+                },
+                "then": {
+                  "required": ["type"],
+                  "properties": {
+                    "type": {
+                      "const": "application/geo+json"
+                    },
+                    "href": {
+                      "type": "string",
+                      "minLength": 1,
+                      "not": {
+                        "pattern": "://"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "required": ["rel"],
+                  "properties": {
+                    "rel": {
+                      "enum": ["child", "item"]
+                    }
+                  }
+                },
+                "then": {
+                  "required": ["title"],
+                  "properties": {
+                    "title": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
                 }
               }
-            },
-            "then": {
-              "required": ["title"],
-              "properties": {
-                "title": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              }
-            }
+            ]
           }
         }
       }
@@ -210,6 +253,55 @@
               }
             }
           }
+        }
+      }
+    },
+    "providers_conformant": {
+      "$comment": "Every collection identifies at least one producer and a host provider reachable through url or email (spec: Providers). That there is exactly one host, listed last, is checked by Portolan tooling, as is deriving official-vs-mirror from producer and host.",
+      "type": "object",
+      "required": ["providers"],
+      "properties": {
+        "providers": {
+          "type": "array",
+          "minItems": 1,
+          "allOf": [
+            {
+              "contains": {
+                "type": "object",
+                "required": ["roles"],
+                "properties": {
+                  "roles": {
+                    "type": "array",
+                    "contains": {
+                      "const": "producer"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "contains": {
+                "type": "object",
+                "required": ["roles"],
+                "properties": {
+                  "roles": {
+                    "type": "array",
+                    "contains": {
+                      "const": "host"
+                    }
+                  }
+                },
+                "anyOf": [
+                  {
+                    "required": ["url"]
+                  },
+                  {
+                    "required": ["email"]
+                  }
+                ]
+              }
+            }
+          ]
         }
       }
     },

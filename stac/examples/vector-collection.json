@@ -10,7 +10,7 @@
   "title": "Municipal Boundaries of Andalusia",
   "description": "Administrative boundaries of the 785 municipalities of Andalusia, Spain. Single-file GeoParquet collection with a PMTiles visualization derivative and a default MapLibre style.",
   "license": "CC-BY-4.0",
-  "portolan:version": "0.1.0",
+  "updated": "2026-07-15T09:30:00Z",
   "keywords": [
     "boundaries",
     "administrative",
@@ -107,11 +107,6 @@
     {
       "rel": "parent",
       "href": "../catalog.json",
-      "type": "application/json"
-    },
-    {
-      "rel": "self",
-      "href": "https://data.example.org/andalusia/municipal-boundaries/collection.json",
       "type": "application/json"
     },
     {

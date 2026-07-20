@@ -10,7 +10,7 @@
   "title": "Buildings of Andalusia",
   "description": "Building footprints for Andalusia, Spain, partitioned by province into one GeoParquet file per province. All partitions can be read at once with the glob pattern `https://data.example.org/andalusia/buildings/*/*.parquet`.",
   "license": "CC-BY-4.0",
-  "portolan:version": "0.1.0",
+  "updated": "2026-07-15T09:30:00Z",
   "keywords": [
     "buildings",
     "footprints",
@@ -96,11 +96,6 @@
     {
       "rel": "parent",
       "href": "../catalog.json",
-      "type": "application/json"
-    },
-    {
-      "rel": "self",
-      "href": "https://data.example.org/andalusia/buildings/collection.json",
       "type": "application/json"
     },
     {

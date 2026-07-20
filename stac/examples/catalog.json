@@ -7,16 +7,11 @@
   "id": "andalusia-open-geodata",
   "title": "Andalusia Open Geodata",
   "description": "Cloud-native mirror of open geospatial datasets for Andalusia, Spain. Vector data is published as GeoParquet with PMTiles visualization derivatives.",
-  "portolan:version": "0.1.0",
+  "updated": "2026-07-15T09:30:00Z",
   "links": [
     {
       "rel": "root",
-      "href": "https://data.example.org/andalusia/catalog.json",
-      "type": "application/json"
-    },
-    {
-      "rel": "self",
-      "href": "https://data.example.org/andalusia/catalog.json",
+      "href": "./catalog.json",
       "type": "application/json"
     },
     {
