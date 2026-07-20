@@ -1,7 +1,7 @@
 {
   "name": "portolan-stac-profile",
   "version": "0.1.0",
-  "description": "Portolan STAC profile — JSON Schema for the schema-checkable requirements plus a CEOS-ARD-style profile over reused STAC extensions",
+  "description": "Portolan STAC profile — JSON Schema for the schema-checkable requirements plus a profile over reused STAC extensions",
   "scripts": {
     "test": "npm run check-markdown && npm run check-examples",
     "check-markdown": "remark . --frail",
