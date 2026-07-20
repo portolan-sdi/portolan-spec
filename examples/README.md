@@ -1,34 +1,10 @@
-# Portolan Examples
+# Examples
 
-This directory contains reference implementations of Portolan catalogs.
+Working reference catalogs that exercise the spec end to end.
 
-## Available Examples
+> **Pending.** Conformant reference examples are being prepared and will land here.
+> They will serve as canonical references for what a valid Portolan catalog looks
+> like — when in doubt about how to structure a catalog or implement a feature,
+> these are the place to look.
 
-### Tabular Collection (Non-Geospatial)
-
-A reference implementation of a tabular (non-geospatial) collection.
-
-- **File**: [tabular-collection.json](tabular-collection.json)
-- **Demonstrates**:
-  - `portolan:geospatial: false` flag for non-spatial data
-  - STAC Table extension for schema documentation
-  - Temporal extent without spatial extent
-  - Collection-level assets for single-file tabular data
-  - Provenance link to source (Eurostat)
-
-### Argentina 2022 Census
-
-A complete implementation of Argentina's 2022 census data as a Portolan catalog.
-
-- **Status**: In progress
-- **Publication**: Will be available on [Source.Cooperative](https://source.coop/) once complete
-- **Formats**: GeoParquet (tabular data + geometries), PMTiles (visualization)
-- **Demonstrates**:
-  - Multi-level geographic hierarchy (nation → province → department → census tract)
-  - Versioning and temporal data management
-  - Machine-readable metadata for coded variables
-  - Default styling and visualization
-
-## Using Examples
-
-Examples serve as canonical references for what valid Portolan catalogs look like. When in doubt about how to structure your catalog or implement a specific feature, refer to these examples.
+Until then, the normative requirements are in [`specs/portolan/`](../specs/portolan/).

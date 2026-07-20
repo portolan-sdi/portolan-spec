@@ -1,111 +1,74 @@
 # Portolan Specification
 
-This directory contains the canonical Portolan specification.
+Portolan is a specification for sharing geospatial data as cloud-native files on
+object storage — no servers, no databases, no proprietary formats. A Portolan
+catalog is a directory of open-format data described by structured
+[STAC](https://stacspec.org/) metadata, hosted on any S3-compatible bucket.
 
-**Spec version: `0.1.1`** ([SemVer](https://semver.org/), pre-1.0). The
-canonical machine-readable home is
-[`schema/spec-version.json`](schema/spec-version.json). See
-[Versioning](#versioning) below for the bump policy.
+Because the data is just files and the metadata is plain text, a browser, a query
+engine like DuckDB, or an AI agent can read a catalog, understand what it holds,
+and analyze it directly — with no service in between. If Portolan disappeared
+tomorrow, every file in a catalog would still work in the tools people already use.
 
-The **portolan-cli repository is the source of truth** for the spec. The
-[portolan-spec](https://github.com/portolan-sdi/portolan-spec) repository is a
-read-only mirror, automatically synced via CI on every merge to main.
+## Why
 
-## What is Portolan?
+Portolan builds on existing standards rather than reinventing them: it is STAC
+1.1.0 at its core, and reuses established STAC extensions wherever they fit. What
+Portolan adds is a set of strong, opinionated requirements — on formats,
+statistics, structure, and documentation — that make a catalog reliably usable by
+both humans and agents without a server to interpret it.
 
-Portolan is a STAC profile—not a competing specification. It adds requirements
-and best practices on top of [STAC](https://stacspec.org/) for publishing
-cloud-native geospatial data.
+It is deliberately prescriptive where that buys interoperability, and it evolves as
+cloud-native tooling matures: requirements that are aspirational today may relax or
+tighten as the ecosystem catches up. Conformance is defined not by declaration but
+by passing the Portolan validator.
 
-## Specification
+## Repository layout
 
-- [Core requirements](core.md) - Mandatory requirements for all Portolan catalogs
-- [Catalog structure](structure.md) - Directory layout and file organization
-- [Version manifest](versions.md) - `versions.json` schema for version tracking
-- [File extensions](extensions.md) - Recognized file types and classification
-- [Format addenda](formats/) - Per-format specifications
-  - [Vector data](formats/vector.md)
-  - [Raster data](formats/raster.md)
-  - [Point clouds](formats/pointcloud.md)
-  - [Tabular (non-geospatial) data](formats/tabular.md)
-- [Best practices](best-practices.md) - Recommended conventions
-- [AI & LLM integration](ai-integration.md) - llms.txt requirements for agent discoverability
+| Path | What's there |
+|------|--------------|
+| [`specs/portolan/core.md`](specs/portolan/core.md) | The normative spec: catalog structure, conformance, links, providers, provenance, licensing, documentation, visualization — everything that isn't format-specific. |
+| [`specs/portolan/formats.md`](specs/portolan/formats.md) | Format requirements: vector (GeoParquet + PMTiles), raster (COG), tabular (Parquet), point cloud (COPC). |
+| [`specs/incubating/`](specs/incubating/) | Ad-hoc specs being formalized but not yet normative (raster styling, point clouds, GeoTIFF stats encoding, STAC-GeoParquet). |
+| [`specs/best-practices/`](specs/best-practices/) | Non-normative guidance for people and agents, and the future home of the catalog grader. |
+| [`stac/`](stac/) | The Portolan STAC profile and JSON schemas (in progress). |
+| [`examples/`](examples/) | Working reference catalogs (pending). |
 
-## Architectural Decisions
-
-Spec-related decisions are tracked in the CLI repository's ADR directory:
-
-- [ADR-0005: versions.json as Single Source of Truth](../context/shared/adr/0005-versions-json-source-of-truth.md)
-- [ADR-0032: Nested Catalogs with Flat Collections](../context/shared/adr/0032-nested-catalogs-with-flat-collections.md)
-- [ADR-0047: Non-Geo Tabular Data Support](../context/shared/adr/0047-non-geo-tabular-data-support.md)
-- [ADR-0049: STAC-GeoParquet as Scalability Requirement](../context/shared/adr/0049-stac-geoparquet-scalability.md)
-- [ADR-0050: PMTiles as Visualization Requirement](../context/shared/adr/0050-pmtiles-visualization-requirement.md)
-- [ADR-0051: SELF_CONTAINED Catalog Type](../context/shared/adr/0051-self-contained-catalog-type.md)
-- [ADR-0052: Require llms.txt for AI/LLM Integration](../context/shared/adr/0052-llms-txt-requirement.md)
-
-For all architectural decisions, see [context/shared/adr/](../context/shared/adr/).
-
-## Machine-Readable Schemas
-
-- `schema/` — JSON schemas and validation rules for `versions.json`, `catalog.json`, etc.
-
-## Examples
-
-See [examples/](examples/) for reference implementations.
+The normative keywords (MUST, SHOULD, MAY, …) throughout the spec are used as
+defined in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and
+[RFC 8174](https://www.rfc-editor.org/rfc/rfc8174).
 
 ## Versioning
 
-The specification is versioned with [SemVer](https://semver.org/), starting
-pre-1.0. The version lives in exactly one canonical, machine-readable place:
+The specification is versioned with [SemVer](https://semver.org/), starting pre-1.0.
+A catalog declares the version it was authored against through the **Portolan STAC
+profile schema URI** in its `stac_extensions` array — e.g.
+`https://portolan-sdi.org/portolan/v0.1.0/schema.json`. That schema URI is the
+single signal of specification version; there is no separate version file (see
+[Conformance and Versioning](specs/portolan/core.md#conformance-and-versioning)).
 
-- [`schema/spec-version.json`](schema/spec-version.json) — read `spec_version`
-  from here to claim or verify conformance against a version of the Portolan
-  spec. Everything else (this README's header, the CLI's
-  `portolan_cli.constants.PORTOLAN_SPEC_VERSION`, and the
-  `portolan_spec_version` field in `portolan check --json` output) mirrors this
-  value.
+**Bump policy while pre-1.0:** any breaking change bumps the MINOR version (e.g.
+`0.1.0` → `0.2.0`); non-breaking changes bump the PATCH. Once the spec reaches
+`1.0.0`, normal SemVer applies. A change is **breaking** when a catalog that
+conformed to the previous version may no longer conform, or a tool built against
+the previous version may misvalidate — e.g. raising a rule's severity, adding a new
+required field, or removing/renaming a field or accepted value. A change is
+**non-breaking** when previously-conforming catalogs still conform — e.g. adding a
+warning, relaxing a constraint, or editorial clarification.
 
-This is distinct from the `spec_version` field inside a `versions.json`
-manifest, which versions the [manifest schema](schema/versions.schema.json), not
-the specification as a whole. The check output deliberately names its field
-`portolan_spec_version` to avoid colliding with that manifest key.
+## Contributing
 
-### Bump policy
+The spec is developed here, in the open, as the record of the decisions behind
+Portolan.
 
-While the spec is pre-1.0, **any breaking change bumps the MINOR** version
-(e.g. `0.1.0` → `0.2.0`); non-breaking changes bump the PATCH. Once the spec
-reaches `1.0.0`, normal SemVer applies (breaking changes bump MAJOR).
+- **Propose a change** by opening a pull request. Discussion happens in the PR.
+- **Raise a question or a disagreement** by opening an issue. Points that need more
+  debate move to issues rather than blocking a release.
+- **Immature ideas** live in [`specs/incubating/`](specs/incubating/) until they
+  stabilize; **guidance and philosophy** live in
+  [`specs/best-practices/`](specs/best-practices/).
 
-A change is **breaking** when a catalog that conformed to the previous version
-may no longer conform, or a tool built against the previous version may
-misvalidate. Examples:
+When a change is normative, bump the spec version per the [bump
+policy](#versioning) in the same PR.
 
-- Raising a rule's severity (e.g. `warning` → `error`) in `schema/rules.yaml`.
-- Adding a new `error`-level rule, or a new required field/constraint in any
-  schema (schema tightening).
-- Removing or renaming a field, rule id, or accepted value.
-- Changing the meaning of an existing field.
-
-A change is **non-breaking** (PATCH) when previously-conforming catalogs still
-conform. Examples:
-
-- Adding a new `warning`-level rule or an optional field.
-- Relaxing a constraint (e.g. `error` → `warning`, widening accepted values).
-- Editorial/documentation-only changes and clarifications.
-
-When you change the spec in a way that trips the criteria above, bump
-`spec_version` in `schema/spec-version.json` **and** the mirrored
-`PORTOLAN_SPEC_VERSION` constant in `portolan_cli/constants.py` in the same PR
-(a spec-compliance test fails if they drift).
-
-## Making Changes
-
-To propose spec changes:
-
-1. Open a PR in this repository (portolan-cli)
-2. Changes to `spec/` trigger review from spec maintainers
-3. On merge, CI syncs to portolan-spec automatically
-4. If the change is normative, bump `spec_version` per the
-   [bump policy](#bump-policy) above
-
-See [ADR-0048](../context/shared/adr/0048-cli-as-spec-source.md) for rationale.
+See also the [Code of Conduct](CODE_OF_CONDUCT.md).
