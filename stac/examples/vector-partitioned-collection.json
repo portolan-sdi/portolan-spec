@@ -1,0 +1,135 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://portolan-sdi.github.io/portolan-spec/portolan/v0.1.0/schema.json",
+    "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json"
+  ],
+  "id": "buildings",
+  "title": "Buildings of Andalusia",
+  "description": "Building footprints for Andalusia, Spain, partitioned by province into one GeoParquet file per province. All partitions can be read at once with the glob pattern `https://data.example.org/andalusia/buildings/*/*.parquet`.",
+  "license": "CC-BY-4.0",
+  "updated": "2026-07-15T09:30:00Z",
+  "keywords": [
+    "buildings",
+    "footprints",
+    "cadastre",
+    "andalusia"
+  ],
+  "providers": [
+    {
+      "name": "Dirección General del Catastro",
+      "roles": [
+        "producer",
+        "licensor"
+      ],
+      "url": "https://www.catastro.hacienda.gob.es"
+    },
+    {
+      "name": "Portolan SDI",
+      "roles": [
+        "processor",
+        "host"
+      ],
+      "url": "https://github.com/portolan-sdi"
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -7.523,
+          35.938,
+          -1.63,
+          38.729
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2025-06-01T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "assets": {
+    "visual": {
+      "href": "./buildings.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "Buildings (PMTiles)",
+      "roles": [
+        "visual"
+      ],
+      "file:size": 268435456,
+      "file:checksum": "1220d5a8e1b4c7f0a3d6e9b2c5f8a1d4e7b0c3f6a9d2e5b8c1f4a7d0e3b6c9f2a5d8"
+    },
+    "style-default": {
+      "href": "./styles/default.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Default MapLibre style",
+      "roles": [
+        "style"
+      ],
+      "file:size": 2304,
+      "file:checksum": "12207b0e3d6c9f2a5b8e1d4c7f0a3b6e9d2c5f8b1e4a7d0c3f6b9e2a5d8c1f4b7e09"
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview rendered with the default style",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 138204,
+      "file:checksum": "1220a6d9c2f5b8e1a4d7c0f3b6a9e2d5c8f1b4e7a0d3c6f9b2e5a8d1c4f7b0e3a6d9"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "item",
+      "href": "./buildings-sevilla/item.json",
+      "type": "application/geo+json",
+      "title": "Buildings — Seville province"
+    },
+    {
+      "rel": "pmtiles",
+      "href": "./buildings.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "Web map tiles",
+      "pmtiles:layers": [
+        "buildings"
+      ]
+    },
+    {
+      "rel": "via",
+      "href": "https://www.catastro.hacienda.gob.es/webinspire/index.html",
+      "type": "text/html",
+      "title": "Original source (Spanish Cadastre INSPIRE services)"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation"
+    }
+  ]
+}

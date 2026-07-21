@@ -1,0 +1,140 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://portolan-sdi.github.io/portolan-spec/portolan/v0.1.0/schema.json",
+    "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json"
+  ],
+  "id": "municipal-boundaries",
+  "title": "Municipal Boundaries of Andalusia",
+  "description": "Administrative boundaries of the 785 municipalities of Andalusia, Spain. Single-file GeoParquet collection with a PMTiles visualization derivative and a default MapLibre style.",
+  "license": "CC-BY-4.0",
+  "updated": "2026-07-15T09:30:00Z",
+  "keywords": [
+    "boundaries",
+    "administrative",
+    "municipalities",
+    "andalusia"
+  ],
+  "providers": [
+    {
+      "name": "Instituto de Estadística y Cartografía de Andalucía",
+      "roles": [
+        "producer",
+        "licensor"
+      ],
+      "url": "https://www.juntadeandalucia.es/institutodeestadisticaycartografia"
+    },
+    {
+      "name": "Portolan SDI",
+      "roles": [
+        "processor",
+        "host"
+      ],
+      "url": "https://github.com/portolan-sdi"
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -7.523,
+          35.938,
+          -1.63,
+          38.729
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2025-01-01T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "assets": {
+    "data": {
+      "href": "./municipal-boundaries.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "Municipal boundaries (GeoParquet)",
+      "description": "GeoParquet 1.1, zstd-compressed, spatially ordered, with a bbox covering column and per-row-group statistics.",
+      "roles": [
+        "data"
+      ],
+      "file:size": 18874368,
+      "file:checksum": "1220b7e2c5f0a913d64c8a1e5f27b3960d4c8e2a71f5b90c3d6e8a2b4c7d9e1f3a50"
+    },
+    "visual": {
+      "href": "./municipal-boundaries.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "Municipal boundaries (PMTiles)",
+      "roles": [
+        "visual"
+      ],
+      "file:size": 9437184,
+      "file:checksum": "12203c8e5a2f7b1d9046e3c8f5a2b7d1e4906c3f8a5b2e7d1c4f9a63b8e5d2c7f1a4"
+    },
+    "style-default": {
+      "href": "./styles/default.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Default MapLibre style",
+      "roles": [
+        "style"
+      ],
+      "file:size": 2048,
+      "file:checksum": "12209f4e2b7c5a1d8036f9e2c5b8a1d4e7003c6f9b2e5a8d1c4b7f0a3d6e9c2f5b81"
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview rendered with the default style",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 145728,
+      "file:checksum": "1220e1a4d7b02c5f8a3e6d9c2b5f8a1e4d70b3c6a9f2e5d8b1c4a7f0e3d6b9c2a5f8"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "pmtiles",
+      "href": "./municipal-boundaries.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "Web map tiles",
+      "pmtiles:layers": [
+        "municipal-boundaries"
+      ]
+    },
+    {
+      "rel": "via",
+      "href": "https://www.juntadeandalucia.es/institutodeestadisticaycartografia/DERA",
+      "type": "text/html",
+      "title": "Original source (DERA)"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation"
+    }
+  ]
+}

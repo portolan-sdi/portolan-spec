@@ -1,0 +1,95 @@
+name: Publish Schema
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build site from tracked schema versions
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          # Every schema version is tracked in the repo under
+          # stac/json-schema/v<semver>/; the site is rebuilt from that tree,
+          # never from what is currently deployed.
+          if [ ! -f "stac/json-schema/${VERSION}/schema.json" ]; then
+            echo "::error::stac/json-schema/${VERSION}/schema.json not found for release ${VERSION}"
+            exit 1
+          fi
+
+          mkdir -p _site/portolan
+          for dir in stac/json-schema/v*/; do
+            ver=$(basename "$dir")
+            mkdir -p "_site/portolan/${ver}"
+            cp "${dir}schema.json" "_site/portolan/${ver}/"
+          done
+
+          ls -d stac/json-schema/v*/ | xargs -n1 basename | jq -R . | jq -s . > _site/portolan/versions.json
+
+          # Create index page listing all versions
+          cat > _site/portolan/index.html << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Portolan STAC Profile</title>
+            <style>
+              body { font-family: system-ui, sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+              h1 { color: #333; }
+              ul { list-style: none; padding: 0; }
+              li { margin: 0.5rem 0; }
+              a { color: #0066cc; }
+            </style>
+          </head>
+          <body>
+            <h1>Portolan STAC Profile</h1>
+            <p>JSON Schema for the <a href="https://github.com/portolan-sdi/portolan-spec">Portolan STAC profile</a>.</p>
+            <h2>Available Versions</h2>
+            <ul id="versions"></ul>
+            <script>
+              fetch('versions.json')
+                .then(r => r.json())
+                .then(versions => {
+                  const ul = document.getElementById('versions');
+                  versions.sort().reverse().forEach(v => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="${v}/schema.json">${v}</a>`;
+                    ul.appendChild(li);
+                  });
+                });
+            </script>
+          </body>
+          </html>
+          HTMLEOF
+
+          # Root index redirects to the schema listing
+          cat > _site/index.html << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta http-equiv="refresh" content="0; url=portolan/">
+            <title>Portolan</title>
+          </head>
+          <body>
+            <a href="portolan/">Portolan schemas</a>
+          </body>
+          </html>
+          HTMLEOF
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
