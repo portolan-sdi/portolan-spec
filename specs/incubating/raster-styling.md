@@ -2,8 +2,9 @@
 
 **Status: open, under discussion ([#41](https://github.com/portolan-sdi/portolan-spec/issues/41)).**
 
-The [Visualization Styles](../portolan/core.md#visualization-styles) requirements in
-core are **vector-only**: they describe MapLibre GL style files for PMTiles. How
+Portolan's [Visualization Styles](../portolan/core.md#visualization-styles)
+requirements are currently **vector-only**: the concrete style format, defined in
+[`formats.md`](../portolan/formats.md), is a MapLibre GL style file for PMTiles. How
 raster styles are expressed is unspecified.
 
 Open questions:

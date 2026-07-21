@@ -62,10 +62,14 @@ rather than download, it is expressed as a link by default; when a provider inte
 the PMTiles file as a genuine distribution format of the data, it MAY additionally
 be registered as a collection-level asset, and the link and the asset then coexist.
 
-When PMTiles are provided, the collection MUST include visualization styles as
-standalone STAC assets (complete MapLibre files in `{collection}/styles/`) with the
-`["style"]` role, per [Visualization Styles](core.md#visualization-styles); no
-separate manifest is defined.
+When PMTiles are provided, the collection MUST include at least one visualization
+style as a standalone STAC asset with the `["style"]` role, registered per
+[Visualization Styles](core.md#visualization-styles). For PMTiles the style is a
+MapLibre GL style file (MapLibre GL style spec v8) in a `styles/` subdirectory, with
+media type `application/vnd.mapbox.style+json`, a complete, self-contained JSON
+loadable directly by MapLibre GL JS. By convention such a file sets `version` 8, a
+human-readable `name`, `sources.data.url` as the relative path from `styles/` to the
+PMTiles file (typically `../filename.pmtiles`), and `layers[].source` to `"data"`.
 
 ### Partitioned Collections
 

@@ -1,26 +1,61 @@
-# Portolan Specification
+# About
 
-Portolan is a specification for sharing geospatial data as cloud-native files on
-object storage with no servers, databases, or proprietary formats. A Portolan
-catalog is a directory of open-format data described by structured
+Portolan is a new foundation for sharing geospatial data: cloud-native files on 
+object storage — no servers, no databases, scalable, low-cost, soveriegn and AI-first. 
+A Portolan catalog is a directory of open-format data described by structured
 [STAC](https://stacspec.org/) metadata, hosted on any S3-compatible bucket.
+It builds on the incredible foundation of [cloud-native geospatial](https://cloudnativegeo.org)
+formats ([COG](https://cogeo.org/), [GeoParquet](https://geoparquet.org/), 
+[PMTiles](https://github.com/protomaps/pmtiles), [COPC](https://copc.io/) and 
+[GeoZarr](https://geozarr.org/)), providing a set of best practices and an 
+ecosystem of tools to publish great geospatial data catalogs. 
 
 Because the data is just files and the metadata is plain text, a browser, query
 engine like DuckDB, or AI agent can read a catalog, understand what it holds,
 and analyze it directly. If Portolan disappeared
 tomorrow, every file in a catalog would still work in the tools people already use.
 
-## Why
+This repo contains the Portolan specification, which lays out the requirements 
+and recommendations for producing a Portolan catalog. The specification guides 
+the ecosystem, but the software tools and collections of data following Portolan 
+conventions are really the center of the ecosystem. The spec follows from the 
+leading innovations of the community, to provide a clear target for diverse software 
+implementations.
+
+## Portolan Philosophy
 
 Portolan builds on existing standards rather than reinventing them. It is STAC
-1.1.0 at its core and reuses established STAC extensions wherever they fit. Portolan adds strong, opinionated requirements on formats,
+1.1.0 at its core and reuses established STAC extensions wherever they fit. Portolan 
+adds strong, opinionated requirements on formats,
 statistics, structure, and documentation in order to make catalogs reliably usable by
-both humans and agents without a server to interpret it.
+both humans and agents without a server to interpret it. The goal of this is to 
+set a much higher quality bar on data and metadata, so that interacting with any 
+Portolan catalog is a great experience for all users.
 
 The Portolan specification is deliberately prescriptive when that supports interoperability and is intended to evolve as
-cloud-native tooling matures. Requirements that are aspirational today may relax or
-tighten as the ecosystem catches up. Conformance is defined not by declaration but
-by passing the Portolan validator.
+cloud-native tooling matures. While core standards like STAC and GeoParquet 
+were established with explicit goals for stability, Portolan 
+aims to be a ‘strong opinion, loosely held’. This means that each version of the 
+specification will provide a set of requirements that reflect the communities 
+belief of what a ‘great’ STAC catalog looks like. So requirements that are 
+aspirational today may relax or tighten as the ecosystem catches up. Conformance is 
+defined not by declaration but by passing the Portolan validator.
+
+The goal is to reuse other standards as much as possible, but to also not shy away 
+from incubating new standards or formalizing ad hoc practices when there are holes 
+in the current landscape. This will often look like STAC extensions - contributing 
+to existing ones or making new ones - but can also be small, independent 
+specifications that capture current practices and innovations.
+
+The final core part of the Portolan philosophy is to treat AI and agents as first-class
+citizens. The standards and best practices for guiding agents is rapidly evolving, 
+so this part of the spec may change substantially, but the aim is to always ensure
+that all Portolan catalogs enable AI users to use the data in the catalog
+with minimal friction. And the implementation of new catalogs or mirrors of existing
+data should also be easy to do using AI tools, to drastically lower the barrier
+to publishing data. So the ecosystem of tools built around the specification
+embraces the use of AI, as it can greatly accelerate the creation of great, accessible
+geospatial data and metadata.
 
 ## Repository layout
 

@@ -11,24 +11,33 @@ regardless of data format. Format-specific requirements live in
 
 ## Introduction
 
-Portolan is a specification for sharing geospatial data as cloud-native files on
-object storage without servers, databases, or proprietary formats. A Portolan
-catalog is a directory of open-format, cloud-native data described by structured
-STAC metadata, hosted on any S3-compatible bucket. Because the data is just files
-and the metadata is plain text, a browser, a query engine like DuckDB, or an AI
-agent can read a catalog, understand what it holds, and analyze it directly, with
-no service in between. If Portolan disappeared tomorrow, every file in a catalog
-would still work in the tools people already use.
+The goal of Portolan is to make it easier and cheaper for data providers to publish
+their data, and to make that data more accessible to both humans and agents. If
+Portolan is successful then all the world's spatial data will be much easier to
+query and utilize in decisions that affect all of our lives.
 
-This specification builds on existing standards rather than reinventing them: it
-is STAC 1.1.0 at its core, and it reuses established STAC extensions wherever they
-fit instead of re-encoding the same information. What Portolan adds is a set of
-strong, opinionated requirements on formats, statistics, structure, and
-documentation that make a catalog reliably usable by both humans and agents
-without a server to interpret it. It is deliberately prescriptive where that buys
-interoperability, and it will evolve as cloud-native tooling matures; requirements
-that are aspirational today may relax or tighten as the ecosystem catches up.
-Conformance is defined not by declaration but by passing the Portolan validator.
+The center of Portolan is the [SpatioTemporal Asset Catalog](https://stacspec.org/) 
+specification - every Portolan implementation is a STAC catalog, and can be used 
+with any STAC tooling. But where STAC can be used with any data format and can 
+be implemented as an API or files on cloud storage, Portolan requires well-formed 
+cloud-native formats, stored as files on browser-accessible online services. All
+Portolan implementaions are [static catalogs](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#static-catalogs)
+- there is no 'Portolan API' like the STAC API, as many of the key benefits of Portolan,
+like scalability and lower cost, are achieved by the full embrace of cloud-native geospatial.
+
+Portolan further requires that all catalogs follow the best practices to guide
+AI agents to make use of them. Today that means adding an agents.md file to every
+catalog and collection and building up a set of 
+['skills'](https://github.com/portolan-sdi/portolan-skills) that guide agents to
+make use of the cloud-native formats. In the future this will likely evolve as
+the general best practices for agents continue to advance.
+
+The specification aims to standardize the minimum requirements for a 'great' catalog,
+and to provide guidance to go beyond that. But really the hope is that everyone 
+goes well beyond the minimum and tries to make each catalog better than before. The 
+aspiration of the authors of the specification is to build a real community of
+collaborators who are all working together to build great data catalogs and share
+tools and best practices so all can benefit.
 
 ## Core Structure
 
@@ -378,8 +387,12 @@ coordinate-system conventions — anything non-obvious. See
 
 ## README.md
 
-Every catalog and collection MUST have a `README.md` containing at minimum a title,
-description, license, and data provenance.
+Every catalog and collection MUST have a `README.md` in Markdown, referenced in the
+STAC `links` array (`rel: "describedby"`, `type: text/markdown`). Like `AGENTS.md` it
+is a link, not an asset — it describes the data, it is not the data. `describedby` is
+the IANA-registered relation for a resource carrying a description of the linked
+resource, and is already common in STAC. The `README.md` MUST contain at minimum a
+title, description, license, and data provenance.
 
 ## Metadata
 
@@ -412,21 +425,14 @@ needs no separate style file.
 ### Visualization Styles
 
 When a collection provides a render path it MUST provide at least one style telling
-clients how to draw it, in a compatible format. For PMTiles that is a MapLibre GL
-style file (MapLibre GL style spec v8) in a `styles/` subdirectory, with media type
-`application/vnd.mapbox.style+json`, a complete, self-contained JSON loadable
-directly by MapLibre GL JS. By convention such a file sets `version` 8, a
-human-readable `name`, `sources.data.url` as the relative path from `styles/` to
-the PMTiles file (typically `../filename.pmtiles`), and `layers[].source` to
-`"data"`.
+clients how to draw it, in a format appropriate to that render path. Style files are
+STAC assets: each style MUST be registered as a collection-level asset with `roles:
+["style"]`, alongside the data and thumbnail. A client or agent discovers a
+collection's styles by filtering assets on that role, so no separate manifest is
+needed and this specification defines none. Where multiple styles exist, the default
+SHOULD be listed first.
 
-Style files are STAC assets. Each style MUST be registered as a collection-level
-asset with `roles: ["style"]`, alongside the data and thumbnail; a client or agent
-discovers a collection's styles by filtering assets on that role, so no separate
-manifest is needed and this specification defines none. Where multiple styles
-exist, the default SHOULD be listed first.
-
-> **OPEN — raster styling.** How raster styles are expressed (colormaps, legends,
-> continuous vs. categorical vs. multiband) is unspecified and under discussion.
-> The MapLibre style requirements above are vector-only. See
-> [`specs/incubating/raster-styling.md`](../incubating/raster-styling.md).
+The concrete style format is defined per data format in [`formats.md`](formats.md):
+for vector (PMTiles) it is a MapLibre GL style file, while raster styling is still
+under discussion (see
+[`specs/incubating/raster-styling.md`](../incubating/raster-styling.md)).
