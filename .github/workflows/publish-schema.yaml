@@ -25,27 +25,42 @@ jobs:
         run: |
           # Every schema version is tracked in the repo under
           # stac/json-schema/v<semver>/; the site is rebuilt from that tree,
-          # never from what is currently deployed. The site is served at the
-          # root of schema.portolan-sdi.org, so versions deploy at /v<semver>/.
+          # never from what is currently deployed. schemas.portolan-sdi.org
+          # hosts one path segment per schema; this profile lives under
+          # /portolan/, so versions deploy at /portolan/v<semver>/.
           if [ "$EVENT_NAME" = "release" ] && [ ! -f "stac/json-schema/${VERSION}/schema.json" ]; then
             echo "::error::stac/json-schema/${VERSION}/schema.json not found for release ${VERSION}"
             exit 1
           fi
 
-          mkdir -p _site
+          mkdir -p _site/portolan
           for dir in stac/json-schema/v*/; do
             ver=$(basename "$dir")
-            mkdir -p "_site/${ver}"
-            cp "${dir}schema.json" "_site/${ver}/"
+            mkdir -p "_site/portolan/${ver}"
+            cp "${dir}schema.json" "_site/portolan/${ver}/"
           done
 
-          ls -d stac/json-schema/v*/ | xargs -n1 basename | jq -R . | jq -s . > _site/versions.json
+          ls -d stac/json-schema/v*/ | xargs -n1 basename | jq -R . | jq -s . > _site/portolan/versions.json
 
           # Serve the custom domain on GitHub Pages
-          echo "schema.portolan-sdi.org" > _site/CNAME
+          echo "schemas.portolan-sdi.org" > _site/CNAME
 
-          # Create index page listing all versions
+          # Root index redirects to the profile schema listing
           cat > _site/index.html << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta http-equiv="refresh" content="0; url=portolan/">
+            <title>Portolan schemas</title>
+          </head>
+          <body>
+            <a href="portolan/">Portolan schemas</a>
+          </body>
+          </html>
+          HTMLEOF
+
+          # Create index page listing all versions of the profile schema
+          cat > _site/portolan/index.html << 'HTMLEOF'
           <!DOCTYPE html>
           <html>
           <head>

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // The package.json version is the single source of truth for the profile
-// version, and https://schema.portolan-sdi.org/v<version>/schema.json is the
+// version, and https://schemas.portolan-sdi.org/portolan/v<version>/schema.json is the
 // single canonical schema URI. The schema for the current version must exist
 // under json-schema/, and every Portolan schema URI — in the schema itself,
 // the profile README, the examples, and the spec documents — must match the
@@ -13,7 +13,7 @@ const path = require('path');
 const root = path.join(__dirname, '..');
 const repo = path.join(root, '..');
 const version = require('../package.json').version;
-const canonical = `https://schema.portolan-sdi.org/v${version}/schema.json`;
+const canonical = `https://schemas.portolan-sdi.org/portolan/v${version}/schema.json`;
 // Any URL that mentions portolan and ends in a versioned schema.json is a
 // Portolan schema URI candidate — this catches stale hosts (github.io, the
 // apex domain) as well as stale versions.

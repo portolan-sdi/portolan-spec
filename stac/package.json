@@ -6,9 +6,9 @@
     "test": "npm run check-markdown && npm run check-version && npm run check-examples && npm run check-portolan",
     "check-markdown": "remark . --frail",
     "check-version": "node scripts/check-version.js",
-    "check-examples": "stac-node-validator examples/*.json --schemaMap https://schema.portolan-sdi.org/v$npm_package_version/schema.json=./json-schema/v$npm_package_version/schema.json",
+    "check-examples": "stac-node-validator examples/*.json --schemaMap https://schemas.portolan-sdi.org/portolan/v$npm_package_version/schema.json=./json-schema/v$npm_package_version/schema.json",
     "check-portolan": "node scripts/check-portolan.js",
-    "format-examples": "stac-node-validator examples/*.json --schemaMap https://schema.portolan-sdi.org/v$npm_package_version/schema.json=./json-schema/v$npm_package_version/schema.json --format"
+    "format-examples": "stac-node-validator examples/*.json --schemaMap https://schemas.portolan-sdi.org/portolan/v$npm_package_version/schema.json=./json-schema/v$npm_package_version/schema.json --format"
   },
   "devDependencies": {
     "ajv": "^8.17.1",
