@@ -107,7 +107,7 @@ Validation runs in separable passes:
 The metadata passes MUST be executable without reading asset data; the data pass
 MAY be run independently.
 
-Portolan schemas are published at `portolan-sdi.org`. `versions.json` is a tooling
+Portolan schemas are published at `schema.portolan-sdi.org`. `versions.json` is a tooling
 artifact and is NOT REQUIRED in a catalog for v0.1.
 
 ## Recommended STAC Extensions
