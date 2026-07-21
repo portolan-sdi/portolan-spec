@@ -1,0 +1,46 @@
+{
+  "version": 8,
+  "name": "boston-open-space categorical",
+  "sources": {
+    "boston-open-space": {
+      "type": "vector",
+      "url": "pmtiles://./boston-open-space.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "boston-open-space",
+      "type": "fill",
+      "source": "boston-open-space",
+      "source-layer": "boston-open-space",
+      "paint": {
+        "fill-color": [
+          "match",
+          [
+            "get",
+            "TypeLong"
+          ],
+          "Parks, Playgrounds & Athletic Fields",
+          "#4e79a7",
+          "Malls, Squares & Plazas",
+          "#f28e2b",
+          "Urban Wilds & Natural Areas",
+          "#59a14f",
+          "Community Gardens",
+          "#e15759",
+          "Parkways, Reservations & Beaches",
+          "#b07aa1",
+          "Cemeteries & Burying Grounds",
+          "#76b7b2",
+          "Parks, Playgrounds and Athletic Fields",
+          "#edc948",
+          "Malls, Squares and Plazas",
+          "#ff9da7",
+          "#cccccc"
+        ],
+        "fill-outline-color": "#ffffff",
+        "fill-opacity": 0.6
+      }
+    }
+  ]
+}

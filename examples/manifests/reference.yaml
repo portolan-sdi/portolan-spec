@@ -1,0 +1,306 @@
+# Portolan reference catalog manifest, authored against Portolan spec v0.1.0.
+#
+# One manifest file describes one whole catalog. build.py reads every *.yaml in
+# this directory and builds each into its own tree under the output directory,
+# named after the file stem (this file builds catalog/reference/).
+#
+# Every source below is the TRUE original upstream, in its native format, pulled
+# directly from the producer (not a CDN convenience mirror or a derived sample).
+# build.py downloads each source once, converts it to a cloud-native canonical
+# asset (GeoParquet for vector and tabular, COG for raster), and also cites the
+# original file as a source-role asset with its own real file:size and multihash
+# file:checksum.
+#
+# Build it:
+#   uv run examples/build.py
+#
+# Everything catalog-specific lives here, not in build.py. That includes the
+# nested-catalog titles under `catalogs` below, keyed by the first id segment of
+# each collection. Provenance is DERIVED from providers. If the sole producer org
+# differs from the host, the collection is a mirror and MUST carry provenance.via
+# and provenance.updated (build.py errors otherwise). Where the producer also
+# hosts (a "host" role on a producer entry), the collection is official and the
+# Portolan host is not appended.
+#
+# A collection whose license is the STAC value `other` MUST also set
+# `license_url`, the URL of the license text. build.py emits the required
+# rel=license link from it and errors if it is missing.
+
+id: portolan-reference
+title: Portolan Reference Catalog
+description: >-
+  A mixed reference catalog exercising every major case in the Portolan v0.1
+  specification with real, openly licensed data pulled from its original
+  upstream sources, vector polygons and points, raster, tabular, official and
+  mirror provenance, nested catalogs and flat collections.
+schema_uri: https://schema.portolan-sdi.org/v0.1.0/schema.json
+
+host:
+  name: Portolan SDI
+  url: https://github.com/portolan-sdi
+  email: portolan@googlegroups.com
+
+# Thumbnail rendering. build.py draws each thumbnail in Web Mercator at the
+# data's true aspect ratio over this XYZ tile basemap, so previews read as real
+# maps rather than stretched squares. GDAL fetches only the tiles the framed
+# extent needs at the matching zoom, and caches them under .cache. The default is
+# the CARTO light (Positron) basemap. Swap the url for any XYZ tile template.
+# ocean_color is the fallback fill used only when no basemap is set.
+thumbnails:
+  size: 768
+  ocean_color: "#eef3f8"
+  basemap:
+    url: https://basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png
+    attribution: "© OpenStreetMap contributors © CARTO"
+
+# Titles and descriptions for the nested catalogs, keyed by the first segment of
+# each collection id. build.py groups collections by this segment and reads the
+# matching entry here for the intermediate catalog metadata.
+catalogs:
+  reference:
+    title: Reference Basemaps
+    description: >-
+      Public domain reference basemap layers for general orientation and joins.
+  boundaries:
+    title: Administrative Boundaries
+    description: >-
+      Administrative and open-space boundary Collections from official sources.
+  mirror:
+    title: Mirrored Collections
+    description: >-
+      Cloud-native mirror Collections of data maintained elsewhere.
+  raster:
+    title: Raster Data
+    description: >-
+      Cloud Optimized GeoTIFF raster Collections.
+  tabular:
+    title: Tabular Data
+    description: >-
+      Non-geospatial companion tables published as Parquet.
+
+collections:
+  # ---------------------------------------------------------------- reference/
+  - id: reference/natural-earth-countries
+    kind: vector
+    geometry: polygon
+    title: Natural Earth Countries (1:110m)
+    description: >-
+      World country boundaries at 1:110m scale from Natural Earth, the public
+      domain reference basemap maintained by NACIS. Republished as cloud-native
+      GeoParquet alongside the original zipped Shapefile.
+    keywords: [boundaries, countries, natural-earth, reference, basemap]
+    license: CC0-1.0
+    source:
+      url: https://naciscdn.org/naturalearth/110m/cultural/ne_110m_admin_0_countries.zip
+      media_type: application/zip
+      title: Natural Earth 110m Admin 0 Countries (zipped Shapefile)
+      layer: ne_110m_admin_0_countries
+      stable: true
+    providers:
+      - {name: Natural Earth, url: https://www.naturalearthdata.com, roles: [producer, licensor]}
+    provenance:
+      via: https://www.naturalearthdata.com/downloads/110m-cultural-vectors/
+      updated: "2026-07-16T00:00:00Z"
+    temporal: ["2025-01-01T00:00:00Z", null]
+    derivatives: {pmtiles: false, thumbnail: true}
+    # Colour the world by continent so the preview reads as a map, not one blob.
+    style: {color: "#4d7ea8", category_field: CONTINENT}
+
+  - id: reference/natural-earth-populated-places
+    kind: vector
+    geometry: point
+    title: Natural Earth Populated Places (1:50m)
+    description: >-
+      Point locations of populated places, cities and towns, at 1:50m scale
+      from Natural Earth. Public domain reference points, republished as
+      cloud-native GeoParquet alongside the original zipped Shapefile.
+    keywords: [places, cities, points, natural-earth, reference]
+    license: CC0-1.0
+    source:
+      url: https://naciscdn.org/naturalearth/50m/cultural/ne_50m_populated_places.zip
+      media_type: application/zip
+      title: Natural Earth 50m Populated Places (zipped Shapefile)
+      layer: ne_50m_populated_places
+      stable: true
+    providers:
+      - {name: Natural Earth, url: https://www.naturalearthdata.com, roles: [producer, licensor]}
+    provenance:
+      via: https://www.naturalearthdata.com/downloads/50m-cultural-vectors/
+      updated: "2026-07-16T00:00:00Z"
+    temporal: ["2025-01-01T00:00:00Z", null]
+    derivatives: {pmtiles: false, thumbnail: true}
+    style: {color: "#c65b3c"}
+
+  # --------------------------------------------------------------- boundaries/
+  - id: boundaries/us-counties
+    kind: vector
+    geometry: polygon
+    title: United States Counties (2023, 1:500k)
+    description: >-
+      County and equivalent boundaries for the United States, the 2023
+      cartographic boundary file at 1:500,000 from the US Census Bureau,
+      generalized for small-scale mapping. Republished as cloud-native
+      GeoParquet alongside the original zipped Shapefile.
+    keywords: [boundaries, counties, united-states, census, tiger]
+    license: CC0-1.0
+    source:
+      url: https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_500k.zip
+      media_type: application/zip
+      title: US Census cartographic boundary counties 2023 500k (zipped Shapefile)
+      layer: cb_2023_us_county_500k
+      stable: true
+    providers:
+      - {name: U.S. Census Bureau, url: https://www.census.gov, roles: [producer, licensor]}
+    provenance:
+      via: https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html
+      canonical: https://catalog.data.gov/dataset/tiger-line-shapefile-2024-nation-u-s-county-and-equivalent-entities
+      updated: "2026-07-16T00:00:00Z"
+    temporal: ["2023-01-01T00:00:00Z", null]
+    # The data spans the antimeridian (Aleutians to American Samoa), so frame the
+    # preview on the contiguous US. This affects the thumbnail only, not the data.
+    thumbnail_bbox: [-125.0, 24.0, -66.5, 49.5]
+    derivatives: {pmtiles: true, thumbnail: true}
+    # Colour counties by their state. The same block drives the thumbnail and the
+    # categorical MapLibre style, so the preview mirrors the map.
+    style:
+      color: "#6b8e5a"
+      category_field: STATE_NAME
+      label_field: NAME
+      variants: [default, categorical]
+
+  - id: boundaries/boston-open-space
+    kind: vector
+    geometry: polygon
+    title: Boston Open Space
+    description: >-
+      City of Boston open spaces and parks, playgrounds, athletic fields,
+      conservation land, and cemeteries, 1,012 polygons from the City of Boston
+      GIS open data platform. Official primary source, republished as
+      cloud-native GeoParquet with a PMTiles visualization and MapLibre styles.
+    keywords: [open-space, parks, boston, recreation, boundaries]
+    license: PDDL-1.0
+    source:
+      url: https://opendata.arcgis.com/api/v3/datasets/2868d370c55d4d458d4ae2224ef8cddd_7/downloads/data?format=shp&spatialRefId=4326
+      media_type: application/zip
+      title: City of Boston Open Space (zipped Shapefile export)
+      stable: false
+    providers:
+      - {name: City of Boston, url: https://data.boston.gov, roles: [producer, licensor, host]}
+    provenance:
+      updated: "2026-07-21T00:00:00Z"
+    temporal: ["2025-01-01T00:00:00Z", null]
+    derivatives: {pmtiles: true, thumbnail: true}
+    style:
+      color: "#2e7d32"
+      category_field: TypeLong
+      label_field: SITE_NAME
+      graduated_field: ACRES
+      variants: [default, categorical, labeled, graduated]
+
+  - id: boundaries/netherlands-provinces
+    kind: vector
+    geometry: polygon
+    title: Netherlands Provinces
+    description: >-
+      The 12 provinces of the Netherlands, administrative boundaries from the
+      Dutch national spatial data infrastructure PDOK, derived from the Kadaster
+      BRK Bestuurlijke Gebieden. Republished as cloud-native GeoParquet with a
+      PMTiles visualization and categorical, labeled MapLibre styles.
+    keywords: [boundaries, provinces, netherlands, administrative, pdok]
+    license: CC-BY-4.0
+    attribution: Kadaster / PDOK
+    source:
+      url: https://service.pdok.nl/kadaster/brk-bestuurlijke-gebieden/atom/downloads/BestuurlijkeGebieden_2026.gpkg
+      media_type: application/geopackage+sqlite3
+      title: PDOK Bestuurlijke Gebieden 2026 (GeoPackage)
+      layer: provinciegebied
+      stable: true
+    providers:
+      - {name: Kadaster, url: https://www.kadaster.nl, roles: [producer, licensor]}
+      - {name: PDOK, url: https://www.pdok.nl, roles: [processor]}
+    provenance:
+      via: https://www.pdok.nl/introductie/-/article/bestuurlijke-gebieden
+      canonical: https://www.nationaalgeoregister.nl/geonetwork/srv/api/records/208bc283-7c66-4ce7-8ad3-1cf3e8933fb5
+      updated: "2026-07-16T00:00:00Z"
+    temporal: ["2026-01-01T00:00:00Z", null]
+    derivatives: {pmtiles: true, thumbnail: true}
+    style:
+      color: "#e65100"
+      category_field: naam
+      label_field: naam
+      variants: [default, categorical, labeled]
+
+  # ------------------------------------------------------------------- mirror/
+  - id: mirror/san-francisco-addresses
+    kind: vector
+    geometry: point
+    title: San Francisco Addresses (EAS)
+    description: >-
+      Point addresses from the City and County of San Francisco Enterprise
+      Addressing System, a 50,000-feature extract of the official DataSF open
+      data layer, converted to cloud-native GeoParquet with a PMTiles
+      visualization. The source asset points at the full live DataSF layer.
+    keywords: [addresses, points, san-francisco, datasf, eas]
+    license: PDDL-1.0
+    source:
+      url: https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=50000
+      media_type: application/geo+json
+      title: DataSF San Francisco Addresses with Units (GeoJSON, 50k extract)
+      stable: false
+    providers:
+      - {name: City and County of San Francisco, url: https://www.sf.gov, roles: [producer, licensor]}
+      - {name: DataSF, url: https://datasf.org/opendata/, roles: [processor]}
+    provenance:
+      via: https://data.sfgov.org/
+      canonical: https://data.sfgov.org/api/views/ramy-di5m.json
+      updated: "2026-07-21T00:00:00Z"
+    temporal: ["2018-10-12T00:00:00Z", null]
+    derivatives: {pmtiles: true, thumbnail: true}
+    style: {color: "#6a1b9a"}
+
+  # ------------------------------------------------------------------- raster/
+  - id: raster/sample-cog
+    kind: raster
+    title: Sample Raster COG
+    description: >-
+      A small 3-band Cloud Optimized GeoTIFF used to exercise the raster path
+      end to end. Optimized to a COG with per-band statistics, minimum, maximum,
+      mean, and standard deviation, embedded in the header. From the rasterio
+      test fixtures, a 3-band raster in UTM zone 18N (EPSG:32618).
+    keywords: [raster, cog, sample, rgb, geotiff]
+    license: BSD-3-Clause
+    source:
+      url: https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif
+      media_type: image/tiff
+      title: rasterio RGB.byte.tif test fixture (GeoTIFF)
+      stable: true
+    providers:
+      - {name: rasterio, url: https://github.com/rasterio/rasterio, roles: [producer, licensor, host]}
+    provenance:
+      updated: "2026-07-21T00:00:00Z"
+    temporal: ["2020-01-01T00:00:00Z", null]
+    derivatives: {thumbnail: true}
+
+  # ------------------------------------------------------------------ tabular/
+  - id: tabular/eurostat-electricity-prices
+    kind: tabular
+    title: Eurostat Electricity Prices for Household Consumers
+    description: >-
+      Semi-annual electricity prices for household consumers across European
+      countries by consumption band, tax component, and currency, Eurostat table
+      nrg_pc_204. Non-geospatial companion table, join key is the country code
+      column geo (NUTS-0), converted to cloud-native Parquet.
+    keywords: [energy, electricity, prices, eurostat, tabular]
+    license: CC-BY-4.0
+    attribution: "Source, Eurostat"
+    source:
+      url: https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/nrg_pc_204/?format=SDMX-CSV&compressed=false
+      media_type: text/csv
+      title: Eurostat nrg_pc_204 electricity prices (SDMX-CSV)
+      stable: false
+    providers:
+      - {name: Eurostat, url: https://ec.europa.eu/eurostat, roles: [producer, licensor, host]}
+    provenance:
+      updated: "2026-07-21T00:00:00Z"
+    temporal: ["2007-01-01T00:00:00Z", null]
+    derivatives: {thumbnail: false}

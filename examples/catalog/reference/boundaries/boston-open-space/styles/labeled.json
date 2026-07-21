@@ -1,0 +1,65 @@
+{
+  "version": 8,
+  "name": "boston-open-space labeled",
+  "sources": {
+    "boston-open-space": {
+      "type": "vector",
+      "url": "pmtiles://./boston-open-space.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "boston-open-space",
+      "type": "fill",
+      "source": "boston-open-space",
+      "source-layer": "boston-open-space",
+      "paint": {
+        "fill-color": [
+          "match",
+          [
+            "get",
+            "TypeLong"
+          ],
+          "Parks, Playgrounds & Athletic Fields",
+          "#4e79a7",
+          "Malls, Squares & Plazas",
+          "#f28e2b",
+          "Urban Wilds & Natural Areas",
+          "#59a14f",
+          "Community Gardens",
+          "#e15759",
+          "Parkways, Reservations & Beaches",
+          "#b07aa1",
+          "Cemeteries & Burying Grounds",
+          "#76b7b2",
+          "Parks, Playgrounds and Athletic Fields",
+          "#edc948",
+          "Malls, Squares and Plazas",
+          "#ff9da7",
+          "#cccccc"
+        ],
+        "fill-outline-color": "#ffffff",
+        "fill-opacity": 0.6
+      }
+    },
+    {
+      "id": "boston-open-space-labels",
+      "type": "symbol",
+      "source": "boston-open-space",
+      "source-layer": "boston-open-space",
+      "layout": {
+        "text-field": [
+          "get",
+          "SITE_NAME"
+        ],
+        "text-size": 11,
+        "text-anchor": "center"
+      },
+      "paint": {
+        "text-color": "#222222",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 1
+      }
+    }
+  ]
+}

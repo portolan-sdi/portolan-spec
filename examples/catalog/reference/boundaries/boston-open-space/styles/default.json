@@ -1,0 +1,23 @@
+{
+  "version": 8,
+  "name": "boston-open-space default",
+  "sources": {
+    "boston-open-space": {
+      "type": "vector",
+      "url": "pmtiles://./boston-open-space.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "boston-open-space",
+      "type": "fill",
+      "source": "boston-open-space",
+      "source-layer": "boston-open-space",
+      "paint": {
+        "fill-color": "#2e7d32",
+        "fill-outline-color": "#ffffff",
+        "fill-opacity": 0.6
+      }
+    }
+  ]
+}

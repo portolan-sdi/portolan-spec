@@ -1,0 +1,155 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schema.portolan-sdi.org/v0.1.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json",
+    "https://stac-extensions.github.io/attribution/v0.1.0/schema.json"
+  ],
+  "id": "eurostat-electricity-prices",
+  "title": "Eurostat Electricity Prices for Household Consumers",
+  "description": "Semi-annual electricity prices for household consumers across European countries by consumption band, tax component, and currency, Eurostat table nrg_pc_204. Non-geospatial companion table, join key is the country code column geo (NUTS-0), converted to cloud-native Parquet.",
+  "license": "CC-BY-4.0",
+  "keywords": [
+    "energy",
+    "electricity",
+    "prices",
+    "eurostat",
+    "tabular"
+  ],
+  "providers": [
+    {
+      "name": "Eurostat",
+      "url": "https://ec.europa.eu/eurostat",
+      "roles": [
+        "producer",
+        "licensor",
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -180,
+          -90,
+          180,
+          90
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2007-01-01T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "assets": {
+    "data": {
+      "href": "./eurostat-electricity-prices.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "Eurostat Electricity Prices for Household Consumers (Parquet)",
+      "roles": [
+        "data"
+      ],
+      "file:size": 163273,
+      "file:checksum": "1220382c660b17918c91e5c88fc1d40e4e8561f109821ff034bed79747255ecf81a4",
+      "table:columns": [
+        {
+          "name": "DATAFLOW",
+          "type": "varchar"
+        },
+        {
+          "name": "LAST UPDATE",
+          "type": "timestamp"
+        },
+        {
+          "name": "freq",
+          "type": "varchar"
+        },
+        {
+          "name": "siec",
+          "type": "varchar"
+        },
+        {
+          "name": "nrg_cons",
+          "type": "varchar"
+        },
+        {
+          "name": "unit",
+          "type": "varchar"
+        },
+        {
+          "name": "tax",
+          "type": "varchar"
+        },
+        {
+          "name": "currency",
+          "type": "varchar"
+        },
+        {
+          "name": "geo",
+          "type": "varchar"
+        },
+        {
+          "name": "TIME_PERIOD",
+          "type": "varchar"
+        },
+        {
+          "name": "OBS_VALUE",
+          "type": "double"
+        },
+        {
+          "name": "OBS_FLAG",
+          "type": "varchar"
+        },
+        {
+          "name": "CONF_STATUS",
+          "type": "varchar"
+        }
+      ]
+    },
+    "source": {
+      "href": "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/nrg_pc_204/?format=SDMX-CSV&compressed=false",
+      "type": "text/csv",
+      "title": "Eurostat nrg_pc_204 electricity prices (SDMX-CSV)",
+      "roles": [
+        "data",
+        "source"
+      ],
+      "file:size": 6241780,
+      "file:checksum": "1220d7347e2ac295fcf7fb55b986118134f66db5ff58f3837b3b26b7e6e66ca511b0"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation"
+    }
+  ],
+  "attribution": "Source, Eurostat",
+  "updated": "2026-07-21T00:00:00Z"
+}

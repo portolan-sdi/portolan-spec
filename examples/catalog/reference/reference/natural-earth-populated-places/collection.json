@@ -1,0 +1,686 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schema.portolan-sdi.org/v0.1.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
+  ],
+  "id": "natural-earth-populated-places",
+  "title": "Natural Earth Populated Places (1:50m)",
+  "description": "Point locations of populated places, cities and towns, at 1:50m scale from Natural Earth. Public domain reference points, republished as cloud-native GeoParquet alongside the original zipped Shapefile.",
+  "license": "CC0-1.0",
+  "keywords": [
+    "places",
+    "cities",
+    "points",
+    "natural-earth",
+    "reference"
+  ],
+  "providers": [
+    {
+      "name": "Natural Earth",
+      "url": "https://www.naturalearthdata.com",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -175.220564,
+          -90.0,
+          179.216647,
+          78.220971
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2025-01-01T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "assets": {
+    "data": {
+      "href": "./natural-earth-populated-places.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "Natural Earth Populated Places (1:50m) (GeoParquet)",
+      "roles": [
+        "data"
+      ],
+      "file:size": 618510,
+      "file:checksum": "12205f4d83fec2335b8668a9a35edcb3d0861a91886815994fed2f668c178859462e",
+      "table:columns": [
+        {
+          "name": "fid",
+          "type": "bigint"
+        },
+        {
+          "name": "SCALERANK",
+          "type": "integer"
+        },
+        {
+          "name": "NATSCALE",
+          "type": "integer"
+        },
+        {
+          "name": "LABELRANK",
+          "type": "integer"
+        },
+        {
+          "name": "FEATURECLA",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME",
+          "type": "varchar"
+        },
+        {
+          "name": "NAMEPAR",
+          "type": "varchar"
+        },
+        {
+          "name": "NAMEALT",
+          "type": "varchar"
+        },
+        {
+          "name": "NAMEASCII",
+          "type": "varchar"
+        },
+        {
+          "name": "ADM0CAP",
+          "type": "integer"
+        },
+        {
+          "name": "CAPIN",
+          "type": "varchar"
+        },
+        {
+          "name": "WORLDCITY",
+          "type": "integer"
+        },
+        {
+          "name": "MEGACITY",
+          "type": "integer"
+        },
+        {
+          "name": "SOV0NAME",
+          "type": "varchar"
+        },
+        {
+          "name": "SOV_A3",
+          "type": "varchar"
+        },
+        {
+          "name": "ADM0NAME",
+          "type": "varchar"
+        },
+        {
+          "name": "ADM0_A3",
+          "type": "varchar"
+        },
+        {
+          "name": "ADM1NAME",
+          "type": "varchar"
+        },
+        {
+          "name": "ISO_A2",
+          "type": "varchar"
+        },
+        {
+          "name": "NOTE",
+          "type": "varchar"
+        },
+        {
+          "name": "LATITUDE",
+          "type": "double"
+        },
+        {
+          "name": "LONGITUDE",
+          "type": "double"
+        },
+        {
+          "name": "POP_MAX",
+          "type": "bigint"
+        },
+        {
+          "name": "POP_MIN",
+          "type": "bigint"
+        },
+        {
+          "name": "POP_OTHER",
+          "type": "bigint"
+        },
+        {
+          "name": "RANK_MAX",
+          "type": "integer"
+        },
+        {
+          "name": "RANK_MIN",
+          "type": "integer"
+        },
+        {
+          "name": "MEGANAME",
+          "type": "varchar"
+        },
+        {
+          "name": "LS_NAME",
+          "type": "varchar"
+        },
+        {
+          "name": "MAX_POP10",
+          "type": "bigint"
+        },
+        {
+          "name": "MAX_POP20",
+          "type": "bigint"
+        },
+        {
+          "name": "MAX_POP50",
+          "type": "bigint"
+        },
+        {
+          "name": "MAX_POP300",
+          "type": "bigint"
+        },
+        {
+          "name": "MAX_POP310",
+          "type": "bigint"
+        },
+        {
+          "name": "MAX_NATSCA",
+          "type": "bigint"
+        },
+        {
+          "name": "MIN_AREAKM",
+          "type": "bigint"
+        },
+        {
+          "name": "MAX_AREAKM",
+          "type": "bigint"
+        },
+        {
+          "name": "MIN_AREAMI",
+          "type": "bigint"
+        },
+        {
+          "name": "MAX_AREAMI",
+          "type": "bigint"
+        },
+        {
+          "name": "MIN_PERKM",
+          "type": "bigint"
+        },
+        {
+          "name": "MAX_PERKM",
+          "type": "bigint"
+        },
+        {
+          "name": "MIN_PERMI",
+          "type": "bigint"
+        },
+        {
+          "name": "MAX_PERMI",
+          "type": "bigint"
+        },
+        {
+          "name": "MIN_BBXMIN",
+          "type": "double"
+        },
+        {
+          "name": "MAX_BBXMIN",
+          "type": "double"
+        },
+        {
+          "name": "MIN_BBXMAX",
+          "type": "double"
+        },
+        {
+          "name": "MAX_BBXMAX",
+          "type": "double"
+        },
+        {
+          "name": "MIN_BBYMIN",
+          "type": "double"
+        },
+        {
+          "name": "MAX_BBYMIN",
+          "type": "double"
+        },
+        {
+          "name": "MIN_BBYMAX",
+          "type": "double"
+        },
+        {
+          "name": "MAX_BBYMAX",
+          "type": "double"
+        },
+        {
+          "name": "MEAN_BBXC",
+          "type": "double"
+        },
+        {
+          "name": "MEAN_BBYC",
+          "type": "double"
+        },
+        {
+          "name": "TIMEZONE",
+          "type": "varchar"
+        },
+        {
+          "name": "UN_FID",
+          "type": "integer"
+        },
+        {
+          "name": "POP1950",
+          "type": "bigint"
+        },
+        {
+          "name": "POP1955",
+          "type": "bigint"
+        },
+        {
+          "name": "POP1960",
+          "type": "bigint"
+        },
+        {
+          "name": "POP1965",
+          "type": "bigint"
+        },
+        {
+          "name": "POP1970",
+          "type": "bigint"
+        },
+        {
+          "name": "POP1975",
+          "type": "bigint"
+        },
+        {
+          "name": "POP1980",
+          "type": "bigint"
+        },
+        {
+          "name": "POP1985",
+          "type": "bigint"
+        },
+        {
+          "name": "POP1990",
+          "type": "bigint"
+        },
+        {
+          "name": "POP1995",
+          "type": "bigint"
+        },
+        {
+          "name": "POP2000",
+          "type": "bigint"
+        },
+        {
+          "name": "POP2005",
+          "type": "bigint"
+        },
+        {
+          "name": "POP2010",
+          "type": "bigint"
+        },
+        {
+          "name": "POP2015",
+          "type": "bigint"
+        },
+        {
+          "name": "POP2020",
+          "type": "bigint"
+        },
+        {
+          "name": "POP2025",
+          "type": "bigint"
+        },
+        {
+          "name": "POP2050",
+          "type": "bigint"
+        },
+        {
+          "name": "MIN_ZOOM",
+          "type": "double"
+        },
+        {
+          "name": "WIKIDATAID",
+          "type": "varchar"
+        },
+        {
+          "name": "WOF_ID",
+          "type": "bigint"
+        },
+        {
+          "name": "CAPALT",
+          "type": "integer"
+        },
+        {
+          "name": "NAME_EN",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_DE",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_ES",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_FR",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_PT",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_RU",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_ZH",
+          "type": "varchar"
+        },
+        {
+          "name": "LABEL",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_AR",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_BN",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_EL",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_HI",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_HU",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_ID",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_IT",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_JA",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_KO",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_NL",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_PL",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_SV",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_TR",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_VI",
+          "type": "varchar"
+        },
+        {
+          "name": "NE_ID",
+          "type": "bigint"
+        },
+        {
+          "name": "NAME_FA",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_HE",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_UK",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_UR",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME_ZHT",
+          "type": "varchar"
+        },
+        {
+          "name": "GEONAMESID",
+          "type": "bigint"
+        },
+        {
+          "name": "FCLASS_ISO",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_US",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_FR",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_RU",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_ES",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_CN",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_TW",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_IN",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_NP",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_PK",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_DE",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_GB",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_BR",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_IL",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_PS",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_SA",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_EG",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_MA",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_PT",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_AR",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_JP",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_KO",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_VN",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_TR",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_ID",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_PL",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_GR",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_IT",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_NL",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_SE",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_BD",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_UA",
+          "type": "varchar"
+        },
+        {
+          "name": "FCLASS_TLC",
+          "type": "varchar"
+        },
+        {
+          "name": "geom",
+          "type": "geometry"
+        },
+        {
+          "name": "bbox",
+          "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+        }
+      ],
+      "proj:code": "EPSG:4326"
+    },
+    "source": {
+      "href": "https://naciscdn.org/naturalearth/50m/cultural/ne_50m_populated_places.zip",
+      "type": "application/zip",
+      "title": "Natural Earth 50m Populated Places (zipped Shapefile)",
+      "roles": [
+        "data",
+        "source"
+      ],
+      "file:size": 553649,
+      "file:checksum": "12209022c3be867be79c44bd6fc6ff4dcc210e85ffee13b033bf4d1d87d83c9ee6b4"
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview thumbnail over a light basemap. \u00a9 OpenStreetMap contributors \u00a9 CARTO.",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 134982,
+      "file:checksum": "122096a801ad9139fd53f8da795cf0be9e4a3f8cd71479c8e262cb44a0f1eb40a8dc"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "via",
+      "href": "https://www.naturalearthdata.com/downloads/50m-cultural-vectors/",
+      "type": "text/html",
+      "title": "Original source"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation"
+    }
+  ],
+  "updated": "2026-07-16T00:00:00Z"
+}
