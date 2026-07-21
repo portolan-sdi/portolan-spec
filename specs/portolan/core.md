@@ -425,21 +425,14 @@ needs no separate style file.
 ### Visualization Styles
 
 When a collection provides a render path it MUST provide at least one style telling
-clients how to draw it, in a compatible format. For PMTiles that is a MapLibre GL
-style file (MapLibre GL style spec v8) in a `styles/` subdirectory, with media type
-`application/vnd.mapbox.style+json`, a complete, self-contained JSON loadable
-directly by MapLibre GL JS. By convention such a file sets `version` 8, a
-human-readable `name`, `sources.data.url` as the relative path from `styles/` to
-the PMTiles file (typically `../filename.pmtiles`), and `layers[].source` to
-`"data"`.
+clients how to draw it, in a format appropriate to that render path. Style files are
+STAC assets: each style MUST be registered as a collection-level asset with `roles:
+["style"]`, alongside the data and thumbnail. A client or agent discovers a
+collection's styles by filtering assets on that role, so no separate manifest is
+needed and this specification defines none. Where multiple styles exist, the default
+SHOULD be listed first.
 
-Style files are STAC assets. Each style MUST be registered as a collection-level
-asset with `roles: ["style"]`, alongside the data and thumbnail; a client or agent
-discovers a collection's styles by filtering assets on that role, so no separate
-manifest is needed and this specification defines none. Where multiple styles
-exist, the default SHOULD be listed first.
-
-> **OPEN — raster styling.** How raster styles are expressed (colormaps, legends,
-> continuous vs. categorical vs. multiband) is unspecified and under discussion.
-> The MapLibre style requirements above are vector-only. See
-> [`specs/incubating/raster-styling.md`](../incubating/raster-styling.md).
+The concrete style format is defined per data format in [`formats.md`](formats.md):
+for vector (PMTiles) it is a MapLibre GL style file, while raster styling is still
+under discussion (see
+[`specs/incubating/raster-styling.md`](../incubating/raster-styling.md)).
