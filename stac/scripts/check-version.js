@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // The package.json version is the single source of truth for the profile
-// version. The schema for the current version must exist under json-schema/,
-// and every reference to a versioned Portolan schema URI — in the schema
-// itself, the profile README, the examples, and the spec documents — must
-// match it.
+// version, and https://schema.portolan-sdi.org/v<version>/schema.json is the
+// single canonical schema URI. The schema for the current version must exist
+// under json-schema/, and every Portolan schema URI — in the schema itself,
+// the profile README, the examples, and the spec documents — must match the
+// canonical one exactly, host included.
 'use strict';
 
 const fs = require('fs');
@@ -12,15 +13,18 @@ const path = require('path');
 const root = path.join(__dirname, '..');
 const repo = path.join(root, '..');
 const version = require('../package.json').version;
-const expected = `v${version}`;
-const pattern = /portolan\/(v\d+\.\d+\.\d+)\/schema\.json/g;
+const canonical = `https://schema.portolan-sdi.org/v${version}/schema.json`;
+// Any URL that mentions portolan and ends in a versioned schema.json is a
+// Portolan schema URI candidate — this catches stale hosts (github.io, the
+// apex domain) as well as stale versions.
+const pattern = /https:\/\/[^\s"'`<>()\[\]]*portolan[^\s"'`<>()\[\]]*\/v\d+\.\d+\.\d+\/schema\.json/g;
 
 let failed = false;
 const fail = (msg) => { failed = true; console.error(`✗ ${msg}`); };
 
-const schemaPath = path.join(root, 'json-schema', expected, 'schema.json');
+const schemaPath = path.join(root, 'json-schema', `v${version}`, 'schema.json');
 if (!fs.existsSync(schemaPath)) {
-  fail(`json-schema/${expected}/schema.json not found (package.json version is ${version})`);
+  fail(`json-schema/v${version}/schema.json not found (package.json version is ${version})`);
 }
 
 const files = [
@@ -38,12 +42,12 @@ for (const file of files) {
   const rel = path.relative(repo, file);
   const text = fs.readFileSync(file, 'utf8');
   for (const match of text.matchAll(pattern)) {
-    if (match[1] !== expected) {
+    if (match[0] !== canonical) {
       const line = text.slice(0, match.index).split('\n').length;
-      fail(`${rel}:${line} references ${match[1]}, expected ${expected}`);
+      fail(`${rel}:${line} references ${match[0]}, expected ${canonical}`);
     }
   }
 }
 
-if (!failed) console.log(`✓ all Portolan schema URI references match ${expected}`);
+if (!failed) console.log(`✓ all Portolan schema URI references match ${canonical}`);
 process.exit(failed ? 1 : 0);
