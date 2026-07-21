@@ -387,8 +387,12 @@ coordinate-system conventions — anything non-obvious. See
 
 ## README.md
 
-Every catalog and collection MUST have a `README.md` containing at minimum a title,
-description, license, and data provenance.
+Every catalog and collection MUST have a `README.md` in Markdown, referenced in the
+STAC `links` array (`rel: "describedby"`, `type: text/markdown`). Like `AGENTS.md` it
+is a link, not an asset — it describes the data, it is not the data. `describedby` is
+the IANA-registered relation for a resource carrying a description of the linked
+resource, and is already common in STAC. The `README.md` MUST contain at minimum a
+title, description, license, and data provenance.
 
 ## Metadata
 
