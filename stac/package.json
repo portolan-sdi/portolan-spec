@@ -3,12 +3,15 @@
   "version": "0.1.0",
   "description": "Portolan STAC profile — JSON Schema for the schema-checkable requirements plus a profile over reused STAC extensions",
   "scripts": {
-    "test": "npm run check-markdown && npm run check-examples",
+    "test": "npm run check-markdown && npm run check-version && npm run check-examples && npm run check-portolan",
     "check-markdown": "remark . --frail",
-    "check-examples": "stac-node-validator examples/*.json --schemaMap https://portolan-sdi.github.io/portolan-spec/portolan/v0.1.0/schema.json=./json-schema/schema.json",
-    "format-examples": "stac-node-validator examples/*.json --schemaMap https://portolan-sdi.github.io/portolan-spec/portolan/v0.1.0/schema.json=./json-schema/schema.json --format"
+    "check-version": "node scripts/check-version.js",
+    "check-examples": "stac-node-validator examples/*.json --schemaMap https://portolan-sdi.github.io/portolan-spec/portolan/v$npm_package_version/schema.json=./json-schema/v$npm_package_version/schema.json",
+    "check-portolan": "node scripts/check-portolan.js",
+    "format-examples": "stac-node-validator examples/*.json --schemaMap https://portolan-sdi.github.io/portolan-spec/portolan/v$npm_package_version/schema.json=./json-schema/v$npm_package_version/schema.json --format"
   },
   "devDependencies": {
+    "ajv": "^8.17.1",
     "stac-node-validator": "^1.3.2",
     "remark-cli": "^12.0.0",
     "remark-lint": "^10.0.0",

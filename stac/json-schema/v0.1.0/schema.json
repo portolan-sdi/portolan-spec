@@ -27,6 +27,9 @@
         },
         {
           "$ref": "#/definitions/agents_link"
+        },
+        {
+          "$ref": "#/definitions/readme_link"
         }
       ]
     },
@@ -53,6 +56,9 @@
         },
         {
           "$ref": "#/definitions/agents_link"
+        },
+        {
+          "$ref": "#/definitions/readme_link"
         },
         {
           "$ref": "#/definitions/assets_typed_and_roled"
@@ -247,6 +253,28 @@
             "properties": {
               "rel": {
                 "const": "agents"
+              },
+              "type": {
+                "const": "text/markdown"
+              }
+            }
+          }
+        }
+      }
+    },
+    "readme_link": {
+      "$comment": "Every Catalog and Collection links its README.md with rel 'describedby' and type text/markdown (spec: README.md). The target's existence is a link-resolution check performed by crawling validators.",
+      "type": "object",
+      "required": ["links"],
+      "properties": {
+        "links": {
+          "type": "array",
+          "contains": {
+            "type": "object",
+            "required": ["rel", "href", "type"],
+            "properties": {
+              "rel": {
+                "const": "describedby"
               },
               "type": {
                 "const": "text/markdown"

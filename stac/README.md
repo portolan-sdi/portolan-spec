@@ -32,6 +32,7 @@ The schema encodes the specification's structural requirements that STAC core le
 - Collection `license` is never the deprecated `proprietary`; SPDX validity and the `rel: "license"` link required with `other` are checked by tooling (spec: License).
 - Every `bbox` — collection extent and item — contains only in-range WGS84 coordinates, with no sentinel "effectively infinite" values (spec: Bounding Boxes and Spatial Extent).
 - Every Catalog and Collection links its `AGENTS.md` with `rel: "agents"` and `type: "text/markdown"` (spec: AGENTS.md).
+- Every Catalog and Collection links its `README.md` with `rel: "describedby"` and `type: "text/markdown"` (spec: README.md).
 
 ## STAC Extensions
 
@@ -87,6 +88,7 @@ Objects MUST NOT include a `self` link, and all structural links MUST be relativ
 | `child` / `item` | Catalogs and collections, one per child | Relative, typed (`application/geo+json` for items); MUST carry a `title` |
 | `collection` | Items | Relative; `type: "application/json"` |
 | `agents` | Catalog, Collection | Points to `AGENTS.md`, `type: "text/markdown"` |
+| `describedby` | Catalog, Collection | Points to `README.md`, `type: "text/markdown"` |
 | `via` | Collection | Mirror only: the original source, `type: "text/html"` |
 | `canonical` | Collection | Mirror only: the source's own STAC root, MUST when the source publishes STAC |
 | `license` | Collection | License text, MUST when `license` is `other` |
@@ -143,12 +145,21 @@ The files are stored flat in `examples/` for convenience, but their relative hre
 
 ## Building and Testing
 
-The profile uses [stac-node-validator](https://github.com/stac-utils/stac-node-validator) to validate the examples against the schema. From `stac/`:
+Every published schema version is tracked in this repository under `json-schema/v<version>/schema.json`; the `version` field in `package.json` names the current one and is the single source of truth. The publish workflow deploys the site from that tree.
+
+From `stac/`:
 
 ```bash
 npm install
 npm test
 ```
+
+`npm test` runs:
+
+- **check-markdown** — remark lint over the profile documents.
+- **check-version** — every versioned Portolan schema URI reference (schema `$id`, READMEs, examples, spec documents) matches the `package.json` version, and the matching `json-schema/v<version>/` directory exists.
+- **check-examples** — [stac-node-validator](https://github.com/stac-utils/stac-node-validator) validates the examples, applying the schema where `stac_extensions` declares it.
+- **check-portolan** — validates every example directly against the schema with ajv, the way the Portolan validator does. This is what exercises the schema's item rules — items never declare the schema URI, so `check-examples` alone would never apply it to them. It also verifies the examples' `file:checksum` values are well-formed sha2-256 multihashes, which the schema deliberately delegates to tooling.
 
 ## Contributing
 

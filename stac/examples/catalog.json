@@ -31,6 +31,12 @@
       "href": "./AGENTS.md",
       "type": "text/markdown",
       "title": "Guidance for AI agents"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation"
     }
   ]
 }
