@@ -11,24 +11,33 @@ regardless of data format. Format-specific requirements live in
 
 ## Introduction
 
-Portolan is a specification for sharing geospatial data as cloud-native files on
-object storage without servers, databases, or proprietary formats. A Portolan
-catalog is a directory of open-format, cloud-native data described by structured
-STAC metadata, hosted on any S3-compatible bucket. Because the data is just files
-and the metadata is plain text, a browser, a query engine like DuckDB, or an AI
-agent can read a catalog, understand what it holds, and analyze it directly, with
-no service in between. If Portolan disappeared tomorrow, every file in a catalog
-would still work in the tools people already use.
+The goal of Portolan is to make it easier and cheaper for data providers to publish
+their data, and to make that data more accessible to both humans and agents. If
+Portolan is successful then all the world's spatial data will be much easier to
+query and utilize in decisions that affect all of our lives.
 
-This specification builds on existing standards rather than reinventing them: it
-is STAC 1.1.0 at its core, and it reuses established STAC extensions wherever they
-fit instead of re-encoding the same information. What Portolan adds is a set of
-strong, opinionated requirements on formats, statistics, structure, and
-documentation that make a catalog reliably usable by both humans and agents
-without a server to interpret it. It is deliberately prescriptive where that buys
-interoperability, and it will evolve as cloud-native tooling matures; requirements
-that are aspirational today may relax or tighten as the ecosystem catches up.
-Conformance is defined not by declaration but by passing the Portolan validator.
+The center of Portolan is the [SpatioTemporal Asset Catalog](https://stacspec.org/) 
+specification - every Portolan implementation is a STAC catalog, and can be used 
+with any STAC tooling. But where STAC can be used with any data format and can 
+be implemented as an API or files on cloud storage, Portolan requires well-formed 
+cloud-native formats, stored as files on browser-accessible online services. All
+Portolan implementaions are [static catalogs](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#static-catalogs)
+- there is no 'Portolan API' like the STAC API, as many of the key benefits of Portolan,
+like scalability and lower cost, are achieved by the full embrace of cloud-native geospatial.
+
+Portolan further requires that all catalogs follow the best practices to guide
+AI agents to make use of them. Today that means adding an agents.md file to every
+catalog and collection and building up a set of 
+['skills'](https://github.com/portolan-sdi/portolan-skills) that guide agents to
+make use of the cloud-native formats. In the future this will likely evolve as
+the general best practices for agents continue to advance.
+
+The specification aims to standardize the minimum requirements for a 'great' catalog,
+and to provide guidance to go beyond that. But really the hope is that everyone 
+goes well beyond the minimum and tries to make each catalog better than before. The 
+aspiration of the authors of the specification is to build a real community of
+collaborators who are all working together to build great data catalogs and share
+tools and best practices so all can benefit.
 
 ## Core Structure
 
