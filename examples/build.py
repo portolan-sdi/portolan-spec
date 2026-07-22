@@ -821,9 +821,11 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         data_name = data_pq.name
         bbox, n, norm = to_geoparquet(local, src, data_pq)
         cols = table_columns(data_pq)
+        geom_col = next((c["name"] for c in cols if c["type"] == "geometry"), "geom")
         assets["data"] = asset(data_pq, MEDIA["geoparquet"], ["data"],
                                f"{spec['title']} (GeoParquet)",
-                               {"table:columns": cols, "proj:code": "EPSG:4326"})
+                               {"table:columns": cols, "table:primary_geometry": geom_col,
+                                "table:row_count": n, "proj:code": "EPSG:4326"})
         exts += [TABLE_EXT, PROJ_EXT]
         assets["source"] = source_asset(local, src)
         if deriv.get("pmtiles"):
@@ -876,7 +878,8 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         n = feature_count(data_pq)
         bbox = None
         assets["data"] = asset(data_pq, MEDIA["parquet"], ["data"],
-                               f"{spec['title']} (Parquet)", {"table:columns": cols})
+                               f"{spec['title']} (Parquet)",
+                               {"table:columns": cols, "table:row_count": n})
         assets["source"] = source_asset(local, src)
         exts.append(TABLE_EXT)
         extra_readme = [f"Rows, {n}.", f"Columns, {len(cols)}.",
