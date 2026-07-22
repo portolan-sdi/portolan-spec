@@ -440,6 +440,20 @@ def _rasterize(canvas: Path, gpkg: Path, rgb: tuple[int, int, int], where: str |
     run(cmd)
 
 
+def _buffer_points(gpkg: Path, radius_m: float, keep_field: str | None) -> Path:
+    """Grow point features into small circles so they read as visible dots.
+    gdal_rasterize paints a raw point as a single pixel, which vanishes at world
+    scale. The radius is passed in metres, sized from the pixel resolution, so
+    dots stay the same on-screen size at any extent. Any category field is kept
+    so per-category colouring still works."""
+    out = gpkg.with_suffix(".buf.gpkg")
+    out.unlink(missing_ok=True)
+    cols = f', "{keep_field}"' if keep_field else ""
+    run(["ogr2ogr", "-f", "GPKG", "-dialect", "SQLITE", "-nln", "layer",
+         "-sql", f"SELECT ST_Buffer(geom, {radius_m}) AS geom{cols} FROM layer", str(out), str(gpkg)])
+    return out
+
+
 def _burn_outline(canvas: Path, gpkg: Path, rgb: tuple[int, int, int]) -> None:
     """Overlay polygon boundaries as thin lines so neighbouring features stay
     distinct even when they share a categorical colour (counties within a state)."""
@@ -463,6 +477,11 @@ def make_thumbnail_vector(vector_src: Path, out_png: Path, bbox4326: list[float]
     gpkg = canvas.with_suffix(".feat.gpkg")
     if _clip_to_canvas(vector_src, b, gpkg):
         field = style.get("category_field")
+        if style.get("geometry", "polygon") == "point":
+            radius_m = (merc[2] - merc[0]) / w * 2.5
+            buf = _buffer_points(gpkg, radius_m, field)
+            gpkg.unlink(missing_ok=True)
+            gpkg = buf
         if field:
             for val, hexc in _category_colors(vector_src, field, style.get("palette")):
                 _rasterize(canvas, gpkg, _hex_rgb(hexc), where=f'"{field}" = {_sql_lit(val)}')
