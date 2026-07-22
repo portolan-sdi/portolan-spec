@@ -42,28 +42,16 @@ import subprocess
 import sys
 import urllib.request
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from typing import Any
 
 import duckdb
 import yaml
 
-SCHEMA_URI = "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json"
-FILE_EXT = "https://stac-extensions.github.io/file/v2.1.0/schema.json"
-WEBMAP_EXT = "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json"
-RASTER_EXT = "https://stac-extensions.github.io/raster/v2.0.0/schema.json"
-TABLE_EXT = "https://stac-extensions.github.io/table/v1.2.0/schema.json"
-PROJ_EXT = "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
-ATTRIBUTION_EXT = "https://stac-extensions.github.io/attribution/v0.1.0/schema.json"
-STAC_VERSION = "1.1.0"
-
-MEDIA = {
-    "geoparquet": "application/vnd.apache.parquet",
-    "parquet": "application/vnd.apache.parquet",
-    "cog": "image/tiff; application=geotiff; profile=cloud-optimized",
-    "pmtiles": "application/vnd.pmtiles",
-    "style": "application/vnd.mapbox.style+json",
-    "png": "image/png",
-}
+from config import (
+    SCHEMA_URI, FILE_EXT, WEBMAP_EXT, RASTER_EXT, TABLE_EXT, PROJ_EXT,
+    ATTRIBUTION_EXT, STAC_VERSION, MEDIA, GDAL_DTYPE, PALETTE,
+)
 
 
 # --------------------------------------------------------------------------- io
@@ -243,15 +231,6 @@ def _gdalinfo(tif: Path) -> dict:
     return json.loads(run(["gdalinfo", "-json", "-stats", str(tif)]).stdout)
 
 
-# GDAL band type -> STAC core `bands` data_type enum value
-GDAL_DTYPE = {
-    "Byte": "uint8", "Int8": "int8", "Int16": "int16", "UInt16": "uint16",
-    "Int32": "int32", "UInt32": "uint32", "Int64": "int64", "UInt64": "uint64",
-    "Float32": "float32", "Float64": "float64",
-    "CInt16": "cint16", "CInt32": "cint32", "CFloat32": "cfloat32", "CFloat64": "cfloat64",
-}
-
-
 def bands_from_cog(tif: Path) -> list[dict]:
     info = _gdalinfo(tif)
     out = []
@@ -320,11 +299,6 @@ def make_pmtiles(vector_src: Path, out_pmtiles: Path, layer_name: str) -> None:
 # GeoPackage intermediates (GeoJSON is always WGS84 and would silently drop the
 # projected SRS).
 _MERC_R = 6378137.0
-
-# Categorical palette shared by the thumbnails and the MapLibre styles, so a
-# collection reads the same across both. Tableau 10 minus grey.
-PALETTE = ["#4e79a7", "#f28e2b", "#59a14f", "#e15759", "#b07aa1",
-           "#76b7b2", "#edc948", "#ff9da7"]
 
 
 def _sql_lit(v: Any) -> str:
