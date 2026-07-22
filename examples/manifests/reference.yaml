@@ -237,15 +237,15 @@ collections:
     title: San Francisco Addresses (EAS)
     description: >-
       Point addresses from the City and County of San Francisco Enterprise
-      Addressing System, a 50,000-feature extract of the official DataSF open
+      Addressing System, a 5,000-feature extract of the official DataSF open
       data layer, converted to cloud-native GeoParquet with a PMTiles
       visualization. The source asset points at the full live DataSF layer.
     keywords: [addresses, points, san-francisco, datasf, eas]
     license: PDDL-1.0
     source:
-      url: https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=50000
+      url: https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=5000
       media_type: application/geo+json
-      title: DataSF San Francisco Addresses with Units (GeoJSON, 50k extract)
+      title: DataSF San Francisco Addresses with Units (GeoJSON, 5k extract)
       stable: false
     providers:
       - {name: City and County of San Francisco, url: https://www.sf.gov, roles: [producer, licensor]}
