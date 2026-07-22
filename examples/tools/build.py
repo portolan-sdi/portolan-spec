@@ -52,30 +52,10 @@ from config import (
     SCHEMA_URI, FILE_EXT, WEBMAP_EXT, RASTER_EXT, TABLE_EXT, PROJ_EXT,
     ATTRIBUTION_EXT, STAC_VERSION, MEDIA, GDAL_DTYPE, PALETTE,
 )
+from common import run, filesize, multihash, _sql_lit, _hex_rgb
 
 
 # --------------------------------------------------------------------------- io
-def run(cmd: list[str], **kw: Any) -> subprocess.CompletedProcess:
-    kw.setdefault("check", True)
-    kw.setdefault("text", True)
-    kw.setdefault("capture_output", True)
-    p = subprocess.run(cmd, **kw)
-    return p
-
-
-def filesize(p: Path) -> int:
-    return p.stat().st_size
-
-
-def multihash(p: Path) -> str:
-    h = hashlib.sha256()
-    with p.open("rb") as f:
-        for chunk in iter(lambda: f.read(1 << 20), b""):
-            h.update(chunk)
-    # sha2-256 multihash: 0x12 function code, 0x20 (32) digest length, then digest
-    return (bytes([0x12, 0x20]) + h.digest()).hex()
-
-
 def fetch(url: str, cache: Path) -> Path:
     cache.mkdir(parents=True, exist_ok=True)
     key = hashlib.sha256(url.encode()).hexdigest()[:16]
@@ -301,22 +281,9 @@ def make_pmtiles(vector_src: Path, out_pmtiles: Path, layer_name: str) -> None:
 _MERC_R = 6378137.0
 
 
-def _sql_lit(v: Any) -> str:
-    if isinstance(v, bool):
-        return "1" if v else "0"
-    if isinstance(v, (int, float)):
-        return str(v)
-    return "'" + str(v).replace("'", "''") + "'"
-
-
 def _to_merc(lon: float, lat: float) -> tuple[float, float]:
     lat = max(min(lat, 85.06), -85.06)
     return _MERC_R * math.radians(lon), _MERC_R * math.log(math.tan(math.pi / 4 + math.radians(lat) / 2))
-
-
-def _hex_rgb(h: str) -> tuple[int, int, int]:
-    h = h.lstrip("#")
-    return int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
 
 
 def _thumb_grid(bbox4326: list[float], size: int, pad: float) -> tuple[list[float], list[float], int, int]:
