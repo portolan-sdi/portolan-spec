@@ -1,0 +1,11 @@
+{
+  "$comment": "Registry of the portolan-sdi org's own STAC extensions published under schemas.portolan-sdi.org. Each schema lives in its source repository; this file pins which versions are published, mapping each version to the git ref to fetch it from. The publish workflow serves these at https://schemas.portolan-sdi.org/<name>/<version>/schema.json and the test suite fetches them into .schema-cache/, so bumping a pin is a spec-repo change and profile bindings move together with published schemas. PIN NOTE: partition temporarily pins the commit of the canonical-URI PR branch; repoint to ref v1.0.0 once that release is tagged.",
+  "partition": {
+    "title": "STAC Partition Extension",
+    "repo": "portolan-sdi/stac-partition-extension",
+    "path": "json-schema/schema.json",
+    "versions": {
+      "v1.0.0": "638370d62d879d34e420d58acd87ccebd7cfadc5"
+    }
+  }
+}
