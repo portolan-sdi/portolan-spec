@@ -26,9 +26,9 @@ gdalinfo, gdal_rasterize, gdal_create, gdalwarp) with the Parquet and COG
 drivers, tippecanoe, and uv.
 
 Run:
-    uv run examples/build.py
-    uv run examples/build.py --catalog reference
-    uv run examples/build.py --only boundaries/us-counties
+    uv run examples/tools/build.py
+    uv run examples/tools/build.py --catalog reference
+    uv run examples/tools/build.py --only boundaries/us-counties
 """
 from __future__ import annotations
 
@@ -1084,8 +1084,8 @@ def validate(out: Path, schema_path: Path) -> None:
 
 # ------------------------------------------------------------------------- main
 def _repo_root() -> Path:
-    # examples/build.py -> repo root is the parent of examples/
-    return Path(__file__).resolve().parent.parent
+    # examples/tools/build.py -> repo root is three levels up
+    return Path(__file__).resolve().parent.parent.parent
 
 
 def main() -> int:
