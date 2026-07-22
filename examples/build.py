@@ -539,7 +539,7 @@ def _distinct_values(src: Path, field: str, limit: int = 48) -> list:
     con.execute("INSTALL spatial; LOAD spatial;")
     rows = con.execute(
         f'SELECT "{field}" v FROM ST_Read(\'{src}\') WHERE "{field}" IS NOT NULL '
-        f"GROUP BY 1 ORDER BY count(*) DESC LIMIT {limit}").fetchall()
+        f'GROUP BY 1 ORDER BY count(*) DESC, "{field}" ASC LIMIT {limit}').fetchall()
     con.close()
     return [r[0] for r in rows]
 
