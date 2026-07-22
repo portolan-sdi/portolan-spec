@@ -3,6 +3,7 @@
 # dependencies = [
 #   "pyyaml>=6.0.3",
 #   "duckdb>=1.5.4",
+#   "jsonschema>=4.26.0",
 #   "pyarrow>=24",
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
 # ]
@@ -21,6 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import build  # noqa: E402
+from convert import write_web_geoparquet, table_columns  # noqa: E402
 
 HOST = {"name": "Portolan SDI", "url": "https://github.com/portolan-sdi",
         "email": "portolan@googlegroups.com"}
@@ -134,8 +136,8 @@ def check_vector_columns_include_geometry() -> None:
             ["ogr2ogr", "-t_srs", "EPSG:4326", "-f", "GPKG", "-nln", "layer",
              str(norm), str(gj)], check=True)
         out = tmp / "tiny.parquet"
-        build.write_web_geoparquet(norm, out)
-        cols = build.table_columns(out)
+        write_web_geoparquet(norm, out)
+        cols = table_columns(out)
         names = {c["name"] for c in cols}
         types = {c["type"] for c in cols}
         assert "name" in names, f"attribute column missing: {cols}"

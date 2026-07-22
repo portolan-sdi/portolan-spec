@@ -1,6 +1,9 @@
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
+#   "pyyaml>=6.0.3",
+#   "duckdb>=1.5.4",
+#   "jsonschema>=4.26.0",
 #   "pyarrow>=24",
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
 # ]
@@ -18,7 +21,7 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from build import write_web_geoparquet  # noqa: E402
+from convert import write_web_geoparquet  # noqa: E402
 
 import pyarrow.parquet as pq  # noqa: E402
 
