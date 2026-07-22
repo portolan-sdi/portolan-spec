@@ -204,6 +204,8 @@
           "type": "struct(xmin double, ymin double, xmax double, ymax double)"
         }
       ],
+      "table:primary_geometry": "geom",
+      "table:row_count": 5000,
       "proj:code": "EPSG:4326"
     },
     "source": {
