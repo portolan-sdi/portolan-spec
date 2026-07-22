@@ -47,7 +47,7 @@ from typing import Any
 import duckdb
 import yaml
 
-SCHEMA_URI = "https://schema.portolan-sdi.org/v0.1.0/schema.json"
+SCHEMA_URI = "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json"
 FILE_EXT = "https://stac-extensions.github.io/file/v2.1.0/schema.json"
 WEBMAP_EXT = "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json"
 RASTER_EXT = "https://stac-extensions.github.io/raster/v2.0.0/schema.json"
@@ -771,7 +771,7 @@ SIDE_LINKS = [
 
 # ------------------------------------------------------------- collection build
 def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
-                     skip_download: bool, thumb: dict) -> dict:
+                     thumb: dict) -> dict:
     cid = spec["id"]
     seg = cid.split("/")
     depth = len(seg)
@@ -946,15 +946,14 @@ def _group_meta(manifest: dict, seg: str) -> tuple[str, str]:
     return seg.title(), f"{seg} Collections."
 
 
-def build_catalog(manifest: dict, out: Path, cache: Path, only: str | None,
-                  skip_download: bool) -> None:
+def build_catalog(manifest: dict, out: Path, cache: Path, only: str | None) -> None:
     out.mkdir(parents=True, exist_ok=True)
     thumb = build_thumb_ctx(manifest, cache)
     specs = manifest["collections"]
     if only:
         specs = [s for s in specs if s["id"] == only]
         assert specs, f"no collection with id {only}"
-    built = [build_collection(s, manifest["host"], out, cache, skip_download, thumb) for s in specs]
+    built = [build_collection(s, manifest["host"], out, cache, thumb) for s in specs]
 
     # group -> collections
     groups: dict[str, list[dict]] = {}
@@ -1078,7 +1077,6 @@ def main() -> int:
     ap.add_argument("--catalog", default=None, help="build only the manifest with this file stem")
     ap.add_argument("--only", default=None, help="build only this collection id")
     ap.add_argument("--schema", default=root / "stac/json-schema/v0.1.0/schema.json", type=Path)
-    ap.add_argument("--skip-download", action="store_true")
     ap.add_argument("--no-validate", action="store_true")
     args = ap.parse_args()
 
@@ -1093,7 +1091,7 @@ def main() -> int:
         print(f"=== manifest {mf.name} ===", file=sys.stderr)
         manifest = load_manifest(mf)
         cat_out = args.out / mf.stem
-        build_catalog(manifest, cat_out, args.cache, args.only, args.skip_download)
+        build_catalog(manifest, cat_out, args.cache, args.only)
         if not args.no_validate and not args.only:
             validate(cat_out, args.schema)
     print("done", file=sys.stderr)

@@ -33,7 +33,7 @@ description: >-
   specification with real, openly licensed data pulled from its original
   upstream sources, vector polygons and points, raster, tabular, official and
   mirror provenance, nested catalogs and flat collections.
-schema_uri: https://schema.portolan-sdi.org/v0.1.0/schema.json
+schema_uri: https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json
 
 host:
   name: Portolan SDI
