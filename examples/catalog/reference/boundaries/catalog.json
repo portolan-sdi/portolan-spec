@@ -1,0 +1,52 @@
+{
+  "type": "Catalog",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json"
+  ],
+  "id": "boundaries",
+  "title": "Administrative Boundaries",
+  "description": "Administrative and open-space boundary Collections from official sources.",
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "child",
+      "href": "./us-counties/collection.json",
+      "type": "application/json",
+      "title": "United States Counties (2023, 1:500k)"
+    },
+    {
+      "rel": "child",
+      "href": "./boston-open-space/collection.json",
+      "type": "application/json",
+      "title": "Boston Open Space"
+    },
+    {
+      "rel": "child",
+      "href": "./netherlands-provinces/collection.json",
+      "type": "application/json",
+      "title": "Netherlands Provinces"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation"
+    }
+  ]
+}

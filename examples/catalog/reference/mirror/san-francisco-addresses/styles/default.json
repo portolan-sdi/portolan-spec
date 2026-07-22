@@ -1,0 +1,23 @@
+{
+  "version": 8,
+  "name": "san-francisco-addresses default",
+  "sources": {
+    "san-francisco-addresses": {
+      "type": "vector",
+      "url": "pmtiles://./san-francisco-addresses.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "san-francisco-addresses",
+      "type": "circle",
+      "source": "san-francisco-addresses",
+      "source-layer": "san-francisco-addresses",
+      "paint": {
+        "circle-radius": 3,
+        "circle-color": "#6a1b9a",
+        "circle-opacity": 0.85
+      }
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
+  ],
+  "id": "sample-cog",
+  "title": "Sample Raster COG",
+  "description": "A small 3-band Cloud Optimized GeoTIFF used to exercise the raster path end to end. Optimized to a COG with per-band statistics, minimum, maximum, mean, and standard deviation, embedded in the header. From the rasterio test fixtures, a 3-band raster in UTM zone 18N (EPSG:32618).",
+  "license": "BSD-3-Clause",
+  "keywords": [
+    "raster",
+    "cog",
+    "sample",
+    "rgb",
+    "geotiff"
+  ],
+  "providers": [
+    {
+      "name": "rasterio",
+      "url": "https://github.com/rasterio/rasterio",
+      "roles": [
+        "producer",
+        "licensor",
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -78.95865,
+          23.564991,
+          -76.574924,
+          25.550874
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2020-01-01T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "assets": {
+    "data": {
+      "href": "./sample-cog.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "title": "Sample Raster COG (COG)",
+      "roles": [
+        "data"
+      ],
+      "file:size": 1054427,
+      "file:checksum": "1220ab0a989ec31ff8bf06c86a514d0ec289e784453e0a9140bed2086362a59060f7",
+      "bands": [
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 1.0,
+            "maximum": 255.0,
+            "mean": 44.4345,
+            "stddev": 58.4901
+          }
+        },
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 1.0,
+            "maximum": 255.0,
+            "mean": 66.022,
+            "stddev": 58.2034
+          }
+        },
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 1.0,
+            "maximum": 255.0,
+            "mean": 71.3932,
+            "stddev": 60.8273
+          }
+        }
+      ],
+      "proj:code": "EPSG:32618"
+    },
+    "source": {
+      "href": "https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif",
+      "type": "image/tiff",
+      "title": "rasterio RGB.byte.tif test fixture (GeoTIFF)",
+      "roles": [
+        "data",
+        "source"
+      ],
+      "file:size": 1745956,
+      "file:checksum": "1220d7cbe932c7ed74a627706a9e9df99f706df3e5abc7d45a49e9d00677a6b09eb4"
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview thumbnail over a light basemap. \u00a9 OpenStreetMap contributors \u00a9 CARTO.",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 224633,
+      "file:checksum": "1220f958fb841d6c507998935bdc1d6871384f7358091cde41e299e24a284300b6aa"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation"
+    }
+  ],
+  "updated": "2026-07-21T00:00:00Z"
+}

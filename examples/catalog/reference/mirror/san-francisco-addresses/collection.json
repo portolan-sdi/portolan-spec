@@ -1,0 +1,297 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json"
+  ],
+  "id": "san-francisco-addresses",
+  "title": "San Francisco Addresses (EAS)",
+  "description": "Point addresses from the City and County of San Francisco Enterprise Addressing System, a 5,000-feature extract of the official DataSF open data layer, converted to cloud-native GeoParquet with a PMTiles visualization. The source asset points at the full live DataSF layer.",
+  "license": "PDDL-1.0",
+  "keywords": [
+    "addresses",
+    "points",
+    "san-francisco",
+    "datasf",
+    "eas"
+  ],
+  "providers": [
+    {
+      "name": "City and County of San Francisco",
+      "url": "https://www.sf.gov",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "DataSF",
+      "url": "https://datasf.org/opendata/",
+      "roles": [
+        "processor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -122.510661,
+          37.708214,
+          -122.365923,
+          37.828926
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2018-10-12T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "assets": {
+    "data": {
+      "href": "./san-francisco-addresses.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "San Francisco Addresses (EAS) (GeoParquet)",
+      "roles": [
+        "data"
+      ],
+      "file:size": 497826,
+      "file:checksum": "1220265c6e08c5a7de6438c6218fa209f0acc998f7756685e49722d1a219b09a1613",
+      "table:columns": [
+        {
+          "name": "fid",
+          "type": "bigint"
+        },
+        {
+          "name": "street_full_street_name",
+          "type": "varchar"
+        },
+        {
+          "name": "zip_code",
+          "type": "varchar"
+        },
+        {
+          "name": "latitude",
+          "type": "varchar"
+        },
+        {
+          "name": "address_number_suffix",
+          "type": "varchar"
+        },
+        {
+          "name": "supdistpad",
+          "type": "varchar"
+        },
+        {
+          "name": "complete_landmark_name",
+          "type": "varchar"
+        },
+        {
+          "name": "eas_fullid",
+          "type": "varchar"
+        },
+        {
+          "name": "direct_source",
+          "type": "varchar"
+        },
+        {
+          "name": "cnn",
+          "type": "varchar"
+        },
+        {
+          "name": "data_loaded_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "longitude",
+          "type": "varchar"
+        },
+        {
+          "name": "street_name",
+          "type": "varchar"
+        },
+        {
+          "name": "supdist",
+          "type": "varchar"
+        },
+        {
+          "name": "eas_baseid",
+          "type": "varchar"
+        },
+        {
+          "name": "nhood",
+          "type": "varchar"
+        },
+        {
+          "name": "block",
+          "type": "varchar"
+        },
+        {
+          "name": "supname",
+          "type": "varchar"
+        },
+        {
+          "name": "street_type",
+          "type": "varchar"
+        },
+        {
+          "name": "eas_subid",
+          "type": "varchar"
+        },
+        {
+          "name": "lot",
+          "type": "varchar"
+        },
+        {
+          "name": "address",
+          "type": "varchar"
+        },
+        {
+          "name": "unit_number",
+          "type": "varchar"
+        },
+        {
+          "name": "supervisor",
+          "type": "varchar"
+        },
+        {
+          "name": "data_updated_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "address_number",
+          "type": "varchar"
+        },
+        {
+          "name": "parcel_number",
+          "type": "varchar"
+        },
+        {
+          "name": "numbertext",
+          "type": "varchar"
+        },
+        {
+          "name": "data_as_of",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "landmark_aliases",
+          "type": "varchar"
+        },
+        {
+          "name": "geom",
+          "type": "geometry"
+        },
+        {
+          "name": "bbox",
+          "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+        }
+      ],
+      "proj:code": "EPSG:4326"
+    },
+    "source": {
+      "href": "https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=5000",
+      "type": "application/geo+json",
+      "title": "DataSF San Francisco Addresses with Units (GeoJSON, 5k extract)",
+      "roles": [
+        "data",
+        "source"
+      ],
+      "file:size": 4326949,
+      "file:checksum": "12208d97b1357b40e063c8820e1ace051745886fa0b525e05d0da6a528660a2c670c"
+    },
+    "visual": {
+      "href": "./san-francisco-addresses.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "San Francisco Addresses (EAS) (PMTiles)",
+      "roles": [
+        "visual"
+      ],
+      "file:size": 804815,
+      "file:checksum": "12202b778b2935fdf120794d5b10957a94493dfe9e6cfc2ef771cacc92667edaeefd"
+    },
+    "style-default": {
+      "href": "./styles/default.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Default MapLibre style",
+      "roles": [
+        "style"
+      ],
+      "file:size": 511,
+      "file:checksum": "1220be8d25847ff0fcb455c32885d9ff77b432cc1aca524c456ad9dfd24cd1ee00c3"
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview thumbnail over a light basemap. \u00a9 OpenStreetMap contributors \u00a9 CARTO.",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 409790,
+      "file:checksum": "122028be1ba46a90c2e6a1d67acd971c52c488779771020696610a3b118d89830144"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "pmtiles",
+      "href": "./san-francisco-addresses.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "Web map tiles",
+      "pmtiles:layers": [
+        "san-francisco-addresses"
+      ]
+    },
+    {
+      "rel": "via",
+      "href": "https://data.sfgov.org/",
+      "type": "text/html",
+      "title": "Original source"
+    },
+    {
+      "rel": "canonical",
+      "href": "https://data.sfgov.org/api/views/ramy-di5m.json",
+      "type": "application/json",
+      "title": "Upstream metadata record"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation"
+    }
+  ],
+  "updated": "2026-07-21T00:00:00Z"
+}

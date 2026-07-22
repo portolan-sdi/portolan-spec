@@ -1,0 +1,54 @@
+{
+  "version": 8,
+  "name": "netherlands-provinces categorical",
+  "sources": {
+    "netherlands-provinces": {
+      "type": "vector",
+      "url": "pmtiles://./netherlands-provinces.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "netherlands-provinces",
+      "type": "fill",
+      "source": "netherlands-provinces",
+      "source-layer": "netherlands-provinces",
+      "paint": {
+        "fill-color": [
+          "match",
+          [
+            "get",
+            "naam"
+          ],
+          "Drenthe",
+          "#4e79a7",
+          "Flevoland",
+          "#f28e2b",
+          "Frysl\u00e2n",
+          "#59a14f",
+          "Gelderland",
+          "#e15759",
+          "Groningen",
+          "#b07aa1",
+          "Limburg",
+          "#76b7b2",
+          "Noord-Brabant",
+          "#edc948",
+          "Noord-Holland",
+          "#ff9da7",
+          "Overijssel",
+          "#4e79a7",
+          "Utrecht",
+          "#f28e2b",
+          "Zeeland",
+          "#59a14f",
+          "Zuid-Holland",
+          "#e15759",
+          "#cccccc"
+        ],
+        "fill-outline-color": "#ffffff",
+        "fill-opacity": 0.6
+      }
+    }
+  ]
+}

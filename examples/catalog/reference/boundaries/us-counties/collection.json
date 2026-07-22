@@ -1,0 +1,232 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json"
+  ],
+  "id": "us-counties",
+  "title": "United States Counties (2023, 1:500k)",
+  "description": "County and equivalent boundaries for the United States, the 2023 cartographic boundary file at 1:500,000 from the US Census Bureau, generalized for small-scale mapping. Republished as cloud-native GeoParquet alongside the original zipped Shapefile.",
+  "license": "CC0-1.0",
+  "keywords": [
+    "boundaries",
+    "counties",
+    "united-states",
+    "census",
+    "tiger"
+  ],
+  "providers": [
+    {
+      "name": "U.S. Census Bureau",
+      "url": "https://www.census.gov",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -179.146711,
+          -14.548699,
+          179.77847,
+          71.387815
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2023-01-01T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "assets": {
+    "data": {
+      "href": "./us-counties.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "United States Counties (2023, 1:500k) (GeoParquet)",
+      "roles": [
+        "data"
+      ],
+      "file:size": 9727292,
+      "file:checksum": "1220f704e0ee5e0c9dbe6f165a571aae6da5bf78965e120a13c8d63397219f0b5b32",
+      "table:columns": [
+        {
+          "name": "fid",
+          "type": "bigint"
+        },
+        {
+          "name": "STATEFP",
+          "type": "varchar"
+        },
+        {
+          "name": "COUNTYFP",
+          "type": "varchar"
+        },
+        {
+          "name": "COUNTYNS",
+          "type": "varchar"
+        },
+        {
+          "name": "GEOIDFQ",
+          "type": "varchar"
+        },
+        {
+          "name": "GEOID",
+          "type": "varchar"
+        },
+        {
+          "name": "NAME",
+          "type": "varchar"
+        },
+        {
+          "name": "NAMELSAD",
+          "type": "varchar"
+        },
+        {
+          "name": "STUSPS",
+          "type": "varchar"
+        },
+        {
+          "name": "STATE_NAME",
+          "type": "varchar"
+        },
+        {
+          "name": "LSAD",
+          "type": "varchar"
+        },
+        {
+          "name": "ALAND",
+          "type": "bigint"
+        },
+        {
+          "name": "AWATER",
+          "type": "bigint"
+        },
+        {
+          "name": "geom",
+          "type": "geometry"
+        },
+        {
+          "name": "bbox",
+          "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+        }
+      ],
+      "proj:code": "EPSG:4326"
+    },
+    "source": {
+      "href": "https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_500k.zip",
+      "type": "application/zip",
+      "title": "US Census cartographic boundary counties 2023 500k (zipped Shapefile)",
+      "roles": [
+        "data",
+        "source"
+      ],
+      "file:size": 11630077,
+      "file:checksum": "122099d6597b1fc7767deef62e01d28d8b5dcbd578e151855f7dc0d173cbf5bf0868"
+    },
+    "visual": {
+      "href": "./us-counties.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "United States Counties (2023, 1:500k) (PMTiles)",
+      "roles": [
+        "visual"
+      ],
+      "file:size": 4372427,
+      "file:checksum": "1220184d0388ee4da10b1764a423e9f9a170d688b614b376228fa2de5c8da514427e"
+    },
+    "style-default": {
+      "href": "./styles/default.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Default MapLibre style",
+      "roles": [
+        "style"
+      ],
+      "file:size": 445,
+      "file:checksum": "12200a1b0bcf370139a062a2fb2b94fbb127082277029201cc023fab315d0443c004"
+    },
+    "style-categorical": {
+      "href": "./styles/categorical.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Categorical MapLibre style",
+      "roles": [
+        "style"
+      ],
+      "file:size": 2646,
+      "file:checksum": "122075f7384834b2dc592c7e6e5180050ed41c0773588ac70130d3a4a00c7aa6731e"
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview thumbnail over a light basemap. \u00a9 OpenStreetMap contributors \u00a9 CARTO.",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 79966,
+      "file:checksum": "12204079e66ca416c91e10caf3cceeec2b0ea12a01eb40090c812214a8e2a15c0bb5"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "pmtiles",
+      "href": "./us-counties.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "Web map tiles",
+      "pmtiles:layers": [
+        "us-counties"
+      ]
+    },
+    {
+      "rel": "via",
+      "href": "https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html",
+      "type": "text/html",
+      "title": "Original source"
+    },
+    {
+      "rel": "canonical",
+      "href": "https://catalog.data.gov/dataset/tiger-line-shapefile-2024-nation-u-s-county-and-equivalent-entities",
+      "type": "application/json",
+      "title": "Upstream metadata record"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation"
+    }
+  ],
+  "updated": "2026-07-16T00:00:00Z"
+}

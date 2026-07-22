@@ -1,0 +1,223 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json",
+    "https://stac-extensions.github.io/attribution/v0.1.0/schema.json"
+  ],
+  "id": "netherlands-provinces",
+  "title": "Netherlands Provinces",
+  "description": "The 12 provinces of the Netherlands, administrative boundaries from the Dutch national spatial data infrastructure PDOK, derived from the Kadaster BRK Bestuurlijke Gebieden. Republished as cloud-native GeoParquet with a PMTiles visualization and categorical, labeled MapLibre styles.",
+  "license": "CC-BY-4.0",
+  "keywords": [
+    "boundaries",
+    "provinces",
+    "netherlands",
+    "administrative",
+    "pdok"
+  ],
+  "providers": [
+    {
+      "name": "Kadaster",
+      "url": "https://www.kadaster.nl",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "PDOK",
+      "url": "https://www.pdok.nl",
+      "roles": [
+        "processor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          3.307938,
+          50.750367,
+          7.227498,
+          53.576423
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2026-01-01T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "assets": {
+    "data": {
+      "href": "./netherlands-provinces.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "Netherlands Provinces (GeoParquet)",
+      "roles": [
+        "data"
+      ],
+      "file:size": 1430658,
+      "file:checksum": "122088268a99c4f597e92f568c37c901fc1574b5110bbe2de4962c6a4cb0764953b6",
+      "table:columns": [
+        {
+          "name": "fid",
+          "type": "bigint"
+        },
+        {
+          "name": "identificatie",
+          "type": "varchar"
+        },
+        {
+          "name": "naam",
+          "type": "varchar"
+        },
+        {
+          "name": "code",
+          "type": "varchar"
+        },
+        {
+          "name": "ligt_in_land_code",
+          "type": "varchar"
+        },
+        {
+          "name": "ligt_in_land_naam",
+          "type": "varchar"
+        },
+        {
+          "name": "geom",
+          "type": "geometry"
+        },
+        {
+          "name": "bbox",
+          "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+        }
+      ],
+      "proj:code": "EPSG:4326"
+    },
+    "source": {
+      "href": "https://service.pdok.nl/kadaster/brk-bestuurlijke-gebieden/atom/downloads/BestuurlijkeGebieden_2026.gpkg",
+      "type": "application/geopackage+sqlite3",
+      "title": "PDOK Bestuurlijke Gebieden 2026 (GeoPackage)",
+      "roles": [
+        "data",
+        "source"
+      ],
+      "file:size": 14495744,
+      "file:checksum": "12201efa5bbed78bb5aa9d918d48bcabcd9a3c0e816671545e42cd68be057b8423e6"
+    },
+    "visual": {
+      "href": "./netherlands-provinces.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "Netherlands Provinces (PMTiles)",
+      "roles": [
+        "visual"
+      ],
+      "file:size": 423295,
+      "file:checksum": "1220c768276dca58f3a5bc5e895b57cf6515abd4fac3a1b62b5a5146c9bbd7668acd"
+    },
+    "style-default": {
+      "href": "./styles/default.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Default MapLibre style",
+      "roles": [
+        "style"
+      ],
+      "file:size": 505,
+      "file:checksum": "122080527d1499c34674f83bfacf30a6d30afa668f9cd58b9319b5695ceab3869180"
+    },
+    "style-categorical": {
+      "href": "./styles/categorical.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Categorical MapLibre style",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1149,
+      "file:checksum": "12203edf9302f8b14817bf4681dd8589723ade9f268f5a290c66c2c9fd3a4fbd8715"
+    },
+    "style-labeled": {
+      "href": "./styles/labeled.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Labeled MapLibre style",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1592,
+      "file:checksum": "1220d62fa3605884186e2cbbc8790d1f4764896b2ecea30ea057a6dfb311f5a07429"
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview thumbnail over a light basemap. \u00a9 OpenStreetMap contributors \u00a9 CARTO.",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 194516,
+      "file:checksum": "1220935c19c5778942905bc0a28412a7428817dbcc0f7b8295e8efb57e24a1efc047"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "pmtiles",
+      "href": "./netherlands-provinces.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "Web map tiles",
+      "pmtiles:layers": [
+        "netherlands-provinces"
+      ]
+    },
+    {
+      "rel": "via",
+      "href": "https://www.pdok.nl/introductie/-/article/bestuurlijke-gebieden",
+      "type": "text/html",
+      "title": "Original source"
+    },
+    {
+      "rel": "canonical",
+      "href": "https://www.nationaalgeoregister.nl/geonetwork/srv/api/records/208bc283-7c66-4ce7-8ad3-1cf3e8933fb5",
+      "type": "application/json",
+      "title": "Upstream metadata record"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation"
+    }
+  ],
+  "attribution": "Kadaster / PDOK",
+  "updated": "2026-07-16T00:00:00Z"
+}

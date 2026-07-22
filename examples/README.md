@@ -2,9 +2,65 @@
 
 Working reference catalogs that exercise the spec end to end.
 
-> **Pending.** Conformant reference examples are being prepared and will land here.
-> They will serve as canonical references for what a valid Portolan catalog looks
-> like — when in doubt about how to structure a catalog or implement a feature,
-> these are the place to look.
+## Portolan Reference Catalog
 
-Until then, the normative requirements are in [`specs/portolan/`](../specs/portolan/).
+[`catalog/reference/`](catalog/reference/) is a complete, v0.1-conformant
+Portolan catalog built from real, openly licensed data pulled from its original
+upstream sources. It is the canonical reference for what a valid Portolan catalog
+looks like. When in doubt about how to structure a Catalog, a Collection, or an
+Asset, look here.
+
+It exercises every major case in the spec.
+
+- Vector polygons and points, GeoParquet 2.0, from Natural Earth, the US Census
+  Bureau, the City of Boston, PDOK Kadaster, and DataSF. The GeoParquet assets
+  document their columns with the table extension and declare their CRS with
+  the projection extension.
+- A raster Collection, Cloud Optimized GeoTIFF with per-band statistics.
+- A tabular, non-geospatial Collection, plain Parquet with documented columns.
+- Nested Catalogs and flat Collections, official and mirror provenance,
+  PMTiles visualizations, and data-driven MapLibre styles.
+- Attributed Collections that carry the attribution extension.
+
+Every Collection carries a cloud-native canonical data Asset and also cites its
+true original upstream file as a `source`-role Asset, each with its own real
+`file:size` and sha2-256 multihash `file:checksum`. Every node has a `README.md`
+with runnable code for opening the data and an `AGENTS.md` with guidance for
+agents.
+
+### Regenerating it
+
+The catalog is produced by [`build.py`](build.py) from the manifests in
+[`manifests/`](manifests/). Each manifest file describes one whole catalog and
+holds everything catalog-specific, so the script itself carries no per-catalog
+values. `build.py` reads every manifest in the directory and builds each into
+`catalog/<manifest-stem>/`. It is a single standalone script with a PEP 723
+dependency header, so `uv` resolves its Python dependencies on the fly.
+
+```bash
+uv run examples/build.py                              # build every manifest
+uv run examples/build.py --catalog reference          # one catalog
+uv run examples/build.py --only boundaries/us-counties   # one Collection
+```
+
+Prerequisites on your PATH, GDAL 3.x with the Parquet and COG drivers
+(`ogr2ogr`, `ogrinfo`, `gdal_translate`, `gdalinfo`, `gdal_rasterize`,
+`gdal_create`, `gdalwarp`), `tippecanoe`, and `uv`. The generator downloads each source once
+into a git-ignored cache, converts it, computes real checksums, writes the STAC
+tree with `AGENTS.md` and `README.md` beside every node, and validates the
+result against
+[`../stac/json-schema/v0.1.0/schema.json`](../stac/json-schema/v0.1.0/schema.json).
+
+Thumbnails are drawn in Web Mercator at the data's true aspect ratio over a CARTO
+light tile basemap, so previews read as maps rather than stretched squares. The
+basemap is set once in the manifest `thumbnails` block, and each Collection's
+`style` block drives both its thumbnail paint and its MapLibre styles, so the
+preview mirrors the map. A `category_field` colours features by category, the
+counties are coloured by state, for example.
+
+A few upstream sources are live endpoints, the Boston export, the DataSF layer,
+and the Eurostat API, so their `source` Asset checksums reflect the copy fetched
+at build time. The other sources are version-stable.
+
+The normative requirements are in [`specs/portolan/`](../specs/portolan/) and the
+profile is in [`stac/`](../stac/).

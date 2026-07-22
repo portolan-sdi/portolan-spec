@@ -1,0 +1,23 @@
+{
+  "version": 8,
+  "name": "us-counties default",
+  "sources": {
+    "us-counties": {
+      "type": "vector",
+      "url": "pmtiles://./us-counties.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "us-counties",
+      "type": "fill",
+      "source": "us-counties",
+      "source-layer": "us-counties",
+      "paint": {
+        "fill-color": "#6b8e5a",
+        "fill-outline-color": "#ffffff",
+        "fill-opacity": 0.6
+      }
+    }
+  ]
+}

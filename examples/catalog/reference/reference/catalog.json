@@ -1,0 +1,46 @@
+{
+  "type": "Catalog",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json"
+  ],
+  "id": "reference",
+  "title": "Reference Basemaps",
+  "description": "Public domain reference basemap layers for general orientation and joins.",
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "child",
+      "href": "./natural-earth-countries/collection.json",
+      "type": "application/json",
+      "title": "Natural Earth Countries (1:110m)"
+    },
+    {
+      "rel": "child",
+      "href": "./natural-earth-populated-places/collection.json",
+      "type": "application/json",
+      "title": "Natural Earth Populated Places (1:50m)"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation"
+    }
+  ]
+}

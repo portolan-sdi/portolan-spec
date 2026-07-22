@@ -1,0 +1,60 @@
+{
+  "type": "Catalog",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json"
+  ],
+  "id": "portolan-reference",
+  "title": "Portolan Reference Catalog",
+  "description": "A mixed reference catalog exercising every major case in the Portolan v0.1 specification with real, openly licensed data pulled from its original upstream sources, vector polygons and points, raster, tabular, official and mirror provenance, nested catalogs and flat collections.",
+  "links": [
+    {
+      "rel": "root",
+      "href": "./catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "child",
+      "href": "./reference/catalog.json",
+      "type": "application/json",
+      "title": "Reference Basemaps"
+    },
+    {
+      "rel": "child",
+      "href": "./boundaries/catalog.json",
+      "type": "application/json",
+      "title": "Administrative Boundaries"
+    },
+    {
+      "rel": "child",
+      "href": "./mirror/catalog.json",
+      "type": "application/json",
+      "title": "Mirrored Collections"
+    },
+    {
+      "rel": "child",
+      "href": "./raster/catalog.json",
+      "type": "application/json",
+      "title": "Raster Data"
+    },
+    {
+      "rel": "child",
+      "href": "./tabular/catalog.json",
+      "type": "application/json",
+      "title": "Tabular Data"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation"
+    }
+  ],
+  "updated": "2026-07-21T00:00:00Z"
+}
