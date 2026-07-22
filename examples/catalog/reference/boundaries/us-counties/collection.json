@@ -2,7 +2,7 @@
   "type": "Collection",
   "stac_version": "1.1.0",
   "stac_extensions": [
-    "https://schema.portolan-sdi.org/v0.1.0/schema.json",
+    "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json",
     "https://stac-extensions.github.io/file/v2.1.0/schema.json",
     "https://stac-extensions.github.io/table/v1.2.0/schema.json",
     "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
@@ -179,8 +179,8 @@
       "roles": [
         "thumbnail"
       ],
-      "file:size": 79977,
-      "file:checksum": "12208ac34d7ea3aac6efe605e953788651238d6256a866f3af25028e2ced8aac5310"
+      "file:size": 79966,
+      "file:checksum": "12204079e66ca416c91e10caf3cceeec2b0ea12a01eb40090c812214a8e2a15c0bb5"
     }
   },
   "links": [

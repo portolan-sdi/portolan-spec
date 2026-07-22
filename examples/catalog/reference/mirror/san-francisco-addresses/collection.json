@@ -2,7 +2,7 @@
   "type": "Collection",
   "stac_version": "1.1.0",
   "stac_extensions": [
-    "https://schema.portolan-sdi.org/v0.1.0/schema.json",
+    "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json",
     "https://stac-extensions.github.io/file/v2.1.0/schema.json",
     "https://stac-extensions.github.io/table/v1.2.0/schema.json",
     "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
@@ -10,7 +10,7 @@
   ],
   "id": "san-francisco-addresses",
   "title": "San Francisco Addresses (EAS)",
-  "description": "Point addresses from the City and County of San Francisco Enterprise Addressing System, a 50,000-feature extract of the official DataSF open data layer, converted to cloud-native GeoParquet with a PMTiles visualization. The source asset points at the full live DataSF layer.",
+  "description": "Point addresses from the City and County of San Francisco Enterprise Addressing System, a 5,000-feature extract of the official DataSF open data layer, converted to cloud-native GeoParquet with a PMTiles visualization. The source asset points at the full live DataSF layer.",
   "license": "PDDL-1.0",
   "keywords": [
     "addresses",
@@ -48,10 +48,10 @@
     "spatial": {
       "bbox": [
         [
-          -122.510992,
-          37.708201,
-          -122.364237,
-          37.830193
+          -122.510661,
+          37.708214,
+          -122.365923,
+          37.828926
         ]
       ]
     },
@@ -72,8 +72,8 @@
       "roles": [
         "data"
       ],
-      "file:size": 3939142,
-      "file:checksum": "1220c0a51ba69b10d98889bc7dd9ccd7ec4a64d64567db50383e2e11fb69eaf1d9a7",
+      "file:size": 497826,
+      "file:checksum": "1220265c6e08c5a7de6438c6218fa209f0acc998f7756685e49722d1a219b09a1613",
       "table:columns": [
         {
           "name": "fid",
@@ -207,15 +207,15 @@
       "proj:code": "EPSG:4326"
     },
     "source": {
-      "href": "https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=50000",
+      "href": "https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=5000",
       "type": "application/geo+json",
-      "title": "DataSF San Francisco Addresses with Units (GeoJSON, 50k extract)",
+      "title": "DataSF San Francisco Addresses with Units (GeoJSON, 5k extract)",
       "roles": [
         "data",
         "source"
       ],
-      "file:size": 43265973,
-      "file:checksum": "1220839a442d16b200fd66bd1f31c646027ea9aa1d684a9ada4361b27897bf02cf66"
+      "file:size": 4326949,
+      "file:checksum": "12208d97b1357b40e063c8820e1ace051745886fa0b525e05d0da6a528660a2c670c"
     },
     "visual": {
       "href": "./san-francisco-addresses.pmtiles",
@@ -224,8 +224,8 @@
       "roles": [
         "visual"
       ],
-      "file:size": 9008597,
-      "file:checksum": "1220bbaffd2d44628c6b1a76949266d92d0bde7a10a5a39d701126a4d8da6a02fe13"
+      "file:size": 804815,
+      "file:checksum": "12202b778b2935fdf120794d5b10957a94493dfe9e6cfc2ef771cacc92667edaeefd"
     },
     "style-default": {
       "href": "./styles/default.json",
@@ -244,8 +244,8 @@
       "roles": [
         "thumbnail"
       ],
-      "file:size": 505067,
-      "file:checksum": "122017db7be4a40bfb1c1f10b5621c43791759c8161678ab147167762fd29802a803"
+      "file:size": 409790,
+      "file:checksum": "122028be1ba46a90c2e6a1d67acd971c52c488779771020696610a3b118d89830144"
     }
   },
   "links": [

@@ -2,7 +2,7 @@
   "type": "Collection",
   "stac_version": "1.1.0",
   "stac_extensions": [
-    "https://schema.portolan-sdi.org/v0.1.0/schema.json",
+    "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json",
     "https://stac-extensions.github.io/file/v2.1.0/schema.json",
     "https://stac-extensions.github.io/table/v1.2.0/schema.json",
     "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
@@ -150,7 +150,7 @@
         "style"
       ],
       "file:size": 1149,
-      "file:checksum": "12208de4286881faf216e62c6e781a3ac0670221cd6ff7bcd5bbb5a92c13698e8c4f"
+      "file:checksum": "12203edf9302f8b14817bf4681dd8589723ade9f268f5a290c66c2c9fd3a4fbd8715"
     },
     "style-labeled": {
       "href": "./styles/labeled.json",
@@ -160,7 +160,7 @@
         "style"
       ],
       "file:size": 1592,
-      "file:checksum": "12201db5ca3d41bdf9e04b7aab08aea6cc24b68229985068779d66a656b685dfa1c2"
+      "file:checksum": "1220d62fa3605884186e2cbbc8790d1f4764896b2ecea30ea057a6dfb311f5a07429"
     },
     "thumbnail": {
       "href": "./thumbnail.png",
@@ -169,8 +169,8 @@
       "roles": [
         "thumbnail"
       ],
-      "file:size": 194664,
-      "file:checksum": "1220482e8dbfff02c83abc3d8f56c9344ec6bdc0978cde450db61b315619e8432722"
+      "file:size": 194516,
+      "file:checksum": "1220935c19c5778942905bc0a28412a7428817dbcc0f7b8295e8efb57e24a1efc047"
     }
   },
   "links": [

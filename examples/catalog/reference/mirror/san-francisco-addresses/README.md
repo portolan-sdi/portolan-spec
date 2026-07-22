@@ -1,11 +1,11 @@
 # San Francisco Addresses (EAS)
 
-Point addresses from the City and County of San Francisco Enterprise Addressing System, a 50,000-feature extract of the official DataSF open data layer, converted to cloud-native GeoParquet with a PMTiles visualization. The source asset points at the full live DataSF layer.
+Point addresses from the City and County of San Francisco Enterprise Addressing System, a 5,000-feature extract of the official DataSF open data layer, converted to cloud-native GeoParquet with a PMTiles visualization. The source asset points at the full live DataSF layer.
 
 License, PDDL-1.0.
 Providers, City and County of San Francisco (producer, licensor), DataSF (processor), Portolan SDI (host).
-Original source, https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=50000 .
-Features, 50000.
+Original source, https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=5000 .
+Features, 5000.
 Cloud-native asset, san-francisco-addresses.parquet (GeoParquet).
 Note, the upstream source is a live endpoint, so the source checksum reflects the copy fetched at build time.
 

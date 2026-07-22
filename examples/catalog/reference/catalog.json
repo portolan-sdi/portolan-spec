@@ -2,7 +2,7 @@
   "type": "Catalog",
   "stac_version": "1.1.0",
   "stac_extensions": [
-    "https://schema.portolan-sdi.org/v0.1.0/schema.json"
+    "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json"
   ],
   "id": "portolan-reference",
   "title": "Portolan Reference Catalog",
