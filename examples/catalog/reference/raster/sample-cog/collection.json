@@ -56,8 +56,8 @@
       "roles": [
         "data"
       ],
-      "file:size": 1054427,
-      "file:checksum": "1220ab0a989ec31ff8bf06c86a514d0ec289e784453e0a9140bed2086362a59060f7",
+      "file:size": 1134866,
+      "file:checksum": "12209d35afb5b4c0c871db6462c8cb8512ecabf8202f7f92b549281feed0a52fafef",
       "bands": [
         {
           "data_type": "uint8",
@@ -107,8 +107,8 @@
       "roles": [
         "thumbnail"
       ],
-      "file:size": 224633,
-      "file:checksum": "1220f958fb841d6c507998935bdc1d6871384f7358091cde41e299e24a284300b6aa"
+      "file:size": 225090,
+      "file:checksum": "1220cc71e3792ef345783d8a023400404402314050f20b7ac42ebed53a38d782070c"
     }
   },
   "links": [

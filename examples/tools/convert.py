@@ -64,7 +64,12 @@ def to_geoparquet(local: Path, spec_source: dict, out_parquet: Path,
     read = f"ST_Read('{src}'" + (f", layer='{layer}'" if layer else "") + ")"
 
     cols = [r[0] for r in con.execute(f"DESCRIBE SELECT * FROM {read}").fetchall()]
-    has_fid = any(c.lower() == "fid" for c in cols)
+    # A feature-id column arrives either as a real `fid` (e.g. a GeoPackage) or as
+    # the OGR-reserved `OGC_FID` that ST_Read surfaces for formats without an
+    # explicit one (e.g. Shapefiles). Either way route it through the OGC_FID
+    # round-trip so GDAL writes it as the feature id, never a plain attribute
+    # column, which the GPKG Arrow writer refuses for the reserved name.
+    fid_col = next((c for c in cols if c.lower() in ("fid", "ogc_fid")), None)
 
     if out_crs == source_crs:
         canon_geom = f"ST_SetCRS(geom, '{source_crs}')"
@@ -76,9 +81,9 @@ def to_geoparquet(local: Path, spec_source: dict, out_parquet: Path,
 
     def write_gpkg(table: str, geom_expr: str, path: Path, alias: str) -> None:
         path.unlink(missing_ok=True)
-        if has_fid:
-            con.execute(f"CREATE TABLE {table} AS SELECT fid AS OGC_FID, "
-                        f"* EXCLUDE (fid, geom), {geom_expr} AS geom FROM {read}")
+        if fid_col:
+            con.execute(f'CREATE TABLE {table} AS SELECT "{fid_col}" AS OGC_FID, '
+                        f'* EXCLUDE ("{fid_col}", geom), {geom_expr} AS geom FROM {read}')
             con.execute(f"COPY {table} TO '{path}' (FORMAT GDAL, DRIVER 'GPKG', "
                         f"LAYER_NAME 'layer', LAYER_CREATION_OPTIONS 'FID=OGC_FID')")
             con.execute("INSTALL sqlite; LOAD sqlite;")

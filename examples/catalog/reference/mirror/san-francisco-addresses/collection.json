@@ -72,8 +72,8 @@
       "roles": [
         "data"
       ],
-      "file:size": 497826,
-      "file:checksum": "1220265c6e08c5a7de6438c6218fa209f0acc998f7756685e49722d1a219b09a1613",
+      "file:size": 498096,
+      "file:checksum": "122025c9b7fb235c0eecdf2cdbbde5f9ff7b206ea6bb658b89d528d75b80d01f9e23",
       "table:columns": [
         {
           "name": "fid",
@@ -226,8 +226,8 @@
       "roles": [
         "visual"
       ],
-      "file:size": 804815,
-      "file:checksum": "12202b778b2935fdf120794d5b10957a94493dfe9e6cfc2ef771cacc92667edaeefd"
+      "file:size": 852783,
+      "file:checksum": "1220badc7e2def746dbb2fe767a0fef1ff92c6f15f86a0991f98d09b4724e09a9fc4"
     },
     "style-default": {
       "href": "./styles/default.json",

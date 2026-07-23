@@ -16,7 +16,6 @@ conformance rules the JSON schema delegates to tooling. Run:
     uv run examples/tools/tests/check_compliance.py
 """
 import json
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -135,9 +134,12 @@ def check_vector_columns_include_geometry() -> None:
         gj = tmp / "tiny.geojson"
         gj.write_text(json.dumps(geojson))
         norm = tmp / "tiny.gpkg"
-        subprocess.run(
-            ["ogr2ogr", "-t_srs", "EPSG:4326", "-f", "GPKG", "-nln", "layer",
-             str(norm), str(gj)], check=True)
+        con = duckdb.connect()
+        con.execute("INSTALL spatial; LOAD spatial; SET geometry_always_xy=true;")
+        con.execute(f"CREATE TABLE t AS SELECT name, ST_SetCRS(geom, 'EPSG:4326') AS geom "
+                    f"FROM ST_Read('{gj}')")
+        con.execute(f"COPY t TO '{norm}' (FORMAT GDAL, DRIVER 'GPKG', LAYER_NAME 'layer')")
+        con.close()
         out = tmp / "tiny.parquet"
         write_web_geoparquet(norm, out)
         cols = table_columns(out)

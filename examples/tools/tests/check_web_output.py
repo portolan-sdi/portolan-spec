@@ -11,15 +11,16 @@
 # ///
 """Standalone check for convert.write_web_geoparquet.
 
-Builds a tiny EPSG:4326 GeoPackage with ogr2ogr, runs the wrapper, and asserts
+Builds a tiny EPSG:4326 GeoPackage with DuckDB, runs the wrapper, and asserts
 the output is native GeoParquet 2.0 with a covering bbox column and a page index.
 Run: uv run examples/tools/tests/check_web_output.py
 """
 import json
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+import duckdb
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from convert import write_web_geoparquet  # noqa: E402
@@ -45,9 +46,12 @@ def main() -> int:
         gj = tmp / "tiny.geojson"
         gj.write_text(json.dumps(GEOJSON))
         norm = tmp / "tiny.gpkg"
-        subprocess.run(
-            ["ogr2ogr", "-t_srs", "EPSG:4326", "-f", "GPKG", "-nln", "layer",
-             str(norm), str(gj)], check=True)
+        con = duckdb.connect()
+        con.execute("INSTALL spatial; LOAD spatial; SET geometry_always_xy=true;")
+        con.execute(f"CREATE TABLE t AS SELECT name, ST_SetCRS(geom, 'EPSG:4326') AS geom "
+                    f"FROM ST_Read('{gj}')")
+        con.execute(f"COPY t TO '{norm}' (FORMAT GDAL, DRIVER 'GPKG', LAYER_NAME 'layer')")
+        con.close()
 
         out = tmp / "tiny.parquet"
         write_web_geoparquet(norm, out)

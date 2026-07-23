@@ -64,8 +64,8 @@
       "roles": [
         "data"
       ],
-      "file:size": 280645,
-      "file:checksum": "12202a060997e5becb93af06724d7a1d62fb427209089daef8d3c13104a0d609fe19",
+      "file:size": 280650,
+      "file:checksum": "122060be40dbafd2491ccf1627ae848b3a035bc082de7d8130a885033856ac3c3c86",
       "table:columns": [
         {
           "name": "fid",
