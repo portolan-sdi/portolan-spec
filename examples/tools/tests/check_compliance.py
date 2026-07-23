@@ -2,11 +2,11 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #   "pyyaml>=6.0.3",
-#   "duckdb>=1.5.4",
+#   "duckdb>=1.5.5",
 #   "jsonschema>=4.26.0",
-#   "pyarrow>=24",
+#   "pyarrow>=25",
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
-#   "rasterio>=1.4",
+#   "rasterio>=1.5",
 # ]
 # ///
 """Standalone compliance checks for the generator's pure helpers.
