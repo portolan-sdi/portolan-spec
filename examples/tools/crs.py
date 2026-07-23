@@ -17,6 +17,19 @@ def _crs_string(auth: str | None, code: str | None) -> str | None:
     return None
 
 
+def detect_raster_crs(tif: Path) -> str:
+    """Return the raster CRS as `EPSG:<code>` via rasterio, raising if absent."""
+    import rasterio
+
+    with rasterio.open(tif) as ds:
+        if ds.crs is None:
+            raise ValueError(f"{tif} declares no CRS")
+        epsg = ds.crs.to_epsg()
+        if epsg is None:
+            raise ValueError(f"{tif} CRS has no EPSG code: {ds.crs}")
+        return f"EPSG:{epsg}"
+
+
 def detect_vector_crs(gdal_path: str, layer: str | None) -> str:
     """Return the source CRS of a GDAL-readable vector as `EPSG:<code>`.
 

@@ -6,6 +6,7 @@
 #   "jsonschema>=4.26.0",
 #   "pyarrow>=24",
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
+#   "rasterio>=1.4",
 # ]
 # ///
 """Standalone compliance checks for the generator's pure helpers.
@@ -26,9 +27,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from stacio import resolve_providers, license_links  # noqa: E402
 from convert import write_web_geoparquet, table_columns  # noqa: E402
 from validate import collection_findings  # noqa: E402
-# more crs imports (detect_raster_crs, resolve_output_crs, assert_known_crs) are
-# added in later tasks
-from crs import detect_vector_crs  # noqa: E402
+# more crs imports (resolve_output_crs, assert_known_crs) are added in later tasks
+from crs import detect_vector_crs, detect_raster_crs  # noqa: E402
 import glob  # noqa: E402
 
 HOST = {"name": "Portolan SDI", "url": "https://github.com/portolan-sdi",
@@ -189,6 +189,14 @@ def check_detect_vector_crs_present_but_no_crs() -> None:
     raise AssertionError("a geometry layer that declares no CRS did not raise")
 
 
+def check_detect_raster_crs_rgb() -> None:
+    src = glob.glob("examples/.cache/*RGB.byte.tif")
+    if not src:
+        print("SKIP check_detect_raster_crs_rgb, source not cached")
+        return
+    assert detect_raster_crs(Path(src[0])) == "EPSG:32618"
+
+
 CHECKS = [
     check_official_host_moved_last,
     check_multiple_hosts_error,
@@ -203,6 +211,7 @@ CHECKS = [
     check_detect_vector_crs_netherlands,
     check_detect_vector_crs_missing_raises,
     check_detect_vector_crs_present_but_no_crs,
+    check_detect_raster_crs_rgb,
 ]
 
 
