@@ -4,6 +4,9 @@
 // their collection), so stac-node-validator's schemaMap never applies the
 // schema's item branch to them — this script applies the schema to every
 // example regardless of declaration, the way the Portolan validator does.
+// It also applies the pinned portolan-sdi extension schemas (fetched into
+// .schema-cache/ by fetch-extension-schemas.js) to every example that
+// declares them.
 'use strict';
 
 const fs = require('fs');
@@ -17,6 +20,24 @@ const examplesDir = path.join(__dirname, '..', 'examples');
 const ajv = new Ajv({ allErrors: true, strict: false });
 const validate = ajv.compile(JSON.parse(fs.readFileSync(schemaPath, 'utf8')));
 
+const extensions = require('../portolan-extensions.json');
+const extValidators = {};
+for (const [name, ext] of Object.entries(extensions)) {
+  if (name.startsWith('$')) continue;
+  for (const ver of Object.keys(ext.versions)) {
+    const uri = `https://schemas.portolan-sdi.org/${name}/${ver}/schema.json`;
+    const cached = path.join(__dirname, '..', '.schema-cache', name, ver, 'schema.json');
+    if (!fs.existsSync(cached)) {
+      console.error(`✗ ${name} ${ver}: schema not cached — run \`node scripts/fetch-extension-schemas.js\``);
+      process.exit(1);
+    }
+    extValidators[uri] = {
+      label: `${name} ${ver}`,
+      validate: ajv.compile(JSON.parse(fs.readFileSync(cached, 'utf8'))),
+    };
+  }
+}
+
 let failed = false;
 
 const names = fs.readdirSync(examplesDir).filter((f) => f.endsWith('.json')).sort();
@@ -26,6 +47,13 @@ for (const name of names) {
 
   if (!validate(doc)) {
     errors.push(...validate.errors.map((e) => `${e.instancePath || '/'} ${e.message}`));
+  }
+
+  for (const uri of doc.stac_extensions || []) {
+    const ext = extValidators[uri];
+    if (ext && !ext.validate(doc)) {
+      errors.push(...ext.validate.errors.map((e) => `[${ext.label}] ${e.instancePath || '/'} ${e.message}`));
+    }
   }
 
   // The schema deliberately delegates multihash validity to tooling; the

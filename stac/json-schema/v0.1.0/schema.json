@@ -70,6 +70,9 @@
           "$ref": "#/definitions/providers_conformant"
         },
         {
+          "$ref": "#/definitions/partition_conformant"
+        },
+        {
           "properties": {
             "extent": {
               "type": "object",
@@ -377,6 +380,51 @@
                 "type": "string",
                 "minLength": 1
               }
+            }
+          }
+        }
+      }
+    },
+    "partition_conformant": {
+      "$comment": "A partitioned collection declares the partition extension and carries its required fields (spec: Partitioned Collections). Any partition:* field without the declared extension, or a declaration missing a required field, fails. Field shapes are validated by the partition extension schema itself, which Portolan validators apply alongside this profile; cross-partition Parquet schema consistency is checked by tooling reading file footers.",
+      "type": "object",
+      "if": {
+        "anyOf": [
+          {
+            "required": ["partition:scheme"]
+          },
+          {
+            "required": ["partition:keys"]
+          },
+          {
+            "required": ["partition:strategy"]
+          },
+          {
+            "required": ["partition:file_count"]
+          },
+          {
+            "required": ["partition:glob"]
+          },
+          {
+            "required": ["stac_extensions"],
+            "properties": {
+              "stac_extensions": {
+                "type": "array",
+                "contains": {
+                  "const": "https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "required": ["partition:scheme", "partition:keys", "partition:glob", "stac_extensions"],
+        "properties": {
+          "stac_extensions": {
+            "type": "array",
+            "contains": {
+              "const": "https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json"
             }
           }
         }

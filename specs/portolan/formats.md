@@ -73,14 +73,28 @@ PMTiles file (typically `../filename.pmtiles`), and `layers[].source` to `"data"
 
 ### Partitioned Collections
 
-Large files MAY be partitioned. When partitioned, the scheme's path structure MUST
-reflect spatial extent so readers can prune files without reading metadata.
+Large files MAY be partitioned. Partitioning MUST be described per the
+[partition extension](https://github.com/portolan-sdi/stac-partition-extension)
+(v1.0.0), with its schema declared in `stac_extensions` and its required fields
+carried — `partition:scheme`, `partition:keys`, and `partition:glob`. Field
+definitions live in the extension and are not restated here. Portolan adds the
+requirements the extension does not cover:
+
+- The scheme's path structure MUST reflect spatial extent so readers can prune
+  files without reading metadata.
+- `partition:glob` is the normative bulk-access path; the collection description
+  SHOULD also mention the glob for human readers, but validators read only the
+  field. The https-only rule for absolute asset hrefs does not extend to the
+  glob: globs are consumed by partition-aware readers rather than browsers, and
+  bucket-native schemes (`s3://`, `gs://`) MAY be used where those readers need
+  them (glob expansion requires listing, which plain https does not provide).
+- Every partition file MUST share a single Parquet schema — the same columns,
+  names, and types — so the glob can be queried as one table. This is validated
+  by tooling reading file footers, not by JSON schema.
+
 Partition files MAY be represented as items when partitions are user-meaningful
 units (countries, regions); for opaque schemes (hilbert, s2, h3) or hundreds of
-partitions, items SHOULD NOT be created — the glob pattern is the access path. The
-collection description MUST include a glob pattern for accessing all partitions at
-once (for example `s3://bucket/buildings/*.parquet`), since most users want a
-single URL rather than enumerating items.
+partitions, items SHOULD NOT be created — the glob pattern is the access path.
 
 As a rough guide, consider partitioning files over ~2 GB, targeting 200 MB–1 GB per
 file — fewer, larger files outperform many small ones for DuckDB. This is not

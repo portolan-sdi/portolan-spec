@@ -18,53 +18,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build site from tracked schema versions
+      - name: Build site from tracked and pinned schema versions
         env:
           EVENT_NAME: ${{ github.event_name }}
           VERSION: ${{ github.ref_name }}
         run: |
-          # Every schema version is tracked in the repo under
-          # stac/json-schema/v<semver>/; the site is rebuilt from that tree,
-          # never from what is currently deployed. schemas.portolan-sdi.org
-          # hosts one path segment per schema; this profile lives under
-          # /portolan/, so versions deploy at /portolan/v<semver>/.
+          set -euo pipefail
+
+          # schemas.portolan-sdi.org hosts one path segment per schema. The
+          # Portolan profile lives under /portolan/, rebuilt from the versions
+          # tracked in this repo under stac/json-schema/v<semver>/. The
+          # portolan-sdi extension schemas live in their own repositories and
+          # are pinned in stac/portolan-extensions.json; each pinned version is
+          # fetched from its source repo at build time and served under
+          # /<name>/<version>/. The site is never rebuilt from what is
+          # currently deployed.
           if [ "$EVENT_NAME" = "release" ] && [ ! -f "stac/json-schema/${VERSION}/schema.json" ]; then
             echo "::error::stac/json-schema/${VERSION}/schema.json not found for release ${VERSION}"
             exit 1
           fi
 
-          mkdir -p _site/portolan
-          for dir in stac/json-schema/v*/; do
-            ver=$(basename "$dir")
-            mkdir -p "_site/portolan/${ver}"
-            cp "${dir}schema.json" "_site/portolan/${ver}/"
-          done
+          MANIFEST=stac/portolan-extensions.json
 
-          ls -d stac/json-schema/v*/ | xargs -n1 basename | jq -R . | jq -s . > _site/portolan/versions.json
-
-          # Serve the custom domain on GitHub Pages
-          echo "schemas.portolan-sdi.org" > _site/CNAME
-
-          # Root index redirects to the profile schema listing
-          cat > _site/index.html << 'HTMLEOF'
+          # Per-family index page: title $1, source repo $2, output path $3.
+          family_index() {
+            sed "s/__TITLE__/$1/g; s|__REPO__|$2|g" > "$3" << 'HTMLEOF'
           <!DOCTYPE html>
           <html>
           <head>
-            <meta http-equiv="refresh" content="0; url=portolan/">
-            <title>Portolan schemas</title>
-          </head>
-          <body>
-            <a href="portolan/">Portolan schemas</a>
-          </body>
-          </html>
-          HTMLEOF
-
-          # Create index page listing all versions of the profile schema
-          cat > _site/portolan/index.html << 'HTMLEOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>Portolan STAC Profile</title>
+            <title>__TITLE__</title>
             <style>
               body { font-family: system-ui, sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
               h1 { color: #333; }
@@ -74,8 +56,8 @@ jobs:
             </style>
           </head>
           <body>
-            <h1>Portolan STAC Profile</h1>
-            <p>JSON Schema for the <a href="https://github.com/portolan-sdi/portolan-spec">Portolan STAC profile</a>.</p>
+            <h1>__TITLE__</h1>
+            <p>JSON Schema for <a href="https://github.com/__REPO__">__REPO__</a>.</p>
             <h2>Available Versions</h2>
             <ul id="versions"></ul>
             <script>
@@ -93,6 +75,69 @@ jobs:
           </body>
           </html>
           HTMLEOF
+          }
+
+          # Portolan profile: tracked schema versions.
+          mkdir -p _site/portolan
+          for dir in stac/json-schema/v*/; do
+            ver=$(basename "$dir")
+            mkdir -p "_site/portolan/${ver}"
+            cp "${dir}schema.json" "_site/portolan/${ver}/"
+          done
+          ls -d stac/json-schema/v*/ | xargs -n1 basename | jq -R . | jq -s . > _site/portolan/versions.json
+          family_index "Portolan STAC Profile" "portolan-sdi/portolan-spec" _site/portolan/index.html
+
+          # Extension schemas: pinned versions fetched from their source repos.
+          for name in $(jq -r 'keys[] | select(startswith("$") | not)' "$MANIFEST"); do
+            repo=$(jq -r --arg n "$name" '.[$n].repo' "$MANIFEST")
+            file=$(jq -r --arg n "$name" '.[$n].path' "$MANIFEST")
+            title=$(jq -r --arg n "$name" '.[$n].title' "$MANIFEST")
+            for ver in $(jq -r --arg n "$name" '.[$n].versions | keys[]' "$MANIFEST"); do
+              ref=$(jq -r --arg n "$name" --arg v "$ver" '.[$n].versions[$v]' "$MANIFEST")
+              mkdir -p "_site/${name}/${ver}"
+              if ! curl -sfL "https://raw.githubusercontent.com/${repo}/${ref}/${file}" \
+                  -o "_site/${name}/${ver}/schema.json"; then
+                echo "::error::failed to fetch ${name} ${ver} from ${repo}@${ref}"
+                exit 1
+              fi
+            done
+            jq --arg n "$name" '.[$n].versions | keys' "$MANIFEST" > "_site/${name}/versions.json"
+            family_index "$title" "$repo" "_site/${name}/index.html"
+          done
+
+          # Serve the custom domain on GitHub Pages
+          echo "schemas.portolan-sdi.org" > _site/CNAME
+
+          # Root index lists every schema family.
+          {
+            cat << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Portolan schemas</title>
+            <style>
+              body { font-family: system-ui, sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+              h1 { color: #333; }
+              ul { list-style: none; padding: 0; }
+              li { margin: 0.5rem 0; }
+              a { color: #0066cc; }
+            </style>
+          </head>
+          <body>
+            <h1>Portolan schemas</h1>
+            <ul>
+              <li><a href="portolan/">Portolan STAC Profile</a></li>
+          HTMLEOF
+            for name in $(jq -r 'keys[] | select(startswith("$") | not)' "$MANIFEST"); do
+              title=$(jq -r --arg n "$name" '.[$n].title' "$MANIFEST")
+              echo "      <li><a href=\"${name}/\">${title}</a></li>"
+            done
+            cat << 'HTMLEOF'
+            </ul>
+          </body>
+          </html>
+          HTMLEOF
+          } > _site/index.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

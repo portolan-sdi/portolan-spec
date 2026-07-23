@@ -48,6 +48,7 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 | [Version][] | `https://stac-extensions.github.io/version/v1.2.0/schema.json`              | **MUST**    | When dataset versioning is used (never `portolan:` fields) |
 | [Raster][] | `https://stac-extensions.github.io/raster/v2.0.0/schema.json`               | **MUST**    | When band-level detail is provided |
 | [Vector][] | `https://stac-extensions.github.io/vector/v0.1.0/schema.json`               | **MUST**    | When layer-level detail is provided |
+| [Partition][] | `https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json`              | **MUST**    | Partitioned collections: `partition:scheme`, `partition:keys`, `partition:glob` (spec: Partitioned Collections) |
 | [Table][] | `https://stac-extensions.github.io/table/v1.2.0/schema.json`                | SHOULD      | Tabular collections: document columns with `table:columns` |
 | [Alternate Assets][] | `https://stac-extensions.github.io/alternate-assets/v1.2.0/schema.json`     | SHOULD      | Expose `s3://` alternates for absolute `https` asset hrefs |
 | [Render][] | `https://stac-extensions.github.io/render/v2.0.0/schema.json`               | SHOULD      | Continuous rasters rendering from source (draw-time colorization) |
@@ -67,6 +68,7 @@ As the profile grows, per-format requirement sets (vector, raster, tabular) may 
 [Version]: https://github.com/stac-extensions/version
 [Raster]: https://github.com/stac-extensions/raster
 [Vector]: https://github.com/stac-extensions/vector
+[Partition]: https://github.com/portolan-sdi/stac-partition-extension
 [Table]: https://github.com/stac-extensions/table
 [Projection]: https://github.com/stac-extensions/projection
 [Alternate Assets]: https://github.com/stac-extensions/alternate-assets
@@ -145,7 +147,7 @@ The files are stored flat in `examples/` for convenience, but their relative hre
 
 ## Building and Testing
 
-Every published schema version is tracked in this repository under `json-schema/v<version>/schema.json`; the `version` field in `package.json` names the current one and is the single source of truth. The publish workflow deploys the site from that tree.
+Every published schema version is tracked in this repository under `json-schema/v<version>/schema.json`; the `version` field in `package.json` names the current one and is the single source of truth. The portolan-sdi extension schemas (currently [partition](https://github.com/portolan-sdi/stac-partition-extension)) live in their own repositories; [`portolan-extensions.json`](portolan-extensions.json) pins which versions are published under `schemas.portolan-sdi.org/<name>/<version>/`, so bumping a pin — like binding the profile to a new extension version — is a change to this repository. The publish workflow deploys the site from the tracked tree plus the pinned extension schemas fetched from their source repos.
 
 From `stac/`:
 
@@ -154,12 +156,12 @@ npm install
 npm test
 ```
 
-`npm test` runs:
+`npm test` runs (after a `pretest` step that fetches the pinned extension schemas into the gitignored `.schema-cache/`):
 
 - **check-markdown** — remark lint over the profile documents.
 - **check-version** — every versioned Portolan schema URI reference (schema `$id`, READMEs, examples, spec documents) matches the `package.json` version, and the matching `json-schema/v<version>/` directory exists.
 - **check-examples** — [stac-node-validator](https://github.com/stac-utils/stac-node-validator) validates the examples, applying the schema where `stac_extensions` declares it.
-- **check-portolan** — validates every example directly against the schema with ajv, the way the Portolan validator does. This is what exercises the schema's item rules — items never declare the schema URI, so `check-examples` alone would never apply it to them. It also verifies the examples' `file:checksum` values are well-formed sha2-256 multihashes, which the schema deliberately delegates to tooling.
+- **check-portolan** — validates every example directly against the schema with ajv, the way the Portolan validator does. This is what exercises the schema's item rules — items never declare the schema URI, so `check-examples` alone would never apply it to them. It also applies the pinned extension schemas to every example that declares them, and verifies the examples' `file:checksum` values are well-formed sha2-256 multihashes, which the schema deliberately delegates to tooling.
 
 ## Contributing
 

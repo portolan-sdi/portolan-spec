@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Partition binding: a collection carrying any `partition:*` field, or declaring
+  the partition extension, must declare
+  `https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json` in
+  `stac_extensions` and carry `partition:scheme`, `partition:keys`, and
+  `partition:glob`. `partition:glob` is the normative bulk-access path.
+- `portolan-extensions.json`: pins which portolan-sdi extension schema versions
+  are published under `schemas.portolan-sdi.org/<name>/<version>/`. The publish
+  workflow fetches pinned versions from their source repos at build time; the
+  test suite fetches them into `.schema-cache/` and applies them to examples
+  that declare them.
+
 - Initial version of the Portolan STAC profile, moved from the
   `stac-portolan-extension` repository into `stac/`.
 - JSON Schema covering the specification's schema-checkable structural
