@@ -6,7 +6,6 @@ zipped shapefiles so the converters can read a single-file OGR source.
 from __future__ import annotations
 
 import hashlib
-import os
 import shutil
 import sys
 import urllib.request
@@ -50,9 +49,7 @@ def _prepare_ogr_source(local: Path, spec_source: dict, extract_dir: Path) -> tu
     cached filename's extension (GDAL /vsizip keys off a .zip suffix)."""
     layer = spec_source.get("layer")
     if _is_zip(local, spec_source):
-        import zipfile
         if extract_dir.exists():
-            import shutil
             shutil.rmtree(extract_dir)
         extract_dir.mkdir(parents=True)
         with zipfile.ZipFile(local) as z:

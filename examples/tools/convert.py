@@ -62,7 +62,6 @@ def to_geoparquet(local: Path, spec_source: dict, out_parquet: Path) -> tuple[li
     con.close()
     write_web_geoparquet(norm, out_parquet)
     if extract_dir.exists():
-        import shutil
         shutil.rmtree(extract_dir)
     return [round(minx, 6), round(miny, 6), round(maxx, 6), round(maxy, 6)], int(n), norm
 
