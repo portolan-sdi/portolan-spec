@@ -18,7 +18,11 @@ from config import PALETTE
 def make_pmtiles(vector_src: Path, out_pmtiles: Path, layer_name: str) -> None:
     seq = out_pmtiles.with_suffix(".geojsonl")
     seq.unlink(missing_ok=True)
-    run(["ogr2ogr", "-f", "GeoJSONSeq", str(seq), str(vector_src)])
+    con = duckdb.connect()
+    con.execute("INSTALL spatial; LOAD spatial; SET geometry_always_xy=true;")
+    con.execute(f"COPY (SELECT * FROM ST_Read('{vector_src}')) "
+                f"TO '{seq}' (FORMAT GDAL, DRIVER 'GeoJSONSeq')")
+    con.close()
     run(["tippecanoe", "-o", str(out_pmtiles), "--force", "-zg",
          "--drop-densest-as-needed", "--extend-zooms-if-still-dropping",
          "-l", layer_name, str(seq)])
