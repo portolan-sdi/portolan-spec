@@ -5,17 +5,12 @@ statistics, tabular CSV to plain Parquet. Also reads back columns and counts.
 """
 from __future__ import annotations
 
-import json
-import re
 import shutil
 from pathlib import Path
-from typing import Any
 
 import duckdb
 
-from common import run
-from config import GDAL_DTYPE
-from crs import assert_known_crs, detect_vector_crs
+from crs import assert_known_crs, detect_raster_crs, detect_vector_crs
 from fetch import _prepare_ogr_source
 
 
@@ -121,44 +116,76 @@ def feature_count(parquet: Path) -> int:
     return int(n)
 
 
-def to_cog(src_tif: Path, out_tif: Path) -> None:
+def to_cog(src_tif: Path, out_tif: Path, output_crs: str | None) -> str:
+    """Write a Cloud Optimized GeoTIFF, preserving the source CRS by default or
+    warping to `output_crs` when set. Returns the CRS actually written."""
+    import numpy as np  # noqa
+    import rasterio
+    from rasterio.warp import calculate_default_transform, reproject, Resampling
+
     out_tif.parent.mkdir(parents=True, exist_ok=True)
-    run(["gdal_translate", "-of", "COG", "-co", "COMPRESS=DEFLATE",
-         "-co", "STATISTICS=YES", str(src_tif), str(out_tif)])
-
-
-def _gdalinfo(tif: Path) -> dict:
-    return json.loads(run(["gdalinfo", "-json", "-stats", str(tif)]).stdout)
+    source_crs = detect_raster_crs(src_tif)
+    out_crs = output_crs or source_crs
+    if output_crs:
+        assert_known_crs(output_crs)
+    cog_profile = {"driver": "COG", "compress": "DEFLATE"}
+    with rasterio.open(src_tif) as src:
+        if out_crs == source_crs:
+            data = src.read()
+            profile = src.profile.copy()
+            profile.update(cog_profile)
+            with rasterio.open(out_tif, "w", **profile) as dst:
+                dst.write(data)
+                dst.build_overviews([2, 4, 8], Resampling.average)
+        else:
+            transform, width, height = calculate_default_transform(
+                src.crs, out_crs, src.width, src.height, *src.bounds)
+            profile = src.profile.copy()
+            profile.update(cog_profile)
+            profile.update(crs=out_crs, transform=transform, width=width, height=height)
+            with rasterio.open(out_tif, "w", **profile) as dst:
+                for i in range(1, src.count + 1):
+                    reproject(
+                        source=rasterio.band(src, i), destination=rasterio.band(dst, i),
+                        src_transform=src.transform, src_crs=src.crs,
+                        dst_transform=transform, dst_crs=out_crs, resampling=Resampling.bilinear)
+                dst.build_overviews([2, 4, 8], Resampling.average)
+    return out_crs
 
 
 def bands_from_cog(tif: Path) -> list[dict]:
-    info = _gdalinfo(tif)
+    """Per-band data type and statistics from the COG, kept in STAC 1.1 core bands."""
+    import numpy as np
+    import rasterio
+
     out = []
-    for b in info["bands"]:
-        meta = b.get("metadata", {}).get("", {})
-        stats = {}
-        for key, name in [("STATISTICS_MINIMUM", "minimum"), ("STATISTICS_MAXIMUM", "maximum"),
-                          ("STATISTICS_MEAN", "mean"), ("STATISTICS_STDDEV", "stddev")]:
-            if key in meta:
-                stats[name] = round(float(meta[key]), 4)
-        band: dict[str, Any] = {"data_type": GDAL_DTYPE.get(b.get("type", ""), "other")}
-        if stats:
-            band["statistics"] = stats
-        out.append(band)
+    with rasterio.open(tif) as ds:
+        for i in range(1, ds.count + 1):
+            arr = ds.read(i, masked=True)
+            band: dict = {"data_type": str(ds.dtypes[i - 1])}
+            if arr.count():
+                band["statistics"] = {
+                    "minimum": round(float(arr.min()), 4), "maximum": round(float(arr.max()), 4),
+                    "mean": round(float(arr.mean()), 4), "stddev": round(float(arr.std()), 4)}
+            out.append(band)
     return out
 
 
 def proj_code(tif: Path) -> str:
-    wkt = _gdalinfo(tif).get("coordinateSystem", {}).get("wkt", "")
-    ids = re.findall(r'ID\["EPSG",(\d+)\]', wkt)
-    return f"EPSG:{ids[-1]}" if ids else ""
+    import rasterio
+
+    with rasterio.open(tif) as ds:
+        epsg = ds.crs.to_epsg() if ds.crs else None
+    return f"EPSG:{epsg}" if epsg else ""
 
 
 def bbox_wgs84_raster(tif: Path) -> list[float]:
-    ext = _gdalinfo(tif)["wgs84Extent"]["coordinates"][0]
-    xs = [p[0] for p in ext]
-    ys = [p[1] for p in ext]
-    return [round(min(xs), 6), round(min(ys), 6), round(max(xs), 6), round(max(ys), 6)]
+    import rasterio
+    from rasterio.warp import transform_bounds
+
+    with rasterio.open(tif) as ds:
+        minx, miny, maxx, maxy = transform_bounds(ds.crs, "EPSG:4326", *ds.bounds)
+    return [round(minx, 6), round(miny, 6), round(maxx, 6), round(maxy, 6)]
 
 
 def to_table_parquet(csv: Path, out_parquet: Path) -> None:

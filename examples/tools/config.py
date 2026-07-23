@@ -1,7 +1,7 @@
 """Static configuration for the Portolan reference generator.
 
-Extension schema URIs, media types, the GDAL band-type map, and the shared
-categorical palette. No logic, no catalog-specific values.
+Extension schema URIs, media types, and the shared categorical palette. No
+logic, no catalog-specific values.
 """
 from __future__ import annotations
 
@@ -21,14 +21,6 @@ MEDIA = {
     "pmtiles": "application/vnd.pmtiles",
     "style": "application/vnd.mapbox.style+json",
     "png": "image/png",
-}
-
-# GDAL band type -> STAC core `bands` data_type enum value
-GDAL_DTYPE = {
-    "Byte": "uint8", "Int8": "int8", "Int16": "int16", "UInt16": "uint16",
-    "Int32": "int32", "UInt32": "uint32", "Int64": "int64", "UInt64": "uint64",
-    "Float32": "float32", "Float64": "float64",
-    "CInt16": "cint16", "CInt32": "cint32", "CFloat32": "cfloat32", "CFloat64": "cfloat64",
 }
 
 # Categorical palette shared by the thumbnails and the MapLibre styles, so a

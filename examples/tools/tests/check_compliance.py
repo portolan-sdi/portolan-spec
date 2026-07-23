@@ -231,6 +231,24 @@ def check_assert_known_crs() -> None:
     raise AssertionError("an unknown CRS did not raise")
 
 
+def check_to_cog_preserves_source_crs() -> None:
+    from convert import to_cog, proj_code, bands_from_cog, bbox_wgs84_raster
+    import glob, tempfile
+    src = glob.glob("examples/.cache/*RGB.byte.tif")
+    if not src:
+        print("SKIP check_to_cog_preserves_source_crs, source not cached")
+        return
+    with tempfile.TemporaryDirectory() as d:
+        out = Path(d) / "rgb.tif"
+        written = to_cog(Path(src[0]), out, None)
+        assert written == "EPSG:32618", written
+        assert proj_code(out) == "EPSG:32618"
+        bands = bands_from_cog(out)
+        assert len(bands) == 3 and bands[0]["data_type"] == "uint8", bands
+        bb = bbox_wgs84_raster(out)
+        assert -180 <= bb[0] <= 180 and -90 <= bb[1] <= 90, bb
+
+
 CHECKS = [
     check_official_host_moved_last,
     check_multiple_hosts_error,
@@ -249,6 +267,7 @@ CHECKS = [
     check_detect_raster_crs_rgb,
     check_resolve_output_crs_precedence,
     check_assert_known_crs,
+    check_to_cog_preserves_source_crs,
 ]
 
 
