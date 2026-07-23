@@ -6,6 +6,7 @@
 #   "jsonschema>=4.26.0",
 #   "pyarrow>=24",
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
+#   "rasterio>=1.4",
 # ]
 # ///
 """Standalone check for convert.write_web_geoparquet.

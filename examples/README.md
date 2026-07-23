@@ -44,12 +44,14 @@ uv run examples/tools/build.py --catalog reference          # one catalog
 uv run examples/tools/build.py --only boundaries/us-counties   # one Collection
 ```
 
-Prerequisites on your PATH, GDAL 3.x with the Parquet and COG drivers
-(`ogr2ogr`, `ogrinfo`, `gdal_translate`, `gdalinfo`, `gdal_rasterize`,
-`gdal_create`, `gdalwarp`), `tippecanoe`, and `uv`. The generator downloads each source once
-into a git-ignored cache, converts it, computes real checksums, writes the STAC
-tree with `AGENTS.md` and `README.md` beside every node, and validates the
-result against
+Prerequisites on your PATH, `tippecanoe` and `uv`. The vector and raster
+conversion path runs on DuckDB spatial and rasterio, not the GDAL CLI. The
+thumbnail path still shells out to the GDAL CLI (`gdalwarp`, `gdal_rasterize`,
+`gdal_create`, `ogr2ogr`, `ogrinfo`, `gdal_translate`), so GDAL 3.x must also
+be on PATH until the thumbnail engine is replaced. The generator downloads
+each source once into a git-ignored cache, converts it, computes real
+checksums, writes the STAC tree with `AGENTS.md` and `README.md` beside every
+node, and validates the result against
 [`../stac/json-schema/v0.1.0/schema.json`](../stac/json-schema/v0.1.0/schema.json).
 
 Thumbnails are drawn in Web Mercator at the data's true aspect ratio over a CARTO
@@ -63,33 +65,36 @@ A few upstream sources are live endpoints, the Boston export, the DataSF layer,
 and the Eurostat API, so their `source` Asset checksums reflect the copy fetched
 at build time. The other sources are version-stable.
 
-### Note, planned CRS and engine changes
+### Note, CRS and engine changes
 
-A design is approved to preserve the source CRS and drop the GDAL command-line
-prerequisite. It is not implemented yet. The full design lives locally in
+The design to preserve the source CRS and move the data path off the GDAL
+command line is implemented. The full design lives locally in
 `docs/superpowers/specs/2026-07-23-preserve-source-crs-engine-swap-design.md`.
-Until then the behavior below still describes the current generator. Reminders
-for whoever implements it.
 
-- Preserve the source CRS by default, for both vector and raster. Today the
-  vector path force-reprojects every source to EPSG:4326. After the change the
-  canonical Asset keeps its native CRS and `proj:code` is derived from the real
-  output, never hardcoded. Two sources actually differ from 4326, `us-counties`
-  is EPSG:4269 and `netherlands-provinces` is EPSG:28992, so they are the
-  regression anchors that prove the source CRS survives.
-- Make the output CRS configurable in the manifest with an optional `output_crs`
+Done.
+
+- Source CRS is preserved by default, for both vector and raster. The
+  canonical Asset keeps its native CRS and `proj:code` is derived from the
+  real output, never hardcoded. `us-counties` is EPSG:4269 and
+  `netherlands-provinces` is EPSG:28992, so they are the regression anchors
+  that prove the source CRS survives.
+- The output CRS is configurable in the manifest with an optional `output_crs`
   field, global with a per-collection override. Absent, the source CRS is
   preserved. Present, the canonical Asset is reprojected to that CRS.
-- Keep WGS84 and Web Mercator where the standard demands them. The STAC `bbox`
+- WGS84 and Web Mercator stay where the standard demands them. The STAC `bbox`
   stays in-range WGS84 because the schema requires it, the PMTiles feed stays
-  lon/lat because tippecanoe only ingests that, and thumbnails stay Web Mercator
-  EPSG:3857 for a consistent UI. None of these follow `output_crs`.
-- The canonical vector write stays on `geoparquet-io` `optimize_for="web"`, which
-  preserves the input CRS. Reconfirm that on a real EPSG:28992 source before
-  wiring the rest of the vector path.
-- Drop the GDAL CLI. The vector path moves to DuckDB spatial and the raster path
-  to rasterio, both of which vendor their own GDAL in their wheels, so only
-  `tippecanoe` and `uv` remain on the PATH.
+  lon/lat because tippecanoe only ingests that, and thumbnails stay Web
+  Mercator EPSG:3857 for a consistent UI. None of these follow `output_crs`.
+- The GDAL CLI is gone from the data path. The vector path runs on DuckDB
+  spatial and the raster path on rasterio, both of which vendor their own GDAL
+  in their wheels, so `tippecanoe` and `uv` are the primary prerequisites now.
+
+Outstanding.
+
+- The thumbnail path still shells out to the GDAL CLI (`gdalwarp`,
+  `gdal_rasterize`, `gdal_create`, `ogr2ogr`, `ogrinfo`, `gdal_translate`), so
+  GDAL 3.x still has to be on PATH for now. Replacing the thumbnail engine is
+  a follow-up.
 
 The normative requirements are in [`specs/portolan/`](../specs/portolan/) and the
 profile is in [`stac/`](../stac/).

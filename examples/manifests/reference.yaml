@@ -25,6 +25,12 @@
 # A collection whose license is the STAC value `other` MUST also set
 # `license_url`, the URL of the license text. build.py emits the required
 # rel=license link from it and errors if it is missing.
+#
+# Output CRS. By default every vector and raster collection keeps its source
+# CRS in the canonical asset. Set output_crs at the top level to change it for
+# the whole catalog, or per collection to override one. The STAC bbox stays
+# WGS84 and thumbnails stay Web Mercator regardless.
+#   output_crs: EPSG:4326
 
 id: portolan-reference
 title: Portolan Reference Catalog

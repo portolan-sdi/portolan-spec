@@ -43,10 +43,14 @@ uv run examples/tools/build.py --only boundaries/us-counties  # one Collection, 
 ```
 
 `uv` reads the PEP 723 header at the top of `build.py` and resolves the Python
-deps (pyyaml, duckdb, jsonschema, pyarrow, and the pinned geoparquet-io) on the
-fly. External tools must be on PATH, GDAL 3.x (`ogr2ogr`, `ogrinfo`,
-`gdal_translate`, `gdalinfo`, `gdal_rasterize`, `gdal_create`, `gdalwarp`) with
-the Parquet and COG drivers, and `tippecanoe`.
+deps (pyyaml, duckdb, jsonschema, pyarrow, rasterio, and the pinned
+geoparquet-io) on the fly. The data path (vector and raster conversion) no
+longer shells out to the GDAL CLI, it runs on DuckDB spatial and rasterio
+instead, so the primary prerequisites on PATH are `tippecanoe` and `uv`. The
+thumbnail path still shells out to the GDAL CLI (`gdalwarp`, `gdal_rasterize`,
+`gdal_create`, plus `ogr2ogr` and `ogrinfo` for the vector clip and CRS probe,
+and `gdal_translate` for the PNG export) until the thumbnail engine is
+replaced in a follow-up, so GDAL 3.x must still be on PATH for now.
 
 The two test suites run the same way.
 
@@ -71,6 +75,7 @@ Top level of each file in `manifests/`.
 - `host`. `{name, url, email}`. Appended as the `host`-role provider on mirror Collections.
 - `catalogs`. Map from the first id segment to `{title, description}` for each nested Catalog.
 - `thumbnails`. `{size, ocean_color, pad_vector?, pad_raster?, basemap: {url, attribution?}}`. The basemap is an XYZ raster tile URL template with `{z}/{x}/{y}` placeholders, CARTO light by default.
+- `output_crs?`. Optional output CRS for the canonical assets, for example `EPSG:4326`. Source-preserving by default, set at the top level for the whole catalog, or per collection to override just that one.
 - `collections`. The list below.
 
 Each entry in `collections`.
@@ -108,8 +113,8 @@ canonical `data` Asset, and also emits a `source`-role Asset that points at the
 upstream URL with the real `file:size` and multihash `file:checksum` of the
 fetched file.
 
-- `vector`. `to_geoparquet` normalizes to EPSG:4326 with ogr2ogr into a GeoPackage, computes the bbox and count from it, then writes the canonical asset as a web-optimized GeoParquet 2.0 file with geoparquet-io's web profile (native geometry type, per row group GeospatialStatistics, a retained covering bbox column for page-level pruning, a Parquet page index, Hilbert ordering, and byte-targeted fetch-sized row groups). Derivatives read the normalized GeoPackage, not the 2.0 output. Optional PMTiles come from ogr2ogr GeoJSONSeq into tippecanoe, with a web-map-links `pmtiles` link. Optional MapLibre styles are authored by `author_styles` from the real field values and read the PMTiles. The GeoParquet `data` asset also carries `table:columns` from a DuckDB `DESCRIBE`, geometry column included, and `proj:code` `EPSG:4326`, declaring the table and projection extensions.
-- `raster`. `to_cog` builds a COG with embedded statistics. Band statistics go in STAC 1.1 core `bands`, and `proj:code` carries the CRS through the projection extension.
+- `vector`. `to_geoparquet` converts with DuckDB spatial, preserving the source CRS or the manifest `output_crs`, and also builds a WGS84 GeoPackage for the bbox, the PMTiles feed, the thumbnail, and style sampling. It then writes the canonical asset as a web-optimized GeoParquet 2.0 file with geoparquet-io's web profile (native geometry type, per row group GeospatialStatistics, a retained covering bbox column for page-level pruning, a Parquet page index, Hilbert ordering, and byte-targeted fetch-sized row groups). Derivatives read the WGS84 GeoPackage, not the 2.0 output. Optional PMTiles come from a DuckDB GeoJSONSeq export into tippecanoe, with a web-map-links `pmtiles` link. Optional MapLibre styles are authored by `author_styles` from the real field values and read the PMTiles. The GeoParquet `data` asset also carries `table:columns` from a DuckDB `DESCRIBE`, geometry column included, and `proj:code` derived from the real output CRS, declaring the table and projection extensions.
+- `raster`. `to_cog` builds the COG with rasterio, preserving the source CRS or warping to the manifest `output_crs`. Band statistics come from rasterio and numpy and go in STAC 1.1 core `bands`, and `proj:code` carries the real output CRS through the projection extension.
 - `tabular`. `to_table_parquet` reads the CSV with DuckDB and writes Parquet. Columns are described with the table extension. No geometry, the spatial extent is the whole world and spatial rules are relaxed.
 
 A Collection whose manifest sets `attribution` declares the attribution extension and carries a top-level `attribution` field.
