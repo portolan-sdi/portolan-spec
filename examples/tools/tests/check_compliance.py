@@ -188,6 +188,26 @@ def check_detect_vector_crs_present_but_no_crs() -> None:
     raise AssertionError("a geometry layer that declares no CRS did not raise")
 
 
+def check_to_geoparquet_preserves_source_crs() -> None:
+    from convert import to_geoparquet
+    srcs = glob.glob("examples/.cache/*BestuurlijkeGebieden*.gpkg")
+    if not srcs:
+        print("SKIP check_to_geoparquet_preserves_source_crs, source not cached")
+        return
+    spec_source = {"media_type": "application/geopackage+sqlite3", "layer": "provinciegebied"}
+    with tempfile.TemporaryDirectory() as d:
+        out = Path(d) / "nl.parquet"
+        bbox, n, norm, canon_crs = to_geoparquet(Path(srcs[0]), spec_source, out, None)
+        assert canon_crs == "EPSG:28992", canon_crs
+        con = duckdb.connect()
+        con.execute("LOAD spatial;")
+        pcrs = con.execute(
+            f"SELECT ST_CRS(geom) FROM read_parquet('{out}') LIMIT 1").fetchone()[0]
+        con.close()
+        assert pcrs == "EPSG:28992", pcrs
+        assert -180 <= bbox[0] <= 180 and -90 <= bbox[1] <= 90, bbox  # bbox is WGS84
+
+
 def check_detect_raster_crs_rgb() -> None:
     src = glob.glob("examples/.cache/*RGB.byte.tif")
     if not src:
@@ -222,6 +242,7 @@ CHECKS = [
     check_findings_flag_host_not_last,
     check_findings_flag_missing_license_link,
     check_vector_columns_include_geometry,
+    check_to_geoparquet_preserves_source_crs,
     check_detect_vector_crs_netherlands,
     check_detect_vector_crs_missing_raises,
     check_detect_vector_crs_present_but_no_crs,
