@@ -8,11 +8,11 @@
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
 # ]
 # ///
-"""Standalone compliance checks for build.py's pure helpers.
+"""Standalone compliance checks for the generator's pure helpers.
 
-Imports helpers directly from build.py and asserts the Portolan conformance
-rules the JSON schema delegates to tooling. Run:
-    uv run examples/tests/check_compliance.py
+Imports helpers directly from the tool modules and asserts the Portolan
+conformance rules the JSON schema delegates to tooling. Run:
+    uv run examples/tools/tests/check_compliance.py
 """
 import json
 import subprocess
@@ -21,8 +21,9 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-import build  # noqa: E402
+from stacio import resolve_providers, license_links  # noqa: E402
 from convert import write_web_geoparquet, table_columns  # noqa: E402
+from validate import collection_findings  # noqa: E402
 
 HOST = {"name": "Portolan SDI", "url": "https://github.com/portolan-sdi",
         "email": "portolan@googlegroups.com"}
@@ -33,7 +34,7 @@ def check_official_host_moved_last() -> None:
         {"name": "H", "roles": ["producer", "host"], "url": "https://h"},
         {"name": "P", "roles": ["processor"]},
     ]}
-    providers, is_mirror = build.resolve_providers(spec, HOST)
+    providers, is_mirror = resolve_providers(spec, HOST)
     assert is_mirror is False, "producer-host collection is official"
     assert providers[-1]["name"] == "H", f"host not last: {providers}"
 
@@ -44,7 +45,7 @@ def check_multiple_hosts_error() -> None:
         {"name": "H2", "roles": ["producer", "host"], "url": "https://h2"},
     ]}
     try:
-        build.resolve_providers(spec, HOST)
+        resolve_providers(spec, HOST)
     except ValueError:
         return
     raise AssertionError("two host providers did not raise ValueError")
@@ -54,13 +55,13 @@ def check_mirror_appends_host_last() -> None:
     spec = {"id": "x/y", "license": "CC0-1.0", "providers": [
         {"name": "P", "roles": ["producer", "licensor"], "url": "https://p"},
     ]}
-    providers, is_mirror = build.resolve_providers(spec, HOST)
+    providers, is_mirror = resolve_providers(spec, HOST)
     assert is_mirror is True, "no host role means mirror"
     assert providers[-1]["roles"] == ["host"], f"host block not last: {providers}"
 
 
 def check_license_other_emits_link() -> None:
-    links = build.license_links(
+    links = license_links(
         {"id": "x/y", "license": "other", "license_url": "https://lic"})
     assert len(links) == 1 and links[0]["rel"] == "license", links
     assert links[0]["href"] == "https://lic", links
@@ -68,12 +69,12 @@ def check_license_other_emits_link() -> None:
 
 
 def check_license_spdx_no_link() -> None:
-    assert build.license_links({"id": "x/y", "license": "CC0-1.0"}) == []
+    assert license_links({"id": "x/y", "license": "CC0-1.0"}) == []
 
 
 def check_license_other_missing_url_errors() -> None:
     try:
-        build.license_links({"id": "x/y", "license": "other"})
+        license_links({"id": "x/y", "license": "other"})
     except ValueError:
         return
     raise AssertionError("license other without license_url did not raise")
@@ -88,7 +89,7 @@ def check_findings_pass_conformant() -> None:
         ],
         "links": [],
     }
-    assert build.collection_findings(obj) == [], build.collection_findings(obj)
+    assert collection_findings(obj) == [], collection_findings(obj)
 
 
 def check_findings_flag_host_not_last() -> None:
@@ -100,7 +101,7 @@ def check_findings_flag_host_not_last() -> None:
         ],
         "links": [],
     }
-    assert build.collection_findings(obj), "host-not-last should be flagged"
+    assert collection_findings(obj), "host-not-last should be flagged"
 
 
 def check_findings_flag_missing_license_link() -> None:
@@ -112,13 +113,10 @@ def check_findings_flag_missing_license_link() -> None:
         ],
         "links": [],
     }
-    assert build.collection_findings(obj), "missing license link should be flagged"
+    assert collection_findings(obj), "missing license link should be flagged"
 
 
 def check_vector_columns_include_geometry() -> None:
-    import json
-    import subprocess
-    import tempfile
     geojson = {
         "type": "FeatureCollection",
         "features": [

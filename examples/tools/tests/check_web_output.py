@@ -8,11 +8,11 @@
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
 # ]
 # ///
-"""Standalone check for build.write_web_geoparquet.
+"""Standalone check for convert.write_web_geoparquet.
 
 Builds a tiny EPSG:4326 GeoPackage with ogr2ogr, runs the wrapper, and asserts
 the output is native GeoParquet 2.0 with a covering bbox column and a page index.
-Run: uv run examples/tests/check_web_output.py
+Run: uv run examples/tools/tests/check_web_output.py
 """
 import json
 import subprocess
@@ -60,7 +60,6 @@ def main() -> int:
         assert "covering" in gcol, "covering not advertised in geo metadata"
         col0 = pf.metadata.row_group(0).column(0)
         assert col0.has_column_index and col0.has_offset_index, "no page index"
-        phys = pf.schema.to_arrow_schema()  # sanity, geometry column present
         assert "geom" in schema.names, f"no geometry column: {schema.names}"
     print("OK, native 2.0, covering bbox, page index")
     return 0
