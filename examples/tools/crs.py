@@ -37,9 +37,11 @@ def detect_vector_crs(gdal_path: str, layer: str | None) -> str:
     the target layer declares no CRS, so a missing projection never passes
     silently."""
     con = duckdb.connect()
-    con.execute("INSTALL spatial; LOAD spatial;")
-    layers = con.execute("SELECT layers FROM ST_Read_Meta(?)", [gdal_path]).fetchone()[0]
-    con.close()
+    try:
+        con.execute("INSTALL spatial; LOAD spatial;")
+        layers = con.execute("SELECT layers FROM ST_Read_Meta(?)", [gdal_path]).fetchone()[0]
+    finally:
+        con.close()
     chosen = None
     if layer:
         chosen = next((l for l in layers if l["name"] == layer), None)
@@ -47,9 +49,14 @@ def detect_vector_crs(gdal_path: str, layer: str | None) -> str:
     if not chosen or not chosen["geometry_fields"]:
         raise ValueError(f"{gdal_path} has no readable geometry layer")
     crs = chosen["geometry_fields"][0].get("crs") or {}
-    out = _crs_string(crs.get("auth_name"), crs.get("auth_code"))
+    auth_name = crs.get("auth_name")
+    out = _crs_string(auth_name, crs.get("auth_code"))
     if not out:
         raise ValueError(f"{gdal_path} layer {chosen['name']} declares no CRS")
+    if auth_name.upper() != "EPSG":
+        raise ValueError(
+            f"{gdal_path} layer {chosen['name']} uses unsupported authority "
+            f"{auth_name!r} (only EPSG is supported)")
     return out
 
 
@@ -63,8 +70,8 @@ def assert_known_crs(crs: str) -> None:
     """Raise if DuckDB cannot resolve the CRS, so a typo in the manifest fails
     the build early instead of producing a broken transform."""
     con = duckdb.connect()
-    con.execute("INSTALL spatial; LOAD spatial;")
     try:
+        con.execute("INSTALL spatial; LOAD spatial;")
         ok = con.execute(
             "SELECT count(*) FROM duckdb_coordinate_systems() WHERE auth_name || ':' || auth_code = ?",
             [crs]).fetchone()[0]

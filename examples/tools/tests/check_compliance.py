@@ -190,6 +190,26 @@ def check_detect_vector_crs_present_but_no_crs() -> None:
     raise AssertionError("a geometry layer that declares no CRS did not raise")
 
 
+def check_detect_vector_crs_non_epsg_raises() -> None:
+    # A Shapefile whose geometry carries a non-EPSG authority (ESRI) must fail
+    # loud rather than silently return "ESRI:<code>" against the EPSG-only
+    # interface contract.
+    con = duckdb.connect()
+    con.execute("INSTALL spatial; LOAD spatial; SET geometry_always_xy=true;")
+    with tempfile.TemporaryDirectory() as d:
+        shp = Path(d) / "esri.shp"
+        con.execute(
+            f"COPY (SELECT ST_SetCRS(ST_Point(0, 0), 'ESRI:54009') AS geom) "
+            f"TO '{shp}' (FORMAT GDAL, DRIVER 'ESRI Shapefile')")
+        con.close()
+        try:
+            detect_vector_crs(str(shp), None)
+        except ValueError as exc:
+            assert "ESRI" in str(exc), f"authority not named in error: {exc}"
+            return
+    raise AssertionError("a non-EPSG authority did not raise")
+
+
 def check_to_geoparquet_preserves_source_crs() -> None:
     from convert import to_geoparquet
     srcs = glob.glob("examples/.cache/*BestuurlijkeGebieden*.gpkg")
@@ -210,12 +230,60 @@ def check_to_geoparquet_preserves_source_crs() -> None:
         assert -180 <= bbox[0] <= 180 and -90 <= bbox[1] <= 90, bbox  # bbox is WGS84
 
 
+def check_to_geoparquet_shapefile_ogc_fid() -> None:
+    # Shapefiles carry no explicit `fid` field, so ST_Read surfaces the
+    # OGR-reserved OGC_FID column instead. This pins the round-trip that broke
+    # the build in Task 9: OGC_FID must be renamed to `fid` in the canonical
+    # GeoParquet, never left as OGC_FID nor dropped as a plain attribute.
+    from convert import to_geoparquet
+    con = duckdb.connect()
+    con.execute("INSTALL spatial; LOAD spatial; SET geometry_always_xy=true;")
+    with tempfile.TemporaryDirectory() as d:
+        shp = Path(d) / "pts.shp"
+        con.execute(f"""
+            COPY (SELECT * FROM (VALUES
+                ('a', ST_SetCRS(ST_Point(0, 0), 'EPSG:4326')),
+                ('b', ST_SetCRS(ST_Point(1, 1), 'EPSG:4326'))
+            ) AS t(name, geom))
+            TO '{shp}' (FORMAT GDAL, DRIVER 'ESRI Shapefile')
+        """)
+        con.close()
+        out = Path(d) / "pts.parquet"
+        bbox, n, norm, canon_crs = to_geoparquet(
+            shp, {"media_type": "application/octet-stream"}, out, None)
+        assert canon_crs == "EPSG:4326", canon_crs
+        cols = table_columns(out)
+        names = {c["name"] for c in cols}
+        assert "fid" in names, f"OGC_FID was not renamed to fid: {cols}"
+        assert "OGC_FID" not in names, f"OGC_FID column leaked through: {cols}"
+
+
 def check_detect_raster_crs_rgb() -> None:
     src = glob.glob("examples/.cache/*RGB.byte.tif")
     if not src:
         print("SKIP check_detect_raster_crs_rgb, source not cached")
         return
     assert detect_raster_crs(Path(src[0])) == "EPSG:32618"
+
+
+def check_detect_raster_crs_missing_raises() -> None:
+    import numpy as np
+    import rasterio
+
+    with tempfile.TemporaryDirectory() as d:
+        tif = Path(d) / "nocrs.tif"
+        profile = {
+            "driver": "GTiff", "height": 4, "width": 4, "count": 1, "dtype": "uint8",
+            "transform": rasterio.transform.from_origin(0, 4, 1, 1),
+        }
+        with rasterio.open(tif, "w", **profile) as dst:
+            dst.write(np.zeros((1, 4, 4), dtype="uint8"))
+        try:
+            detect_raster_crs(tif)
+        except ValueError as exc:
+            assert "no CRS" in str(exc), f"wrong message: {exc}"
+            return
+    raise AssertionError("a raster with no CRS did not raise")
 
 
 def check_resolve_output_crs_precedence() -> None:
@@ -235,7 +303,6 @@ def check_assert_known_crs() -> None:
 
 def check_to_cog_preserves_source_crs() -> None:
     from convert import to_cog, proj_code, bands_from_cog, bbox_wgs84_raster
-    import glob, tempfile
     src = glob.glob("examples/.cache/*RGB.byte.tif")
     if not src:
         print("SKIP check_to_cog_preserves_source_crs, source not cached")
@@ -263,10 +330,13 @@ CHECKS = [
     check_findings_flag_missing_license_link,
     check_vector_columns_include_geometry,
     check_to_geoparquet_preserves_source_crs,
+    check_to_geoparquet_shapefile_ogc_fid,
     check_detect_vector_crs_netherlands,
     check_detect_vector_crs_missing_raises,
     check_detect_vector_crs_present_but_no_crs,
+    check_detect_vector_crs_non_epsg_raises,
     check_detect_raster_crs_rgb,
+    check_detect_raster_crs_missing_raises,
     check_resolve_output_crs_precedence,
     check_assert_known_crs,
     check_to_cog_preserves_source_crs,

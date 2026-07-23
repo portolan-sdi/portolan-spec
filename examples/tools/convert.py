@@ -14,7 +14,7 @@ from crs import assert_known_crs, detect_raster_crs, detect_vector_crs
 from fetch import _prepare_ogr_source
 
 
-def write_web_geoparquet(norm: Path, out_parquet: Path) -> None:
+def write_web_geoparquet(canon: Path, out_parquet: Path) -> None:
     """Write the canonical vector asset as a web-optimized GeoParquet 2.0 file.
 
     Delegates to geoparquet-io's web profile, the ecosystem's canonical writer
@@ -22,7 +22,7 @@ def write_web_geoparquet(norm: Path, out_parquet: Path) -> None:
     Parquet page index. The profile gives us a native geometry type, per row
     group statistics, a retained covering bbox column for page-level pruning,
     the page index, Hilbert spatial ordering, byte-targeted fetch-sized row
-    groups, and ZSTD compression. `norm` here is the canonical output-CRS
+    groups, and ZSTD compression. `canon` here is the canonical output-CRS
     GeoPackage, and geoparquet-io preserves whatever CRS it is given, so the
     Parquet keeps the source CRS by default rather than being forced to
     EPSG:4326."""
@@ -30,7 +30,7 @@ def write_web_geoparquet(norm: Path, out_parquet: Path) -> None:
 
     out_parquet.parent.mkdir(parents=True, exist_ok=True)
     out_parquet.unlink(missing_ok=True)
-    convert_geoparquet(str(norm), str(out_parquet),
+    convert_geoparquet(str(canon), str(out_parquet),
                        optimize_for="web", compression_level=15)
 
 
@@ -124,7 +124,6 @@ def feature_count(parquet: Path) -> int:
 def to_cog(src_tif: Path, out_tif: Path, output_crs: str | None) -> str:
     """Write a Cloud Optimized GeoTIFF, preserving the source CRS by default or
     warping to `output_crs` when set. Returns the CRS actually written."""
-    import numpy as np  # noqa
     import rasterio
     from rasterio.warp import calculate_default_transform, reproject, Resampling
 
@@ -160,7 +159,6 @@ def to_cog(src_tif: Path, out_tif: Path, output_crs: str | None) -> str:
 
 def bands_from_cog(tif: Path) -> list[dict]:
     """Per-band data type and statistics from the COG, kept in STAC 1.1 core bands."""
-    import numpy as np
     import rasterio
 
     out = []
