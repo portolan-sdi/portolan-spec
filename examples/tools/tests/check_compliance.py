@@ -20,6 +20,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+import duckdb
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from stacio import resolve_providers, license_links  # noqa: E402
 from convert import write_web_geoparquet, table_columns  # noqa: E402
@@ -166,6 +168,27 @@ def check_detect_vector_crs_missing_raises() -> None:
     raise AssertionError("a source with no CRS did not raise")
 
 
+def check_detect_vector_crs_present_but_no_crs() -> None:
+    # a Shapefile written from a bare geometry with no ST_SetCRS call has a
+    # real geometry field but no .prj, so ST_Read_Meta reports crs as None.
+    # This must drive the "declares no CRS" branch, distinct from the
+    # "no readable geometry layer" branch covered above.
+    con = duckdb.connect()
+    con.execute("INSTALL spatial; LOAD spatial;")
+    with tempfile.TemporaryDirectory() as d:
+        shp = Path(d) / "nocrs.shp"
+        con.execute(
+            f"COPY (SELECT ST_Point(0, 0) AS geom) TO '{shp}' "
+            "(FORMAT GDAL, DRIVER 'ESRI Shapefile')")
+        con.close()
+        try:
+            detect_vector_crs(str(shp), None)
+        except ValueError as exc:
+            assert "declares no CRS" in str(exc), f"wrong branch raised: {exc}"
+            return
+    raise AssertionError("a geometry layer that declares no CRS did not raise")
+
+
 CHECKS = [
     check_official_host_moved_last,
     check_multiple_hosts_error,
@@ -179,6 +202,7 @@ CHECKS = [
     check_vector_columns_include_geometry,
     check_detect_vector_crs_netherlands,
     check_detect_vector_crs_missing_raises,
+    check_detect_vector_crs_present_but_no_crs,
 ]
 
 
