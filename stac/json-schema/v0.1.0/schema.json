@@ -411,7 +411,7 @@
               "stac_extensions": {
                 "type": "array",
                 "contains": {
-                  "const": "https://schemas.portolan-sdi.org/partition/v1.0.0/schema.json"
+                  "const": "https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json"
                 }
               }
             }
@@ -424,7 +424,7 @@
           "stac_extensions": {
             "type": "array",
             "contains": {
-              "const": "https://schemas.portolan-sdi.org/partition/v1.0.0/schema.json"
+              "const": "https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json"
             }
           }
         }

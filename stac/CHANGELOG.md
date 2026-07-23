@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Partition binding: a collection carrying any `partition:*` field, or declaring
   the partition extension, must declare
-  `https://schemas.portolan-sdi.org/partition/v1.0.0/schema.json` in
+  `https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json` in
   `stac_extensions` and carry `partition:scheme`, `partition:keys`, and
   `partition:glob`. `partition:glob` is the normative bulk-access path.
 - `portolan-extensions.json`: pins which portolan-sdi extension schema versions

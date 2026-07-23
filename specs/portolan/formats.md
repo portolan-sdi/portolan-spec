@@ -75,9 +75,10 @@ PMTiles file (typically `../filename.pmtiles`), and `layers[].source` to `"data"
 
 Large files MAY be partitioned. Partitioning MUST be described per the
 [partition extension](https://github.com/portolan-sdi/stac-partition-extension)
-(v1.0.0), with its schema declared in `stac_extensions`; field definitions and
-requirement levels live in the extension and are not restated here. Portolan adds
-the requirements the extension does not cover:
+(v1.0.0), with its schema declared in `stac_extensions` and its required fields
+carried — `partition:scheme`, `partition:keys`, and `partition:glob`. Field
+definitions live in the extension and are not restated here. Portolan adds the
+requirements the extension does not cover:
 
 - The scheme's path structure MUST reflect spatial extent so readers can prune
   files without reading metadata.

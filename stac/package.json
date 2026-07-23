@@ -8,9 +8,9 @@
     "fetch-extension-schemas": "node scripts/fetch-extension-schemas.js",
     "check-markdown": "remark . --frail",
     "check-version": "node scripts/check-version.js",
-    "check-examples": "stac-node-validator examples/*.json --schemaMap \"https://schemas.portolan-sdi.org/portolan/v$npm_package_version/schema.json=./json-schema/v$npm_package_version/schema.json;https://schemas.portolan-sdi.org/partition/v1.0.0/schema.json=./.schema-cache/partition/v1.0.0/schema.json\"",
+    "check-examples": "stac-node-validator examples/*.json --schemaMap \"https://schemas.portolan-sdi.org/portolan/v$npm_package_version/schema.json=./json-schema/v$npm_package_version/schema.json;https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json=./.schema-cache/incubating/partition/v1.0.0/schema.json\"",
     "check-portolan": "node scripts/check-portolan.js",
-    "format-examples": "stac-node-validator examples/*.json --schemaMap \"https://schemas.portolan-sdi.org/portolan/v$npm_package_version/schema.json=./json-schema/v$npm_package_version/schema.json;https://schemas.portolan-sdi.org/partition/v1.0.0/schema.json=./.schema-cache/partition/v1.0.0/schema.json\" --format"
+    "format-examples": "stac-node-validator examples/*.json --schemaMap \"https://schemas.portolan-sdi.org/portolan/v$npm_package_version/schema.json=./json-schema/v$npm_package_version/schema.json;https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json=./.schema-cache/incubating/partition/v1.0.0/schema.json\" --format"
   },
   "devDependencies": {
     "ajv": "^8.17.1",

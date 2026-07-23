@@ -48,7 +48,7 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 | [Version][] | `https://stac-extensions.github.io/version/v1.2.0/schema.json`              | **MUST**    | When dataset versioning is used (never `portolan:` fields) |
 | [Raster][] | `https://stac-extensions.github.io/raster/v2.0.0/schema.json`               | **MUST**    | When band-level detail is provided |
 | [Vector][] | `https://stac-extensions.github.io/vector/v0.1.0/schema.json`               | **MUST**    | When layer-level detail is provided |
-| [Partition][] | `https://schemas.portolan-sdi.org/partition/v1.0.0/schema.json`              | **MUST**    | Partitioned collections: `partition:scheme`, `partition:keys`, `partition:glob` (spec: Partitioned Collections) |
+| [Partition][] | `https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json`              | **MUST**    | Partitioned collections: `partition:scheme`, `partition:keys`, `partition:glob` (spec: Partitioned Collections) |
 | [Table][] | `https://stac-extensions.github.io/table/v1.2.0/schema.json`                | SHOULD      | Tabular collections: document columns with `table:columns` |
 | [Alternate Assets][] | `https://stac-extensions.github.io/alternate-assets/v1.2.0/schema.json`     | SHOULD      | Expose `s3://` alternates for absolute `https` asset hrefs |
 | [Render][] | `https://stac-extensions.github.io/render/v2.0.0/schema.json`               | SHOULD      | Continuous rasters rendering from source (draw-time colorization) |
