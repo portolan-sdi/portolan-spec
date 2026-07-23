@@ -30,17 +30,18 @@ agents.
 
 ### Regenerating it
 
-The catalog is produced by [`build.py`](build.py) from the manifests in
-[`manifests/`](manifests/). Each manifest file describes one whole catalog and
-holds everything catalog-specific, so the script itself carries no per-catalog
-values. `build.py` reads every manifest in the directory and builds each into
-`catalog/<manifest-stem>/`. It is a single standalone script with a PEP 723
-dependency header, so `uv` resolves its Python dependencies on the fly.
+The catalog is produced by the generator in [`tools/`](tools/) from the
+manifests in [`manifests/`](manifests/). Each manifest file describes one whole
+catalog and holds everything catalog-specific, so the generator itself carries
+no per-catalog values. It reads every manifest in the directory and builds each
+into `catalog/<manifest-stem>/`. It is a small set of plain modules under
+`tools/` run through the [`build.py`](tools/build.py) entrypoint, which carries a
+PEP 723 dependency header, so `uv` resolves its Python dependencies on the fly.
 
 ```bash
-uv run examples/build.py                              # build every manifest
-uv run examples/build.py --catalog reference          # one catalog
-uv run examples/build.py --only boundaries/us-counties   # one Collection
+uv run examples/tools/build.py                              # build every manifest
+uv run examples/tools/build.py --catalog reference          # one catalog
+uv run examples/tools/build.py --only boundaries/us-counties   # one Collection
 ```
 
 Prerequisites on your PATH, GDAL 3.x with the Parquet and COG drivers

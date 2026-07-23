@@ -1,25 +1,45 @@
-# examples/, Portolan reference catalog generator
+# examples/tools/, Portolan reference catalog generator
 
-This directory holds `build.py`, a minimal open-source generator that turns YAML
-manifests into complete, v0.1-conformant Portolan STAC catalogs, plus the
-manifests it reads and the catalog it produces. Read this before editing the
-generator.
+This directory holds the generator, a minimal open-source tool that turns YAML
+manifests into complete, v0.1-conformant Portolan STAC catalogs. It is a small
+set of plain sibling modules run through the `build.py` entrypoint. The manifests
+it reads and the catalog it produces live one level up under `examples/`. Read
+this before editing the generator.
 
 ## Layout
 
+The generator is a set of modules under `examples/tools/`, each owning one
+responsibility. Only `build.py` and the two test files are `uv run` entrypoints
+and carry a PEP 723 header. The sibling modules are plain modules, and `build.py`
+bootstraps `sys.path` with its own directory so they import as flat names.
+
+| Module | Responsibility |
+|--------|----------------|
+| `build.py` | Entrypoint. PEP 723 header, argparse, `main`, resolves paths from the repo root |
+| `config.py` | Static constants, extension URIs, media types, GDAL band-type map, palette |
+| `common.py` | Shared helpers, subprocess runner, checksums, value formatting |
+| `fetch.py` | Downloads sources into `.cache` and unpacks zipped shapefiles |
+| `convert.py` | Format conversions, vector to GeoParquet, raster to COG, CSV to Parquet |
+| `derivatives.py` | PMTiles tiles and data-driven MapLibre styles |
+| `thumbnails.py` | Web Mercator preview rendering over the tile basemap |
+| `stacio.py` | STAC assembly, manifest, providers, assets, links, sidecars, catalog builders |
+| `validate.py` | JSON schema plus the Portolan conformance rules tooling owns |
+| `tests/` | Standalone `uv run` checks, `check_compliance.py` and `check_web_output.py` |
+
+Inputs and outputs live under `examples/`, not here.
+
 | Path | What it is |
 |------|------------|
-| `build.py` | The generator. Single standalone PEP 723 script, no package, no install |
-| `manifests/*.yaml` | Inputs. One file describes one whole catalog |
-| `catalog/<stem>/` | Output. One STAC tree per manifest, named after the file stem |
-| `.cache/` | Downloaded upstream sources, git-ignored, safe to delete |
+| `../manifests/*.yaml` | Inputs. One file describes one whole catalog |
+| `../catalog/<stem>/` | Output. One STAC tree per manifest, named after the file stem |
+| `../.cache/` | Downloaded upstream sources, git-ignored, safe to delete |
 
 ## Running it
 
 ```bash
-uv run examples/build.py                                # build every manifest
-uv run examples/build.py --catalog reference            # one manifest by stem
-uv run examples/build.py --only boundaries/us-counties  # one Collection, skips validation
+uv run examples/tools/build.py                                # build every manifest
+uv run examples/tools/build.py --catalog reference            # one manifest by stem
+uv run examples/tools/build.py --only boundaries/us-counties  # one Collection, skips validation
 ```
 
 `uv` reads the PEP 723 header at the top of `build.py` and resolves the Python
@@ -28,9 +48,16 @@ fly. External tools must be on PATH, GDAL 3.x (`ogr2ogr`, `ogrinfo`,
 `gdal_translate`, `gdalinfo`, `gdal_rasterize`, `gdal_create`, `gdalwarp`) with
 the Parquet and COG drivers, and `tippecanoe`.
 
+The two test suites run the same way.
+
+```bash
+uv run examples/tools/tests/check_compliance.py
+uv run examples/tools/tests/check_web_output.py
+```
+
 ## The core principle
 
-Everything catalog-specific lives in the manifest, never in `build.py`. That
+Everything catalog-specific lives in the manifest, never in the generator. That
 includes the catalog id and title, the nested-catalog titles, thumbnail colors,
 and the basemap. If you find yourself adding a catalog-specific value to the
 Python, put it in the manifest instead and read it back.
@@ -52,7 +79,7 @@ Each entry in `collections`.
 - `kind`. One of `vector`, `raster`, `tabular`. Selects the conversion path.
 - `geometry`. `polygon`, `point`, or `line`. Vector only, drives style and thumbnail paint.
 - `title`, `description`, `keywords`, `license`, `attribution?`.
-- `license_url?`. Required only when `license` is `other`. The URL of the license text. build.py emits the mandatory `rel: license` link from it.
+- `license_url?`. Required only when `license` is `other`. The URL of the license text. The generator emits the mandatory `rel: license` link from it.
 - `source`. `{url, media_type, title, layer?, stable}`. The true original upstream file. `stable: false` marks a live endpoint.
 - `providers`. List of `{name, url, roles}`. Roles are `producer`, `licensor`, `processor`, `host`.
 - `provenance`. `{via?, canonical?, updated?}`.
@@ -122,7 +149,7 @@ GeoPackage, `_rasterize` burns features from the collection `style` block, and
 
 `validate` runs after each catalog unless `--only` or `--no-validate` is set. It
 checks every Catalog, Collection, and Feature against the committed schema at
-`../stac/json-schema/v0.1.0/schema.json`, verifies each `file:checksum` is a
+`../../stac/json-schema/v0.1.0/schema.json`, verifies each `file:checksum` is a
 sha2-256 multihash, and fails on any `self` link. The tree also passes the
 ecosystem `stac-node-validator` when pointed at the same schema with
 `--schemaMap`.
@@ -131,4 +158,4 @@ ecosystem `stac-node-validator` when pointed at the same schema with
 
 - Use the official STAC names everywhere, Catalog, nested Catalog, Collection, Item, Asset. Never write "dataset".
 - Generated prose in `README.md` and `AGENTS.md` avoids em dashes, colons, and semicolons, matching the project writing style. Keep new generated copy the same.
-- Keep `build.py` a single dependency-light script. Prefer the manifest and standard FOSS tools over new Python dependencies.
+- Keep the generator dependency-light, small modules each with one responsibility. Prefer the manifest and standard FOSS tools over new Python dependencies. When code moves between modules, keep imports explicit, no wildcard imports.

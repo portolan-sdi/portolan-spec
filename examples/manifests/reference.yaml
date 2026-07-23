@@ -12,9 +12,9 @@
 # file:checksum.
 #
 # Build it:
-#   uv run examples/build.py
+#   uv run examples/tools/build.py
 #
-# Everything catalog-specific lives here, not in build.py. That includes the
+# Everything catalog-specific lives here, not in the generator. That includes the
 # nested-catalog titles under `catalogs` below, keyed by the first id segment of
 # each collection. Provenance is DERIVED from providers. If the sole producer org
 # differs from the host, the collection is a mirror and MUST carry provenance.via
