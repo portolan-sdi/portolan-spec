@@ -16,8 +16,9 @@ from config import (
     ATTRIBUTION_EXT, STAC_VERSION, MEDIA,
 )
 from fetch import fetch
+from crs import resolve_output_crs
 from convert import (
-    to_geoparquet, feature_count, to_cog, bands_from_cog, proj_code,
+    to_geoparquet, feature_count, to_cog, bands_from_cog,
     bbox_wgs84_raster, to_table_parquet, table_columns,
 )
 from derivatives import make_pmtiles, author_styles
@@ -218,7 +219,7 @@ SIDE_LINKS = [
 
 # ------------------------------------------------------------- collection build
 def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
-                     thumb: dict) -> dict:
+                     thumb: dict, manifest_output_crs: str | None) -> dict:
     cid = spec["id"]
     seg = cid.split("/")
     depth = len(seg)
@@ -233,6 +234,7 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
     check_provenance(spec, is_mirror)
     prov = spec.get("provenance", {}) or {}
     src = spec["source"]
+    out_crs = resolve_output_crs(spec, manifest_output_crs)
 
     print(f"[{cid}] fetch + convert ({kind})", file=sys.stderr)
     local = fetch(src["url"], cache)
@@ -247,13 +249,13 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
     if kind in ("vector",):
         data_pq = coll_dir / f"{stem}.parquet"
         data_name = data_pq.name
-        bbox, n, norm = to_geoparquet(local, src, data_pq)
+        bbox, n, norm, canon_crs = to_geoparquet(local, src, data_pq, out_crs)
         cols = table_columns(data_pq)
         geom_col = next((c["name"] for c in cols if c["type"] == "geometry"), "geom")
         assets["data"] = asset(data_pq, MEDIA["geoparquet"], ["data"],
                                f"{spec['title']} (GeoParquet)",
                                {"table:columns": cols, "table:primary_geometry": geom_col,
-                                "table:row_count": n, "proj:code": "EPSG:4326"})
+                                "table:row_count": n, "proj:code": canon_crs})
         exts += [TABLE_EXT, PROJ_EXT]
         assets["source"] = source_asset(local, src)
         if deriv.get("pmtiles"):
@@ -278,9 +280,8 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
     elif kind == "raster":
         cog = coll_dir / f"{stem}.tif"
         data_name = cog.name
-        to_cog(local, cog)
+        code = to_cog(local, cog, out_crs)
         bands = bands_from_cog(cog)
-        code = proj_code(cog)
         bbox = bbox_wgs84_raster(cog)
         n = 0
         assets["data"] = asset(cog, MEDIA["cog"], ["data"], f"{spec['title']} (COG)",
@@ -403,7 +404,8 @@ def build_catalog(manifest: dict, out: Path, cache: Path, only: str | None) -> N
     if only:
         specs = [s for s in specs if s["id"] == only]
         assert specs, f"no collection with id {only}"
-    built = [build_collection(s, manifest["host"], out, cache, thumb) for s in specs]
+    mcrs = manifest.get("output_crs")
+    built = [build_collection(s, manifest["host"], out, cache, thumb, mcrs) for s in specs]
 
     # group -> collections
     groups: dict[str, list[dict]] = {}
