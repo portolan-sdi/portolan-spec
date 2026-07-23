@@ -24,6 +24,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from stacio import resolve_providers, license_links  # noqa: E402
 from convert import write_web_geoparquet, table_columns  # noqa: E402
 from validate import collection_findings  # noqa: E402
+# more crs imports (detect_raster_crs, resolve_output_crs, assert_known_crs) are
+# added in later tasks
+from crs import detect_vector_crs  # noqa: E402
+import glob  # noqa: E402
 
 HOST = {"name": "Portolan SDI", "url": "https://github.com/portolan-sdi",
         "email": "portolan@googlegroups.com"}
@@ -142,6 +146,26 @@ def check_vector_columns_include_geometry() -> None:
         assert any("geometry" in t for t in types), f"no geometry column typed: {cols}"
 
 
+def check_detect_vector_crs_netherlands() -> None:
+    src = glob.glob("examples/.cache/*BestuurlijkeGebieden*.gpkg")
+    if not src:
+        print("SKIP check_detect_vector_crs_netherlands, source not cached")
+        return
+    assert detect_vector_crs(src[0], "provinciegebied") == "EPSG:28992"
+
+
+def check_detect_vector_crs_missing_raises() -> None:
+    with tempfile.TemporaryDirectory() as d:
+        # a bare CSV of WKT has no CRS, ST_Read_Meta returns none
+        p = Path(d) / "nocrs.csv"
+        p.write_text("geom\n\"POINT(0 0)\"\n")
+        try:
+            detect_vector_crs(str(p), None)
+        except ValueError:
+            return
+    raise AssertionError("a source with no CRS did not raise")
+
+
 CHECKS = [
     check_official_host_moved_last,
     check_multiple_hosts_error,
@@ -153,6 +177,8 @@ CHECKS = [
     check_findings_flag_host_not_last,
     check_findings_flag_missing_license_link,
     check_vector_columns_include_geometry,
+    check_detect_vector_crs_netherlands,
+    check_detect_vector_crs_missing_raises,
 ]
 
 
