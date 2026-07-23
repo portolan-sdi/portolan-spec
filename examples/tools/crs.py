@@ -51,3 +51,24 @@ def detect_vector_crs(gdal_path: str, layer: str | None) -> str:
     if not out:
         raise ValueError(f"{gdal_path} layer {chosen['name']} declares no CRS")
     return out
+
+
+def resolve_output_crs(spec: dict, manifest_output_crs: str | None) -> str | None:
+    """Resolve the configured output CRS. Per-collection wins, then the manifest
+    default, then None which means preserve the detected source CRS."""
+    return spec.get("output_crs") or manifest_output_crs
+
+
+def assert_known_crs(crs: str) -> None:
+    """Raise if DuckDB cannot resolve the CRS, so a typo in the manifest fails
+    the build early instead of producing a broken transform."""
+    con = duckdb.connect()
+    con.execute("INSTALL spatial; LOAD spatial;")
+    try:
+        ok = con.execute(
+            "SELECT count(*) FROM duckdb_coordinate_systems() WHERE auth_name || ':' || auth_code = ?",
+            [crs]).fetchone()[0]
+    finally:
+        con.close()
+    if not ok:
+        raise ValueError(f"unknown output_crs {crs}")

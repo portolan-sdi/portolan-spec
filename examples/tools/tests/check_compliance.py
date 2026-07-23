@@ -27,8 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from stacio import resolve_providers, license_links  # noqa: E402
 from convert import write_web_geoparquet, table_columns  # noqa: E402
 from validate import collection_findings  # noqa: E402
-# more crs imports (resolve_output_crs, assert_known_crs) are added in later tasks
-from crs import detect_vector_crs, detect_raster_crs  # noqa: E402
+from crs import detect_vector_crs, detect_raster_crs, resolve_output_crs, assert_known_crs  # noqa: E402
 import glob  # noqa: E402
 
 HOST = {"name": "Portolan SDI", "url": "https://github.com/portolan-sdi",
@@ -197,6 +196,21 @@ def check_detect_raster_crs_rgb() -> None:
     assert detect_raster_crs(Path(src[0])) == "EPSG:32618"
 
 
+def check_resolve_output_crs_precedence() -> None:
+    assert resolve_output_crs({}, None) is None
+    assert resolve_output_crs({}, "EPSG:4326") == "EPSG:4326"
+    assert resolve_output_crs({"output_crs": "EPSG:3857"}, "EPSG:4326") == "EPSG:3857"
+
+
+def check_assert_known_crs() -> None:
+    assert_known_crs("EPSG:4326")  # no raise
+    try:
+        assert_known_crs("EPSG:999999")
+    except ValueError:
+        return
+    raise AssertionError("an unknown CRS did not raise")
+
+
 CHECKS = [
     check_official_host_moved_last,
     check_multiple_hosts_error,
@@ -212,6 +226,8 @@ CHECKS = [
     check_detect_vector_crs_missing_raises,
     check_detect_vector_crs_present_but_no_crs,
     check_detect_raster_crs_rgb,
+    check_resolve_output_crs_precedence,
+    check_assert_known_crs,
 ]
 
 
