@@ -17,7 +17,7 @@ from rasterio.transform import from_bounds
 from PIL import Image
 
 import tiles
-from common import run, _hex_rgb, _sql_lit
+from common import _hex_rgb
 from derivatives import _category_colors
 
 
@@ -180,23 +180,24 @@ def make_thumbnail_raster(tif: Path, out_png: Path, bbox4326: list[float],
 
 
 def build_thumb_ctx(manifest: dict, cache: Path) -> dict:
-    """Read the manifest thumbnails block and prepare the shared tile basemap
-    descriptor once. Everything thumbnail-specific lives in the manifest, not here.
-    The basemap is an XYZ tile template (`{z}/{x}/{y}`), CARTO light by default."""
+    """Read the manifest thumbnails block into the shared thumbnail context.
+    Everything thumbnail-specific lives in the manifest, not here. The basemap is
+    an XYZ tile template (`{z}/{x}/{y}`), CARTO light by default, passed straight
+    through to the tile fetcher."""
     t = manifest.get("thumbnails", {}) or {}
+    bm = t.get("basemap")
     basemap = None
     attribution = None
-    bm = t.get("basemap")
     if bm:
-        url = bm["url"] if isinstance(bm, dict) else bm
+        basemap = bm["url"] if isinstance(bm, dict) else bm
         attribution = bm.get("attribution") if isinstance(bm, dict) else None
-        basemap = _tile_basemap_xml(url, cache)
     return {
         "size": int(t.get("size", 768)),
         "pad_vector": float(t.get("pad_vector", 0.06)),
         "pad_raster": float(t.get("pad_raster", 0.4)),
         "ocean": _hex_rgb(t.get("ocean_color", "#eef3f8")),
         "basemap": basemap,
+        "cache": cache,
         "attribution": attribution,
     }
 
