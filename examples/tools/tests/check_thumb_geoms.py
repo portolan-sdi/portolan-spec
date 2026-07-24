@@ -2,6 +2,9 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #   "duckdb>=1.5.5",
+#   "numpy",
+#   "rasterio>=1.5",
+#   "Pillow>=11",
 # ]
 # ///
 """Standalone check for thumbnails._mercator_geoms.

@@ -11,7 +11,12 @@ import math
 from pathlib import Path
 
 import duckdb
+import numpy as np
+import rasterio.features
+from rasterio.transform import from_bounds
+from PIL import Image
 
+import tiles
 from common import run, _hex_rgb, _sql_lit
 from derivatives import _category_colors
 
@@ -43,11 +48,6 @@ def _thumb_grid(bbox4326: list[float], size: int, pad: float) -> tuple[list[floa
     else:
         w, h = max(1, round(size * mdx / mdy)), size
     return [minx, miny, maxx, maxy], [x0, y0, x1, y1], w, h
-
-
-def _ogr_count(src: Path) -> int:
-    out = json.loads(run(["ogrinfo", "-so", "-json", str(src)]).stdout)
-    return sum(int(l.get("featureCount", 0) or 0) for l in out.get("layers", []))
 
 
 def _merc_geom_sql(radius_m: float) -> str:
@@ -101,99 +101,25 @@ def _feature_count(src: Path, bbox4326: list[float]) -> int:
     return int(n)
 
 
-def _tile_basemap_xml(url: str, cache: Path) -> Path:
-    """Write a GDAL WMS TMS descriptor for an XYZ raster basemap (CARTO light by
-    default). gdalwarp then reads it like any raster, fetching only the tiles the
-    thumbnail extent needs at the zoom that matches the output resolution, and
-    caching them on disk so repeat builds do not refetch."""
-    tiles = cache / "tiles"
-    tiles.mkdir(parents=True, exist_ok=True)
-    xml = cache / "basemap.xml"
-    xml.write_text(
-        "<GDAL_WMS>\n"
-        '  <Service name="TMS">\n'
-        f"    <ServerUrl>{url}</ServerUrl>\n"
-        "  </Service>\n"
-        "  <DataWindow>\n"
-        "    <UpperLeftX>-20037508.342789244</UpperLeftX>\n"
-        "    <UpperLeftY>20037508.342789244</UpperLeftY>\n"
-        "    <LowerRightX>20037508.342789244</LowerRightX>\n"
-        "    <LowerRightY>-20037508.342789244</LowerRightY>\n"
-        "    <TileLevel>18</TileLevel>\n"
-        "    <TileCountX>1</TileCountX>\n"
-        "    <TileCountY>1</TileCountY>\n"
-        "    <YOrigin>top</YOrigin>\n"
-        "  </DataWindow>\n"
-        "  <Projection>EPSG:3857</Projection>\n"
-        "  <BlockSizeX>256</BlockSizeX>\n"
-        "  <BlockSizeY>256</BlockSizeY>\n"
-        "  <BandsCount>3</BandsCount>\n"
-        "  <UserAgent>portolan-reference/0.1</UserAgent>\n"
-        f"  <Cache><Path>{tiles}</Path></Cache>\n"
-        "</GDAL_WMS>\n"
-    )
-    return xml
-
-
-def _make_canvas(canvas: Path, thumb: dict, merc: list[float], w: int, h: int) -> None:
-    """Build the Mercator canvas, the CARTO tile basemap warped to the framed
-    extent, or a flat ocean fill when no basemap is configured."""
-    x0, y0, x1, y1 = merc
-    canvas.unlink(missing_ok=True)
+def _make_canvas_arr(thumb: dict, merc: list[float], w: int, h: int) -> np.ndarray:
+    """Return the `(h, w, 3)` uint8 base canvas, the fetched basemap or a flat
+    ocean fill when no basemap is configured."""
     if thumb.get("basemap"):
-        run(["gdalwarp", "-q", "-of", "GTiff", "-t_srs", "EPSG:3857",
-             "-te", str(x0), str(y0), str(x1), str(y1), "-ts", str(w), str(h),
-             "-r", "bilinear", str(thumb["basemap"]), str(canvas)])
-    else:
-        ocean = thumb["ocean"]
-        run(["gdal_create", "-of", "GTiff", "-bands", "3", "-outsize", str(w), str(h),
-             "-a_srs", "EPSG:3857", "-a_ullr", str(x0), str(y1), str(x1), str(y0),
-             "-burn", str(ocean[0]), "-burn", str(ocean[1]), "-burn", str(ocean[2]), str(canvas)])
+        return tiles.fetch_basemap(thumb["basemap"], merc, w, h, thumb["cache"])
+    canvas = np.empty((h, w, 3), dtype=np.uint8)
+    canvas[:] = thumb["ocean"]
+    return canvas
 
 
-def _clip_to_canvas(src: Path, bbox4326: list[float], gpkg: Path) -> int:
-    """Reproject and clip a vector source into a Mercator GeoPackage. Clipping to
-    the padded bbox also keeps sub-85-degree geometry finite. Returns feature count."""
-    minx, miny, maxx, maxy = bbox4326
-    gpkg.unlink(missing_ok=True)
-    run(["ogr2ogr", "-t_srs", "EPSG:3857", "-clipsrc", str(minx), str(miny), str(maxx), str(maxy),
-         "-nln", "layer", "-f", "GPKG", str(gpkg), str(src)])
-    return _ogr_count(gpkg)
-
-
-def _rasterize(canvas: Path, gpkg: Path, rgb: tuple[int, int, int], where: str | None = None) -> None:
-    cmd = ["gdal_rasterize", "-l", "layer", "-b", "1", "-b", "2", "-b", "3",
-           "-burn", str(rgb[0]), "-burn", str(rgb[1]), "-burn", str(rgb[2])]
-    if where:
-        cmd += ["-where", where]
-    cmd += [str(gpkg), str(canvas)]
-    run(cmd)
-
-
-def _buffer_points(gpkg: Path, radius_m: float, keep_field: str | None) -> Path:
-    """Grow point features into small circles so they read as visible dots.
-    gdal_rasterize paints a raw point as a single pixel, which vanishes at world
-    scale. The radius is passed in metres, sized from the pixel resolution, so
-    dots stay the same on-screen size at any extent. Any category field is kept
-    so per-category colouring still works."""
-    out = gpkg.with_suffix(".buf.gpkg")
-    out.unlink(missing_ok=True)
-    cols = f', "{keep_field}"' if keep_field else ""
-    run(["ogr2ogr", "-f", "GPKG", "-dialect", "SQLITE", "-nln", "layer",
-         "-sql", f"SELECT ST_Buffer(geom, {radius_m}) AS geom{cols} FROM layer", str(out), str(gpkg)])
-    return out
-
-
-def _burn_outline(canvas: Path, gpkg: Path, rgb: tuple[int, int, int]) -> None:
-    """Overlay polygon boundaries as thin lines so neighbouring features stay
-    distinct even when they share a categorical colour (counties within a state)."""
-    lines = gpkg.with_suffix(".lines.gpkg")
-    lines.unlink(missing_ok=True)
-    run(["ogr2ogr", "-f", "GPKG", "-dialect", "SQLITE", "-nln", "layer",
-         "-sql", "SELECT ST_Boundary(geom) AS geom FROM layer", str(lines), str(gpkg)])
-    if _ogr_count(lines):
-        _rasterize(canvas, lines, rgb)
-    lines.unlink(missing_ok=True)
+def _burn(canvas: np.ndarray, geoms: list[dict], rgb: tuple[int, int, int],
+          transform, w: int, h: int) -> None:
+    """Rasterize GeoJSON geometries (EPSG:3857) onto the canvas in `rgb`."""
+    if not geoms:
+        return
+    mask = rasterio.features.rasterize(
+        [(g, 1) for g in geoms], out_shape=(h, w), transform=transform,
+        fill=0, all_touched=False, dtype="uint8")
+    canvas[mask == 1] = rgb
 
 
 def make_thumbnail_vector(vector_src: Path, out_png: Path, bbox4326: list[float],
@@ -202,27 +128,27 @@ def make_thumbnail_vector(vector_src: Path, out_png: Path, bbox4326: list[float]
     categorical field colours by category from the shared palette, otherwise the
     default colour fills flat. Polygons get a thin outline for granularity."""
     b, merc, w, h = _thumb_grid(bbox4326, thumb["size"], thumb["pad_vector"])
-    canvas = out_png.with_suffix(".canvas.tif")
-    _make_canvas(canvas, thumb, merc, w, h)
-    gpkg = canvas.with_suffix(".feat.gpkg")
-    if _clip_to_canvas(vector_src, b, gpkg):
+    canvas = _make_canvas_arr(thumb, merc, w, h)
+    transform = from_bounds(merc[0], merc[1], merc[2], merc[3], w, h)
+    geometry = style.get("geometry", "polygon")
+    if _feature_count(vector_src, b):
+        radius_m = (merc[2] - merc[0]) / w * 2.5
         field = style.get("category_field")
-        if style.get("geometry", "polygon") == "point":
-            radius_m = (merc[2] - merc[0]) / w * 2.5
-            buf = _buffer_points(gpkg, radius_m, field)
-            gpkg.unlink(missing_ok=True)
-            gpkg = buf
+        feats, outlines = _mercator_geoms(vector_src, b, geometry, radius_m, field)
         if field:
-            for val, hexc in _category_colors(vector_src, field, style.get("palette")):
-                _rasterize(canvas, gpkg, _hex_rgb(hexc), where=f'"{field}" = {_sql_lit(val)}')
+            colors = dict(_category_colors(vector_src, field, style.get("palette")))
+            for gjson, val in feats:
+                rgb = colors.get(val)
+                if rgb:
+                    _burn(canvas, [gjson], _hex_rgb(rgb), transform, w, h)
         else:
-            _rasterize(canvas, gpkg, _hex_rgb(style.get("color", "#3388ff")))
-        if style.get("geometry", "polygon") == "polygon":
-            _burn_outline(canvas, gpkg, _hex_rgb(style.get("outline", "#ffffff")))
-    gpkg.unlink(missing_ok=True)
-    run(["gdal_translate", "-of", "PNG", str(canvas), str(out_png)])
-    canvas.unlink(missing_ok=True)
-    Path(str(out_png) + ".aux.xml").unlink(missing_ok=True)
+            _burn(canvas, [g for g, _ in feats], _hex_rgb(style.get("color", "#3388ff")),
+                  transform, w, h)
+        if geometry == "polygon":
+            _burn(canvas, outlines, _hex_rgb(style.get("outline", "#ffffff")),
+                  transform, w, h)
+    out_png.parent.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(canvas).save(out_png)
 
 
 def make_thumbnail_raster(tif: Path, out_png: Path, bbox4326: list[float], thumb: dict) -> None:

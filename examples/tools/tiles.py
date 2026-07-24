@@ -75,4 +75,6 @@ def fetch_basemap(url: str, merc: list[float], w: int, h: int, cache: Path) -> n
     box = (round((ftx0 - xa) * _TILE), round((fty0 - ya) * _TILE),
            round((ftx1 - xa) * _TILE), round((fty1 - ya) * _TILE))
     framed = mosaic.crop(box).resize((w, h), Image.BILINEAR)
-    return np.asarray(framed, dtype=np.uint8)
+    # np.array copies (asarray would return a read-only view over the PIL
+    # buffer), so callers can paint features onto the canvas in place.
+    return np.array(framed, dtype=np.uint8)
