@@ -51,8 +51,7 @@ thumbnail path still shells out to the GDAL CLI (`gdalwarp`, `gdal_rasterize`,
 be on PATH until the thumbnail engine is replaced. The generator downloads
 each source once into a git-ignored cache, converts it, computes real
 checksums, writes the STAC tree with `AGENTS.md` and `README.md` beside every
-node, and validates the result against
-[`../stac/json-schema/v0.1.0/schema.json`](../stac/json-schema/v0.1.0/schema.json).
+node, and validates the result with reis, the canonical Portolan validator.
 
 Thumbnails are drawn in Web Mercator at the data's true aspect ratio over a CARTO
 light tile basemap, so previews read as maps rather than stretched squares. The

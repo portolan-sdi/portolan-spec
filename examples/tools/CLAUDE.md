@@ -23,7 +23,7 @@ bootstraps `sys.path` with its own directory so they import as flat names.
 | `derivatives.py` | PMTiles tiles and data-driven MapLibre styles |
 | `thumbnails.py` | Web Mercator preview rendering over the tile basemap |
 | `stacio.py` | STAC assembly, manifest, providers, assets, links, sidecars, catalog builders |
-| `validate.py` | JSON schema plus the Portolan conformance rules tooling owns |
+| `validate.py` | Thin adapter over reis, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
 | `tests/` | Standalone `uv run` checks, `check_compliance.py` and `check_web_output.py` |
 
 Inputs and outputs live under `examples/`, not here.
@@ -153,11 +153,22 @@ GeoPackage, `_rasterize` burns features from the collection `style` block, and
 ## Validation
 
 `validate` runs after each catalog unless `--only` or `--no-validate` is set. It
-checks every Catalog, Collection, and Feature against the committed schema at
-`../../stac/json-schema/v0.1.0/schema.json`, verifies each `file:checksum` is a
-sha2-256 multihash, and fails on any `self` link. The tree also passes the
-ecosystem `stac-node-validator` when pointed at the same schema with
-`--schemaMap`.
+calls reis, the canonical Portolan validator, and fails the build on any error
+finding. Warnings and infos print without failing.
+
+Four passes run. The metadata pass checks the Portolan rules. The structural
+pass checks STAC 1.1.0 core validity and degrades to a warning when its
+schemas are unreachable. The schema pass validates every object against the
+working-copy schema at `../../stac/json-schema/v0.1.0/schema.json`, injected
+so the build tests this repo's schema rather than the published one. The data
+pass reads the built assets and checks checksum, size, format, COG band
+statistics, and GeoParquet ordering, statistics, and row-group size, through a
+local-only reader that skips remote source assets so the build stays offline.
+
+reis is a pinned git dependency in `build.py`'s PEP 723 header. Bumping the
+Portolan schema is a coordinated change across this repo and reis, update the
+local schema, regenerate the reference catalog, re-vendor fixtures into reis,
+then bump the reis pin here.
 
 ## Conventions
 
