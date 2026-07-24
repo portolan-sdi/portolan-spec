@@ -10,6 +10,8 @@ import json
 import math
 from pathlib import Path
 
+import duckdb
+
 from common import run, _hex_rgb, _sql_lit
 from derivatives import _category_colors
 
@@ -46,6 +48,57 @@ def _thumb_grid(bbox4326: list[float], size: int, pad: float) -> tuple[list[floa
 def _ogr_count(src: Path) -> int:
     out = json.loads(run(["ogrinfo", "-so", "-json", str(src)]).stdout)
     return sum(int(l.get("featureCount", 0) or 0) for l in out.get("layers", []))
+
+
+def _merc_geom_sql(radius_m: float) -> str:
+    """SQL expression that reprojects the WGS84 source geometry to EPSG:3857 and,
+    for points, buffers it to `radius_m` so a raw point does not vanish to a
+    single pixel at world scale."""
+    g = "ST_Transform(geom, 'EPSG:4326', 'EPSG:3857', always_xy := true)"
+    return f"ST_Buffer({g}, {radius_m})" if radius_m else g
+
+
+def _clip_where(bbox4326: list[float]) -> str:
+    minx, miny, maxx, maxy = bbox4326
+    env = f"ST_MakeEnvelope({minx}, {miny}, {maxx}, {maxy})"
+    return f"ST_Intersects(geom, {env})"
+
+
+def _mercator_geoms(src: Path, bbox4326: list[float], geometry: str,
+                    radius_m: float, field: str | None):
+    """Read the WGS84 source, clip to the padded bbox, reproject to EPSG:3857,
+    and return `(features, outlines)`. `features` is `(geojson_dict, field_value)`
+    pairs, points already buffered. `outlines` is polygon boundary geojson dicts,
+    empty for non-polygon geometry."""
+    con = duckdb.connect()
+    con.execute("INSTALL spatial; LOAD spatial; SET geometry_always_xy=true;")
+    read = f"ST_Read('{src}')"
+    g = _merc_geom_sql(radius_m if geometry == "point" else 0.0)
+    where = _clip_where(bbox4326)
+    sel_field = f', "{field}"' if field else ""
+    rows = con.execute(
+        f"SELECT ST_AsGeoJSON({g}) AS gj{sel_field} FROM {read} WHERE {where}"
+    ).fetchall()
+    features = [(json.loads(r[0]), (r[1] if field else None)) for r in rows if r[0]]
+    outlines = []
+    if geometry == "polygon":
+        merc = _merc_geom_sql(0.0)
+        orows = con.execute(
+            f"SELECT ST_AsGeoJSON(ST_Boundary({merc})) AS gj FROM {read} WHERE {where}"
+        ).fetchall()
+        outlines = [json.loads(r[0]) for r in orows if r[0]]
+    con.close()
+    return features, outlines
+
+
+def _feature_count(src: Path, bbox4326: list[float]) -> int:
+    con = duckdb.connect()
+    con.execute("INSTALL spatial; LOAD spatial; SET geometry_always_xy=true;")
+    n = con.execute(
+        f"SELECT count(*) FROM ST_Read('{src}') WHERE {_clip_where(bbox4326)}"
+    ).fetchone()[0]
+    con.close()
+    return int(n)
 
 
 def _tile_basemap_xml(url: str, cache: Path) -> Path:
