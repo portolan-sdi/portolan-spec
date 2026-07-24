@@ -48,15 +48,16 @@ host:
 
 # Thumbnail rendering. build.py draws each thumbnail in Web Mercator at the
 # data's true aspect ratio over this XYZ tile basemap, so previews read as real
-# maps rather than stretched squares. GDAL fetches only the tiles the framed
+# maps rather than stretched squares. tiles.py fetches only the tiles the framed
 # extent needs at the matching zoom, and caches them under .cache. The default is
-# the CARTO light (Positron) basemap. Swap the url for any XYZ tile template.
+# the CARTO light (Positron) basemap. Swap the url for any XYZ tile template,
+# using Python str.format placeholders {z}/{x}/{y}.
 # ocean_color is the fallback fill used only when no basemap is set.
 thumbnails:
   size: 768
   ocean_color: "#eef3f8"
   basemap:
-    url: https://basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png
+    url: https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png
     attribution: "© OpenStreetMap contributors © CARTO"
 
 # Titles and descriptions for the nested catalogs, keyed by the first segment of

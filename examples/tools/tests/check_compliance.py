@@ -9,6 +9,7 @@
 #   "rasterio>=1.5",
 #   "numpy",
 #   "Pillow>=11",
+#   "rio-cogeo>=5.3",
 # ]
 # ///
 """Standalone compliance checks for the generator's pure helpers.

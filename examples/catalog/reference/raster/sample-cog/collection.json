@@ -56,16 +56,16 @@
       "roles": [
         "data"
       ],
-      "file:size": 1135556,
-      "file:checksum": "122002b12c79e4e6453b7503a6d80cda185050ecc5ce1bbccc2bf932181e6bf5134e",
+      "file:size": 1135451,
+      "file:checksum": "1220c76ab050334aa4ecf687bd32d4b71d53507a4e328e51463fa2f3f53fadb30d8d",
       "bands": [
         {
           "data_type": "uint8",
           "statistics": {
             "minimum": 1.0,
             "maximum": 255.0,
-            "mean": 44.4345,
-            "stddev": 58.4901
+            "mean": 44.396,
+            "stddev": 58.4784
           }
         },
         {
@@ -73,8 +73,8 @@
           "statistics": {
             "minimum": 1.0,
             "maximum": 255.0,
-            "mean": 66.022,
-            "stddev": 58.2034
+            "mean": 65.9922,
+            "stddev": 58.2068
           }
         },
         {
@@ -82,8 +82,8 @@
           "statistics": {
             "minimum": 1.0,
             "maximum": 255.0,
-            "mean": 71.3932,
-            "stddev": 60.8273
+            "mean": 71.3248,
+            "stddev": 60.8373
           }
         }
       ],
@@ -107,8 +107,8 @@
       "roles": [
         "thumbnail"
       ],
-      "file:size": 225090,
-      "file:checksum": "1220cc71e3792ef345783d8a023400404402314050f20b7ac42ebed53a38d782070c"
+      "file:size": 243153,
+      "file:checksum": "12203f05e92e5b77ab80d92d7e319053dfa48f00ce72d05f8c7251959b88dbd57971"
     }
   },
   "links": [
