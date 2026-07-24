@@ -72,9 +72,34 @@ def check_vector_thumbnail() -> None:
         assert not Path(str(out) + ".aux.xml").exists(), "gdal aux sidecar leaked"
 
 
+def check_raster_thumbnail() -> None:
+    _seed_tiles()
+    import numpy as np
+    import rasterio
+    from rasterio.transform import from_bounds as _fb
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        tif = tmp / "r.tif"
+        # a tiny 3-band EPSG:4326 raster over lon 0..2, lat 0..1
+        data = (np.ones((3, 10, 20), dtype="uint8") * 120)
+        transform = _fb(0, 0, 2, 1, 20, 10)
+        with rasterio.open(tif, "w", driver="GTiff", height=10, width=20, count=3,
+                           dtype="uint8", crs="EPSG:4326", transform=transform) as dst:
+            dst.write(data)
+        out = tmp / "rthumb.png"
+        thumb = {"size": 256, "pad_vector": 0.06, "pad_raster": 0.4,
+                 "ocean": (238, 243, 248), "basemap": "http://x/{z}/{x}/{y}.png",
+                 "cache": tmp, "attribution": None}
+        thumbnails.make_thumbnail_raster(tif, out, [-0.2, -0.2, 2.2, 1.2], thumb)
+        assert out.exists(), "no raster thumbnail written"
+        im = Image.open(out)
+        assert im.width == 256 and im.height < im.width, im.size
+
+
 def main() -> int:
     check_vector_thumbnail()
-    print("OK, vector thumbnail")
+    check_raster_thumbnail()
+    print("OK, vector + raster thumbnail")
     return 0
 
 

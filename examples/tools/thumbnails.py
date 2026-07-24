@@ -151,15 +151,32 @@ def make_thumbnail_vector(vector_src: Path, out_png: Path, bbox4326: list[float]
     Image.fromarray(canvas).save(out_png)
 
 
-def make_thumbnail_raster(tif: Path, out_png: Path, bbox4326: list[float], thumb: dict) -> None:
+def make_thumbnail_raster(tif: Path, out_png: Path, bbox4326: list[float],
+                          thumb: dict) -> None:
+    """Warp the raster into the Web Mercator canvas over the basemap, treating 0
+    as transparent nodata, then alpha-over composite and write the PNG."""
+    import rasterio
+    from rasterio.warp import reproject, Resampling
+
     b, merc, w, h = _thumb_grid(bbox4326, thumb["size"], thumb["pad_raster"])
-    canvas = out_png.with_suffix(".canvas.tif")
-    _make_canvas(canvas, thumb, merc, w, h)
-    # warp the raster onto the basemap canvas, treating 0 as transparent nodata
-    run(["gdalwarp", "-q", "-r", "bilinear", "-srcnodata", "0", "-dstnodata", "0", str(tif), str(canvas)])
-    run(["gdal_translate", "-of", "PNG", str(canvas), str(out_png)])
-    canvas.unlink(missing_ok=True)
-    Path(str(out_png) + ".aux.xml").unlink(missing_ok=True)
+    canvas = _make_canvas_arr(thumb, merc, w, h).astype(np.uint8)
+    transform = from_bounds(merc[0], merc[1], merc[2], merc[3], w, h)
+    with rasterio.open(tif) as src:
+        bands = min(src.count, 3)
+        dest = np.zeros((bands, h, w), dtype="uint8")
+        for i in range(bands):
+            reproject(
+                source=rasterio.band(src, i + 1), destination=dest[i],
+                src_transform=src.transform, src_crs=src.crs,
+                dst_transform=transform, dst_crs="EPSG:3857",
+                src_nodata=0, dst_nodata=0, resampling=Resampling.bilinear)
+    overlay = np.moveaxis(dest, 0, -1)  # (h, w, bands)
+    if bands == 1:
+        overlay = np.repeat(overlay, 3, axis=-1)
+    mask = (overlay.sum(axis=-1) > 0)
+    canvas[mask] = overlay[mask][:, :3]
+    out_png.parent.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(canvas).save(out_png)
 
 
 def build_thumb_ctx(manifest: dict, cache: Path) -> dict:
