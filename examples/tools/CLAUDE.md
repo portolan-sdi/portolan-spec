@@ -21,7 +21,8 @@ bootstraps `sys.path` with its own directory so they import as flat names.
 | `fetch.py` | Downloads sources into `.cache` and unpacks zipped shapefiles |
 | `convert.py` | Format conversions, vector to GeoParquet, raster to COG, CSV to Parquet |
 | `derivatives.py` | PMTiles tiles and data-driven MapLibre styles |
-| `thumbnails.py` | Web Mercator preview rendering over the tile basemap |
+| `thumbnails.py` | Web Mercator preview rendering over the tile basemap fetched by `tiles.py` |
+| `tiles.py` | XYZ basemap tile fetch and mosaic for thumbnails |
 | `stacio.py` | STAC assembly, manifest, providers, assets, links, sidecars, catalog builders |
 | `validate.py` | Thin adapter over reis, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
 | `tests/` | Standalone `uv run` checks, `check_compliance.py` and `check_web_output.py` |
@@ -43,14 +44,10 @@ uv run examples/tools/build.py --only boundaries/us-counties  # one Collection, 
 ```
 
 `uv` reads the PEP 723 header at the top of `build.py` and resolves the Python
-deps (pyyaml, duckdb, jsonschema, pyarrow, rasterio, and the pinned
-geoparquet-io) on the fly. The data path (vector and raster conversion) no
-longer shells out to the GDAL CLI, it runs on DuckDB spatial and rasterio
-instead, so the primary prerequisites on PATH are `tippecanoe` and `uv`. The
-thumbnail path still shells out to the GDAL CLI (`gdalwarp`, `gdal_rasterize`,
-`gdal_create`, plus `ogr2ogr` and `ogrinfo` for the vector clip and CRS probe,
-and `gdal_translate` for the PNG export) until the thumbnail engine is
-replaced in a follow-up, so GDAL 3.x must still be on PATH for now.
+deps (pyyaml, duckdb, jsonschema, pyarrow, rasterio, rio-cogeo, and the pinned
+geoparquet-io) on the fly. The whole generator, data path and thumbnails
+alike, runs on DuckDB spatial, rasterio, and rio-cogeo, none of it shells out
+to the GDAL CLI, so the only prerequisites on PATH are `tippecanoe` and `uv`.
 
 The two test suites run the same way.
 
@@ -133,19 +130,18 @@ Thumbnails render in Web Mercator (EPSG:3857) at the data's true aspect ratio
 over a CARTO light XYZ tile basemap, so they read as real maps rather than
 stretched squares. `_thumb_grid` pads the bbox, clamps latitude to the
 Mercator-valid range, and sizes the canvas to the projected aspect.
-`_tile_basemap_xml` writes a GDAL WMS descriptor so `gdalwarp` fetches only the
-tiles the framed extent needs and caches them under `.cache`. `_make_canvas`
-warps that basemap onto the canvas, or fills flat ocean when no basemap is set.
-`_clip_to_canvas` reprojects and clips the vector source into a Mercator
-GeoPackage, `_rasterize` burns features from the collection `style` block, and
-`_burn_outline` overlays polygon boundaries. Rasters are warped on top with
-`gdalwarp`.
+`tiles.fetch_basemap` fetches and mosaics the covering XYZ tiles into a numpy
+RGB canvas, caching each tile under `.cache`, or the canvas fills flat ocean
+when no basemap is set. `_mercator_geoms` reprojects and clips the WGS84
+vector source into EPSG:3857 with DuckDB spatial, returning the feature and
+outline geometries. `_burn` rasterizes those features and polygon outlines
+onto the canvas with `rasterio.features`. Rasters are warped on top with
+`rasterio.warp.reproject`. Pillow writes the final PNG.
 
 ## Gotchas, learned the hard way
 
 - The final vector write goes through geoparquet-io, pinned to the PR #573 fork commit, the only path that emits a Parquet page index together with native GeoParquet 2.0 GeospatialStatistics. DuckDB and ogr2ogr cannot write the page index.
-- GeoJSON is always WGS84 and silently drops any target SRS. The thumbnail path uses GeoPackage intermediates so the Mercator projection survives.
-- `gdal_rasterize` writes only band 1 by default. Pass `-b 1 -b 2 -b 3` to fill an RGB canvas.
+- GeoJSON is always WGS84 and silently drops any target SRS. The thumbnail path reads the WGS84 GeoPackage intermediate and reprojects it to EPSG:3857 with DuckDB spatial in `_mercator_geoms`, so the Mercator projection survives.
 - Zip sources are extracted before reading, because GDAL `/vsizip` keys off a `.zip` suffix that the cached filename does not have.
 - The raster extension v2.0.0 is not declared, its schema conflicts with Collection-level assets (spec issues #52 and #41). Statistics still ship in core `bands`.
 - The Boston, San Francisco, and Eurostat sources are live endpoints, so their `source` checksums are point-in-time and each README says so.

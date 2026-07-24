@@ -44,14 +44,13 @@ uv run examples/tools/build.py --catalog reference          # one catalog
 uv run examples/tools/build.py --only boundaries/us-counties   # one Collection
 ```
 
-Prerequisites on your PATH, `tippecanoe` and `uv`. The vector and raster
-conversion path runs on DuckDB spatial and rasterio, not the GDAL CLI. The
-thumbnail path still shells out to the GDAL CLI (`gdalwarp`, `gdal_rasterize`,
-`gdal_create`, `ogr2ogr`, `ogrinfo`, `gdal_translate`), so GDAL 3.x must also
-be on PATH until the thumbnail engine is replaced. The generator downloads
-each source once into a git-ignored cache, converts it, computes real
-checksums, writes the STAC tree with `AGENTS.md` and `README.md` beside every
-node, and validates the result with reis, the canonical Portolan validator.
+Prerequisites on your PATH, `tippecanoe` and `uv`. The whole generator, vector
+and raster conversion and thumbnails alike, runs on DuckDB spatial, rasterio,
+and rio-cogeo, not the GDAL CLI, so no GDAL command-line install is needed.
+The generator downloads each source once into a git-ignored cache, converts
+it, computes real checksums, writes the STAC tree with `AGENTS.md` and
+`README.md` beside every node, and validates the result with reis, the
+canonical Portolan validator.
 
 Thumbnails are drawn in Web Mercator at the data's true aspect ratio over a CARTO
 light tile basemap, so previews read as maps rather than stretched squares. The
@@ -86,14 +85,13 @@ Done.
   Mercator EPSG:3857 for a consistent UI. None of these follow `output_crs`.
 - The GDAL CLI is gone from the data path. The vector path runs on DuckDB
   spatial and the raster path on rasterio, both of which vendor their own GDAL
-  in their wheels, so `tippecanoe` and `uv` are the primary prerequisites now.
-
-Outstanding.
-
-- The thumbnail path still shells out to the GDAL CLI (`gdalwarp`,
-  `gdal_rasterize`, `gdal_create`, `ogr2ogr`, `ogrinfo`, `gdal_translate`), so
-  GDAL 3.x still has to be on PATH for now. Replacing the thumbnail engine is
-  a follow-up.
+  in their wheels.
+- The GDAL CLI is gone from the thumbnail path too. `tiles.py` fetches and
+  mosaics the XYZ basemap into a numpy canvas, DuckDB spatial reprojects and
+  clips the vector to Web Mercator, rasterio warps the raster overlay on, and
+  Pillow writes the PNG.
+- The reference generator no longer requires the GDAL command-line tools at
+  all. `tippecanoe` and `uv` are the only prerequisites on PATH now.
 
 The normative requirements are in [`specs/portolan/`](../specs/portolan/) and the
 profile is in [`stac/`](../stac/).

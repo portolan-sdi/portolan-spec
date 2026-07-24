@@ -32,9 +32,9 @@ shared helpers, fetch the downloader, convert the format conversions,
 derivatives the PMTiles and MapLibre styles, thumbnails the previews, stacio the
 STAC assembly and catalog builders, and validate the conformance checks.
 
-Prerequisites (FOSS, on PATH): GDAL 3.x (ogr2ogr, ogrinfo, gdal_translate,
-gdalinfo, gdal_rasterize, gdal_create, gdalwarp) with the Parquet and COG
-drivers, tippecanoe, and uv.
+Prerequisites (FOSS, on PATH): tippecanoe and uv. The data and thumbnail paths
+run on DuckDB spatial, rasterio, and rio-cogeo, which vendor their own GDAL
+inside their wheels, so no GDAL command-line install is needed.
 
 Run:
     uv run examples/tools/build.py
