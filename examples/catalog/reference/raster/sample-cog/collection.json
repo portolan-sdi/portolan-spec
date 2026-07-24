@@ -56,8 +56,8 @@
       "roles": [
         "data"
       ],
-      "file:size": 1134866,
-      "file:checksum": "12209d35afb5b4c0c871db6462c8cb8512ecabf8202f7f92b549281feed0a52fafef",
+      "file:size": 1135556,
+      "file:checksum": "122002b12c79e4e6453b7503a6d80cda185050ecc5ce1bbccc2bf932181e6bf5134e",
       "bands": [
         {
           "data_type": "uint8",

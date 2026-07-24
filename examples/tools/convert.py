@@ -121,9 +121,28 @@ def feature_count(parquet: Path) -> int:
     return int(n)
 
 
+def _embed_band_stats(dst, bidx: int, arr) -> None:
+    """Tag a band with the Portolan-required embedded statistics, masked so
+    nodata is excluded, matching `bands_from_cog`. A band with no valid pixels
+    gets no tags, since it has no statistics to report."""
+    if not arr.count():
+        return
+    dst.update_tags(
+        bidx,
+        STATISTICS_MINIMUM=str(round(float(arr.min()), 4)),
+        STATISTICS_MAXIMUM=str(round(float(arr.max()), 4)),
+        STATISTICS_MEAN=str(round(float(arr.mean()), 4)),
+        STATISTICS_STDDEV=str(round(float(arr.std()), 4)),
+    )
+
+
 def to_cog(src_tif: Path, out_tif: Path, output_crs: str | None) -> str:
     """Write a Cloud Optimized GeoTIFF, preserving the source CRS by default or
-    warping to `output_crs` when set. Returns the CRS actually written."""
+    warping to `output_crs` when set. Every band gets embedded STATISTICS_*
+    tags (minimum, maximum, mean, stddev), computed masked so nodata is
+    excluded, the same way `bands_from_cog` computes the STAC bands stats.
+    Returns the CRS actually written."""
+    import numpy as np
     import rasterio
     from rasterio.warp import calculate_default_transform, reproject, Resampling
 
@@ -140,6 +159,8 @@ def to_cog(src_tif: Path, out_tif: Path, output_crs: str | None) -> str:
             profile.update(cog_profile)
             with rasterio.open(out_tif, "w", **profile) as dst:
                 dst.write(data)
+                for i in range(1, src.count + 1):
+                    _embed_band_stats(dst, i, src.read(i, masked=True))
                 dst.build_overviews([2, 4, 8], Resampling.average)
         else:
             transform, width, height = calculate_default_transform(
@@ -147,12 +168,23 @@ def to_cog(src_tif: Path, out_tif: Path, output_crs: str | None) -> str:
             profile = src.profile.copy()
             profile.update(cog_profile)
             profile.update(crs=out_crs, transform=transform, width=width, height=height)
+            nodata = profile.get("nodata")
+            # The rasterio COG driver finalizes the file on close through a
+            # CreateCopy, so the destination dataset opened here cannot be
+            # read back mid-write. Reproject into a plain numpy array first,
+            # write that, and compute the masked statistics from the same
+            # array, so the embedded tags and the file agree exactly.
             with rasterio.open(out_tif, "w", **profile) as dst:
                 for i in range(1, src.count + 1):
+                    dest = np.zeros((height, width), dtype=profile["dtype"])
                     reproject(
-                        source=rasterio.band(src, i), destination=rasterio.band(dst, i),
+                        source=rasterio.band(src, i), destination=dest,
                         src_transform=src.transform, src_crs=src.crs,
-                        dst_transform=transform, dst_crs=out_crs, resampling=Resampling.bilinear)
+                        dst_transform=transform, dst_crs=out_crs, dst_nodata=nodata,
+                        resampling=Resampling.bilinear)
+                    dst.write(dest, i)
+                    arr = np.ma.masked_equal(dest, nodata) if nodata is not None else np.ma.masked_array(dest)
+                    _embed_band_stats(dst, i, arr)
                 dst.build_overviews([2, 4, 8], Resampling.average)
     return out_crs
 
