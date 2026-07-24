@@ -9,9 +9,14 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import jsonschema
+
+if TYPE_CHECKING:
+    from reis.catalog import Node
+    from reis.data import DataDefect
+    from reis.data.reader import AssetReader, Locator
 
 
 def _local_schema_validator(schema_path: Path) -> Callable[[dict], list[str]]:
@@ -29,6 +34,38 @@ def _local_schema_validator(schema_path: Path) -> Callable[[dict], list[str]]:
         return [error.message for error in validator.iter_errors(obj)]
 
     return validate_object
+
+
+class _LocalOnlyReader:
+    """An AssetReader that drops remote assets so the data pass reads only local
+    files. Remote source assets, the live upstreams whose file:checksum is
+    point-in-time, are skipped rather than fetched, keeping the build offline and
+    free of false checksum mismatches."""
+
+    def __init__(self, inner: "AssetReader") -> None:
+        self._inner = inner
+
+    def locate(self, node: "Node", href: str) -> "Locator | None":
+        located = self._inner.locate(node, href)
+        if located is None or located.is_remote:
+            return None
+        return located
+
+    def stream(self, node: "Node", href: str):
+        located = self._inner.locate(node, href)
+        if located is None or located.is_remote:
+            return None
+        return self._inner.stream(node, href)
+
+
+def _local_only_data_validator() -> "Callable[[Node, AssetReader], list[DataDefect]]":
+    """Wrap reis's byte checker so it reads through a local-only reader."""
+    from reis.data import checks
+
+    def validate_node(node: "Node", reader: "AssetReader") -> "list[DataDefect]":
+        return checks.check_node(node, _LocalOnlyReader(reader))
+
+    return validate_node
 
 
 def collection_findings(obj: dict) -> list[str]:
