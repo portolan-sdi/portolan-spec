@@ -137,55 +137,58 @@ def _embed_band_stats(dst, bidx: int, arr) -> None:
 
 
 def to_cog(src_tif: Path, out_tif: Path, output_crs: str | None) -> str:
-    """Write a Cloud Optimized GeoTIFF, preserving the source CRS by default or
-    warping to `output_crs` when set. Every band gets embedded STATISTICS_*
-    tags (minimum, maximum, mean, stddev), computed masked so nodata is
-    excluded, the same way `bands_from_cog` computes the STAC bands stats.
+    """Write a Cloud Optimized GeoTIFF through rio-cogeo, preserving the source
+    CRS by default or warping to `output_crs` when set. Every band gets embedded
+    STATISTICS_* tags (minimum, maximum, mean, stddev), computed masked so nodata
+    is excluded, the same way `bands_from_cog` computes the STAC bands stats.
     Returns the CRS actually written."""
     import numpy as np
     import rasterio
+    from rasterio.io import MemoryFile
     from rasterio.warp import calculate_default_transform, reproject, Resampling
+    from rio_cogeo.cogeo import cog_translate
+    from rio_cogeo.profiles import cog_profiles
 
     out_tif.parent.mkdir(parents=True, exist_ok=True)
     source_crs = detect_raster_crs(src_tif)
     out_crs = output_crs or source_crs
     if output_crs:
         assert_known_crs(output_crs)
-    cog_profile = {"driver": "COG", "compress": "DEFLATE"}
+    profile = cog_profiles.get("deflate")
+
     with rasterio.open(src_tif) as src:
         if out_crs == source_crs:
             data = src.read()
-            profile = src.profile.copy()
-            profile.update(cog_profile)
-            with rasterio.open(out_tif, "w", **profile) as dst:
-                dst.write(data)
-                for i in range(1, src.count + 1):
-                    _embed_band_stats(dst, i, src.read(i, masked=True))
-                dst.build_overviews([2, 4, 8], Resampling.average)
+            meta = src.profile.copy()
+            with MemoryFile() as mem:
+                with mem.open(**meta) as tmp:
+                    tmp.write(data)
+                    for i in range(1, src.count + 1):
+                        _embed_band_stats(tmp, i, src.read(i, masked=True))
+                    cog_translate(tmp, out_tif, profile, in_memory=True, quiet=True,
+                                  overview_level=3, overview_resampling="average",
+                                  forward_band_tags=True)
         else:
             transform, width, height = calculate_default_transform(
                 src.crs, out_crs, src.width, src.height, *src.bounds)
-            profile = src.profile.copy()
-            profile.update(cog_profile)
-            profile.update(crs=out_crs, transform=transform, width=width, height=height)
-            nodata = profile.get("nodata")
-            # The rasterio COG driver finalizes the file on close through a
-            # CreateCopy, so the destination dataset opened here cannot be
-            # read back mid-write. Reproject into a plain numpy array first,
-            # write that, and compute the masked statistics from the same
-            # array, so the embedded tags and the file agree exactly.
-            with rasterio.open(out_tif, "w", **profile) as dst:
-                for i in range(1, src.count + 1):
-                    dest = np.zeros((height, width), dtype=profile["dtype"])
-                    reproject(
-                        source=rasterio.band(src, i), destination=dest,
-                        src_transform=src.transform, src_crs=src.crs,
-                        dst_transform=transform, dst_crs=out_crs, dst_nodata=nodata,
-                        resampling=Resampling.bilinear)
-                    dst.write(dest, i)
-                    arr = np.ma.masked_equal(dest, nodata) if nodata is not None else np.ma.masked_array(dest)
-                    _embed_band_stats(dst, i, arr)
-                dst.build_overviews([2, 4, 8], Resampling.average)
+            meta = src.profile.copy()
+            meta.update(crs=out_crs, transform=transform, width=width, height=height)
+            nodata = meta.get("nodata")
+            with MemoryFile() as mem:
+                with mem.open(**meta) as tmp:
+                    for i in range(1, src.count + 1):
+                        dest = np.zeros((height, width), dtype=meta["dtype"])
+                        reproject(
+                            source=rasterio.band(src, i), destination=dest,
+                            src_transform=src.transform, src_crs=src.crs,
+                            dst_transform=transform, dst_crs=out_crs, dst_nodata=nodata,
+                            resampling=Resampling.bilinear)
+                        tmp.write(dest, i)
+                        arr = np.ma.masked_equal(dest, nodata) if nodata is not None else np.ma.masked_array(dest)
+                        _embed_band_stats(tmp, i, arr)
+                    cog_translate(tmp, out_tif, profile, in_memory=True, quiet=True,
+                                  overview_level=3, overview_resampling="average",
+                                  forward_band_tags=True)
     return out_crs
 
 
