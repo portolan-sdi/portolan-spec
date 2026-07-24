@@ -9,7 +9,6 @@
 #   "rasterio>=1.5",
 #   "reis[data] @ git+https://github.com/portolan-sdi/reis.git@45207def50768cdb03eaa28f02215fabfdacacda",
 #   "rio-cogeo>=5.3",
-#   "mercantile>=1.2",
 #   "Pillow>=11",
 # ]
 # ///

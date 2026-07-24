@@ -25,7 +25,7 @@ bootstraps `sys.path` with its own directory so they import as flat names.
 | `tiles.py` | XYZ basemap tile fetch and mosaic for thumbnails |
 | `stacio.py` | STAC assembly, manifest, providers, assets, links, sidecars, catalog builders |
 | `validate.py` | Thin adapter over reis, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
-| `tests/` | Standalone `uv run` checks, `check_compliance.py` and `check_web_output.py` |
+| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, and `check_cog.py` |
 
 Inputs and outputs live under `examples/`, not here.
 
@@ -49,11 +49,16 @@ geoparquet-io) on the fly. The whole generator, data path and thumbnails
 alike, runs on DuckDB spatial, rasterio, and rio-cogeo, none of it shells out
 to the GDAL CLI, so the only prerequisites on PATH are `tippecanoe` and `uv`.
 
-The two test suites run the same way.
+The test scripts run the same way.
 
 ```bash
 uv run examples/tools/tests/check_compliance.py
 uv run examples/tools/tests/check_web_output.py
+uv run examples/tools/tests/check_validate.py
+uv run examples/tools/tests/check_tiles.py
+uv run examples/tools/tests/check_thumb_geoms.py
+uv run examples/tools/tests/check_thumbnails.py
+uv run examples/tools/tests/check_cog.py
 ```
 
 ## The core principle

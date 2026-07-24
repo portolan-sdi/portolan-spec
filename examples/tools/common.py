@@ -28,14 +28,6 @@ def multihash(p: Path) -> str:
     return (bytes([0x12, 0x20]) + h.digest()).hex()
 
 
-def _sql_lit(v: Any) -> str:
-    if isinstance(v, bool):
-        return "1" if v else "0"
-    if isinstance(v, (int, float)):
-        return str(v)
-    return "'" + str(v).replace("'", "''") + "'"
-
-
 def _hex_rgb(h: str) -> tuple[int, int, int]:
     h = h.lstrip("#")
     return int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
