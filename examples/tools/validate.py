@@ -9,8 +9,26 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Callable
 
 import jsonschema
+
+
+def _local_schema_validator(schema_path: Path) -> Callable[[dict], list[str]]:
+    """A reis schema-pass validator bound to the working-copy schema.
+
+    Reis's schema pass fetches the published profile schema. Here we point it at
+    the committed schema under stac/ so the build tests the working copy, which
+    is what the old validator did. Returns the jsonschema messages for one
+    object, empty when it satisfies the schema.
+    """
+    schema = json.loads(schema_path.read_text())
+    validator = jsonschema.Draft7Validator(schema)
+
+    def validate_object(obj: dict) -> list[str]:
+        return [error.message for error in validator.iter_errors(obj)]
+
+    return validate_object
 
 
 def collection_findings(obj: dict) -> list[str]:
