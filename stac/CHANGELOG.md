@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Raster internal overviews: a COG larger than a single internal tile (512×512 by
+  default) must carry internal reduced-resolution overviews, with the pyramid
+  extending until its smallest level fits within one tile. This follows OGC
+  21-026's Optimized GeoTIFF conformance class (`/req/optimized_geotiff`). The
+  Raster section now also defines a valid COG by reference to OGC 21-026, the
+  baseline `rio cogeo validate` and rasterio enforce.
 - Partition binding: a collection carrying any `partition:*` field, or declaring
   the partition extension, must declare
   `https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json` in

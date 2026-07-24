@@ -103,8 +103,23 @@ prescriptive; tune to your data and access patterns.
 ## Raster
 
 Raster data MUST be provided as Cloud Optimized GeoTIFF (COG) for efficient
-range-request access without full download. (Formats such as GeoZarr are candidates
-for future support once default tooling can render and consume them.)
+range-request access without full download. A COG here means a valid COG per the
+[OGC Cloud Optimized GeoTIFF standard](https://docs.ogc.org/is/21-026/21-026.html)
+(OGC 21-026): an internally tiled GeoTIFF carrying georeferencing keys, with a
+header ordered so a reader can find the data it needs in an early range request.
+This is the baseline that `rio cogeo validate` and rasterio treat as a COG.
+(Formats such as GeoZarr are candidates for future support once default tooling can
+render and consume them.)
+
+**Internal overviews.** A raster larger than a single internal tile (512×512 by
+default) MUST carry internal reduced-resolution overviews, so a reader can display it
+zoomed out without fetching full-resolution pixels. The overview pyramid MUST extend
+until its smallest level fits within a single tile. This matches OGC 21-026's
+Optimized GeoTIFF conformance class (`/req/optimized_geotiff`, requirement
+`/req/optimized_geotiff/number`). A raster that already fits within one tile is
+exempt, since it is its own overview. Base COG validators, including
+`rio cogeo validate`, treat missing overviews as a warning rather than a failure;
+Portolan raises this to a requirement, matching the Optimized conformance class.
 
 **Raster statistics.** COGs MUST carry pixel statistics for rendering. Every band
 MUST carry an embedded minimum, maximum, mean, and standard deviation so a renderer
