@@ -22,6 +22,32 @@ REPO = Path(__file__).resolve().parent.parent.parent.parent
 SCHEMA = REPO / "stac/json-schema/v0.1.0/schema.json"
 REFERENCE = REPO / "examples/catalog/reference"
 
+import shutil  # noqa: E402
+import tempfile  # noqa: E402
+
+from validate import validate  # noqa: E402
+
+
+def check_reference_catalog_passes() -> None:
+    # Raises SystemExit if reis reports any error finding.
+    validate(REFERENCE, SCHEMA)
+
+
+def check_self_link_fails() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        dst = Path(tmp) / "reference"
+        shutil.copytree(REFERENCE, dst)
+        # Inject a forbidden self link into one Collection.
+        col = dst / "boundaries/us-counties/collection.json"
+        obj = json.loads(col.read_text())
+        obj["links"].append({"rel": "self", "href": "collection.json"})
+        col.write_text(json.dumps(obj))
+        try:
+            validate(dst, SCHEMA)
+        except SystemExit:
+            return
+        raise AssertionError("a self link should fail validation")
+
 
 def check_schema_validator_passes_conformant_root() -> None:
     validate_object = _local_schema_validator(SCHEMA)
@@ -77,6 +103,8 @@ CHECKS = [
     check_schema_validator_flags_broken_object,
     check_local_only_reader_drops_remote,
     check_local_only_reader_keeps_local,
+    check_reference_catalog_passes,
+    check_self_link_fails,
 ]
 
 

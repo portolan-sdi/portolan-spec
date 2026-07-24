@@ -25,7 +25,6 @@ import duckdb
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from stacio import resolve_providers, license_links  # noqa: E402
 from convert import write_web_geoparquet, table_columns  # noqa: E402
-from validate import collection_findings  # noqa: E402
 from crs import detect_vector_crs, detect_raster_crs, resolve_output_crs, assert_known_crs  # noqa: E402
 import glob  # noqa: E402
 
@@ -82,42 +81,6 @@ def check_license_other_missing_url_errors() -> None:
     except ValueError:
         return
     raise AssertionError("license other without license_url did not raise")
-
-
-def check_findings_pass_conformant() -> None:
-    obj = {
-        "type": "Collection", "license": "CC0-1.0",
-        "providers": [
-            {"name": "P", "roles": ["producer"]},
-            {"name": "H", "roles": ["host"], "url": "https://h"},
-        ],
-        "links": [],
-    }
-    assert collection_findings(obj) == [], collection_findings(obj)
-
-
-def check_findings_flag_host_not_last() -> None:
-    obj = {
-        "type": "Collection", "license": "CC0-1.0",
-        "providers": [
-            {"name": "H", "roles": ["host"], "url": "https://h"},
-            {"name": "P", "roles": ["producer"]},
-        ],
-        "links": [],
-    }
-    assert collection_findings(obj), "host-not-last should be flagged"
-
-
-def check_findings_flag_missing_license_link() -> None:
-    obj = {
-        "type": "Collection", "license": "other",
-        "providers": [
-            {"name": "P", "roles": ["producer"]},
-            {"name": "H", "roles": ["host"], "url": "https://h"},
-        ],
-        "links": [],
-    }
-    assert collection_findings(obj), "missing license link should be flagged"
 
 
 def check_vector_columns_include_geometry() -> None:
@@ -325,9 +288,6 @@ CHECKS = [
     check_license_other_emits_link,
     check_license_spdx_no_link,
     check_license_other_missing_url_errors,
-    check_findings_pass_conformant,
-    check_findings_flag_host_not_last,
-    check_findings_flag_missing_license_link,
     check_vector_columns_include_geometry,
     check_to_geoparquet_preserves_source_crs,
     check_to_geoparquet_shapefile_ogc_fid,

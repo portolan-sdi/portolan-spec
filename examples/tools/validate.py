@@ -1,12 +1,13 @@
-"""Validation, JSON schema plus the Portolan conformance rules tooling owns.
+"""Validate a built Portolan catalog with reis, the canonical validator.
 
-Checks every node against the committed schema, verifies each file:checksum is
-a sha2-256 multihash, and fails on any self link.
+reis defines Portolan conformance. This module is a thin adapter. It runs reis's
+metadata, structural, schema, and data passes over a built catalog, feeds the
+schema pass the repo's working-copy schema under stac/, restricts the data pass
+to local assets, and fails the build on any error finding.
 """
 from __future__ import annotations
 
 import json
-import re
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
@@ -68,50 +69,29 @@ def _local_only_data_validator() -> "Callable[[Node, AssetReader], list[DataDefe
     return validate_node
 
 
-def collection_findings(obj: dict) -> list[str]:
-    """Return Portolan provenance findings the JSON schema delegates to tooling.
-
-    Checks the two rules the schema leaves to the validator, that a collection
-    has exactly one host provider and that it is the last element, and that a
-    collection whose license is `other` carries a rel=license link."""
-    out: list[str] = []
-    provs = obj.get("providers", []) or []
-    host_idx = [i for i, p in enumerate(provs) if "host" in (p.get("roles") or [])]
-    if len(host_idx) != 1:
-        out.append(f"providers must have exactly one host, found {len(host_idx)}")
-    elif host_idx[0] != len(provs) - 1:
-        out.append("host provider must be listed last")
-    if obj.get("license") == "other":
-        if not any(lk.get("rel") == "license" for lk in obj.get("links", []) or []):
-            out.append("license is 'other' but no rel=license link is present")
-    return out
-
-
 def validate(out: Path, schema_path: Path) -> None:
-    schema = json.loads(schema_path.read_text())
-    validator = jsonschema.Draft7Validator(schema)
-    errors = 0
-    for jf in sorted(out.rglob("*.json")):
-        obj = json.loads(jf.read_text())
-        if obj.get("type") not in ("Catalog", "Collection", "Feature"):
-            continue
-        for e in validator.iter_errors(obj):
-            errors += 1
-            print(f"  SCHEMA {jf.relative_to(out)}: {e.message}", file=sys.stderr)
-        # extra Portolan checks the schema delegates to tooling
-        for a in obj.get("assets", {}).values():
-            ck = a.get("file:checksum", "")
-            if not re.fullmatch(r"1220[0-9a-f]{64}", ck):
-                errors += 1
-                print(f"  CHECKSUM {jf.relative_to(out)}: not a sha2-256 multihash: {ck}", file=sys.stderr)
-        for lk in obj.get("links", []):
-            if lk.get("rel") == "self":
-                errors += 1
-                print(f"  SELF-LINK {jf.relative_to(out)}", file=sys.stderr)
-        if obj.get("type") == "Collection":
-            for msg in collection_findings(obj):
-                errors += 1
-                print(f"  PROVENANCE {jf.relative_to(out)}: {msg}", file=sys.stderr)
-    if errors:
+    """Validate the built catalog at out with reis and fail on any error.
+
+    Runs the metadata pass (always), the STAC 1.1.0 structural pass, the schema
+    pass against the working-copy schema, and the data pass over local assets.
+    Prints every finding and raises SystemExit when reis reports an error.
+    """
+    from reis import validate as reis_validate
+
+    report = reis_validate(
+        out,
+        structural=True,
+        schema=True,
+        schema_validator=_local_schema_validator(schema_path),
+        data=True,
+        data_validator=_local_only_data_validator(),
+    )
+    for finding in report.findings:
+        print(
+            f"  {finding.rule_id} {finding.severity.value} {finding.path}: {finding.message}",
+            file=sys.stderr,
+        )
+    if not report.passed:
+        errors = sum(1 for f in report.findings if f.severity.value == "error")
         raise SystemExit(f"validation failed with {errors} error(s)")
     print(f"validation passed for {out}", file=sys.stderr)
