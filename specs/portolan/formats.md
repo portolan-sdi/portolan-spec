@@ -103,8 +103,39 @@ prescriptive; tune to your data and access patterns.
 ## Raster
 
 Raster data MUST be provided as Cloud Optimized GeoTIFF (COG) for efficient
-range-request access without full download. (Formats such as GeoZarr are candidates
-for future support once default tooling can render and consume them.)
+range-request access without full download. A COG here means a valid COG per the
+[OGC Cloud Optimized GeoTIFF standard](https://docs.ogc.org/is/21-026/21-026.html)
+(OGC 21-026): an internally tiled GeoTIFF carrying georeferencing keys, with a
+header ordered so a reader can find the data it needs in an early range request.
+This is the baseline that
+[`rio cogeo validate`](https://cogeotiff.github.io/rio-cogeo/CLI/#validate) and
+rasterio treat as a COG.
+(Formats such as GeoZarr are candidates for future support once default tooling can
+render and consume them.)
+
+**Optimized GeoTIFF conformance.** Beyond that baseline, a COG MUST conform to OGC
+21-026's [Optimized GeoTIFF requirements
+class](https://docs.ogc.org/is/21-026/21-026.html#optimized_geotiff-requirements-class)
+(`/req/optimized_geotiff`), which adds three requirements:
+
+- [Small tiles](https://docs.ogc.org/is/21-026/21-026.html#_requirement_small_tiles)
+  (`/req/optimized_geotiff/small-sizes`): square internal tiles, sized no larger than
+  a common screen viewport. 512×512 is the usual choice.
+- [Reduced-resolution subfiles
+  number](https://docs.ogc.org/is/21-026/21-026.html#_requirement_reduced_resolution_subfiles_number)
+  (`/req/optimized_geotiff/number`): internal overviews, each reducing resolution by a
+  factor between 2 and 10, extending until the coarsest level spans one tile across or
+  down.
+- [GeoTIFF
+  keys](https://docs.ogc.org/is/21-026/21-026.html#_requirement_geotiff_2)
+  (`/req/optimized_geotiff/geotiff`): georeferencing on the full-resolution IFD.
+
+The overview requirement is the one that bites in practice. A raster larger than a
+single internal tile needs internal overviews so a reader can display it zoomed out
+without fetching full-resolution pixels; one that already fits within a tile is exempt,
+since it is its own overview. Base COG validators, including `rio cogeo validate`,
+treat missing overviews as a warning rather than a failure. Portolan raises this to a
+requirement.
 
 **Raster statistics.** COGs MUST carry pixel statistics for rendering. Every band
 MUST carry an embedded minimum, maximum, mean, and standard deviation so a renderer

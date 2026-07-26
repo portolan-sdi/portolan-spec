@@ -12,6 +12,8 @@ rating a catalog A+, B, C, and so on.
 
 - [`styling.md`](styling.md) — making visualization styles that are clear and
   distinctive across a catalog.
+- [`conversion-defaults.md`](conversion-defaults.md) — the COG, partition, and
+  thumbnail settings the Portolan CLI uses when converting source data.
 
 ## Planned
 

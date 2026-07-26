@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optimized GeoTIFF conformance for rasters: a COG must meet OGC 21-026's
+  Optimized GeoTIFF requirements class (`/req/optimized_geotiff`), covering square
+  viewport-sized internal tiles, internal reduced-resolution overviews reducing by
+  a factor of 2 to 10 until the coarsest level spans one tile, and GeoTIFF keys on
+  the full-resolution IFD. The Raster section now also defines a valid COG by
+  reference to OGC 21-026, the baseline `rio cogeo validate` and rasterio enforce.
 - Partition binding: a collection carrying any `partition:*` field, or declaring
   the partition extension, must declare
   `https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json` in
