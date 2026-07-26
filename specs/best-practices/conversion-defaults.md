@@ -21,8 +21,11 @@ these defaults.
   (horizontal differencing) shrinks integer rasters, and predictor `3` suits
   floating-point data. Skip the predictor for RGB byte imagery and already-compressed
   inputs, where it adds nothing.
-- **Internal tiles: 512×512.** This is the tile size the overview requirement keys
-  off, so a raster wider or taller than 512 pixels needs overviews.
+- **Internal tiles: 512×512.**
+  [OGC 21-026](https://docs.ogc.org/is/21-026/21-026.html#optimized_geotiff-requirements-class)
+  asks for square tiles no larger than a screen viewport and recommends a power of
+  two: 256, 512, or 1024. 512 sits in the middle and is the tile size the overview
+  requirement keys off, so a raster wider or taller than 512 pixels needs overviews.
 - **Overview resampling: nearest for categorical, averaging for continuous.**
   `nearest` preserves exact class values and is the CLI default. For continuous
   imagery, `average` or `bilinear` produce smoother zoomed-out views. Choose by what
