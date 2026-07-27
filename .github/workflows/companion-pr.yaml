@@ -1,0 +1,78 @@
+name: Companion PR
+
+# The spec is ground truth and reis is its deterministic implementation, so
+# every normative change here must land with a matching reis change. This check
+# enforces the pairing: a PR that touches normative content must either link
+# its reis companion PR in the body ("Companion-PR: portolan-sdi/reis#123") or
+# carry the "no-validator-change" label for edits with no conformance impact.
+#
+# The job runs on every PR and passes itself when no normative paths changed.
+# Filtering inside the job (rather than with on.paths) keeps the check
+# reportable as a required status on all PRs.
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: companion-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require a reis companion PR for normative changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          CHANGED=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/files" \
+            --paginate --jq '.[].filename')
+
+          if ! grep -qE '^(specs/|stac/)' <<< "$CHANGED"; then
+            echo "No normative paths changed; companion PR not required."
+            exit 0
+          fi
+
+          LABELS=$(gh pr view "$PR_NUMBER" --repo "$REPO" \
+            --json labels --jq '.labels[].name')
+
+          if grep -qx 'no-validator-change' <<< "$LABELS"; then
+            echo "Label no-validator-change present; skipping."
+            exit 0
+          fi
+
+          BODY=$(gh pr view "$PR_NUMBER" --repo "$REPO" \
+            --json body --jq '.body')
+
+          COMPANION=$(grep -oiE \
+            'Companion-PR:[[:space:]]*portolan-sdi/reis#[0-9]+' \
+            <<< "$BODY" | head -1 | grep -oE '[0-9]+$' || true)
+
+          if [ -z "$COMPANION" ]; then
+            echo "::error::This PR changes normative content (specs/ or stac/)" \
+              "but names no companion validator PR. Add a line" \
+              "'Companion-PR: portolan-sdi/reis#<number>' to the PR body," \
+              "or apply the 'no-validator-change' label."
+            exit 1
+          fi
+
+          STATE=$(gh pr view "$COMPANION" --repo portolan-sdi/reis \
+            --json state --jq '.state' 2>/dev/null || echo MISSING)
+
+          if [ "$STATE" = "MISSING" ]; then
+            echo "::error::Companion PR portolan-sdi/reis#${COMPANION}" \
+              "does not exist."
+            exit 1
+          fi
+
+          echo "Companion PR portolan-sdi/reis#${COMPANION} found (${STATE})."
