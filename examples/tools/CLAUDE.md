@@ -178,6 +178,23 @@ uv run --with "reis[data] @ git+https://github.com/portolan-sdi/reis.git" \
   reis check --data examples/catalog/reference
 ```
 
+Three findings are expected and terminal. Do not try to make the output silent.
+
+- `PTL-DAT-005` on `netherlands-provinces`, a bbox mismatch. Our declared bbox is
+  correct, it is the true WGS84 envelope of the reprojected geometries. reis
+  derives its comparison bbox by reprojecting only the four corners of the
+  asset's native EPSG:28992 bbox, which is not a bound for a non-affine
+  projection. Its box over-claims three sides and under-claims the north, so it
+  actually excludes real data there. Filed as portolan-sdi/reis#26. Expect this
+  warning on any collection that preserves a projected source CRS.
+- `PTL-PRO-002` on the two Natural Earth collections, a missing `canonical` link.
+  core.md makes `canonical` a conditional MUST, owed only when the upstream
+  publishes its own STAC catalog. Natural Earth publishes none, not on
+  naturalearthdata.com, naciscdn.org, the AWS Open Data bucket, or STAC Index, so
+  the condition never triggers and there is no URL to point at. reis scores it
+  info precisely because metadata cannot settle the question. Inventing a link
+  would be worse than the finding.
+
 reis's live-hosting pass (`--live`, PTL-LIV) is deliberately not wired in. It
 probes the servers behind absolute `https` asset hrefs, and the built catalog is
 a local tree whose asset hrefs are relative, so it would have nothing to probe
