@@ -64,12 +64,12 @@ versioned standard. A catalog declares this version by carrying
 - **Reference catalogs** ([`examples/`](examples/)) with the generator that builds
   them, converting vector data through DuckDB and rasters through rasterio and
   rio-cogeo, rendering thumbnails and PMTiles without a GDAL CLI, and validating
-  every build with [reis](https://github.com/portolan-sdi/reis).
+  every build with [rashid](https://github.com/portolan-sdi/rashid).
 - **Schema publishing** at `schemas.portolan-sdi.org`, deployed from the tracked
   schema versions on each release, with portolan-sdi extension schemas pinned in
   `stac/portolan-extensions.json` and fetched from their source repositories at
   build time.
-- **CI gates**: every PR touching normative content names its companion reis PR or
+- **CI gates**: every PR touching normative content names its companion rashid PR or
   carries the `no-validator-change` label; the requirements manifest check anchors
   prose to IDs; the profile test suite lints markdown, pins the canonical schema URI,
   and validates the examples.

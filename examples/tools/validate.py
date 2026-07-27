@@ -1,9 +1,9 @@
-"""Validate a built Portolan catalog with reis, the canonical validator.
+"""Validate a built Portolan catalog with rashid, the canonical validator.
 
-reis defines Portolan conformance. This module is a thin adapter. It runs reis's
-metadata, structural, schema, and data passes over a built catalog, feeds the
-schema pass the repo's working-copy schema under stac/, restricts the data pass
-to local assets, and fails the build on any error finding.
+rashid defines Portolan conformance. This module is a thin adapter. It runs
+rashid's metadata, structural, schema, and data passes over a built catalog,
+feeds the schema pass the repo's working-copy schema under stac/, restricts the
+data pass to local assets, and fails the build on any error finding.
 """
 from __future__ import annotations
 
@@ -15,17 +15,17 @@ from typing import TYPE_CHECKING, Callable
 import jsonschema
 
 if TYPE_CHECKING:
-    from reis.catalog import Node
-    from reis.data import DataDefect
-    from reis.data.reader import AssetReader, Locator
+    from rashid.catalog import Node
+    from rashid.data import DataDefect
+    from rashid.data.reader import AssetReader, Locator
 
 
 def _local_schema_validator(schema_path: Path) -> Callable[[dict], list[str]]:
-    """A reis schema-pass validator bound to the working-copy schema.
+    """A rashid schema-pass validator bound to the working-copy schema.
 
-    Reis's schema pass fetches the published profile schema. Here we point it at
-    the committed schema under stac/ so the build tests the working copy, which
-    is what the old validator did. Returns the jsonschema messages for one
+    Rashid's schema pass fetches the published profile schema. Here we point it
+    at the committed schema under stac/ so the build tests the working copy,
+    which is what the old validator did. Returns the jsonschema messages for one
     object, empty when it satisfies the schema.
     """
     schema = json.loads(schema_path.read_text())
@@ -60,8 +60,8 @@ class _LocalOnlyReader:
 
 
 def _local_only_data_validator() -> "Callable[[Node, AssetReader], list[DataDefect]]":
-    """Wrap reis's byte checker so it reads through a local-only reader."""
-    from reis.data import checks
+    """Wrap rashid's byte checker so it reads through a local-only reader."""
+    from rashid.data import checks
 
     def validate_node(node: "Node", reader: "AssetReader") -> "list[DataDefect]":
         return checks.check_node(node, _LocalOnlyReader(reader))
@@ -70,15 +70,15 @@ def _local_only_data_validator() -> "Callable[[Node, AssetReader], list[DataDefe
 
 
 def validate(out: Path, schema_path: Path) -> None:
-    """Validate the built catalog at out with reis and fail on any error.
+    """Validate the built catalog at out with rashid and fail on any error.
 
     Runs the metadata pass (always), the STAC 1.1.0 structural pass, the schema
     pass against the working-copy schema, and the data pass over local assets.
-    Prints every finding and raises SystemExit when reis reports an error.
+    Prints every finding and raises SystemExit when rashid reports an error.
     """
-    from reis import validate as reis_validate
+    from rashid import validate as rashid_validate
 
-    report = reis_validate(
+    report = rashid_validate(
         out,
         structural=True,
         schema=True,

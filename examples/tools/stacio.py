@@ -123,7 +123,7 @@ def add_source_asset(assets: dict, local: Path, spec_source: dict) -> None:
     is referenced by URL in the sidecars instead. Two reasons. A live query URL is
     an API rather than a download, and `file:size` and `file:checksum` pinned to
     bytes this catalog does not control are guaranteed to rot the moment upstream
-    changes, which is exactly the validator failure reis caught on the Socrata
+    changes, which is exactly the validator failure rashid caught on the Socrata
     mirror.
     """
     if spec_source.get("stable", True):

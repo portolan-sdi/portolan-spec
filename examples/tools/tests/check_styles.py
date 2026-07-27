@@ -13,7 +13,7 @@ typically `../filename.pmtiles`, with `layers[].source` set to `data`.
 
 A style file that points at `./x.pmtiles` resolves to `styles/x.pmtiles`, which
 does not exist, so the style loads no tiles and renders nothing. Nothing else in
-the toolchain catches that, reis does not read style bodies and the STAC
+the toolchain catches that, rashid does not read style bodies and the STAC
 validators skip them for having no stac_version, so it is asserted here.
 
 core.md also requires the thumbnail to be generated from default styling, where
