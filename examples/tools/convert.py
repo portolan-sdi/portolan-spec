@@ -121,10 +121,18 @@ def feature_count(parquet: Path) -> int:
     return int(n)
 
 
+def _valid_percent(arr) -> float:
+    """Share of the band that is not nodata, as a percentage, matching GDAL's
+    STATISTICS_VALID_PERCENT."""
+    return round(100.0 * arr.count() / arr.size, 4) if arr.size else 0.0
+
+
 def _embed_band_stats(dst, bidx: int, arr) -> None:
     """Tag a band with the Portolan-required embedded statistics, masked so
-    nodata is excluded, matching `bands_from_cog`. A band with no valid pixels
-    gets no tags, since it has no statistics to report."""
+    nodata is excluded, matching `bands_from_cog`. Valid percent is a MUST on a
+    band that carries a nodata value and a SHOULD otherwise, so it is always
+    tagged. A band with no valid pixels gets no tags, since it has no statistics
+    to report."""
     if not arr.count():
         return
     dst.update_tags(
@@ -133,15 +141,23 @@ def _embed_band_stats(dst, bidx: int, arr) -> None:
         STATISTICS_MAXIMUM=str(round(float(arr.max()), 4)),
         STATISTICS_MEAN=str(round(float(arr.mean()), 4)),
         STATISTICS_STDDEV=str(round(float(arr.std()), 4)),
+        STATISTICS_VALID_PERCENT=str(_valid_percent(arr)),
     )
 
 
 def to_cog(src_tif: Path, out_tif: Path, output_crs: str | None) -> str:
     """Write a Cloud Optimized GeoTIFF through rio-cogeo, preserving the source
     CRS by default or warping to `output_crs` when set. Every band gets embedded
-    STATISTICS_* tags (minimum, maximum, mean, stddev), computed masked so nodata
-    is excluded, the same way `bands_from_cog` computes the STAC bands stats.
-    Returns the CRS actually written."""
+    STATISTICS_* tags (minimum, maximum, mean, stddev, valid percent), computed
+    masked so nodata is excluded, the same way `bands_from_cog` computes the STAC
+    bands stats. Returns the CRS actually written.
+
+    Overviews are left to rio-cogeo, which derives the level count from the
+    raster size and the output blocksize, halving until the coarsest level fits
+    inside one 512px tile. That is exactly OGC 21-026's Optimized GeoTIFF
+    requirement `/req/optimized_geotiff/number` that formats.md raises to a MUST,
+    so it must not be pinned to a fixed level, which would under-build overviews
+    on a large raster and build pointless ones on a raster smaller than a tile."""
     import numpy as np
     import rasterio
     from rasterio.io import MemoryFile
@@ -166,8 +182,7 @@ def to_cog(src_tif: Path, out_tif: Path, output_crs: str | None) -> str:
                     for i in range(1, src.count + 1):
                         _embed_band_stats(tmp, i, src.read(i, masked=True))
                     cog_translate(tmp, out_tif, profile, in_memory=True, quiet=True,
-                                  overview_level=3, overview_resampling="average",
-                                  forward_band_tags=True)
+                                  overview_resampling="average", forward_band_tags=True)
         else:
             transform, width, height = calculate_default_transform(
                 src.crs, out_crs, src.width, src.height, *src.bounds)
@@ -187,8 +202,7 @@ def to_cog(src_tif: Path, out_tif: Path, output_crs: str | None) -> str:
                         arr = np.ma.masked_equal(dest, nodata) if nodata is not None else np.ma.masked_array(dest)
                         _embed_band_stats(tmp, i, arr)
                     cog_translate(tmp, out_tif, profile, in_memory=True, quiet=True,
-                                  overview_level=3, overview_resampling="average",
-                                  forward_band_tags=True)
+                                  overview_resampling="average", forward_band_tags=True)
     return out_crs
 
 
@@ -204,7 +218,8 @@ def bands_from_cog(tif: Path) -> list[dict]:
             if arr.count():
                 band["statistics"] = {
                     "minimum": round(float(arr.min()), 4), "maximum": round(float(arr.max()), 4),
-                    "mean": round(float(arr.mean()), 4), "stddev": round(float(arr.std()), 4)}
+                    "mean": round(float(arr.mean()), 4), "stddev": round(float(arr.std()), 4),
+                    "valid_percent": _valid_percent(arr)}
             out.append(band)
     return out
 
