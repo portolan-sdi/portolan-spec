@@ -142,6 +142,16 @@ is needed (see [Vector](formats.md#vector)). Alongside the `collection.json` and
 the `.parquet`, such a collection may optionally carry a `.pmtiles`, a
 `thumbnail.png`, and a `styles/` directory.
 
+### Raster Collections
+
+A collection holding multiple raster scenes MUST model each scene as an item
+carrying its COG as an item-level asset; scene COGs MUST NOT be listed as
+collection-level assets. Per-scene items are what let each scene carry its own
+footprint and acquisition time, which a flat asset list cannot express. A
+collection holding a single COG follows the single-file rule above: it MUST
+expose that COG as a collection-level asset with no item directory (see
+[Raster](formats.md#raster)).
+
 ## Nested Catalogs, Flat Collections
 
 Portolan organizes hierarchy with nested catalogs, not nested collections:
