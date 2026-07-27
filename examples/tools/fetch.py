@@ -1,7 +1,9 @@
 """Download sources into the cache and prepare them for reading.
 
 Fetches each upstream file once into a content-addressed cache and unpacks
-zipped shapefiles so the converters can read a single-file OGR source.
+zipped shapefiles so the converters can read a single-file OGR source. A source
+the manifest marks `stable: false` is a live endpoint whose bytes drift, so it is
+always refetched rather than served from the cache.
 """
 from __future__ import annotations
 
@@ -14,13 +16,22 @@ from pathlib import Path
 
 
 # --------------------------------------------------------------------------- io
-def fetch(url: str, cache: Path) -> Path:
+def fetch(url: str, cache: Path, stable: bool = True) -> Path:
+    """Download `url` into `cache`, reusing an existing copy when there is one.
+
+    An unstable source (`stable: false` in the manifest) is a live endpoint whose
+    bytes drift between fetches, so a cached copy from an earlier build would
+    make the source asset's `file:size` and `file:checksum` describe bytes the
+    endpoint no longer serves. core.md requires those values to be regenerated at
+    publish time against the bytes actually published, so an unstable source is
+    refetched on every build and its metadata derived from that fetch.
+    """
     cache.mkdir(parents=True, exist_ok=True)
     key = hashlib.sha256(url.encode()).hexdigest()[:16]
     tail = url.split("/")[-1].split("?")[0]
     suffix = "".join(c for c in tail if c.isalnum() or c in "._-")[-48:] or "download"
     dest = cache / f"{key}-{suffix}"
-    if dest.exists() and dest.stat().st_size > 0:
+    if stable and dest.exists() and dest.stat().st_size > 0:
         return dest
     print(f"  fetch {url}", file=sys.stderr)
     req = urllib.request.Request(url, headers={"User-Agent": "portolan-reference/0.1"})

@@ -237,7 +237,7 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
     out_crs = resolve_output_crs(spec, manifest_output_crs)
 
     print(f"[{cid}] fetch + convert ({kind})", file=sys.stderr)
-    local = fetch(src["url"], cache)
+    local = fetch(src["url"], cache, stable=src.get("stable", True))
 
     exts = [SCHEMA_URI, FILE_EXT]
     assets: dict[str, dict] = {}
