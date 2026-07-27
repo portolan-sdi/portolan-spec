@@ -1,0 +1,1024 @@
+# Requirements manifest for the Portolan specification.
+#
+# Every normative statement in core.md and formats.md carries a stable ID
+# here, anchored to the verbatim sentence it governs (whitespace-normalized
+# by scripts/check_requirements.py). Severity maps RFC 2119 keywords onto
+# MUST / SHOULD / MAY (MUST NOT -> MUST, SHOULD NOT -> SHOULD,
+# REQUIRED -> MUST, RECOMMENDED -> SHOULD, OPTIONAL / NOT REQUIRED -> MAY).
+#
+# enforcement is one of:
+#   validator - the reis validator must cite this ID from at least one check.
+#   process   - not machine-checkable from the catalog or its bytes
+#               (publish-time behavior, upstream knowledge, guidance).
+#
+# Run `uv run scripts/check_requirements.py` after editing the spec or this
+# file; it fails when a quote no longer anchors or a keyword occurrence is
+# not covered by a requirement or exclusion.
+
+files:
+  - specs/portolan/core.md
+  - specs/portolan/formats.md
+
+requirements:
+  # ---------------------------------------------------------------- core.md
+  - id: PORTO-CORE-001
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      It MUST be a valid STAC catalog following STAC 1.1.0, with a root
+      `catalog.json` always required, even for a single collection.
+
+  - id: PORTO-CORE-002
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      catalogs and collections are internal nodes, items are leaves, and
+      assets (data files) MUST sit at the collection or item level.
+
+  - id: PORTO-CORE-003
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Catalogs organize only and MAY nest into sub-catalogs;
+
+  - id: PORTO-CORE-004
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      collections MUST be one level deep, containing only items or assets,
+      never nested collections.
+
+  - id: PORTO-CORE-005
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Every catalog and sub-catalog MUST contain a `catalog.json`, an
+      `AGENTS.md`, and a `README.md`; every collection MUST contain a
+      `collection.json`, an `AGENTS.md`, and a `README.md`.
+
+  - id: PORTO-CORE-006
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Every catalog and collection MUST declare the versioned Portolan schema
+      URI (e.g. `https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json`)
+      in its `stac_extensions` array.
+
+  - id: PORTO-CORE-007
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      The specification version MUST NOT be conflated with the dataset
+      version.
+
+  - id: PORTO-CORE-008
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Dataset versioning, where used, MUST use the STAC [version
+      extension](https://github.com/stac-extensions/version).
+
+  - id: PORTO-CORE-009
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      All objects within a catalog SHOULD declare the same Portolan schema
+      URI.
+
+  - id: PORTO-CORE-010
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A validator MUST flag any catalog or collection whose declared URI
+      differs from the root catalog's; such a mismatch is a warning, not an
+      error, and a mixed-version catalog remains valid.
+
+  - id: PORTO-CORE-011
+    severity: MUST
+    enforcement: process
+    file: specs/portolan/core.md
+    quote: >-
+      The metadata passes MUST be executable without reading asset data; the
+      data pass MAY be run independently.
+
+  - id: PORTO-CORE-012
+    severity: MAY
+    enforcement: process
+    file: specs/portolan/core.md
+    quote: >-
+      `versions.json` is a tooling artifact and is NOT REQUIRED in a catalog
+      for v0.1.
+
+  - id: PORTO-CORE-013
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      The canonical entrypoint is a STAC `catalog.json` in the catalog root,
+      which MUST be valid.
+
+  - id: PORTO-CORE-014
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Catalogs MAY use nested sub-catalogs for organization but MUST NOT use
+      nested collections.
+
+  - id: PORTO-CORE-015
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A collection directory MUST contain a `collection.json` and holds one
+      subdirectory per item.
+
+  - id: PORTO-CORE-016
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Collection IDs SHOULD contain only lowercase letters, numbers, hyphens,
+      and underscores, start with a letter, and be unique within the catalog.
+
+  - id: PORTO-CORE-017
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      When a collection holds a single data file (e.g. one GeoParquet file),
+      that data MUST be represented as a collection-level asset — no item
+      directory or item JSON is needed (see [Vector](formats.md#vector)).
+
+  - id: PORTO-CORE-018
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A collection MUST NOT contain a child collection.
+
+  - id: PORTO-CORE-019
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      an item MUST be a valid STAC item, carrying an `id`, a `geometry` and
+      `bbox` (or null geometry for non-spatial data), a `datetime` or a
+      `start_datetime`/`end_datetime` interval, its assets, and the structural
+      links defined under [Links](#links).
+
+  - id: PORTO-CORE-020
+    severity: MUST
+    enforcement: process
+    file: specs/portolan/core.md
+    quote: >-
+      Item-level detail that other extensions already cover — file, raster,
+      vector — MUST use those extensions rather than being re-specified here.
+
+  - id: PORTO-CORE-021
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A partitioned collection MAY represent each partition as an item, but
+      this is not required — see [Partitioned
+      Collections](formats.md#partitioned-collections) for when it is
+      worthwhile.
+
+  - id: PORTO-CORE-022
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Every asset MUST include an `href`, the URI to the data, with relative
+      or absolute both allowed for now.
+
+  - id: PORTO-CORE-023
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Where an asset `href` is absolute, it MUST use `https` rather than
+      `s3`, since browsers cannot fetch `s3` URLs directly.
+
+  - id: PORTO-CORE-024
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/core.md
+    quote: >-
+      An asset SHOULD also provide `s3` or other cloud-native URLs through
+      the [alternate](https://github.com/stac-extensions/alternate-assets)
+      extension, so tools that prefer direct bucket access can use them.
+
+  - id: PORTO-CORE-025
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Portolan additionally requires a `type`, meaning the media type, and at
+      least one role on every asset.
+
+  - id: PORTO-CORE-026
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      The required media type for each core format is:
+      | Format | Media type |
+      |--------|------------|
+      | GeoParquet and plain Parquet | `application/vnd.apache.parquet` |
+      | COG | `image/tiff; application=geotiff; profile=cloud-optimized` |
+      | PMTiles | `application/vnd.pmtiles` |
+      | COPC | `application/vnd.laszip+copc` |
+      | Thumbnail | `image/png` or `image/jpeg` |
+
+  - id: PORTO-CORE-027
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Portolan uses the standard STAC role names wherever they fit and
+      requires at least one per asset: `data` for the primary GeoParquet,
+      COG, or Parquet; `visual` for the PMTiles rendering derivative;
+      `thumbnail` for the preview image; `metadata` for sidecar metadata,
+      with `iso-19115` used specifically for an ISO 19115 file.
+
+  - id: PORTO-CORE-028
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Assets MUST carry `file:size` and `file:checksum` from the [file
+      extension](https://github.com/stac-extensions/file).
+
+  - id: PORTO-CORE-029
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      The checksum MUST use multihash encoding, not a raw sha256 string.
+
+  - id: PORTO-CORE-030
+    severity: MUST
+    enforcement: process
+    file: specs/portolan/core.md
+    quote: >-
+      These embedded values MUST be regenerated at publish time, in the same
+      operation that uploads the files, so they always match what is in the
+      bucket.
+
+  - id: PORTO-CORE-031
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A non-cloud-native representation MAY be included as an alternate asset
+      as long as an equivalent cloud-native primary asset exists (e.g. a
+      GeoJSON alongside the required GeoParquet).
+
+  - id: PORTO-CORE-032
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Every catalog, collection, and item MUST include the structural links
+      that make the tree navigable: a catalog or collection MUST include
+      `root` and `parent` links (except the root catalog, which has no
+      parent) and a `child` or `item` link for every object it contains; an
+      item MUST include `root`, `parent`, and `collection` links.
+
+  - id: PORTO-CORE-033
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Every structural link MUST carry a `type` of `application/json` (or
+      `application/geo+json` for links to items).
+
+  - id: PORTO-CORE-034
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      All structural links MUST be relative, and objects MUST NOT include a
+      `self` link.
+
+  - id: PORTO-CORE-035
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Every link in a catalog MUST resolve.
+
+  - id: PORTO-CORE-036
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A validator MUST resolve each relative link against the catalog's own
+      file tree, whether on a local filesystem or on object storage, and
+      confirm the referenced file is present and is the correct object,
+      rather than merely checking that the `href` is present or well-formed.
+      A link that fails to resolve, or resolves to the wrong object, is a
+      conformance failure.
+
+  - id: PORTO-CORE-037
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      every `catalog.json` and `collection.json` MUST have a non-empty
+      `title` and `description`;
+
+  - id: PORTO-CORE-038
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      titles MUST be human-readable, so a raw slug (`snake_case`) or a
+      technical namespace prefix (`ns:LayerName`) is not acceptable;
+
+  - id: PORTO-CORE-039
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      and every `child` and `item` link MUST include a `title`.
+
+  - id: PORTO-CORE-040
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A validator checks readability heuristically; it MUST flag a title that
+      fails the check, and because heuristics misfire, the finding is a
+      warning, not an error.
+
+  - id: PORTO-CORE-041
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      So every `bbox` — catalog extent, collection extent, and item — MUST:
+      - contain no `NaN` or infinite values (including 3D elevation
+      coordinates); - contain no sentinel "effectively infinite" values
+      (e.g. `±1.79e308`); - use only WGS84 coordinates in range (longitude
+      -180 to 180, latitude -90 to 90) with south ≤ north; and - in a 3D
+      bbox, order the vertical axis with minimum elevation ≤ maximum
+      elevation.
+
+  - id: PORTO-CORE-042
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Items SHOULD carry an explicit `datetime` (or a `start_datetime` /
+      `end_datetime` interval) describing when the data applies.
+
+  - id: PORTO-CORE-043
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Servers MUST support range requests: honor the `Range` header, return
+      `206 Partial Content`, and advertise `Accept-Ranges: bytes`; HEAD
+      requests MUST return an accurate `Content-Length`.
+
+  - id: PORTO-CORE-044
+    severity: MUST
+    enforcement: process
+    file: specs/portolan/core.md
+    quote: >-
+      Servers MUST support HTTP/1.1 or greater; HTTP/2 or /3 is RECOMMENDED.
+
+  - id: PORTO-CORE-045
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      To let browser clients read data directly, servers MUST also enable
+      CORS on all metadata and asset files: `Access-Control-Allow-Origin: *`
+      (or an equivalent read-permitting policy), allowed methods including
+      `GET` and `HEAD`, allowed request headers including `Range`, and
+      exposed response headers including `Content-Range`, `Content-Length`,
+      `Accept-Ranges`, and `ETag` (via `Access-Control-Expose-Headers`).
+
+  - id: PORTO-CORE-046
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Every collection MUST identify the parties responsible for its data
+      through the STAC `providers` field.
+
+  - id: PORTO-CORE-047
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      The list MUST include at least one provider with the `producer` role,
+      the organization that originally captured or created the data, and
+      exactly one provider with the `host` role, listed as the last element.
+
+  - id: PORTO-CORE-048
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/core.md
+    quote: >-
+      Providers with the `processor` and `licensor` roles SHOULD be included
+      where they apply.
+
+  - id: PORTO-CORE-049
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A single organization MAY hold multiple roles; a self-published dataset
+      will typically list one provider as both producer and host.
+
+  - id: PORTO-CORE-050
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Catalogs MAY also declare providers, but the collection-level
+      declaration is authoritative.
+
+  - id: PORTO-CORE-051
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      The host provider MUST include contact information: a `url` pointing to
+      a page where the maintainer can be reached, or an `email` field with a
+      maintainer address.
+
+  - id: PORTO-CORE-052
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A collection MAY additionally use the
+      [contacts](https://github.com/stac-extensions/contacts) extension for
+      richer contact information, but doing so does not replace the
+      url-or-email requirement on the host provider.
+
+  - id: PORTO-CORE-053
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A mirror MUST include a `via` link (type `text/html`) pointing to the
+      original source.
+
+  - id: PORTO-CORE-054
+    severity: MUST
+    enforcement: process
+    file: specs/portolan/core.md
+    quote: >-
+      When that source publishes its own STAC catalog, the mirror MUST also
+      include a `canonical` link pointing to the source's STAC, so consumers
+      and agents can follow the chain to the authoritative metadata, not just
+      a landing page.
+
+  - id: PORTO-CORE-055
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Whether the source publishes a STAC catalog cannot be determined from
+      the mirror's metadata alone, so a validator MAY surface a mirror
+      without a `canonical` link as informational, never as a failure.
+
+  - id: PORTO-CORE-056
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      The `via` and `canonical` links MAY both be present and point at
+      different targets (a human page and a STAC root).
+
+  - id: PORTO-CORE-057
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A mirror MUST record when it was last synced from its source by setting
+      the top-level `updated` field (RFC 3339) at each synced catalog and
+      collection to the time of the sync.
+
+  - id: PORTO-CORE-058
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Every collection MUST declare a `license` in its `collection.json`.
+
+  - id: PORTO-CORE-059
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      The value MUST be an SPDX license identifier (e.g. `CC-BY-4.0`,
+      `Apache-2.0`), or the STAC value `other` when no SPDX identifier fits,
+      in which case the collection MUST include a license link
+      (`rel: license`) pointing to the license text.
+
+  - id: PORTO-CORE-060
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      The deprecated STAC 1.1 value `proprietary` MUST NOT be used.
+
+  - id: PORTO-CORE-061
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Every catalog and collection MUST include an `AGENTS.md` in Markdown,
+      referenced in the STAC `links` array (`rel: "agents"`,
+      `type: text/markdown`).
+
+  - id: PORTO-CORE-062
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Every catalog and collection MUST have a `README.md` in Markdown,
+      referenced in the STAC `links` array (`rel: "describedby"`,
+      `type: text/markdown`).
+
+  - id: PORTO-CORE-063
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      The `README.md` MUST contain at minimum a title, description, license,
+      and data provenance.
+
+  - id: PORTO-CORE-064
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/core.md
+    quote: >-
+      Collections SHOULD include machine-readable metadata (e.g. [Apache
+      Ossie](https://ossie.apache.org/)) when they have many coded or
+      categorical variables or complex classification schemes, and SHOULD
+      include column descriptions, which will likely become a requirement as
+      tooling matures.
+
+  - id: PORTO-CORE-065
+    severity: MUST
+    enforcement: process
+    file: specs/portolan/core.md
+    quote: >-
+      Every geospatial collection MUST provide a way to render its data with
+      zero infrastructure, either by: - **rendering from source** — the data
+      asset is small and simple enough for clients to draw directly (e.g. a
+      small GeoParquet, or a COG that is already display-ready, whether
+      through an embedded color table or as a continuous raster colorized at
+      draw time via the render extension and the required min/max
+      statistics); or - **a visualization derivative** — an additional
+      cloud-native product optimized for rendering, published as a
+      collection-level asset with `roles: ["visual"]`; PMTiles is the
+      recommended vector format today.
+
+  - id: PORTO-CORE-066
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Whether an asset is small and simple enough to render from source is
+      not decidable from metadata, so a validator cannot enforce this
+      requirement directly; it MAY advise, as informational, when a large
+      vector collection lacks a `visual` derivative.
+
+  - id: PORTO-CORE-067
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Collections MUST include a thumbnail generated from default styling and
+      MUST provide visualization styles as standalone STAC assets appropriate
+      to the render path, except where the render path is self-rendering (a
+      display-ready COG or a small GeoParquet drawn directly), which needs no
+      separate style file.
+
+  - id: PORTO-CORE-068
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      When a collection provides a render path it MUST provide at least one
+      style telling clients how to draw it, in a format appropriate to that
+      render path.
+
+  - id: PORTO-CORE-069
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Style files are STAC assets: each style MUST be registered as a
+      collection-level asset with `roles: ["style"]`, alongside the data and
+      thumbnail.
+
+  - id: PORTO-CORE-070
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/core.md
+    quote: >-
+      Where multiple styles exist, the default SHOULD be listed first.
+
+  # ------------------------------------------------------------- formats.md
+  - id: PORTO-FMT-001
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      STAC allows assets in any format, but Portolan requires that every
+      collection and item is available in a cloud-optimized format, and adds
+      requirements on specific ones: in general GeoParquet and PMTiles for
+      vector, COG for raster, COPC for point clouds, and Parquet for
+      non-spatial data.
+
+  - id: PORTO-FMT-002
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      A mirror SHOULD also include the original data as an asset when it is
+      directly downloadable (not just an API).
+
+  - id: PORTO-FMT-003
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Catalogs SHOULD reference alternate formats of data and metadata — for
+      example an existing ISO 19115 file referenced as an asset with the
+      `metadata` role — though new catalogs need not pre-produce them, since
+      tooling should make translation easy.
+
+  - id: PORTO-FMT-004
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Data MUST be provided in GeoParquet 1.1 or 2.0, following the [Best
+      Practices for Distributing
+      GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so it can be
+      queried without a server.
+
+  - id: PORTO-FMT-005
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Files SHOULD be compressed to stay small, with `zstd` RECOMMENDED.
+
+  - id: PORTO-FMT-006
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Rows MUST be spatially ordered so nearby features are nearby in the
+      file, tested either as: - **low overlap** — fewer than 30% of
+      consecutive row-group pairs have interior-intersecting bounding boxes;
+      or - **high locality** — row-group boxes average under about 25% of the
+      file extent, letting a reader skip at least 50% of row groups for a
+      query window of 10% of the extent.
+
+  - id: PORTO-FMT-007
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Files MUST provide per-row-group spatial statistics so readers can skip
+      row groups from metadata alone — either: - a GeoParquet 1.1 `bbox`
+      covering column with Parquet min/max statistics on its leaf fields (a
+      `bbox` column without statistics does not qualify); or - for GeoParquet
+      2.x / Parquet `GEOMETRY`, native `GeospatialStatistics` per geometry
+      column chunk.
+
+  - id: PORTO-FMT-008
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      For 2.x, a covering column remains RECOMMENDED even where native
+      statistics exist, since it adds page-level min/max stats that enable
+      finer-grained pruning.
+
+  - id: PORTO-FMT-009
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Row groups MUST hold no more than 150,000 rows.
+
+  - id: PORTO-FMT-010
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      A PMTiles file SHOULD be provided as the visualization derivative,
+      web-map-optimized and range-request friendly.
+
+  - id: PORTO-FMT-011
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      It MUST be registered through a collection-level `rel: "pmtiles"` link
+      per the
+      [web-map-links](https://github.com/stac-extensions/web-map-links)
+      extension (v1.3.0): type `application/vnd.pmtiles`, a `pmtiles:layers`
+      array of default-visible layers, with the extension's v1.3.0 schema
+      declared in `stac_extensions`.
+
+  - id: PORTO-FMT-012
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      The `pmtiles:layers` array MUST be non-empty; an empty list leaves a
+      client with nothing to display.
+
+  - id: PORTO-FMT-013
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      when a provider intends the PMTiles file as a genuine distribution
+      format of the data, it MAY additionally be registered as a
+      collection-level asset, and the link and the asset then coexist.
+
+  - id: PORTO-FMT-014
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      When PMTiles are provided, the collection MUST include at least one
+      visualization style as a standalone STAC asset with the `["style"]`
+      role, registered per [Visualization
+      Styles](core.md#visualization-styles).
+
+  - id: PORTO-FMT-015
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      For PMTiles the style is a MapLibre GL style file (MapLibre GL style
+      spec v8) in a `styles/` subdirectory, with media type
+      `application/vnd.mapbox.style+json`, a complete, self-contained JSON
+      loadable directly by MapLibre GL JS.
+
+  - id: PORTO-FMT-016
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Large files MAY be partitioned.
+
+  - id: PORTO-FMT-017
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Partitioning MUST be described per the [partition
+      extension](https://github.com/portolan-sdi/stac-partition-extension)
+      (v1.0.0), with its schema declared in `stac_extensions` and its
+      required fields carried — `partition:scheme`, `partition:keys`, and
+      `partition:glob`.
+
+  - id: PORTO-FMT-018
+    severity: MUST
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      The scheme's path structure MUST reflect spatial extent so readers can
+      prune files without reading metadata.
+
+  - id: PORTO-FMT-019
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      `partition:glob` is the normative bulk-access path; the collection
+      description SHOULD also mention the glob for human readers, but
+      validators read only the field.
+
+  - id: PORTO-FMT-020
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      The https-only rule for absolute asset hrefs does not extend to the
+      glob: globs are consumed by partition-aware readers rather than
+      browsers, and bucket-native schemes (`s3://`, `gs://`) MAY be used
+      where those readers need them (glob expansion requires listing, which
+      plain https does not provide).
+
+  - id: PORTO-FMT-021
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Every partition file MUST share a single Parquet schema — the same
+      columns, names, and types — so the glob can be queried as one table.
+      This is validated by tooling reading file footers, not by JSON schema.
+
+  - id: PORTO-FMT-022
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Partition files MAY be represented as items when partitions are
+      user-meaningful units (countries, regions); for opaque schemes
+      (hilbert, s2, h3) or hundreds of partitions, items SHOULD NOT be
+      created — the glob pattern is the access path.
+
+  - id: PORTO-FMT-023
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Raster data MUST be provided as Cloud Optimized GeoTIFF (COG) for
+      efficient range-request access without full download.
+
+  - id: PORTO-FMT-024
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Beyond that baseline, a COG MUST conform to OGC 21-026's [Optimized
+      GeoTIFF requirements
+      class](https://docs.ogc.org/is/21-026/21-026.html#optimized_geotiff-requirements-class)
+      (`/req/optimized_geotiff`), which adds three requirements:
+
+  - id: PORTO-FMT-025
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A raster larger than a single internal tile needs internal overviews so
+      a reader can display it zoomed out without fetching full-resolution
+      pixels; one that already fits within a tile is exempt, since it is its
+      own overview. Base COG validators, including `rio cogeo validate`,
+      treat missing overviews as a warning rather than a failure. Portolan
+      raises this to a requirement.
+
+  - id: PORTO-FMT-026
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      COGs MUST carry pixel statistics for rendering.
+
+  - id: PORTO-FMT-027
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Every band MUST carry an embedded minimum, maximum, mean, and standard
+      deviation so a renderer can scale any data type without reading pixels.
+
+  - id: PORTO-FMT-028
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Statistics MUST be embedded in the file — an external `.aux.xml` (PAM)
+      sidecar does not satisfy this —
+
+  - id: PORTO-FMT-029
+    severity: MUST
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      and MUST be written at creation time (e.g. `gdal_translate -of COG
+      -stats`), residing in the file's leading header block so they arrive in
+      a reader's first range request.
+
+  - id: PORTO-FMT-030
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      | Minimum, maximum, mean, standard deviation | **MUST** |
+
+  - id: PORTO-FMT-031
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      | Valid percent | SHOULD (MUST when the band has a nodata value) |
+
+  - id: PORTO-FMT-032
+    severity: MUST
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      | Approximate flag (`STATISTICS_APPROXIMATE = YES`) | MUST when
+      estimated |
+
+  - id: PORTO-FMT-033
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A tabular collection MUST be distinguishable from a geospatial one so
+      that validators and federation agents relax spatial requirements and
+      route queries correctly.
+
+  - id: PORTO-FMT-034
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Data MUST be provided as a Parquet file
+      (`application/vnd.apache.parquet`) exposed as a collection-level asset
+      with role `["data"]`, following the single-file collection pattern — no
+      item directory or item JSON.
+
+  - id: PORTO-FMT-035
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Where a source file is converted (e.g. a CSV), the original MAY be
+      retained as an alternate asset under the
+      [primary-vs-alternate](core.md#assets) rule, with the Parquet as the
+      primary.
+
+  - id: PORTO-FMT-036
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      STAC requires `extent.spatial.bbox` on every collection, so a tabular
+      collection MUST still carry one, but it represents the area of interest
+      the data pertains to, not a geometry footprint, and validators MUST
+      treat it as informational.
+
+  - id: PORTO-FMT-037
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Tabular collections SHOULD populate `extent.temporal` when the data has
+      a time dimension, and SHOULD document their columns with the STAC
+      [table](https://github.com/stac-extensions/table) extension
+      (`table:columns` with names, types, and descriptions).
+
+  - id: PORTO-FMT-038
+    severity: MUST
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      When geometry and attributes live in separate files (e.g. census
+      geometries joined to a demographics table), the metadata MUST document
+      the join columns explicitly in the README and MUST include a working
+      code example showing how to join them.
+
+  - id: PORTO-FMT-039
+    severity: MUST
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Point cloud support is not yet implemented; when complete, data MUST be
+      provided as Cloud-Optimized Point Cloud (COPC).
+
+exclusions:
+  # RFC 2119 preamble: keyword mentions, not requirements.
+  - file: specs/portolan/core.md
+    quote: >-
+      *The keywords MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD,
+      SHOULD NOT, RECOMMENDED, MAY, and OPTIONAL in this document are to be
+      interpreted as described in BCP 14 [RFC 2119] [RFC 8174] when, and only
+      when, they appear in all capitals, as shown here.*
+
+  # Cross-reference to the Temporal Metadata SHOULD, not itself a requirement.
+  - file: specs/portolan/core.md
+    quote: >-
+      The `datetime` clause restates STAC 1.1 core validity and is enforced
+      by structural validation; the Portolan-level guidance to carry an
+      explicit `datetime` lives under [Temporal
+      Metadata](#temporal-metadata) as a SHOULD.
+
+  # Statement about possible future spec evolution, not a conformance rule.
+  - file: specs/portolan/formats.md
+    quote: >-
+      This MAY be revisited in a future version if implicit detection proves
+      insufficient.
