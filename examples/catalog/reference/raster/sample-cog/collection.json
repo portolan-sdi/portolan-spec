@@ -56,8 +56,8 @@
       "roles": [
         "data"
       ],
-      "file:size": 1135451,
-      "file:checksum": "1220c76ab050334aa4ecf687bd32d4b71d53507a4e328e51463fa2f3f53fadb30d8d",
+      "file:size": 1054493,
+      "file:checksum": "1220b2e1aa393fe37dc26e516b13c8f4fb3b1e99efd01a6661c894a5e840201c8c96",
       "bands": [
         {
           "data_type": "uint8",
@@ -65,7 +65,8 @@
             "minimum": 1.0,
             "maximum": 255.0,
             "mean": 44.396,
-            "stddev": 58.4784
+            "stddev": 58.4784,
+            "valid_percent": 67.4572
           }
         },
         {
@@ -74,7 +75,8 @@
             "minimum": 1.0,
             "maximum": 255.0,
             "mean": 65.9922,
-            "stddev": 58.2068
+            "stddev": 58.2068,
+            "valid_percent": 67.4572
           }
         },
         {
@@ -83,7 +85,8 @@
             "minimum": 1.0,
             "maximum": 255.0,
             "mean": 71.3248,
-            "stddev": 60.8373
+            "stddev": 60.8373,
+            "valid_percent": 67.4572
           }
         }
       ],

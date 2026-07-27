@@ -4,7 +4,7 @@ Point addresses from the City and County of San Francisco Enterprise Addressing 
 
 License, PDDL-1.0.
 Providers, City and County of San Francisco (producer, licensor), DataSF (processor), Portolan SDI (host).
-Original source, https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=5000 .
+Original source, https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=5000&$order=:id .
 Features, 5000.
 Cloud-native asset, san-francisco-addresses.parquet (GeoParquet).
 Note, the upstream source is a live endpoint, so the source checksum reflects the copy fetched at build time.
