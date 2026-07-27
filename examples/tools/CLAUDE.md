@@ -25,7 +25,7 @@ bootstraps `sys.path` with its own directory so they import as flat names.
 | `tiles.py` | XYZ basemap tile fetch and mosaic for thumbnails |
 | `stacio.py` | STAC assembly, manifest, providers, assets, links, sidecars, catalog builders |
 | `validate.py` | Thin adapter over reis, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
-| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, and `check_cog.py` |
+| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, and `check_fetch.py` |
 
 Inputs and outputs live under `examples/`, not here.
 
@@ -59,6 +59,7 @@ uv run examples/tools/tests/check_tiles.py
 uv run examples/tools/tests/check_thumb_geoms.py
 uv run examples/tools/tests/check_thumbnails.py
 uv run examples/tools/tests/check_cog.py
+uv run examples/tools/tests/check_fetch.py
 ```
 
 ## The core principle
@@ -116,7 +117,7 @@ upstream URL with the real `file:size` and multihash `file:checksum` of the
 fetched file.
 
 - `vector`. `to_geoparquet` converts with DuckDB spatial, preserving the source CRS or the manifest `output_crs`, and also builds a WGS84 GeoPackage for the bbox, the PMTiles feed, the thumbnail, and style sampling. It then writes the canonical asset as a web-optimized GeoParquet 2.0 file with geoparquet-io's web profile (native geometry type, per row group GeospatialStatistics, a retained covering bbox column for page-level pruning, a Parquet page index, Hilbert ordering, and byte-targeted fetch-sized row groups). Derivatives read the WGS84 GeoPackage, not the 2.0 output. Optional PMTiles come from a DuckDB GeoJSONSeq export into tippecanoe, with a web-map-links `pmtiles` link. Optional MapLibre styles are authored by `author_styles` from the real field values and read the PMTiles. The GeoParquet `data` asset also carries `table:columns` from a DuckDB `DESCRIBE`, geometry column included, and `proj:code` derived from the real output CRS, declaring the table and projection extensions.
-- `raster`. `to_cog` builds the COG with rasterio, preserving the source CRS or warping to the manifest `output_crs`. Band statistics come from rasterio and numpy and go in STAC 1.1 core `bands`, and `proj:code` carries the real output CRS through the projection extension.
+- `raster`. `to_cog` builds the COG with rasterio, preserving the source CRS or warping to the manifest `output_crs`. Band statistics come from rasterio and numpy and go in STAC 1.1 core `bands`, minimum, maximum, mean, stddev, and valid percent, and `proj:code` carries the real output CRS through the projection extension. The same values are embedded as GDAL `STATISTICS_*` band tags, which is where reis reads them. Overview depth is left to rio-cogeo rather than pinned, see the gotcha below.
 - `tabular`. `to_table_parquet` reads the CSV with DuckDB and writes Parquet. Columns are described with the table extension. No geometry, the spatial extent is the whole world and spatial rules are relaxed.
 
 A Collection whose manifest sets `attribution` declares the attribution extension and carries a top-level `attribution` field.
@@ -149,7 +150,8 @@ onto the canvas with `rasterio.features`. Rasters are warped on top with
 - GeoJSON is always WGS84 and silently drops any target SRS. The thumbnail path reads the WGS84 GeoPackage intermediate and reprojects it to EPSG:3857 with DuckDB spatial in `_mercator_geoms`, so the Mercator projection survives.
 - Zip sources are extracted before reading, because GDAL `/vsizip` keys off a `.zip` suffix that the cached filename does not have.
 - The raster extension v2.0.0 is not declared, its schema conflicts with Collection-level assets (spec issues #52 and #41). Statistics still ship in core `bands`.
-- The Boston, San Francisco, and Eurostat sources are live endpoints, so their `source` checksums are point-in-time and each README says so.
+- COG overview depth is never pinned. `to_cog` omits `overview_level` so rio-cogeo derives it from the raster size and the 512px output blocksize, halving until the coarsest level fits inside one tile. That is OGC 21-026's `/req/optimized_geotiff/number`, which formats.md raises to a MUST and reis enforces as PTL-DAT-011. A fixed level, which this used to carry, under-builds overviews on a large raster and builds pointless ones on a raster smaller than a tile. Note the requirement reads "one tile across or down", so the bar is the shorter side, which is what rio-cogeo measures.
+- The Boston, San Francisco, and Eurostat sources are live endpoints. `fetch` refetches any `stable: false` source instead of reusing the cache, so the declared `file:size` and `file:checksum` describe the bytes fetched during that build, as core.md requires. A cached copy from an earlier build is how spec issue #80 happened, and the build's own validator cannot catch it, since the local-only reader skips remote assets. The DataSF URL also carries `$order=:id` so the 5k window does not reshuffle between fetches.
 
 ## Validation
 
@@ -162,9 +164,25 @@ pass checks STAC 1.1.0 core validity and degrades to a warning when its
 schemas are unreachable. The schema pass validates every object against the
 working-copy schema at `../../stac/json-schema/v0.1.0/schema.json`, injected
 so the build tests this repo's schema rather than the published one. The data
-pass reads the built assets and checks checksum, size, format, COG band
-statistics, and GeoParquet ordering, statistics, and row-group size, through a
-local-only reader that skips remote source assets so the build stays offline.
+pass reads the built assets and checks checksum, size, format, COG internal
+overviews, COG band statistics including valid percent, and GeoParquet ordering,
+statistics, and row-group size, through a local-only reader that skips remote
+source assets so the build stays offline.
+
+Because the build skips remote assets, the remote `source` checksums are only
+proven by running reis directly, without the adapter. Do that before publishing a
+rebuild.
+
+```bash
+uv run --with "reis[data] @ git+https://github.com/portolan-sdi/reis.git" \
+  reis check --data examples/catalog/reference
+```
+
+reis's live-hosting pass (`--live`, PTL-LIV) is deliberately not wired in. It
+probes the servers behind absolute `https` asset hrefs, and the built catalog is
+a local tree whose asset hrefs are relative, so it would have nothing to probe
+and would only emit PTL-LIV-000 warnings. Revisit once the catalog is published
+at a real base URL.
 
 reis is a pinned git dependency in `build.py`'s PEP 723 header. Bumping the
 Portolan schema is a coordinated change across this repo and reis, update the

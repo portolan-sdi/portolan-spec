@@ -61,7 +61,11 @@ counties are coloured by state, for example.
 
 A few upstream sources are live endpoints, the Boston export, the DataSF layer,
 and the Eurostat API, so their `source` Asset checksums reflect the copy fetched
-at build time. The other sources are version-stable.
+at build time. The other sources are version-stable. Because a live endpoint's
+bytes drift, a source marked `stable: false` is refetched on every build rather
+than served from the cache, so its declared `file:size` and `file:checksum`
+always describe the bytes the endpoint returned during that build. That is what
+core.md asks for when it requires those values to be regenerated at publish time.
 
 ### Note, CRS and engine changes
 
