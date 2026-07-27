@@ -935,7 +935,9 @@ requirements:
 
   - id: PORTO-FMT-033
     severity: MUST
-    enforcement: validator
+    # The validator consumes this property (tabular identification drives
+    # which spatial rules relax) rather than raising a failure for it.
+    enforcement: process
     file: specs/portolan/formats.md
     quote: >-
       A tabular collection MUST be distinguishable from a geospatial one so
