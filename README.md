@@ -1,64 +1,122 @@
-# About
+# Portolan
 
-Portolan is a new foundation for sharing geospatial data: cloud-native files on 
-object storage — no servers, no databases, scalable, low-cost, soveriegn and AI-first. 
-A Portolan catalog is a directory of open-format data described by structured
-[STAC](https://stacspec.org/) metadata, hosted on any S3-compatible bucket.
-It builds on the incredible foundation of [cloud-native geospatial](https://cloudnativegeo.org)
-formats ([COG](https://cogeo.org/), [GeoParquet](https://geoparquet.org/), 
-[PMTiles](https://github.com/protomaps/pmtiles), [COPC](https://copc.io/) and 
-[GeoZarr](https://geozarr.org/)), providing a set of best practices and an 
-ecosystem of tools to publish great geospatial data catalogs. 
+Portolan makes geospatial data easy to publish and easy to use. A catalog is
+plain files in your own storage, described so that a person or an agent can
+understand the data and query it directly. Publishing works the same way whether
+you are a satellite company releasing a planetary archive or a city publishing
+local cadastral data. There are no servers, no databases, and no accounts.
 
-Because the data is just files and the metadata is plain text, a browser, query
-engine like DuckDB, or AI agent can read a catalog, understand what it holds,
-and analyze it directly. If Portolan disappeared
-tomorrow, every file in a catalog would still work in the tools people already use.
+Under the hood, Portolan is an opinionated standard for cloud-native geospatial
+catalogs, plus the tooling around it. A catalog is a directory of open-format
+data on any S3-compatible bucket, described by structured
+[STAC](https://stacspec.org/) metadata and built on
+[COG](https://cogeo.org/), [GeoParquet](https://geoparquet.org/),
+[PMTiles](https://github.com/protomaps/pmtiles), [COPC](https://copc.io/), and
+[GeoZarr](https://geozarr.org/). Each part of the tooling raises the value of the
+others:
 
-This repo contains the Portolan specification, which lays out the requirements 
-and recommendations for producing a Portolan catalog. The specification guides 
-the ecosystem, but the software tools and collections of data following Portolan 
-conventions are really the center of the ecosystem. The spec follows from the 
-leading innovations of the community, to provide a clear target for diverse software 
-implementations.
+- **The standard** defines what a great catalog looks like. It lives here.
+- **[reis](https://github.com/portolan-sdi/reis)**, the validator, proves a
+  catalog meets the standard.
+- **[portolan-cli](https://github.com/portolan-sdi/portolan-cli)** makes catalogs
+  easy to build.
+- **[The registry](https://github.com/portolan-sdi/portolan-registry)** connects
+  catalogs into a searchable network.
 
-## Portolan Philosophy
+If Portolan disappeared tomorrow, every file in a catalog would still work in the
+tools people already use.
+
+Portolan is not a platform. There is nothing to log into and nothing to depend
+on. It is not a paid product either. The standard and the tools are open source
+under Apache-2.0, and your only costs are storage and egress, paid to your cloud
+provider.
+
+This repository holds the specification. It is pre-1.0 and under active
+development, and contributions are welcome.
+
+## What a catalog looks like
+
+Every catalog and collection carries `catalog.json` or `collection.json` for
+machines, plus `README.md` and `AGENTS.md` for people and agents. Data assets sit
+alongside the metadata that describes them.
+
+```
+catalog.json
+README.md
+AGENTS.md
+boundaries/
+  catalog.json
+  README.md
+  AGENTS.md
+  us-counties/
+    collection.json
+    README.md
+    AGENTS.md
+    us-counties.parquet
+    us-counties.pmtiles
+    thumbnail.png
+    styles/
+      categorical.json
+      labeled.json
+```
+
+Catalogs can nest. Collections sit one level deep and never nest inside each
+other. A generated catalog covering vector, raster, tabular, and mirrored data
+lives in [`examples/catalog/reference/`](examples/catalog/reference/).
+
+## Portolan philosophy
 
 Portolan builds on existing standards rather than reinventing them. It is STAC
-1.1.0 at its core and reuses established STAC extensions wherever they fit. Portolan 
-adds strong, opinionated requirements on formats,
-statistics, structure, and documentation in order to make catalogs reliably usable by
-both humans and agents without a server to interpret it. The goal of this is to 
-set a much higher quality bar on data and metadata, so that interacting with any 
-Portolan catalog is a great experience for all users.
+1.1.0 at its core and reuses established STAC extensions wherever they fit. On
+top of that, Portolan adds strong requirements on formats, statistics, structure,
+and documentation, so people and agents can use a catalog directly from storage
+with no server in between. The point is a higher quality bar. Working with any
+Portolan catalog should be a good experience.
 
-The Portolan specification is deliberately prescriptive when that supports interoperability and is intended to evolve as
-cloud-native tooling matures. While core standards like STAC and GeoParquet 
-were established with explicit goals for stability, Portolan 
-aims to be a ‘strong opinion, loosely held’. This means that each version of the 
-specification will provide a set of requirements that reflect the communities 
-belief of what a ‘great’ STAC catalog looks like. So requirements that are 
-aspirational today may relax or tighten as the ecosystem catches up. Conformance is 
-defined not by declaration but by passing [reis](https://github.com/portolan-sdi/reis), 
-the Portolan validator. Every normative statement carries a stable ID in 
-[`requirements.yaml`](specs/portolan/requirements.yaml), and reis proves in CI that 
-each one is enforced.
+The standard is prescriptive where that supports interoperability, and it is
+meant to evolve as cloud-native tooling matures. Core standards like STAC and
+GeoParquet were built for long-term stability. Portolan sits on top of them and
+moves faster. Each version states what the community currently believes a great
+catalog looks like, so a requirement that is aspirational today may relax or
+tighten as the ecosystem catches up. Conformance means passing the
+[validator](https://github.com/portolan-sdi/reis), not claiming to conform. Every
+normative statement carries a stable ID in
+[`requirements.yaml`](specs/portolan/requirements.yaml), and CI proves that reis
+enforces each one.
 
-The goal is to reuse other standards as much as possible, but to also not shy away 
-from incubating new standards or formalizing ad hoc practices when there are holes 
-in the current landscape. This will often look like STAC extensions - contributing 
-to existing ones or making new ones - but can also be small, independent 
-specifications that capture current practices and innovations.
+Where the current landscape has gaps, Portolan will incubate new standards or
+write down practices that until now have been informal. Usually that means
+contributing to STAC extensions or adding new ones. It can also mean small,
+independent specifications that capture current practice, which live in
+[`specs/incubating/`](specs/incubating/) until they stabilize.
 
-The final core part of the Portolan philosophy is to treat AI and agents as first-class
-citizens. The standards and best practices for guiding agents is rapidly evolving, 
-so this part of the spec may change substantially, but the aim is to always ensure
-that all Portolan catalogs enable AI users to use the data in the catalog
-with minimal friction. And the implementation of new catalogs or mirrors of existing
-data should also be easy to do using AI tools, to drastically lower the barrier
-to publishing data. So the ecosystem of tools built around the specification
-embraces the use of AI, as it can greatly accelerate the creation of great, accessible
-geospatial data and metadata.
+People and agents are treated as equals throughout. The best practices for
+guiding agents are moving fast, so this part of the standard will keep changing,
+but the aim is constant. A Portolan catalog should be low-friction for a human
+analyst and an automated one alike. Building or mirroring a catalog should be
+easy too, including with AI tools, because lowering the effort to publish is how
+more good data gets published.
+
+The standard leaves some judgment calls open, such as what one catalog should
+contain and how to organize it.
+[`specs/best-practices/philosophy.md`](specs/best-practices/philosophy.md) covers
+those.
+
+## Reading the spec
+
+Start with [`specs/portolan/core.md`](specs/portolan/core.md) for catalog
+structure, conformance, links, providers, provenance, licensing, documentation,
+and visualization. Then read
+[`specs/portolan/formats.md`](specs/portolan/formats.md) for what each format
+requires.
+
+Two things are worth knowing first. Portolan catalogs are static, so there is no
+Portolan API to implement. The spec is also pre-1.0, so requirements still move
+between versions.
+
+The normative keywords (MUST, SHOULD, MAY, …) throughout the spec are used as
+defined in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and
+[RFC 8174](https://www.rfc-editor.org/rfc/rfc8174).
 
 ## Repository layout
 
@@ -66,64 +124,69 @@ geospatial data and metadata.
 |------|--------------|
 | [`specs/portolan/core.md`](specs/portolan/core.md) | The normative spec: catalog structure, conformance, links, providers, provenance, licensing, documentation, visualization. |
 | [`specs/portolan/formats.md`](specs/portolan/formats.md) | Format requirements: vector (GeoParquet + PMTiles), raster (COG), tabular (Parquet), point cloud (COPC). |
-| [`specs/incubating/`](specs/incubating/) | Ad-hoc specs being formalized but not yet normative (raster styling, point clouds, GeoTIFF stats encoding, STAC-GeoParquet). |
+| [`specs/incubating/`](specs/incubating/) | Ad-hoc specs formalized but not yet normative (raster styling, point clouds, GeoTIFF stats encoding, STAC-GeoParquet). |
 | [`specs/best-practices/`](specs/best-practices/) | Non-normative guidance for people and agents, and the future home of the catalog grader. |
 | [`specs/portolan/requirements.yaml`](specs/portolan/requirements.yaml) | The requirements manifest: a stable ID, severity, and quote for every normative statement, checked against the prose in CI. |
-| [`stac/`](stac/) | The Portolan STAC profile and JSON schemas. |
-| [`examples/`](examples/) | Working reference catalogs, generated by [`examples/build.py`](examples/build.py). |
-
-The normative keywords (MUST, SHOULD, MAY, …) throughout the spec are used as
-defined in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and
-[RFC 8174](https://www.rfc-editor.org/rfc/rfc8174).
+| [`stac/`](stac/) | The Portolan STAC profile and its JSON schemas. |
+| [`examples/`](examples/) | Working reference catalogs, generated by [`examples/tools/build.py`](examples/tools/build.py). |
 
 ## Versioning
 
-The specification is versioned with [SemVer](https://semver.org/), starting pre-1.0.
-A catalog declares the version it was authored against through the **Portolan STAC
-profile schema URI** in its `stac_extensions` array, e.g.
-`https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json`. That schema URI is the
-single signal of specification version; there is no separate version file (see
+The specification is versioned with [SemVer](https://semver.org/), starting
+pre-1.0. A catalog declares the version it was authored against through the
+**Portolan STAC profile schema URI** in its `stac_extensions` array, e.g.
+`https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json`. That schema URI
+is the single signal of specification version, and there is no separate version
+file (see
 [Conformance and Versioning](specs/portolan/core.md#conformance-and-versioning)).
 
 **Bump policy while pre-1.0:** any breaking change bumps the MINOR version (e.g.
-`0.1.0` → `0.2.0`); non-breaking changes bump the PATCH. Once the spec reaches
+`0.1.0` → `0.2.0`), and non-breaking changes bump PATCH. Once the spec reaches
 `1.0.0`, normal SemVer applies. A change is **breaking** when a catalog that
-conformed to the previous version may no longer conform, or a tool built against
-the previous version may misvalidate, e.g. raising a rule's severity, adding a new
-required field, or removing/renaming a field or accepted value. A change is
-**non-breaking** when previously-conforming catalogs still conform, e.g. adding a
-warning, relaxing a constraint, or editorial clarification.
+conformed to the previous version may no longer conform, or when a tool built
+against the previous version may misvalidate. Raising a rule's severity, adding
+a new required field, and removing or renaming a field or accepted value are all
+breaking. A change is **non-breaking** when previously-conforming catalogs still
+conform, as with adding a warning, relaxing a constraint, or clarifying wording.
 
 ## Contributing
 
-The spec is developed here as the record of the decisions behind
-Portolan.
+The spec is developed in the open, and this repository records the decisions
+behind Portolan.
 
 - **Propose a change** by opening a pull request. Discussion happens in the PR.
-- **Raise a question or a disagreement** by opening an issue. Points that need more
-  debate move to issues rather than blocking a release.
+- **Raise a question or a disagreement** by opening an issue. Points that need
+  more debate move to issues rather than blocking a release.
 - **Immature ideas** live in [`specs/incubating/`](specs/incubating/) until they
-  stabilize; **guidance and philosophy** live in
+  stabilize, and **guidance and philosophy** live in
   [`specs/best-practices/`](specs/best-practices/).
 
-When a change is normative, bump the spec version per the [bump
-policy](#versioning) in the same PR.
+When a change is normative, bump the spec version per the
+[bump policy](#versioning) in the same PR.
 
 ### Companion validator PRs
 
-The spec is ground truth; [reis](https://github.com/portolan-sdi/reis) is its
+The spec is ground truth and [reis](https://github.com/portolan-sdi/reis) is its
 deterministic implementation. A catalog conforms to the spec exactly when it
 passes reis, so the two must never diverge.
 
-Every PR that touches normative content (`specs/` or `stac/`) must name its
-matching reis PR in the body:
+Every PR that touches normative content (`specs/` or `stac/`) must name the
+matching reis PR in its body:
 
 ```
 Companion-PR: portolan-sdi/reis#123
 ```
 
-CI verifies the reference. Editorial changes with no conformance impact
-(typos, wording, formatting) skip the requirement with the
-`no-validator-change` label.
+CI verifies the reference. Editorial changes with no conformance impact (typos,
+wording, formatting) can skip the requirement with the `no-validator-change`
+label.
 
-See also the [Code of Conduct](CODE_OF_CONDUCT.md).
+## Community
+
+- Website: [portolan-sdi.org](https://www.portolan-sdi.org/)
+- Discussion: the [Portolan Google Group](https://groups.google.com/g/portolan)
+- Chat: [#portolan](https://cloudnativegeo.slack.com/archives/C0A1JBH9529) in the
+  Cloud-Native Geo Slack
+- Roadmap: the [planning board](https://github.com/orgs/portolan-sdi/projects/1)
+
+Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
