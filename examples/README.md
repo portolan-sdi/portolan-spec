@@ -17,10 +17,21 @@ It exercises every major case in the spec.
   document their columns with the table extension and declare their CRS with
   the projection extension.
 - A raster Collection, Cloud Optimized GeoTIFF with per-band statistics.
-- A tabular, non-geospatial Collection, plain Parquet with documented columns.
-- Nested Catalogs and flat Collections, official and mirror provenance,
-  PMTiles visualizations, and data-driven MapLibre styles.
+- A tabular, non-geospatial Collection, plain Parquet with documented columns
+  and a runnable DuckDB example joining it to a geometry Collection, which the
+  spec asks for whenever geometry and attributes live in separate files.
+- Nested Catalogs and flat Collections, PMTiles visualizations, and data-driven
+  MapLibre styles that load straight into MapLibre GL JS.
 - Attributed Collections that carry the attribution extension.
+- Both render paths, a PMTiles `visual` derivative on most vector Collections
+  and render-from-source on the two small Natural Earth Collections.
+
+Every Collection is a mirror. The spec derives that from who hosts the copy, and
+an organization hosting data it did not produce is a mirror even when it is the
+primary distributor. Portolan SDI serves every asset here and produced none of
+the data, so there is no honest way to present one of these as official. No
+Collection carries a `canonical` link either, because that is owed only when the
+upstream publishes its own STAC, and none of these eight do.
 
 Every Collection carries a cloud-native canonical data Asset and also cites its
 true original upstream file as a `source`-role Asset, each with its own real

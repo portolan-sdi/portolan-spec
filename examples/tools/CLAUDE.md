@@ -25,7 +25,7 @@ bootstraps `sys.path` with its own directory so they import as flat names.
 | `tiles.py` | XYZ basemap tile fetch and mosaic for thumbnails |
 | `stacio.py` | STAC assembly, manifest, providers, assets, links, sidecars, catalog builders |
 | `validate.py` | Thin adapter over reis, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
-| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, and `check_fetch.py` |
+| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_fetch.py`, and `check_styles.py` |
 
 Inputs and outputs live under `examples/`, not here.
 
@@ -60,6 +60,7 @@ uv run examples/tools/tests/check_thumb_geoms.py
 uv run examples/tools/tests/check_thumbnails.py
 uv run examples/tools/tests/check_cog.py
 uv run examples/tools/tests/check_fetch.py
+uv run examples/tools/tests/check_styles.py
 ```
 
 ## The core principle
@@ -94,7 +95,10 @@ Each entry in `collections`.
 - `temporal`. `[start, end_or_null]`.
 - `thumbnail_bbox?`. `[minx, miny, maxx, maxy]`. Frames the preview only, not the data. Use it for antimeridian-spanning data.
 - `derivatives`. `{pmtiles, thumbnail}`. Booleans that toggle the PMTiles and thumbnail outputs.
-- `style?`. Per-Collection paint, `{color, outline, opacity, palette?, category_field?, label_field?, graduated_field?, variants?}`. Drives both the MapLibre styles and the thumbnail paint. `category_field` colours by category from the shared palette, `graduated_field` interpolates a numeric ramp, `label_field` adds labels, and `variants` lists which style files to author.
+- `style?`. Per-Collection paint, `{color, outline, opacity, palette?, category_field?, label_field?, graduated_field?, variants?}`. Drives both the MapLibre styles and the thumbnail paint. `category_field` colours by category from the shared palette, `graduated_field` interpolates a numeric ramp, `label_field` adds labels, and `variants` lists which style files to author. The FIRST variant is the default style and is what the thumbnail renders.
+- `columns?`. `{column_name: description}`. Merged into `table:columns` by `describe_columns`. A Parquet footer carries names and types but no semantics, so the prose has to come from the manifest. Required in spirit for `tabular`, where the column schema is the only semantic handle a consumer gets.
+- `bbox?`. Tabular only. The area of interest the table pertains to, which core.md asks for in place of a geometric footprint. Absent, the fallback is the whole world, correct only for a genuinely global table.
+- `join?`. Tabular only. `{column, target, target_column, target_file, note?}`. Emits the README join section and a runnable DuckDB example, which formats.md requires whenever geometry and attributes live in separate files. `target_file` is relative to the Collection directory.
 
 ## Provenance is derived, not declared
 
@@ -106,6 +110,17 @@ is no explicit flag.
 
 Mirrors get a `via` link, and any Collection with `provenance.canonical` gets a
 `canonical` link.
+
+Every Collection in the reference manifest is a mirror, and no `canonical` link
+is emitted anywhere. Both follow from the spec rather than from convenience.
+core.md ties `host` to whoever operates *this copy* and says an organization
+hosting data it did not produce is a mirror "even when it is the primary
+distributor". Portolan SDI serves every asset in the tree and produced none of
+the data, so naming an upstream producer as host would be false. The official
+branch can only be exercised by a catalog whose publisher originates the data.
+`canonical` is owed only when the upstream publishes its own STAC, and none of
+these eight do, so the eight PTL-PRO-002 infos are the correct outcome, not
+something to silence with a link to a landing page or an ISO record.
 
 - `resolve_providers` guarantees exactly one host provider, moved to the last position, and raises if a manifest lists more than one. `validate` gates both this host-order rule and the `license: other` link rule, failing the build if either is violated.
 
@@ -151,6 +166,11 @@ onto the canvas with `rasterio.features`. Rasters are warped on top with
 - Zip sources are extracted before reading, because GDAL `/vsizip` keys off a `.zip` suffix that the cached filename does not have.
 - The raster extension v2.0.0 is not declared, its schema conflicts with Collection-level assets (spec issues #52 and #41). Statistics still ship in core `bands`.
 - COG overview depth is never pinned. `to_cog` omits `overview_level` so rio-cogeo derives it from the raster size and the 512px output blocksize, halving until the coarsest level fits inside one tile. That is OGC 21-026's `/req/optimized_geotiff/number`, which formats.md raises to a MUST and reis enforces as PTL-DAT-011. A fixed level, which this used to carry, under-builds overviews on a large raster and builds pointless ones on a raster smaller than a tile. Note the requirement reads "one tile across or down", so the bar is the shorter side, which is what rio-cogeo measures.
+- A MapLibre style's PMTiles url is relative to the `styles/` directory the file sits in, so it is `../name.pmtiles`, never `./name.pmtiles`. The `./` form resolves to `styles/name.pmtiles`, which does not exist, and the style then loads no tiles and renders an empty map. Nothing else catches this, reis does not read style bodies and the STAC validators skip style files for having no `stac_version`, so `check_styles.py` asserts every url resolves to a real file. The source key and every `layers[].source` are `data` per formats.md, while `source-layer` stays the tippecanoe layer name.
+- The thumbnail is painted from the DEFAULT style, meaning the variant listed first in `style.variants`, because core.md requires exactly that and core.md also says the default is listed first. `stacio` passes `default_variant` into the thumbnail context and `thumbnails.py` only reaches for the category palette when that variant is in `CATEGORICAL_VARIANTS`. So a Collection that wants a category-coloured preview leads with `categorical`, it does not keep a flat `default` in front of it. Previously the thumbnail branched on `category_field` alone and three Collections shipped previews with zero pixels in common with their own default style.
+- tippecanoe records both `--name` and the verbatim command line in the archive metadata, so it runs with `cwd` set to the Collection directory and bare filenames. Passing absolute paths ships the builder's home directory inside every published `.pmtiles`.
+- A nested Collection's STAC `id` is its full POSIX path from the catalog root, `boundaries/us-counties`, not the leaf segment. Filenames still use the leaf, a slash cannot appear in one. Nothing validates this, reis has no id rules and the profile schema has no id constraint, so it is easy to regress.
+- The `source` asset does not carry the `data` role. core.md scopes `data` to the primary GeoParquet, COG, or Parquet and says the cloud-native asset is primary while the rest are alternates, so rolling a zipped Shapefile `data` leaves a client filtering on that role unable to tell which asset is canonical.
 - The Boston, San Francisco, and Eurostat sources are live endpoints. `fetch` refetches any `stable: false` source instead of reusing the cache, so the declared `file:size` and `file:checksum` describe the bytes fetched during that build, as core.md requires. A cached copy from an earlier build is how spec issue #80 happened, and the build's own validator cannot catch it, since the local-only reader skips remote assets. The DataSF URL also carries `$order=:id` so the 5k window does not reshuffle between fetches.
 
 ## Validation
@@ -178,28 +198,41 @@ uv run --with "reis[data] @ git+https://github.com/portolan-sdi/reis.git" \
   reis check --data examples/catalog/reference
 ```
 
-Three findings are expected and terminal. Do not try to make the output silent.
+The build is clean apart from eight infos, which are expected and terminal. Do
+not try to make the output silent.
 
-- `PTL-DAT-005` on `netherlands-provinces`, a bbox mismatch. Our declared bbox is
-  correct, it is the true WGS84 envelope of the reprojected geometries. reis
-  derives its comparison bbox by reprojecting only the four corners of the
-  asset's native EPSG:28992 bbox, which is not a bound for a non-affine
-  projection. Its box over-claims three sides and under-claims the north, so it
-  actually excludes real data there. Filed as portolan-sdi/reis#26. Expect this
-  warning on any collection that preserves a projected source CRS.
-- `PTL-PRO-002` on the two Natural Earth collections, a missing `canonical` link.
-  core.md makes `canonical` a conditional MUST, owed only when the upstream
-  publishes its own STAC catalog. Natural Earth publishes none, not on
-  naturalearthdata.com, naciscdn.org, the AWS Open Data bucket, or STAC Index, so
-  the condition never triggers and there is no URL to point at. reis scores it
-  info precisely because metadata cannot settle the question. Inventing a link
-  would be worse than the finding.
+- `PTL-PRO-002` on all eight Collections, a missing `canonical` link. core.md
+  makes `canonical` a conditional MUST, owed only when the upstream publishes its
+  own STAC catalog. None of these eight upstreams does, checked directly and
+  against all of STAC Index, so the condition never triggers and there is no URL
+  to point at. reis scores it info precisely because metadata cannot settle the
+  question. Inventing a link would be worse than the finding.
+
+A ninth finding used to be terminal and no longer is. `PTL-DAT-005` warned on
+`netherlands-provinces` because reis derived its comparison bbox by reprojecting
+only the four corners of the asset's native EPSG:28992 bbox, which is not a bound
+under a non-affine projection. Filed as portolan-sdi/reis#26 and fixed in
+portolan-sdi/reis#28, which brackets the reprojected extent between a densified
+outer bound and an inner bound instead. Collections that preserve a projected
+source CRS validate cleanly from reis
+`7bb322961dc7fa4d49744604ee227346561f7f64` onward.
 
 reis's live-hosting pass (`--live`, PTL-LIV) is deliberately not wired in. It
-probes the servers behind absolute `https` asset hrefs, and the built catalog is
-a local tree whose asset hrefs are relative, so it would have nothing to probe
-and would only emit PTL-LIV-000 warnings. Revisit once the catalog is published
-at a real base URL.
+probes the servers behind absolute `https` asset hrefs. The catalog does have
+eight of those, one `source` asset per Collection, so the pass would find
+targets. It skips them anyway, because `reis/src/reis/live.py` exempts any
+`source` or `alternate` asset on the grounds that the publisher does not run
+that server. So the pass has nothing left to probe until the catalog is
+published at a real base URL and its own relative hrefs become absolute.
+Revisit then.
+
+Worth knowing that the exemption is reis's own invention. core.md's Data Storage
+section says "Servers MUST support range requests" and requires CORS with
+`Access-Control-Expose-Headers`, unqualified, with no carve-out for upstream
+servers. Measured against the eight upstream sources, two ignore `Range`
+entirely, four send no CORS header, and none sends
+`Access-Control-Expose-Headers`. Nothing the generator can fix, those are third
+party servers. The spec should scope those MUSTs to assets the publisher hosts.
 
 reis is a pinned git dependency in `build.py`'s PEP 723 header. Bumping the
 Portolan schema is a coordinated change across this repo and reis, update the
