@@ -57,7 +57,8 @@ collection-level `rel: "pmtiles"` link per the
 [web-map-links](https://github.com/stac-extensions/web-map-links) extension
 (v1.3.0): type `application/vnd.pmtiles`, a `pmtiles:layers` array of
 default-visible layers, with the extension's v1.3.0 schema declared in
-`stac_extensions`. Because PMTiles exists for visualization and partial reads
+`stac_extensions`. The `pmtiles:layers` array MUST be non-empty; an empty list
+leaves a client with nothing to display. Because PMTiles exists for visualization and partial reads
 rather than download, it is expressed as a link by default; when a provider intends
 the PMTiles file as a genuine distribution format of the data, it MAY additionally
 be registered as a collection-level asset, and the link and the asset then coexist.
