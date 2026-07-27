@@ -179,6 +179,9 @@ metadata and assets. Portolan adds nothing to the STAC 1.1 Item beyond core: an
 item MUST be a valid STAC item, carrying an `id`, a `geometry` and `bbox` (or null
 geometry for non-spatial data), a `datetime` or a `start_datetime`/`end_datetime`
 interval, its assets, and the structural links defined under [Links](#links).
+The `datetime` clause restates STAC 1.1 core validity and is enforced by
+structural validation; the Portolan-level guidance to carry an explicit
+`datetime` lives under [Temporal Metadata](#temporal-metadata) as a SHOULD.
 Item-level detail that other extensions already cover — file, raster, vector —
 MUST use those extensions rather than being re-specified here.
 
@@ -267,7 +270,9 @@ therefore requires human-readable titles throughout: every `catalog.json` and
 `collection.json` MUST have a non-empty `title` and `description`; titles MUST be
 human-readable, so a raw slug (`snake_case`) or a technical namespace prefix
 (`ns:LayerName`) is not acceptable; and every `child` and `item` link MUST include
-a `title`.
+a `title`. A validator checks readability heuristically; it MUST flag a title that
+fails the check, and because heuristics misfire, the finding is a warning, not an
+error.
 
 ## Bounding Boxes and Spatial Extent
 
@@ -278,7 +283,9 @@ viewers. So every `bbox` — catalog extent, collection extent, and item — MUS
 - contain no `NaN` or infinite values (including 3D elevation coordinates);
 - contain no sentinel "effectively infinite" values (e.g. `±1.79e308`);
 - use only WGS84 coordinates in range (longitude -180 to 180, latitude -90 to 90)
-  with south ≤ north.
+  with south ≤ north; and
+- in a 3D bbox, order the vertical axis with minimum elevation ≤ maximum
+  elevation.
 
 STAC requires `extent.spatial.bbox` for collections; for tabular (non-geospatial)
 collections it represents the area of interest the data pertains to, not a
@@ -353,7 +360,10 @@ distributor; the `via` link then simply records where the data originated.
 A mirror MUST include a `via` link (type `text/html`) pointing to the original
 source. When that source publishes its own STAC catalog, the mirror MUST also
 include a `canonical` link pointing to the source's STAC, so consumers and agents
-can follow the chain to the authoritative metadata, not just a landing page. The
+can follow the chain to the authoritative metadata, not just a landing page.
+Whether the source publishes a STAC catalog cannot be determined from the mirror's
+metadata alone, so a validator MAY surface a mirror without a `canonical` link as
+informational, never as a failure. The
 `via` and `canonical` links MAY both be present and point at different targets (a
 human page and a STAC root). An official catalog carries no `via` or `canonical`
 link to an upstream source, because it is the source.
@@ -416,7 +426,10 @@ infrastructure, either by:
   PMTiles is the recommended vector format today.
 
 A consumer decides by inspection: use a `visual` asset if present, otherwise render
-from source. Non-geospatial collections are exempt. Collections MUST include a
+from source. Non-geospatial collections are exempt. Whether an asset is small and
+simple enough to render from source is not decidable from metadata, so a validator
+cannot enforce this requirement directly; it MAY advise, as informational, when a
+large vector collection lacks a `visual` derivative. Collections MUST include a
 thumbnail generated from default styling and MUST provide visualization styles as
 standalone STAC assets appropriate to the render path, except where the render path
 is self-rendering (a display-ready COG or a small GeoParquet drawn directly), which
