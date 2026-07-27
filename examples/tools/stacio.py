@@ -103,8 +103,15 @@ def style_asset(path: Path, variant: str) -> dict:
 
 
 def source_asset(local: Path, spec_source: dict) -> dict:
+    """The upstream original, cited alongside the cloud-native asset.
+
+    It does NOT carry the `data` role. core.md scopes `data` to the primary
+    GeoParquet, COG, or Parquet, and says the cloud-native asset is the primary
+    while the rest are alternates. A zipped Shapefile, a GeoPackage, or a CSV is
+    none of those, and rolling it `data` would leave a client filtering on that
+    role unable to tell which asset is canonical."""
     return {"href": spec_source["url"], "type": spec_source["media_type"],
-            "title": spec_source["title"], "roles": ["data", "source"],
+            "title": spec_source["title"], "roles": ["source"],
             "file:size": filesize(local), "file:checksum": multihash(local)}
 
 
@@ -112,6 +119,53 @@ def source_asset(local: Path, spec_source: dict) -> dict:
 def _providers_sentence(providers: list[dict]) -> str:
     parts = [f"{p['name']} ({', '.join(p.get('roles', []))})" for p in providers]
     return ", ".join(parts)
+
+
+def describe_columns(cols: list[dict], descriptions: dict) -> list[dict]:
+    """Merge manifest-authored column descriptions into the derived schema.
+
+    A Parquet footer carries names and types but no semantics, so the prose has to
+    come from the manifest. core.md and formats.md both ask for column
+    descriptions, and for a tabular collection the column schema is the only
+    semantic handle a consumer gets."""
+    if not descriptions:
+        return cols
+    out = []
+    for c in cols:
+        desc = descriptions.get(c["name"])
+        out.append({**c, "description": desc} if desc else dict(c))
+    return out
+
+
+def join_section(join: dict) -> list[str]:
+    """Render the README join documentation for a table that has to be joined to a
+    geometry collection to be mapped.
+
+    formats.md requires the join columns to be named explicitly and a working code
+    example to be shown whenever geometry and attributes live in separate files."""
+    if not join:
+        return []
+    lines = [
+        "## Join to geometry",
+        "",
+        f"This table carries no geometry. Join it to `{join['target']}` to map it.",
+        "",
+        f"- This table's join column, `{join['column']}`.",
+        f"- Geometry collection, `{join['target']}`, join column `{join['target_column']}`.",
+        "",
+    ]
+    if join.get("note"):
+        lines += [join["note"].strip(), ""]
+    lines += [
+        "```sql",
+        "INSTALL spatial; LOAD spatial;",
+        "SELECT t.*, g.geom",
+        f"FROM read_parquet('{join['this_file']}') t",
+        f"JOIN read_parquet('{join['target_file']}') g",
+        f"  ON t.\"{join['column']}\" = g.\"{join['target_column']}\";",
+        "```",
+    ]
+    return lines
 
 
 def open_snippet(kind: str, data_name: str) -> tuple[list[str], str]:
@@ -250,7 +304,7 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         data_pq = coll_dir / f"{stem}.parquet"
         data_name = data_pq.name
         bbox, n, norm, canon_crs = to_geoparquet(local, src, data_pq, out_crs)
-        cols = table_columns(data_pq)
+        cols = describe_columns(table_columns(data_pq), spec.get("columns") or {})
         geom_col = next((c["name"] for c in cols if c["type"] == "geometry"), "geom")
         assets["data"] = asset(data_pq, MEDIA["geoparquet"], ["data"],
                                f"{spec['title']} (GeoParquet)",
@@ -271,7 +325,12 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         if deriv.get("thumbnail", True):
             th = coll_dir / "thumbnail.png"
             tbbox = spec.get("thumbnail_bbox") or bbox
-            style = {**(spec.get("style") or {}), "geometry": spec.get("geometry", "polygon")}
+            # core.md, the thumbnail is "generated from default styling", and the
+            # default style is the one listed first. Pass that variant through so
+            # the preview and styles/<first>.json cannot drift apart.
+            st = spec.get("style") or {}
+            style = {**st, "geometry": spec.get("geometry", "polygon"),
+                     "default_variant": (st.get("variants") or ["default"])[0]}
             make_thumbnail_vector(norm, th, tbbox, style, thumb)
             assets["thumbnail"] = asset(th, MEDIA["png"], ["thumbnail"], _thumb_desc(thumb))
         extra_readme = [f"Features, {n}.", f"Cloud-native asset, {data_pq.name} (GeoParquet)."]
@@ -303,7 +362,7 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         data_pq = coll_dir / f"{stem}.parquet"
         data_name = data_pq.name
         to_table_parquet(local, data_pq)
-        cols = table_columns(data_pq)
+        cols = describe_columns(table_columns(data_pq), spec.get("columns") or {})
         n = feature_count(data_pq)
         bbox = None
         assets["data"] = asset(data_pq, MEDIA["parquet"], ["data"],
@@ -311,8 +370,12 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
                                {"table:columns": cols, "table:row_count": n})
         assets["source"] = source_asset(local, src)
         exts.append(TABLE_EXT)
+        aoi = spec.get("bbox")
         extra_readme = [f"Rows, {n}.", f"Columns, {len(cols)}.",
-                        "Non-geospatial table, spatial requirements relaxed."]
+                        "Non-geospatial table, spatial requirements relaxed. The "
+                        + ("bounding box is the area of interest the data pertains to, "
+                           f"{aoi}, not a geometry footprint." if aoi else
+                           "data is global, so the bounding box is the whole world.")]
     else:
         raise ValueError(f"unknown kind {kind}")
 
@@ -337,7 +400,11 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
     if bbox is not None:
         extent["spatial"] = {"bbox": [bbox]}
     else:
-        extent["spatial"] = {"bbox": [[-180, -90, 180, 90]]}
+        # A tabular collection has no geometry, but core.md still asks its bbox to
+        # be the area of interest the data pertains to rather than a footprint. A
+        # manifest `bbox` states that area, the whole world is only the fallback
+        # for a genuinely global table.
+        extent["spatial"] = {"bbox": [spec.get("bbox") or [-180, -90, 180, 90]]}
     temporal = spec.get("temporal")
     if temporal:
         extent["temporal"] = {"interval": [temporal]}
@@ -346,7 +413,10 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         "type": "Collection",
         "stac_version": STAC_VERSION,
         "stac_extensions": exts,
-        "id": stem,
+        # core.md, "a nested collection's ID is its POSIX path from the catalog
+        # root", so the id is the full manifest id, not just the leaf segment.
+        # Filenames still use the leaf, a slash cannot appear in a filename.
+        "id": cid,
         "title": spec["title"],
         "description": spec["description"].strip(),
         "license": spec["license"],
@@ -375,6 +445,10 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         readme_extra.append("Note, the upstream source is a live endpoint, so the source "
                             "checksum reflects the copy fetched at build time.")
     readme_extra += [""] + open_lines
+    join = dict(spec.get("join") or {})
+    if join:
+        join["this_file"] = data_name
+        readme_extra += [""] + join_section(join)
     agents = [
         f"This collection holds {spec['title']}.",
         open_agents,
@@ -384,12 +458,42 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         + (f" Attribute as {attribution}." if attribution else ""),
         f"The original upstream source is {src['url']} , tagged on the source-role asset.",
     ]
+    if join:
+        agents.append(
+            f"This table has no geometry. Join column {join['column']} to "
+            f"{join['target']} on {join['target_column']} to map it, see the README.")
     write_sidecars(coll_dir, spec["title"], spec["description"].strip(), readme_extra, agents)
 
-    return {"id": cid, "seg": seg, "title": spec["title"], "updated": prov.get("updated")}
+    return {"id": cid, "seg": seg, "title": spec["title"], "updated": prov.get("updated"),
+            "license": spec["license"], "is_mirror": is_mirror, "source": src["url"]}
 
 
 # --------------------------------------------------------------- catalog build
+def _catalog_prose(colls: list[dict]) -> list[str]:
+    """License and provenance lines for a catalog-level README.
+
+    core.md requires every README, on catalogs as well as collections, to carry a
+    title, a description, a license, and data provenance. A catalog holds no data
+    of its own, so it states the licenses and the provenance of what it contains."""
+    licenses = sorted({c["license"] for c in colls})
+    mirrors = sum(1 for c in colls if c["is_mirror"])
+    official = len(colls) - mirrors
+    kinds = []
+    if mirrors:
+        kinds.append(f"{mirrors} mirror {'Collection' if mirrors == 1 else 'Collections'}")
+    if official:
+        kinds.append(f"{official} official {'Collection' if official == 1 else 'Collections'}")
+    lines = [
+        f"Licenses, {', '.join(licenses)}.",
+        f"Provenance, {' and '.join(kinds)}.",
+        "",
+        "Upstream sources.",
+        "",
+    ]
+    lines += [f"- {c['title']}, {c['source']}" for c in colls]
+    return lines
+
+
 def _group_meta(manifest: dict, seg: str) -> tuple[str, str]:
     entry = (manifest.get("catalogs", {}) or {}).get(seg)
     if entry:
@@ -429,9 +533,14 @@ def build_catalog(manifest: dict, out: Path, cache: Path, only: str | None) -> N
                        link("parent", "../catalog.json", "application/json")]
                       + children + [dict(SIDE_LINKS[0]), dict(SIDE_LINKS[1])]),
         }
+        # A synced catalog carries `updated` too, not just the collections beneath
+        # it, so freshness can be judged at any level of the tree.
+        gupdates = [c["updated"] for c in colls if c.get("updated")]
+        if gupdates:
+            cat["updated"] = max(gupdates)
         (gdir / "catalog.json").write_text(json.dumps(cat, indent=2) + "\n")
         write_sidecars(gdir, gtitle, gdesc,
-                       [f"Collections, {len(colls)}."],
+                       [f"Collections, {len(colls)}."] + _catalog_prose(colls),
                        [f"This catalog groups {len(colls)} Collections under {gtitle}.",
                         "Follow the child links to each Collection."])
 
@@ -453,7 +562,7 @@ def build_catalog(manifest: dict, out: Path, cache: Path, only: str | None) -> N
         (out / "catalog.json").write_text(json.dumps(root, indent=2) + "\n")
         write_sidecars(out, manifest["title"], manifest["description"].strip(),
                        [f"Collections, {len(built)}.",
-                        f"Nested Catalogs, {len(groups)}."],
+                        f"Nested Catalogs, {len(groups)}."] + _catalog_prose(built),
                        [f"This is {manifest['title']}.",
                         "Follow the child links to each nested Catalog and Collection.",
                         "Every Collection carries a cloud-native data asset and cites its "
