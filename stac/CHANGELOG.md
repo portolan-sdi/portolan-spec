@@ -7,8 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.1.0 - 2026-07-27
+
+First tagged release. The schema is published at
+<https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json>.
+
 ### Added
 
+- Initial version of the Portolan STAC profile, moved from the
+  `stac-portolan-extension` repository into `stac/`.
+- JSON Schema covering the specification's schema-checkable structural
+  requirements: non-empty titles and descriptions, titles on `child`/`item`
+  links, no `self` links with relative typed structural links, `type`,
+  `roles`, `file:size`, and `file:checksum` required on every asset,
+  https-only absolute asset hrefs, `providers` with a producer and a
+  reachable host, collection `license` never the deprecated `proprietary`,
+  WGS84 bbox range validity, and the `rel: "agents"` link (with `type`) on
+  Catalogs and Collections.
+- Examples for a root catalog, a single-file vector collection, and a
+  partitioned vector collection with an item.
 - Optimized GeoTIFF conformance for rasters: a COG must meet OGC 21-026's
   Optimized GeoTIFF requirements class (`/req/optimized_geotiff`), covering square
   viewport-sized internal tiles, internal reduced-resolution overviews reducing by
@@ -25,19 +42,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   workflow fetches pinned versions from their source repos at build time; the
   test suite fetches them into `.schema-cache/` and applies them to examples
   that declare them.
-
-- Initial version of the Portolan STAC profile, moved from the
-  `stac-portolan-extension` repository into `stac/`.
-- JSON Schema covering the specification's schema-checkable structural
-  requirements: non-empty titles and descriptions, titles on `child`/`item`
-  links, no `self` links with relative typed structural links, `type`,
-  `roles`, `file:size`, and `file:checksum` required on every asset,
-  https-only absolute asset hrefs, `providers` with a producer and a
-  reachable host, collection `license` never the deprecated `proprietary`,
-  WGS84 bbox range validity, and the `rel: "agents"` link (with `type`) on
-  Catalogs and Collections.
-- Examples for a root catalog, a single-file vector collection, and a
-  partitioned vector collection with an item.
 
 ### Changed
 
