@@ -24,7 +24,7 @@ bootstraps `sys.path` with its own directory so they import as flat names.
 | `thumbnails.py` | Web Mercator preview rendering over the tile basemap fetched by `tiles.py` |
 | `tiles.py` | XYZ basemap tile fetch and mosaic for thumbnails |
 | `stacio.py` | STAC assembly, manifest, providers, assets, links, sidecars, catalog builders |
-| `validate.py` | Thin adapter over reis, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
+| `validate.py` | Thin adapter over rashid, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
 | `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_fetch.py`, and `check_styles.py` |
 
 Inputs and outputs live under `examples/`, not here.
@@ -135,7 +135,7 @@ because pinned checksums on bytes the catalog does not control are guaranteed to
 rot. `add_source_asset` is the single gate.
 
 - `vector`. `to_geoparquet` converts with DuckDB spatial, preserving the source CRS or the manifest `output_crs`, and also builds a WGS84 GeoPackage for the bbox, the PMTiles feed, the thumbnail, and style sampling. It then writes the canonical asset as a web-optimized GeoParquet 2.0 file with geoparquet-io's web profile (native geometry type, per row group GeospatialStatistics, a retained covering bbox column for page-level pruning, a Parquet page index, Hilbert ordering, and byte-targeted fetch-sized row groups). Derivatives read the WGS84 GeoPackage, not the 2.0 output. Optional PMTiles come from a DuckDB GeoJSONSeq export into tippecanoe, with a web-map-links `pmtiles` link. Optional MapLibre styles are authored by `author_styles` from the real field values and read the PMTiles. The GeoParquet `data` asset also carries `table:columns` from a DuckDB `DESCRIBE`, geometry column included, and `proj:code` derived from the real output CRS, declaring the table and projection extensions.
-- `raster`. `to_cog` builds the COG with rasterio, preserving the source CRS or warping to the manifest `output_crs`. Band statistics come from rasterio and numpy and go in STAC 1.1 core `bands`, minimum, maximum, mean, stddev, and valid percent, and `proj:code` carries the real output CRS through the projection extension. The same values are embedded as GDAL `STATISTICS_*` band tags, which is where reis reads them. Overview depth is left to rio-cogeo rather than pinned, see the gotcha below.
+- `raster`. `to_cog` builds the COG with rasterio, preserving the source CRS or warping to the manifest `output_crs`. Band statistics come from rasterio and numpy and go in STAC 1.1 core `bands`, minimum, maximum, mean, stddev, and valid percent, and `proj:code` carries the real output CRS through the projection extension. The same values are embedded as GDAL `STATISTICS_*` band tags, which is where rashid reads them. Overview depth is left to rio-cogeo rather than pinned, see the gotcha below.
 - `tabular`. `to_table_parquet` reads the CSV with DuckDB and writes Parquet. Columns are described with the table extension. No geometry, the spatial extent is the whole world and spatial rules are relaxed.
 
 A Collection whose manifest sets `attribution` declares the attribution extension and carries a top-level `attribution` field.
@@ -168,18 +168,18 @@ onto the canvas with `rasterio.features`. Rasters are warped on top with
 - GeoJSON is always WGS84 and silently drops any target SRS. The thumbnail path reads the WGS84 GeoPackage intermediate and reprojects it to EPSG:3857 with DuckDB spatial in `_mercator_geoms`, so the Mercator projection survives.
 - Zip sources are extracted before reading, because GDAL `/vsizip` keys off a `.zip` suffix that the cached filename does not have.
 - The raster extension v2.0.0 is not declared, its schema conflicts with Collection-level assets (spec issues #52 and #41). Statistics still ship in core `bands`.
-- COG overview depth is never pinned. `to_cog` omits `overview_level` so rio-cogeo derives it from the raster size and the 512px output blocksize, halving until the coarsest level fits inside one tile. That is OGC 21-026's `/req/optimized_geotiff/number`, which formats.md raises to a MUST and reis enforces as PTL-DAT-011. A fixed level, which this used to carry, under-builds overviews on a large raster and builds pointless ones on a raster smaller than a tile. Note the requirement reads "one tile across or down", so the bar is the shorter side, which is what rio-cogeo measures.
-- A MapLibre style's PMTiles url is relative to the `styles/` directory the file sits in, so it is `../name.pmtiles`, never `./name.pmtiles`. The `./` form resolves to `styles/name.pmtiles`, which does not exist, and the style then loads no tiles and renders an empty map. Nothing else catches this, reis does not read style bodies and the STAC validators skip style files for having no `stac_version`, so `check_styles.py` asserts every url resolves to a real file. The source key and every `layers[].source` are `data` per formats.md, while `source-layer` stays the tippecanoe layer name.
+- COG overview depth is never pinned. `to_cog` omits `overview_level` so rio-cogeo derives it from the raster size and the 512px output blocksize, halving until the coarsest level fits inside one tile. That is OGC 21-026's `/req/optimized_geotiff/number`, which formats.md raises to a MUST and rashid enforces as PTL-DAT-011. A fixed level, which this used to carry, under-builds overviews on a large raster and builds pointless ones on a raster smaller than a tile. Note the requirement reads "one tile across or down", so the bar is the shorter side, which is what rio-cogeo measures.
+- A MapLibre style's PMTiles url is relative to the `styles/` directory the file sits in, so it is `../name.pmtiles`, never `./name.pmtiles`. The `./` form resolves to `styles/name.pmtiles`, which does not exist, and the style then loads no tiles and renders an empty map. Nothing else catches this, rashid does not read style bodies and the STAC validators skip style files for having no `stac_version`, so `check_styles.py` asserts every url resolves to a real file. The source key and every `layers[].source` are `data` per formats.md, while `source-layer` stays the tippecanoe layer name.
 - The thumbnail is painted from the DEFAULT style, meaning the variant listed first in `style.variants`, because core.md requires exactly that and core.md also says the default is listed first. `stacio` passes `default_variant` into the thumbnail context and `thumbnails.py` only reaches for the category palette when that variant is in `CATEGORICAL_VARIANTS`. So a Collection that wants a category-coloured preview leads with `categorical`, it does not keep a flat `default` in front of it. Previously the thumbnail branched on `category_field` alone and three Collections shipped previews with zero pixels in common with their own default style.
 - tippecanoe records both `--name` and the verbatim command line in the archive metadata, so it runs with `cwd` set to the Collection directory and bare filenames. Passing absolute paths ships the builder's home directory inside every published `.pmtiles`.
-- A nested Collection's STAC `id` is its full POSIX path from the catalog root, `boundaries/us-counties`, not the leaf segment. Filenames still use the leaf, a slash cannot appear in one. Nothing validates this, reis has no id rules and the profile schema has no id constraint, so it is easy to regress.
+- A nested Collection's STAC `id` is its full POSIX path from the catalog root, `boundaries/us-counties`, not the leaf segment. Filenames still use the leaf, a slash cannot appear in one. Nothing validates this, rashid has no id rules and the profile schema has no id constraint, so it is easy to regress.
 - The `source` asset does not carry the `data` role. core.md scopes `data` to the primary GeoParquet, COG, or Parquet and says the cloud-native asset is primary while the rest are alternates, so rolling a zipped Shapefile `data` leaves a client filtering on that role unable to tell which asset is canonical.
 - The Boston, San Francisco, and Eurostat sources are live endpoints (`stable: false`), so they carry no `source`-role Asset and each README says so. Pinning a checksum on a live query URL guarantees a validator failure once upstream changes, and formats.md scopes the rule to an original that is directly downloadable rather than an API. `fetch` still refetches them instead of reusing the cache, because the canonical Asset is converted from those bytes and a stale cached copy would publish a `data` Asset that no longer matches upstream. That is how spec issue #80 happened, and the build's own validator cannot catch it, since the local-only reader skips remote assets. The DataSF URL also carries `$order=:id` so the 5k window does not reshuffle between fetches.
 
 ## Validation
 
 `validate` runs after each catalog unless `--only` or `--no-validate` is set. It
-calls reis, the canonical Portolan validator, and fails the build on any error
+calls rashid, the canonical Portolan validator, and fails the build on any error
 finding. Warnings and infos print without failing.
 
 Four passes run. The metadata pass checks the Portolan rules. The structural
@@ -193,12 +193,12 @@ statistics, and row-group size, through a local-only reader that skips remote
 source assets so the build stays offline.
 
 Because the build skips remote assets, the remote `source` checksums are only
-proven by running reis directly, without the adapter. Do that before publishing a
+proven by running rashid directly, without the adapter. Do that before publishing a
 rebuild.
 
 ```bash
-uv run --with "reis[data] @ git+https://github.com/portolan-sdi/reis.git" \
-  reis check --data examples/catalog/reference
+uv run --with "rashid[data] @ git+https://github.com/portolan-sdi/rashid.git" \
+  rashid check --data examples/catalog/reference
 ```
 
 The build is clean apart from eight infos, which are expected and terminal. Do
@@ -208,28 +208,28 @@ not try to make the output silent.
   makes `canonical` a conditional MUST, owed only when the upstream publishes its
   own STAC catalog. None of these eight upstreams does, checked directly and
   against all of STAC Index, so the condition never triggers and there is no URL
-  to point at. reis scores it info precisely because metadata cannot settle the
+  to point at. rashid scores it info precisely because metadata cannot settle the
   question. Inventing a link would be worse than the finding.
 
 A ninth finding used to be terminal and no longer is. `PTL-DAT-005` warned on
-`netherlands-provinces` because reis derived its comparison bbox by reprojecting
+`netherlands-provinces` because rashid derived its comparison bbox by reprojecting
 only the four corners of the asset's native EPSG:28992 bbox, which is not a bound
-under a non-affine projection. Filed as portolan-sdi/reis#26 and fixed in
-portolan-sdi/reis#28, which brackets the reprojected extent between a densified
+under a non-affine projection. Filed as portolan-sdi/rashid#26 and fixed in
+portolan-sdi/rashid#28, which brackets the reprojected extent between a densified
 outer bound and an inner bound instead. Collections that preserve a projected
-source CRS validate cleanly from reis
+source CRS validate cleanly from rashid
 `7bb322961dc7fa4d49744604ee227346561f7f64` onward.
 
-reis's live-hosting pass (`--live`, PTL-LIV) is deliberately not wired in. It
+rashid's live-hosting pass (`--live`, PTL-LIV) is deliberately not wired in. It
 probes the servers behind absolute `https` asset hrefs. The catalog does have
 eight of those, one `source` asset per Collection, so the pass would find
-targets. It skips them anyway, because `reis/src/reis/live.py` exempts any
+targets. It skips them anyway, because `rashid/src/rashid/live.py` exempts any
 `source` or `alternate` asset on the grounds that the publisher does not run
 that server. So the pass has nothing left to probe until the catalog is
 published at a real base URL and its own relative hrefs become absolute.
 Revisit then.
 
-Worth knowing that the exemption is reis's own invention. core.md's Data Storage
+Worth knowing that the exemption is rashid's own invention. core.md's Data Storage
 section says "Servers MUST support range requests" and requires CORS with
 `Access-Control-Expose-Headers`, unqualified, with no carve-out for upstream
 servers. Measured against the eight upstream sources, two ignore `Range`
@@ -237,10 +237,10 @@ entirely, four send no CORS header, and none sends
 `Access-Control-Expose-Headers`. Nothing the generator can fix, those are third
 party servers. The spec should scope those MUSTs to assets the publisher hosts.
 
-reis is a pinned git dependency in `build.py`'s PEP 723 header. Bumping the
-Portolan schema is a coordinated change across this repo and reis, update the
-local schema, regenerate the reference catalog, re-vendor fixtures into reis,
-then bump the reis pin here.
+rashid is a pinned git dependency in `build.py`'s PEP 723 header. Bumping the
+Portolan schema is a coordinated change across this repo and rashid, update the
+local schema, regenerate the reference catalog, re-vendor fixtures into rashid,
+then bump the rashid pin here.
 
 ## Conventions
 

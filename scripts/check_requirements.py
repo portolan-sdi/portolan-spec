@@ -19,7 +19,7 @@ sentence it governs, so the check needs no markup inside the markdown:
 Exclusions cover uppercase keyword mentions that are not requirements (for
 example, prose explaining the RFC 2119 conventions themselves).
 
-Downstream, the reis validator vendors this manifest and enforces that every
+Downstream, the rashid validator vendors this manifest and enforces that every
 MUST and SHOULD ID maps to at least one rule and one test.
 
 Usage::

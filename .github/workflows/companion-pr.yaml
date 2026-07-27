@@ -1,9 +1,9 @@
 name: Companion PR
 
-# The spec is ground truth and reis is its deterministic implementation, so
-# every normative change here must land with a matching reis change. This check
+# The spec is ground truth and rashid is its deterministic implementation, so
+# every normative change here must land with a matching rashid change. This check
 # enforces the pairing: a PR that touches normative content must either link
-# its reis companion PR in the body ("Companion-PR: portolan-sdi/reis#123") or
+# its rashid companion PR in the body ("Companion-PR: portolan-sdi/rashid#123") or
 # carry the "no-validator-change" label for edits with no conformance impact.
 #
 # The job runs on every PR and passes itself when no normative paths changed.
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Require a reis companion PR for normative changes
+      - name: Require a rashid companion PR for normative changes
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -55,24 +55,24 @@ jobs:
             --json body --jq '.body')
 
           COMPANION=$(grep -oiE \
-            'Companion-PR:[[:space:]]*portolan-sdi/reis#[0-9]+' \
+            'Companion-PR:[[:space:]]*portolan-sdi/rashid#[0-9]+' \
             <<< "$BODY" | head -1 | grep -oE '[0-9]+$' || true)
 
           if [ -z "$COMPANION" ]; then
             echo "::error::This PR changes normative content (specs/ or stac/)" \
               "but names no companion validator PR. Add a line" \
-              "'Companion-PR: portolan-sdi/reis#<number>' to the PR body," \
+              "'Companion-PR: portolan-sdi/rashid#<number>' to the PR body," \
               "or apply the 'no-validator-change' label."
             exit 1
           fi
 
-          STATE=$(gh pr view "$COMPANION" --repo portolan-sdi/reis \
+          STATE=$(gh pr view "$COMPANION" --repo portolan-sdi/rashid \
             --json state --jq '.state' 2>/dev/null || echo MISSING)
 
           if [ "$STATE" = "MISSING" ]; then
-            echo "::error::Companion PR portolan-sdi/reis#${COMPANION}" \
+            echo "::error::Companion PR portolan-sdi/rashid#${COMPANION}" \
               "does not exist."
             exit 1
           fi
 
-          echo "Companion PR portolan-sdi/reis#${COMPANION} found (${STATE})."
+          echo "Companion PR portolan-sdi/rashid#${COMPANION} found (${STATE})."

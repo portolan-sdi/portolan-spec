@@ -1,7 +1,7 @@
 name: Requirements Manifest
 
 # Keeps specs/portolan/requirements.yaml and the spec prose in lockstep.
-# The manifest anchors a stable ID to every normative sentence; reis keys
+# The manifest anchors a stable ID to every normative sentence; rashid keys
 # its coverage gate to those IDs. See scripts/check_requirements.py.
 
 on:

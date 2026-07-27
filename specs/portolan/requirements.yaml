@@ -7,7 +7,7 @@
 # REQUIRED -> MUST, RECOMMENDED -> SHOULD, OPTIONAL / NOT REQUIRED -> MAY).
 #
 # enforcement is one of:
-#   validator - the reis validator must cite this ID from at least one check.
+#   validator - the rashid validator must cite this ID from at least one check.
 #   process   - not machine-checkable from the catalog or its bytes
 #               (publish-time behavior, upstream knowledge, guidance).
 #

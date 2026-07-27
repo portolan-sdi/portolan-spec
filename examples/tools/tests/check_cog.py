@@ -12,12 +12,12 @@
 Covers the two rules formats.md raises to MUSTs on top of a valid COG, per OGC
 21-026's Optimized GeoTIFF requirements class.
 
-Overviews (`/req/optimized_geotiff/number`), which reis enforces as PTL-DAT-011.
+Overviews (`/req/optimized_geotiff/number`), which rashid enforces as PTL-DAT-011.
 A raster wider or taller than one 512px tile MUST carry internal overviews,
 halving until the coarsest level fits inside a tile. A raster already smaller
 than a tile is exempt, since it is its own overview.
 
-Band statistics, which reis enforces as PTL-DAT-009 and PTL-DAT-010. Every band
+Band statistics, which rashid enforces as PTL-DAT-009 and PTL-DAT-010. Every band
 carries embedded STATISTICS_* tags, and valid percent is a MUST once the band has
 a nodata value.
 

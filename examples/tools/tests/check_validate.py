@@ -5,7 +5,7 @@
 #   "reis[data] @ git+https://github.com/portolan-sdi/reis.git@45207def50768cdb03eaa28f02215fabfdacacda",
 # ]
 # ///
-"""Standalone checks for the reis validation adapter.
+"""Standalone checks for the rashid validation adapter.
 
 Run:
     uv run examples/tools/tests/check_validate.py
@@ -29,7 +29,7 @@ from validate import validate  # noqa: E402
 
 
 def check_reference_catalog_passes() -> None:
-    # Raises SystemExit if reis reports any error finding.
+    # Raises SystemExit if rashid reports any error finding.
     validate(REFERENCE, SCHEMA)
 
 

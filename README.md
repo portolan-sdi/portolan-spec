@@ -16,7 +16,7 @@ data on any S3-compatible bucket, described by structured
 others:
 
 - **The standard** defines what a great catalog looks like. It lives here.
-- **[reis](https://github.com/portolan-sdi/reis)**, the validator, proves a
+- **[rashid](https://github.com/portolan-sdi/rashid)**, the validator, proves a
   catalog meets the standard.
 - **[portolan-cli](https://github.com/portolan-sdi/portolan-cli)** makes catalogs
   easy to build.
@@ -79,10 +79,10 @@ GeoParquet were built for long-term stability. Portolan sits on top of them and
 moves faster. Each version states what the community currently believes a great
 catalog looks like, so a requirement that is aspirational today may relax or
 tighten as the ecosystem catches up. Conformance means passing the
-[validator](https://github.com/portolan-sdi/reis), not claiming to conform. Every
-normative statement carries a stable ID in
-[`requirements.yaml`](specs/portolan/requirements.yaml), and CI proves that reis
-enforces each one.
+[validator](https://github.com/portolan-sdi/rashid), not claiming to conform.
+Every normative statement carries a stable ID in
+[`requirements.yaml`](specs/portolan/requirements.yaml), and CI proves that
+rashid enforces each one.
 
 Where the current landscape has gaps, Portolan will incubate new standards or
 write down practices that until now have been informal. Usually that means
@@ -167,15 +167,15 @@ When a change is normative, bump the spec version per the
 
 ### Companion validator PRs
 
-The spec is ground truth and [reis](https://github.com/portolan-sdi/reis) is its
-deterministic implementation. A catalog conforms to the spec exactly when it
-passes reis, so the two must never diverge.
+The spec is ground truth and [rashid](https://github.com/portolan-sdi/rashid) is
+its deterministic implementation. A catalog conforms to the spec exactly when it
+passes rashid, so the two must never diverge.
 
 Every PR that touches normative content (`specs/` or `stac/`) must name the
-matching reis PR in its body:
+matching rashid PR in its body:
 
 ```
-Companion-PR: portolan-sdi/reis#123
+Companion-PR: portolan-sdi/rashid#123
 ```
 
 CI verifies the reference. Editorial changes with no conformance impact (typos,
