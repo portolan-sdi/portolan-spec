@@ -1,12 +1,30 @@
-# Incubating — STAC-GeoParquet
+# Incubating — STAC-GeoParquet Beyond Raster Items
 
 **Status: maturing convention, may become required.**
 
-For catalogs with many items (e.g. more than 100), include a
-[stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) file alongside
-`collection.json` to enable search and filtering without a STAC API server.
+The item mirror for raster collections is ratified. See [Raster § Item
+mirror](../portolan/formats.md#raster). It graduated first because
+[stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) tooling already
+writes and reads `items.parquet`, and because scene collections are where
+per-item JSON fetches hurt most.
 
-This is a best practice while tooling matures and may become a requirement in a
-later Portolan version. It is incubating rather than normative so that catalogs are
-not held to it before the tooling and conventions (file location, naming, and how
-it is linked from the collection) are settled.
+Two extensions of the idea are still open.
+
+## Mirroring collections themselves
+
+One construct should cover every collection a catalog holds, whatever the data
+underneath — COGs, vector, point clouds. A Parquet mirror of the collections
+would let a client search across a catalog in one read, as `items.parquet` does
+within one collection, and would carry the same terms to collection types that
+today publish no mirror at all.
+
+The encoding is unsettled. Collection extents are ranges rather than footprints,
+summaries vary in shape, and no tooling reads such a file today.
+
+## A whole STAC catalog in Parquet
+
+Beyond mirroring items or collections, the longer-term goal is a Parquet
+representation complete enough to reconstruct a catalog: catalogs, collections,
+items, and links in one queryable set of files. That work belongs upstream in
+`stac-geoparquet` first. Portolan should adopt the convention once it exists
+there, rather than invent a parallel one.
