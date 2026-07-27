@@ -181,7 +181,11 @@ def to_cog(src_tif: Path, out_tif: Path, output_crs: str | None) -> str:
                     tmp.write(data)
                     for i in range(1, src.count + 1):
                         _embed_band_stats(tmp, i, src.read(i, masked=True))
-                    cog_translate(tmp, out_tif, profile, in_memory=True, quiet=True,
+                # Closing the write flushes the pixels and the band tags into the
+                # MemoryFile, then rio-cogeo reads it back, it rejects a source
+                # left open in write mode.
+                with mem.open() as staged:
+                    cog_translate(staged, out_tif, profile, in_memory=True, quiet=True,
                                   overview_resampling="average", forward_band_tags=True)
         else:
             transform, width, height = calculate_default_transform(
@@ -201,7 +205,9 @@ def to_cog(src_tif: Path, out_tif: Path, output_crs: str | None) -> str:
                         tmp.write(dest, i)
                         arr = np.ma.masked_equal(dest, nodata) if nodata is not None else np.ma.masked_array(dest)
                         _embed_band_stats(tmp, i, arr)
-                    cog_translate(tmp, out_tif, profile, in_memory=True, quiet=True,
+                # Same read-only handover as the CRS-preserving branch above.
+                with mem.open() as staged:
+                    cog_translate(staged, out_tif, profile, in_memory=True, quiet=True,
                                   overview_resampling="average", forward_band_tags=True)
     return out_crs
 
