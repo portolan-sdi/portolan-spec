@@ -1020,6 +1020,41 @@ requirements:
       Point cloud support is not yet implemented; when complete, data MUST be
       provided as Cloud-Optimized Point Cloud (COPC).
 
+  - id: PORTO-FMT-040
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A raster collection that models scenes as items SHOULD also publish a
+      [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) rollup
+      at `items.parquet` in the collection root.
+
+  - id: PORTO-FMT-041
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A published rollup MUST be registered twice on the collection: as an
+      asset under the key `geoparquet-items` with role `["stac-items"]`, and
+      as a `rel: "items"` link. Both carry media type
+      `application/vnd.apache.parquet`.
+
+  - id: PORTO-FMT-042
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      The item JSON stays normative and the rollup derives from it, so rollup
+      rows MUST match the collection's items at publish time.
+
+  - id: PORTO-FMT-043
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      The GeoParquet requirements above bind data assets, and a validator MUST
+      NOT hold a rollup to them.
+
 exclusions:
   # RFC 2119 preamble: keyword mentions, not requirements.
   - file: specs/portolan/core.md

@@ -162,6 +162,34 @@ The exact on-disk encoding (the TIFF `GDAL_METADATA` tag and its XML layout, and
 [`specs/incubating/geotiff-stats-headers.md`](../incubating/geotiff-stats-headers.md).
 Compliance is defined by the tag contents, not by use of GDAL.
 
+**Item rollup.** A raster collection that models scenes as items SHOULD also publish a
+[stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) rollup at `items.parquet`
+in the collection root. One range request then returns the whole collection's item
+metadata, in place of one HTTP fetch per scene. Clients can search a large scene collection,
+or assemble it into a data cube, without a STAC API server.
+
+No item-count threshold applies. Tooling generates the rollup from the item JSON, and the
+saved fetches add up at any size.
+
+A published rollup MUST be registered twice on the collection: as an asset under the key
+`geoparquet-items` with role `["stac-items"]`, and as a `rel: "items"` link. Both carry
+media type `application/vnd.apache.parquet`. Asset-reading clients find the first
+registration, link-walking clients the second.
+
+The item JSON stays normative and the rollup derives from it, so rollup rows MUST match the
+collection's items at publish time. A rollup that lags its items answers queries wrongly,
+and the client reading it cannot tell.
+
+A rollup carries item metadata, not data. The GeoParquet requirements above bind data
+assets, and a validator MUST NOT hold a rollup to them. Spatial ordering, per-row-group
+spatial statistics, and the row-group ceiling describe a dataset queried by extent, not an
+item index.
+
+A collection holding a single COG has no items and publishes no rollup. Rollups for vector
+and point-cloud collections remain incubating, as does a catalog-wide
+`collections.parquet`. See
+[`specs/incubating/stac-geoparquet.md`](../incubating/stac-geoparquet.md).
+
 Raster styling (colormaps, legends, continuous vs. categorical vs. multiband) is
 still under discussion — see
 [`specs/incubating/raster-styling.md`](../incubating/raster-styling.md).
