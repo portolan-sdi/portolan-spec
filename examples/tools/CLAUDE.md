@@ -126,10 +126,13 @@ something to silence with a link to a landing page or an ISO record.
 
 ## Pipeline per kind
 
-Every path downloads the source once into `.cache`, produces a cloud-native
-canonical `data` Asset, and also emits a `source`-role Asset that points at the
-upstream URL with the real `file:size` and multihash `file:checksum` of the
-fetched file.
+Every path downloads the source into `.cache` and produces a cloud-native
+canonical `data` Asset. When the manifest marks the source `stable: true`, it
+also emits a `source`-role Asset that points at the upstream URL with the real
+`file:size` and multihash `file:checksum` of the fetched file. A `stable: false`
+source, meaning a live endpoint, is referenced by URL in the sidecars only,
+because pinned checksums on bytes the catalog does not control are guaranteed to
+rot. `add_source_asset` is the single gate.
 
 - `vector`. `to_geoparquet` converts with DuckDB spatial, preserving the source CRS or the manifest `output_crs`, and also builds a WGS84 GeoPackage for the bbox, the PMTiles feed, the thumbnail, and style sampling. It then writes the canonical asset as a web-optimized GeoParquet 2.0 file with geoparquet-io's web profile (native geometry type, per row group GeospatialStatistics, a retained covering bbox column for page-level pruning, a Parquet page index, Hilbert ordering, and byte-targeted fetch-sized row groups). Derivatives read the WGS84 GeoPackage, not the 2.0 output. Optional PMTiles come from a DuckDB GeoJSONSeq export into tippecanoe, with a web-map-links `pmtiles` link. Optional MapLibre styles are authored by `author_styles` from the real field values and read the PMTiles. The GeoParquet `data` asset also carries `table:columns` from a DuckDB `DESCRIBE`, geometry column included, and `proj:code` derived from the real output CRS, declaring the table and projection extensions.
 - `raster`. `to_cog` builds the COG with rasterio, preserving the source CRS or warping to the manifest `output_crs`. Band statistics come from rasterio and numpy and go in STAC 1.1 core `bands`, minimum, maximum, mean, stddev, and valid percent, and `proj:code` carries the real output CRS through the projection extension. The same values are embedded as GDAL `STATISTICS_*` band tags, which is where reis reads them. Overview depth is left to rio-cogeo rather than pinned, see the gotcha below.
@@ -171,7 +174,7 @@ onto the canvas with `rasterio.features`. Rasters are warped on top with
 - tippecanoe records both `--name` and the verbatim command line in the archive metadata, so it runs with `cwd` set to the Collection directory and bare filenames. Passing absolute paths ships the builder's home directory inside every published `.pmtiles`.
 - A nested Collection's STAC `id` is its full POSIX path from the catalog root, `boundaries/us-counties`, not the leaf segment. Filenames still use the leaf, a slash cannot appear in one. Nothing validates this, reis has no id rules and the profile schema has no id constraint, so it is easy to regress.
 - The `source` asset does not carry the `data` role. core.md scopes `data` to the primary GeoParquet, COG, or Parquet and says the cloud-native asset is primary while the rest are alternates, so rolling a zipped Shapefile `data` leaves a client filtering on that role unable to tell which asset is canonical.
-- The Boston, San Francisco, and Eurostat sources are live endpoints. `fetch` refetches any `stable: false` source instead of reusing the cache, so the declared `file:size` and `file:checksum` describe the bytes fetched during that build, as core.md requires. A cached copy from an earlier build is how spec issue #80 happened, and the build's own validator cannot catch it, since the local-only reader skips remote assets. The DataSF URL also carries `$order=:id` so the 5k window does not reshuffle between fetches.
+- The Boston, San Francisco, and Eurostat sources are live endpoints (`stable: false`), so they carry no `source`-role Asset and each README says so. Pinning a checksum on a live query URL guarantees a validator failure once upstream changes, and formats.md scopes the rule to an original that is directly downloadable rather than an API. `fetch` still refetches them instead of reusing the cache, because the canonical Asset is converted from those bytes and a stale cached copy would publish a `data` Asset that no longer matches upstream. That is how spec issue #80 happened, and the build's own validator cannot catch it, since the local-only reader skips remote assets. The DataSF URL also carries `$order=:id` so the 5k window does not reshuffle between fetches.
 
 ## Validation
 

@@ -7,7 +7,7 @@ Providers, City and County of San Francisco (producer, licensor), DataSF (proces
 Original source, https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=5000&$order=:id .
 Features, 5000.
 Cloud-native asset, san-francisco-addresses.parquet (GeoParquet).
-Note, the upstream source is a live endpoint, so the source checksum reflects the copy fetched at build time.
+Note, the upstream source is a live endpoint, so it is referenced by URL only and not archived as a source asset.
 
 ## Open the data
 

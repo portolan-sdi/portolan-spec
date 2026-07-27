@@ -33,11 +33,13 @@ the data, so there is no honest way to present one of these as official. No
 Collection carries a `canonical` link either, because that is owed only when the
 upstream publishes its own STAC, and none of these eight do.
 
-Every Collection carries a cloud-native canonical data Asset and also cites its
-true original upstream file as a `source`-role Asset, each with its own real
-`file:size` and sha2-256 multihash `file:checksum`. Every node has a `README.md`
-with runnable code for opening the data and an `AGENTS.md` with guidance for
-agents.
+Every Collection carries a cloud-native canonical data Asset with its own real
+`file:size` and sha2-256 multihash `file:checksum`. The five whose upstream is a
+directly downloadable file also cite that original as a `source`-role Asset. The
+other three upstreams are live API endpoints, so they are referenced by URL only,
+which the spec asks for and which keeps a checksum off bytes this catalog does
+not control. Every node has a `README.md` with runnable code for opening the data
+and an `AGENTS.md` with guidance for agents.
 
 ### Regenerating it
 
@@ -70,13 +72,19 @@ basemap is set once in the manifest `thumbnails` block, and each Collection's
 preview mirrors the map. A `category_field` colours features by category, the
 counties are coloured by state, for example.
 
-A few upstream sources are live endpoints, the Boston export, the DataSF layer,
-and the Eurostat API, so their `source` Asset checksums reflect the copy fetched
-at build time. The other sources are version-stable. Because a live endpoint's
-bytes drift, a source marked `stable: false` is refetched on every build rather
-than served from the cache, so its declared `file:size` and `file:checksum`
-always describe the bytes the endpoint returned during that build. That is what
-core.md asks for when it requires those values to be regenerated at publish time.
+Three upstream sources are live endpoints, the Boston export, the DataSF layer,
+and the Eurostat API. They are marked `stable: false` in the manifest and carry
+no `source`-role Asset, because formats.md scopes that Asset to an original that
+is directly downloadable rather than an API, and a checksum pinned to bytes this
+catalog does not control is guaranteed to rot. Their READMEs say the upstream is
+referenced by URL only. The other five sources are version-stable and do carry
+the original.
+
+A `stable: false` source is still refetched on every build rather than served
+from the cache, because the canonical Asset is converted from those bytes and a
+stale cached copy would publish data that no longer matches upstream. That is
+what core.md asks for when it requires those values to be regenerated at publish
+time.
 
 ### Note, CRS and engine changes
 

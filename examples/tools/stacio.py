@@ -115,6 +115,21 @@ def source_asset(local: Path, spec_source: dict) -> dict:
             "file:size": filesize(local), "file:checksum": multihash(local)}
 
 
+def add_source_asset(assets: dict, local: Path, spec_source: dict) -> None:
+    """Attach the `source` Asset, but only for a stable upstream download.
+
+    formats.md scopes the rule to an original that is "directly downloadable (not
+    just an API)", so a `stable: false` upstream gets no `source` Asset at all. It
+    is referenced by URL in the sidecars instead. Two reasons. A live query URL is
+    an API rather than a download, and `file:size` and `file:checksum` pinned to
+    bytes this catalog does not control are guaranteed to rot the moment upstream
+    changes, which is exactly the validator failure reis caught on the Socrata
+    mirror.
+    """
+    if spec_source.get("stable", True):
+        assets["source"] = source_asset(local, spec_source)
+
+
 # --------------------------------------------------------------- prose sidecars
 def _providers_sentence(providers: list[dict]) -> str:
     parts = [f"{p['name']} ({', '.join(p.get('roles', []))})" for p in providers]
@@ -311,7 +326,7 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
                                {"table:columns": cols, "table:primary_geometry": geom_col,
                                 "table:row_count": n, "proj:code": canon_crs})
         exts += [TABLE_EXT, PROJ_EXT]
-        assets["source"] = source_asset(local, src)
+        add_source_asset(assets, local, src)
         if deriv.get("pmtiles"):
             pm = coll_dir / f"{stem}.pmtiles"
             make_pmtiles(norm, pm, layer_name)
@@ -345,7 +360,7 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         n = 0
         assets["data"] = asset(cog, MEDIA["cog"], ["data"], f"{spec['title']} (COG)",
                                {"bands": bands, "proj:code": code})
-        assets["source"] = source_asset(local, src)
+        add_source_asset(assets, local, src)
         # Band statistics live in STAC 1.1 core `bands`. The raster extension v2.0.0
         # schema conflicts with collection-level assets (spec issues #52 / #41), so
         # it is not declared here, projection carries the CRS.
@@ -368,7 +383,7 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         assets["data"] = asset(data_pq, MEDIA["parquet"], ["data"],
                                f"{spec['title']} (Parquet)",
                                {"table:columns": cols, "table:row_count": n})
-        assets["source"] = source_asset(local, src)
+        add_source_asset(assets, local, src)
         exts.append(TABLE_EXT)
         aoi = spec.get("bbox")
         extra_readme = [f"Rows, {n}.", f"Columns, {len(cols)}.",
@@ -442,8 +457,8 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         f"Original source, {src['url']} .",
     ] + extra_readme
     if not src.get("stable", True):
-        readme_extra.append("Note, the upstream source is a live endpoint, so the source "
-                            "checksum reflects the copy fetched at build time.")
+        readme_extra.append("Note, the upstream source is a live endpoint, so it is "
+                            "referenced by URL only and not archived as a source asset.")
     readme_extra += [""] + open_lines
     join = dict(spec.get("join") or {})
     if join:
@@ -456,7 +471,9 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
          if assets.get("visual") else "For a quick preview use the thumbnail asset."),
         f"License is {spec['license']}."
         + (f" Attribute as {attribution}." if attribution else ""),
-        f"The original upstream source is {src['url']} , tagged on the source-role asset.",
+        f"The original upstream source is {src['url']} , "
+        + ("tagged on the source-role asset."
+           if src.get("stable", True) else "a live endpoint referenced by URL only."),
     ]
     if join:
         agents.append(

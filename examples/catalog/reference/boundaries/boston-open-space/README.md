@@ -7,7 +7,7 @@ Providers, City of Boston (producer, licensor), Portolan SDI (host).
 Original source, https://opendata.arcgis.com/api/v3/datasets/2868d370c55d4d458d4ae2224ef8cddd_7/downloads/data?format=shp&spatialRefId=4326 .
 Features, 1012.
 Cloud-native asset, boston-open-space.parquet (GeoParquet).
-Note, the upstream source is a live endpoint, so the source checksum reflects the copy fetched at build time.
+Note, the upstream source is a live endpoint, so it is referenced by URL only and not archived as a source asset.
 
 ## Open the data
 
