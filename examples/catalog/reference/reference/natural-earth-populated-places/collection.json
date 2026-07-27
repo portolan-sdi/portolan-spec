@@ -7,7 +7,7 @@
     "https://stac-extensions.github.io/table/v1.2.0/schema.json",
     "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
   ],
-  "id": "natural-earth-populated-places",
+  "id": "reference/natural-earth-populated-places",
   "title": "Natural Earth Populated Places (1:50m)",
   "description": "Point locations of populated places, cities and towns, at 1:50m scale from Natural Earth. Public domain reference points, republished as cloud-native GeoParquet alongside the original zipped Shapefile.",
   "license": "CC0-1.0",
@@ -637,7 +637,6 @@
       "type": "application/zip",
       "title": "Natural Earth 50m Populated Places (zipped Shapefile)",
       "roles": [
-        "data",
         "source"
       ],
       "file:size": 553649,

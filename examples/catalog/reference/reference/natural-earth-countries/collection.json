@@ -7,7 +7,7 @@
     "https://stac-extensions.github.io/table/v1.2.0/schema.json",
     "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
   ],
-  "id": "natural-earth-countries",
+  "id": "reference/natural-earth-countries",
   "title": "Natural Earth Countries (1:110m)",
   "description": "World country boundaries at 1:110m scale from Natural Earth, the public domain reference basemap maintained by NACIS. Republished as cloud-native GeoParquet alongside the original zipped Shapefile.",
   "license": "CC0-1.0",
@@ -761,7 +761,6 @@
       "type": "application/zip",
       "title": "Natural Earth 110m Admin 0 Countries (zipped Shapefile)",
       "roles": [
-        "data",
         "source"
       ],
       "file:size": 214976,

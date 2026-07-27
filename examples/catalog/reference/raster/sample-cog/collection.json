@@ -6,7 +6,7 @@
     "https://stac-extensions.github.io/file/v2.1.0/schema.json",
     "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
   ],
-  "id": "sample-cog",
+  "id": "raster/sample-cog",
   "title": "Sample Raster COG",
   "description": "A small 3-band Cloud Optimized GeoTIFF used to exercise the raster path end to end. Optimized to a COG with per-band statistics, minimum, maximum, mean, and standard deviation, embedded in the header. From the rasterio test fixtures, a 3-band raster in UTM zone 18N (EPSG:32618).",
   "license": "BSD-3-Clause",
@@ -23,7 +23,14 @@
       "url": "https://github.com/rasterio/rasterio",
       "roles": [
         "producer",
-        "licensor",
+        "licensor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
         "host"
       ]
     }
@@ -97,7 +104,6 @@
       "type": "image/tiff",
       "title": "rasterio RGB.byte.tif test fixture (GeoTIFF)",
       "roles": [
-        "data",
         "source"
       ],
       "file:size": 1745956,
@@ -124,6 +130,12 @@
       "rel": "parent",
       "href": "../catalog.json",
       "type": "application/json"
+    },
+    {
+      "rel": "via",
+      "href": "https://github.com/rasterio/rasterio/blob/main/tests/data/RGB.byte.tif",
+      "type": "text/html",
+      "title": "Original source"
     },
     {
       "rel": "agents",

@@ -9,7 +9,7 @@
     "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json",
     "https://stac-extensions.github.io/attribution/v0.1.0/schema.json"
   ],
-  "id": "netherlands-provinces",
+  "id": "boundaries/netherlands-provinces",
   "title": "Netherlands Provinces",
   "description": "The 12 provinces of the Netherlands, administrative boundaries from the Dutch national spatial data infrastructure PDOK, derived from the Kadaster BRK Bestuurlijke Gebieden. Republished as cloud-native GeoParquet with a PMTiles visualization and categorical, labeled MapLibre styles.",
   "license": "CC-BY-4.0",
@@ -118,7 +118,6 @@
       "type": "application/geopackage+sqlite3",
       "title": "PDOK Bestuurlijke Gebieden 2026 (GeoPackage)",
       "roles": [
-        "data",
         "source"
       ],
       "file:size": 14495744,
@@ -131,18 +130,8 @@
       "roles": [
         "visual"
       ],
-      "file:size": 435181,
-      "file:checksum": "1220e6a8a94629f9308f9af18f64af5868b0510a87b5526a89450e46dbcc109a8087"
-    },
-    "style-default": {
-      "href": "./styles/default.json",
-      "type": "application/vnd.mapbox.style+json",
-      "title": "Default MapLibre style",
-      "roles": [
-        "style"
-      ],
-      "file:size": 505,
-      "file:checksum": "122080527d1499c34674f83bfacf30a6d30afa668f9cd58b9319b5695ceab3869180"
+      "file:size": 435122,
+      "file:checksum": "1220a7a9d30cbd97f9a92161530a4f335aa50db1307ce24ab7d16f7de668595d519e"
     },
     "style-categorical": {
       "href": "./styles/categorical.json",
@@ -151,8 +140,8 @@
       "roles": [
         "style"
       ],
-      "file:size": 1149,
-      "file:checksum": "12203edf9302f8b14817bf4681dd8589723ade9f268f5a290c66c2c9fd3a4fbd8715"
+      "file:size": 1116,
+      "file:checksum": "12209ba3d8136ec149ac47a65465488dd16e17cb90491b370d2955bdbf30bbbec96e"
     },
     "style-labeled": {
       "href": "./styles/labeled.json",
@@ -161,8 +150,8 @@
       "roles": [
         "style"
       ],
-      "file:size": 1592,
-      "file:checksum": "1220d62fa3605884186e2cbbc8790d1f4764896b2ecea30ea057a6dfb311f5a07429"
+      "file:size": 1542,
+      "file:checksum": "12208ca919cc57340e124a236d994f7101f2a4011133feaf8a64b10f1d1af348962c"
     },
     "thumbnail": {
       "href": "./thumbnail.png",
@@ -200,12 +189,6 @@
       "href": "https://www.pdok.nl/introductie/-/article/bestuurlijke-gebieden",
       "type": "text/html",
       "title": "Original source"
-    },
-    {
-      "rel": "canonical",
-      "href": "https://www.nationaalgeoregister.nl/geonetwork/srv/api/records/208bc283-7c66-4ce7-8ad3-1cf3e8933fb5",
-      "type": "application/json",
-      "title": "Upstream metadata record"
     },
     {
       "rel": "agents",

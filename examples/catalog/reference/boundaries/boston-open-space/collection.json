@@ -8,7 +8,7 @@
     "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
     "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json"
   ],
-  "id": "boston-open-space",
+  "id": "boundaries/boston-open-space",
   "title": "Boston Open Space",
   "description": "City of Boston open spaces and parks, playgrounds, athletic fields, conservation land, and cemeteries, 1,012 polygons from the City of Boston GIS open data platform. Official primary source, republished as cloud-native GeoParquet with a PMTiles visualization and MapLibre styles.",
   "license": "PDDL-1.0",
@@ -25,7 +25,14 @@
       "url": "https://data.boston.gov",
       "roles": [
         "producer",
-        "licensor",
+        "licensor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
         "host"
       ]
     }
@@ -155,7 +162,6 @@
       "type": "application/zip",
       "title": "City of Boston Open Space (zipped Shapefile export)",
       "roles": [
-        "data",
         "source"
       ],
       "file:size": 1074835,
@@ -168,18 +174,8 @@
       "roles": [
         "visual"
       ],
-      "file:size": 989285,
-      "file:checksum": "12208e44887f69858c6146bdc2b2238b2ac60c57930d424036e2cf9eafa79492a066"
-    },
-    "style-default": {
-      "href": "./styles/default.json",
-      "type": "application/vnd.mapbox.style+json",
-      "title": "Default MapLibre style",
-      "roles": [
-        "style"
-      ],
-      "file:size": 481,
-      "file:checksum": "1220b0b7b1d69c2587e3edb2e9875d7f9b7d275e21bdaeeb0e063bc0262f24bef2ec"
+      "file:size": 989217,
+      "file:checksum": "1220db3d459dc821db7adf739ad0afee9682a3b94f8d467c564c343dcb159a2b3281"
     },
     "style-categorical": {
       "href": "./styles/categorical.json",
@@ -188,8 +184,8 @@
       "roles": [
         "style"
       ],
-      "file:size": 1099,
-      "file:checksum": "1220fdb041f1fb9d477d6f1132118faa58c747be78969369293227ef2514ac962628"
+      "file:size": 1074,
+      "file:checksum": "12206a77ee90951b2b7304d004d15e55dcec1eabfb6b51e12c14fa2fe7733ac5520e"
     },
     "style-labeled": {
       "href": "./styles/labeled.json",
@@ -198,8 +194,8 @@
       "roles": [
         "style"
       ],
-      "file:size": 1535,
-      "file:checksum": "1220791343c93b740b6ddd6f8acc6dc4e0f7767484ea84b8c0d48d0f0830be4cf64d"
+      "file:size": 1497,
+      "file:checksum": "1220f7ceb12f8e30c8e329e8ebbf9a36f80e2fe2455ff6a35653380420c790842d2c"
     },
     "style-graduated": {
       "href": "./styles/graduated.json",
@@ -208,8 +204,8 @@
       "roles": [
         "style"
       ],
-      "file:size": 732,
-      "file:checksum": "1220f1b52e2218b66452a017777a9b4e0e4d87ff12417d0f38e5f08128bda3429fce"
+      "file:size": 707,
+      "file:checksum": "1220288ff97ed4f1e7d0524be583b61751c1ebd599f0ea1b89751891c7885d9cc607"
     },
     "thumbnail": {
       "href": "./thumbnail.png",
@@ -241,6 +237,12 @@
       "pmtiles:layers": [
         "boston-open-space"
       ]
+    },
+    {
+      "rel": "via",
+      "href": "https://bostonopendata-boston.opendata.arcgis.com/datasets/2868d370c55d4d458d4ae2224ef8cddd_7",
+      "type": "text/html",
+      "title": "Original source"
     },
     {
       "rel": "agents",

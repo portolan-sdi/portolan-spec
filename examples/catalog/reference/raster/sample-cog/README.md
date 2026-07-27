@@ -3,7 +3,7 @@
 A small 3-band Cloud Optimized GeoTIFF used to exercise the raster path end to end. Optimized to a COG with per-band statistics, minimum, maximum, mean, and standard deviation, embedded in the header. From the rasterio test fixtures, a 3-band raster in UTM zone 18N (EPSG:32618).
 
 License, BSD-3-Clause.
-Providers, rasterio (producer, licensor, host).
+Providers, rasterio (producer, licensor), Portolan SDI (host).
 Original source, https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif .
 Bands, 3.
 CRS, EPSG:32618.

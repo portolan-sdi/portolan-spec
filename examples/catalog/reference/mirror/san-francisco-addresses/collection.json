@@ -8,7 +8,7 @@
     "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
     "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json"
   ],
-  "id": "san-francisco-addresses",
+  "id": "mirror/san-francisco-addresses",
   "title": "San Francisco Addresses (EAS)",
   "description": "Point addresses from the City and County of San Francisco Enterprise Addressing System, a 5,000-feature extract of the official DataSF open data layer, converted to cloud-native GeoParquet with a PMTiles visualization. The source asset points at the full live DataSF layer.",
   "license": "PDDL-1.0",
@@ -213,7 +213,6 @@
       "type": "application/geo+json",
       "title": "DataSF San Francisco Addresses with Units (GeoJSON, 5k extract)",
       "roles": [
-        "data",
         "source"
       ],
       "file:size": 4327291,
@@ -226,8 +225,8 @@
       "roles": [
         "visual"
       ],
-      "file:size": 859951,
-      "file:checksum": "1220a983eb6cf154846fc41ebffe59bbf368d83597f9e2908068dacbfca37870faaa"
+      "file:size": 859881,
+      "file:checksum": "12200dea0e9eb01a74f3b0fcc4b0e915e88cb19e85571351991828478cbe012ccc23"
     },
     "style-default": {
       "href": "./styles/default.json",
@@ -236,8 +235,8 @@
       "roles": [
         "style"
       ],
-      "file:size": 511,
-      "file:checksum": "1220be8d25847ff0fcb455c32885d9ff77b432cc1aca524c456ad9dfd24cd1ee00c3"
+      "file:size": 474,
+      "file:checksum": "12204a4947ddba3cb084a779d7d0dca0d13f32d665a9da0b029e95a55152f61509ce"
     },
     "thumbnail": {
       "href": "./thumbnail.png",
@@ -275,12 +274,6 @@
       "href": "https://data.sfgov.org/",
       "type": "text/html",
       "title": "Original source"
-    },
-    {
-      "rel": "canonical",
-      "href": "https://data.sfgov.org/api/views/ramy-di5m.json",
-      "type": "application/json",
-      "title": "Upstream metadata record"
     },
     {
       "rel": "agents",
