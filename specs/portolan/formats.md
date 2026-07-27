@@ -114,6 +114,9 @@ This is the baseline that
 rasterio treat as a COG.
 (Formats such as GeoZarr are candidates for future support once default tooling can
 render and consume them.)
+How a raster collection is structured — one item per scene, with a single-COG
+collection handled as a single-file collection — is defined under [Raster
+Collections](core.md#raster-collections).
 
 **Optimized GeoTIFF conformance.** Beyond that baseline, a COG MUST conform to OGC
 21-026's [Optimized GeoTIFF requirements

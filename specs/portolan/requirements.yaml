@@ -160,6 +160,24 @@ requirements:
       that data MUST be represented as a collection-level asset — no item
       directory or item JSON is needed (see [Vector](formats.md#vector)).
 
+  - id: PORTO-CORE-071
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A collection holding multiple raster scenes MUST model each scene as an
+      item carrying its COG as an item-level asset; scene COGs MUST NOT be
+      listed as collection-level assets.
+
+  - id: PORTO-CORE-072
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A collection holding a single COG follows the single-file rule above: it
+      MUST expose that COG as a collection-level asset with no item directory
+      (see [Raster](formats.md#raster)).
+
   - id: PORTO-CORE-018
     severity: MUST
     enforcement: validator
