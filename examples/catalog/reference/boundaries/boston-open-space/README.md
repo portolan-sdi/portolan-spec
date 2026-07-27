@@ -3,7 +3,7 @@
 City of Boston open spaces and parks, playgrounds, athletic fields, conservation land, and cemeteries, 1,012 polygons from the City of Boston GIS open data platform. Official primary source, republished as cloud-native GeoParquet with a PMTiles visualization and MapLibre styles.
 
 License, PDDL-1.0.
-Providers, City of Boston (producer, licensor, host).
+Providers, City of Boston (producer, licensor), Portolan SDI (host).
 Original source, https://opendata.arcgis.com/api/v3/datasets/2868d370c55d4d458d4ae2224ef8cddd_7/downloads/data?format=shp&spatialRefId=4326 .
 Features, 1012.
 Cloud-native asset, boston-open-space.parquet (GeoParquet).

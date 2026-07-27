@@ -2,16 +2,16 @@
   "version": 8,
   "name": "boston-open-space graduated",
   "sources": {
-    "boston-open-space": {
+    "data": {
       "type": "vector",
-      "url": "pmtiles://./boston-open-space.pmtiles"
+      "url": "pmtiles://../boston-open-space.pmtiles"
     }
   },
   "layers": [
     {
       "id": "boston-open-space",
       "type": "fill",
-      "source": "boston-open-space",
+      "source": "data",
       "source-layer": "boston-open-space",
       "paint": {
         "fill-color": [

@@ -7,7 +7,7 @@
     "https://stac-extensions.github.io/table/v1.2.0/schema.json",
     "https://stac-extensions.github.io/attribution/v0.1.0/schema.json"
   ],
-  "id": "eurostat-electricity-prices",
+  "id": "tabular/eurostat-electricity-prices",
   "title": "Eurostat Electricity Prices for Household Consumers",
   "description": "Semi-annual electricity prices for household consumers across European countries by consumption band, tax component, and currency, Eurostat table nrg_pc_204. Non-geospatial companion table, join key is the country code column geo (NUTS-0), converted to cloud-native Parquet.",
   "license": "CC-BY-4.0",
@@ -24,7 +24,14 @@
       "url": "https://ec.europa.eu/eurostat",
       "roles": [
         "producer",
-        "licensor",
+        "licensor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
         "host"
       ]
     }
@@ -33,10 +40,10 @@
     "spatial": {
       "bbox": [
         [
-          -180,
-          -90,
-          180,
-          90
+          -31.5,
+          34.0,
+          46.5,
+          71.5
         ]
       ]
     },
@@ -58,59 +65,72 @@
         "data"
       ],
       "file:size": 163273,
-      "file:checksum": "1220382c660b17918c91e5c88fc1d40e4e8561f109821ff034bed79747255ecf81a4",
+      "file:checksum": "1220106081590cd5eacab833ea121be58b7b0686fec532215d3573ac0b13e94269a2",
       "table:columns": [
         {
           "name": "DATAFLOW",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Eurostat dataflow identifier, agency, table code, and version."
         },
         {
           "name": "LAST UPDATE",
-          "type": "timestamp"
+          "type": "timestamp",
+          "description": "Timestamp of the last update Eurostat published for this table."
         },
         {
           "name": "freq",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Observation frequency. S is semi-annual."
         },
         {
           "name": "siec",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Standard International Energy Product Classification code for the energy carrier, here electricity."
         },
         {
           "name": "nrg_cons",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Annual household electricity consumption band the price applies to."
         },
         {
           "name": "unit",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Unit of measure for the observed value, for example kilowatt hour."
         },
         {
           "name": "tax",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Tax and levy component, which taxes the quoted price includes or excludes."
         },
         {
           "name": "currency",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Currency of the observed value, euro, national currency, or purchasing power standard."
         },
         {
           "name": "geo",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Reporting country as a Eurostat NUTS-0 code. This is the join key to a geometry Collection."
         },
         {
           "name": "TIME_PERIOD",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Reference period, year and semester."
         },
         {
           "name": "OBS_VALUE",
-          "type": "double"
+          "type": "double",
+          "description": "The observed electricity price in the stated unit and currency."
         },
         {
           "name": "OBS_FLAG",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Observation status flag, for example p provisional, e estimated, d definition differs."
         },
         {
           "name": "CONF_STATUS",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Confidentiality status of the observation."
         }
       ],
       "table:row_count": 65412
@@ -126,6 +146,12 @@
       "rel": "parent",
       "href": "../catalog.json",
       "type": "application/json"
+    },
+    {
+      "rel": "via",
+      "href": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table",
+      "type": "text/html",
+      "title": "Original source"
     },
     {
       "rel": "agents",

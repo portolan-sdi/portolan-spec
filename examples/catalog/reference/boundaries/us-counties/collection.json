@@ -8,7 +8,7 @@
     "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
     "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json"
   ],
-  "id": "us-counties",
+  "id": "boundaries/us-counties",
   "title": "United States Counties (2023, 1:500k)",
   "description": "County and equivalent boundaries for the United States, the 2023 cartographic boundary file at 1:500,000 from the US Census Bureau, generalized for small-scale mapping. Republished as cloud-native GeoParquet alongside the original zipped Shapefile.",
   "license": "CC0-1.0",
@@ -65,8 +65,8 @@
       "roles": [
         "data"
       ],
-      "file:size": 9727292,
-      "file:checksum": "1220f704e0ee5e0c9dbe6f165a571aae6da5bf78965e120a13c8d63397219f0b5b32",
+      "file:size": 7043980,
+      "file:checksum": "12204cebf3e79848686820e2122491d1051e35caea5c17baef25f20217ea26e06753",
       "table:columns": [
         {
           "name": "fid",
@@ -122,7 +122,7 @@
         },
         {
           "name": "geom",
-          "type": "geometry"
+          "type": "geometry('epsg:4269')"
         },
         {
           "name": "bbox",
@@ -131,14 +131,13 @@
       ],
       "table:primary_geometry": "geom",
       "table:row_count": 3235,
-      "proj:code": "EPSG:4326"
+      "proj:code": "EPSG:4269"
     },
     "source": {
       "href": "https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_500k.zip",
       "type": "application/zip",
       "title": "US Census cartographic boundary counties 2023 500k (zipped Shapefile)",
       "roles": [
-        "data",
         "source"
       ],
       "file:size": 11630077,
@@ -151,18 +150,8 @@
       "roles": [
         "visual"
       ],
-      "file:size": 4372427,
-      "file:checksum": "1220184d0388ee4da10b1764a423e9f9a170d688b614b376228fa2de5c8da514427e"
-    },
-    "style-default": {
-      "href": "./styles/default.json",
-      "type": "application/vnd.mapbox.style+json",
-      "title": "Default MapLibre style",
-      "roles": [
-        "style"
-      ],
-      "file:size": 445,
-      "file:checksum": "12200a1b0bcf370139a062a2fb2b94fbb127082277029201cc023fab315d0443c004"
+      "file:size": 4564130,
+      "file:checksum": "12207b1ded32a1575ad3c27432aba77c3dac2697c9a4bcd2cdf448b4cb7c03dca318"
     },
     "style-categorical": {
       "href": "./styles/categorical.json",
@@ -171,8 +160,18 @@
       "roles": [
         "style"
       ],
-      "file:size": 2646,
-      "file:checksum": "122075f7384834b2dc592c7e6e5180050ed41c0773588ac70130d3a4a00c7aa6731e"
+      "file:size": 2633,
+      "file:checksum": "1220ae5831e4f9667d775934c517f3ab7c9786b62f25bb07eb0fbc33022ddcaafcb7"
+    },
+    "style-labeled": {
+      "href": "./styles/labeled.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Labeled MapLibre style",
+      "roles": [
+        "style"
+      ],
+      "file:size": 3039,
+      "file:checksum": "12206ffd1efe6ef8f7c0392cb455008651fa7abe70c1e5419813d6bdb7377258a5c9"
     },
     "thumbnail": {
       "href": "./thumbnail.png",
@@ -181,8 +180,8 @@
       "roles": [
         "thumbnail"
       ],
-      "file:size": 79966,
-      "file:checksum": "12204079e66ca416c91e10caf3cceeec2b0ea12a01eb40090c812214a8e2a15c0bb5"
+      "file:size": 73106,
+      "file:checksum": "1220820dc6da8d8576602a5e7f69f8272ee3e6a1264c2938d1640292eb14f329918b"
     }
   },
   "links": [
@@ -210,12 +209,6 @@
       "href": "https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html",
       "type": "text/html",
       "title": "Original source"
-    },
-    {
-      "rel": "canonical",
-      "href": "https://catalog.data.gov/dataset/tiger-line-shapefile-2024-nation-u-s-county-and-equivalent-entities",
-      "type": "application/json",
-      "title": "Upstream metadata record"
     },
     {
       "rel": "agents",

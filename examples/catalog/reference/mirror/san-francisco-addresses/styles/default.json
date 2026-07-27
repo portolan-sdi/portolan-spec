@@ -2,16 +2,16 @@
   "version": 8,
   "name": "san-francisco-addresses default",
   "sources": {
-    "san-francisco-addresses": {
+    "data": {
       "type": "vector",
-      "url": "pmtiles://./san-francisco-addresses.pmtiles"
+      "url": "pmtiles://../san-francisco-addresses.pmtiles"
     }
   },
   "layers": [
     {
       "id": "san-francisco-addresses",
       "type": "circle",
-      "source": "san-francisco-addresses",
+      "source": "data",
       "source-layer": "san-francisco-addresses",
       "paint": {
         "circle-radius": 3,

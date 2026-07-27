@@ -1,24 +1,29 @@
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
-#   "pyarrow>=24",
+#   "pyyaml>=6.0.3",
+#   "duckdb>=1.5.5",
+#   "jsonschema>=4.26.0",
+#   "pyarrow>=25",
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
+#   "rasterio>=1.5",
 # ]
 # ///
-"""Standalone check for build.write_web_geoparquet.
+"""Standalone check for convert.write_web_geoparquet.
 
-Builds a tiny EPSG:4326 GeoPackage with ogr2ogr, runs the wrapper, and asserts
+Builds a tiny EPSG:4326 GeoPackage with DuckDB, runs the wrapper, and asserts
 the output is native GeoParquet 2.0 with a covering bbox column and a page index.
-Run: uv run examples/tests/check_web_output.py
+Run: uv run examples/tools/tests/check_web_output.py
 """
 import json
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
+import duckdb
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from build import write_web_geoparquet  # noqa: E402
+from convert import write_web_geoparquet  # noqa: E402
 
 import pyarrow.parquet as pq  # noqa: E402
 
@@ -41,9 +46,12 @@ def main() -> int:
         gj = tmp / "tiny.geojson"
         gj.write_text(json.dumps(GEOJSON))
         norm = tmp / "tiny.gpkg"
-        subprocess.run(
-            ["ogr2ogr", "-t_srs", "EPSG:4326", "-f", "GPKG", "-nln", "layer",
-             str(norm), str(gj)], check=True)
+        con = duckdb.connect()
+        con.execute("INSTALL spatial; LOAD spatial; SET geometry_always_xy=true;")
+        con.execute(f"CREATE TABLE t AS SELECT name, ST_SetCRS(geom, 'EPSG:4326') AS geom "
+                    f"FROM ST_Read('{gj}')")
+        con.execute(f"COPY t TO '{norm}' (FORMAT GDAL, DRIVER 'GPKG', LAYER_NAME 'layer')")
+        con.close()
 
         out = tmp / "tiny.parquet"
         write_web_geoparquet(norm, out)
@@ -57,7 +65,6 @@ def main() -> int:
         assert "covering" in gcol, "covering not advertised in geo metadata"
         col0 = pf.metadata.row_group(0).column(0)
         assert col0.has_column_index and col0.has_offset_index, "no page index"
-        phys = pf.schema.to_arrow_schema()  # sanity, geometry column present
         assert "geom" in schema.names, f"no geometry column: {schema.names}"
     print("OK, native 2.0, covering bbox, page index")
     return 0

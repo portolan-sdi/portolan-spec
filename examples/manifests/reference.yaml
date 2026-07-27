@@ -12,9 +12,9 @@
 # file:checksum.
 #
 # Build it:
-#   uv run examples/build.py
+#   uv run examples/tools/build.py
 #
-# Everything catalog-specific lives here, not in build.py. That includes the
+# Everything catalog-specific lives here, not in the generator. That includes the
 # nested-catalog titles under `catalogs` below, keyed by the first id segment of
 # each collection. Provenance is DERIVED from providers. If the sole producer org
 # differs from the host, the collection is a mirror and MUST carry provenance.via
@@ -22,17 +22,30 @@
 # hosts (a "host" role on a producer entry), the collection is official and the
 # Portolan host is not appended.
 #
+# Every collection here is a MIRROR, and that is not an oversight. The spec
+# derives the kind from who hosts THIS copy, and says an organization hosting
+# data it did not produce is a mirror even when it is the primary distributor.
+# Portolan SDI serves every asset in this tree and produced none of the data, so
+# naming an upstream producer as host would be false. A catalog can only be
+# official for data its own publisher originates.
+#
 # A collection whose license is the STAC value `other` MUST also set
 # `license_url`, the URL of the license text. build.py emits the required
 # rel=license link from it and errors if it is missing.
+#
+# Output CRS. By default every vector and raster collection keeps its source
+# CRS in the canonical asset. Set output_crs at the top level to change it for
+# the whole catalog, or per collection to override one. The STAC bbox stays
+# WGS84 and thumbnails stay Web Mercator regardless.
+#   output_crs: EPSG:4326
 
 id: portolan-reference
 title: Portolan Reference Catalog
 description: >-
   A mixed reference catalog exercising every major case in the Portolan v0.1
   specification with real, openly licensed data pulled from its original
-  upstream sources, vector polygons and points, raster, tabular, official and
-  mirror provenance, nested catalogs and flat collections.
+  upstream sources, vector polygons and points, raster, tabular, mirror
+  provenance, nested catalogs and flat collections.
 schema_uri: https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json
 
 host:
@@ -42,15 +55,16 @@ host:
 
 # Thumbnail rendering. build.py draws each thumbnail in Web Mercator at the
 # data's true aspect ratio over this XYZ tile basemap, so previews read as real
-# maps rather than stretched squares. GDAL fetches only the tiles the framed
+# maps rather than stretched squares. tiles.py fetches only the tiles the framed
 # extent needs at the matching zoom, and caches them under .cache. The default is
-# the CARTO light (Positron) basemap. Swap the url for any XYZ tile template.
+# the CARTO light (Positron) basemap. Swap the url for any XYZ tile template,
+# using Python str.format placeholders {z}/{x}/{y}.
 # ocean_color is the fallback fill used only when no basemap is set.
 thumbnails:
   size: 768
   ocean_color: "#eef3f8"
   basemap:
-    url: https://basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png
+    url: https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png
     attribution: "© OpenStreetMap contributors © CARTO"
 
 # Titles and descriptions for the nested catalogs, keyed by the first segment of
@@ -102,9 +116,14 @@ collections:
       via: https://www.naturalearthdata.com/downloads/110m-cultural-vectors/
       updated: "2026-07-16T00:00:00Z"
     temporal: ["2025-01-01T00:00:00Z", null]
+    # No PMTiles on purpose. At 281 KB this GeoParquet is small enough for a client
+    # to draw directly, which is the render-from-source path core.md offers
+    # alongside a visualization derivative. Keeping it derivative-free is what
+    # exercises that branch, every other vector Collection here takes the PMTiles
+    # branch. Self-rendering also means no style asset is owed.
     derivatives: {pmtiles: false, thumbnail: true}
     # Colour the world by continent so the preview reads as a map, not one blob.
-    style: {color: "#4d7ea8", category_field: CONTINENT}
+    style: {color: "#4d7ea8", category_field: CONTINENT, variants: [categorical]}
 
   - id: reference/natural-earth-populated-places
     kind: vector
@@ -128,6 +147,8 @@ collections:
       via: https://www.naturalearthdata.com/downloads/50m-cultural-vectors/
       updated: "2026-07-16T00:00:00Z"
     temporal: ["2025-01-01T00:00:00Z", null]
+    # No PMTiles on purpose, same render-from-source reasoning as the countries
+    # Collection above. 604 KB of points a client can draw itself.
     derivatives: {pmtiles: false, thumbnail: true}
     style: {color: "#c65b3c"}
 
@@ -152,8 +173,11 @@ collections:
     providers:
       - {name: U.S. Census Bureau, url: https://www.census.gov, roles: [producer, licensor]}
     provenance:
+      # No canonical link. The spec owes one only when the upstream publishes its
+      # own STAC, and the Census Bureau does not. The data.gov record that used to
+      # sit here was neither STAC nor even the same product, it described the 2024
+      # TIGER/Line file rather than this 2023 cartographic boundary file.
       via: https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html
-      canonical: https://catalog.data.gov/dataset/tiger-line-shapefile-2024-nation-u-s-county-and-equivalent-entities
       updated: "2026-07-16T00:00:00Z"
     temporal: ["2023-01-01T00:00:00Z", null]
     # The data spans the antimeridian (Aleutians to American Samoa), so frame the
@@ -162,11 +186,14 @@ collections:
     derivatives: {pmtiles: true, thumbnail: true}
     # Colour counties by their state. The same block drives the thumbnail and the
     # categorical MapLibre style, so the preview mirrors the map.
+    # The first variant is the default style, and the thumbnail is rendered from
+    # it, so a collection coloured by category leads with the categorical variant.
+    # A flat `default` variant here would force a single-colour preview.
     style:
       color: "#6b8e5a"
       category_field: STATE_NAME
       label_field: NAME
-      variants: [default, categorical]
+      variants: [categorical, labeled]
 
   - id: boundaries/boston-open-space
     kind: vector
@@ -185,8 +212,11 @@ collections:
       title: City of Boston Open Space (zipped Shapefile export)
       stable: false
     providers:
-      - {name: City of Boston, url: https://data.boston.gov, roles: [producer, licensor, host]}
+      - {name: City of Boston, url: https://data.boston.gov, roles: [producer, licensor]}
     provenance:
+      # The ArcGIS Hub item the source export is generated from. data.boston.gov
+      # itself returns 403 to every automated client, so it is a poor link target.
+      via: https://bostonopendata-boston.opendata.arcgis.com/datasets/2868d370c55d4d458d4ae2224ef8cddd_7
       updated: "2026-07-21T00:00:00Z"
     temporal: ["2025-01-01T00:00:00Z", null]
     derivatives: {pmtiles: true, thumbnail: true}
@@ -195,7 +225,7 @@ collections:
       category_field: TypeLong
       label_field: SITE_NAME
       graduated_field: ACRES
-      variants: [default, categorical, labeled, graduated]
+      variants: [categorical, labeled, graduated]
 
   - id: boundaries/netherlands-provinces
     kind: vector
@@ -219,8 +249,10 @@ collections:
       - {name: Kadaster, url: https://www.kadaster.nl, roles: [producer, licensor]}
       - {name: PDOK, url: https://www.pdok.nl, roles: [processor]}
     provenance:
+      # No canonical link, PDOK publishes OGC API Features for this dataset but no
+      # STAC. The GeoNetwork ISO 19115 record that used to sit here is metadata,
+      # not STAC, so it does not satisfy the conditional canonical requirement.
       via: https://www.pdok.nl/introductie/-/article/bestuurlijke-gebieden
-      canonical: https://www.nationaalgeoregister.nl/geonetwork/srv/api/records/208bc283-7c66-4ce7-8ad3-1cf3e8933fb5
       updated: "2026-07-16T00:00:00Z"
     temporal: ["2026-01-01T00:00:00Z", null]
     derivatives: {pmtiles: true, thumbnail: true}
@@ -228,7 +260,7 @@ collections:
       color: "#e65100"
       category_field: naam
       label_field: naam
-      variants: [default, categorical, labeled]
+      variants: [categorical, labeled]
 
   # ------------------------------------------------------------------- mirror/
   - id: mirror/san-francisco-addresses
@@ -243,7 +275,7 @@ collections:
     keywords: [addresses, points, san-francisco, datasf, eas]
     license: PDDL-1.0
     source:
-      url: https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=5000
+      url: https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=5000&$order=:id
       media_type: application/geo+json
       title: DataSF San Francisco Addresses with Units (GeoJSON, 5k extract)
       stable: false
@@ -251,8 +283,8 @@ collections:
       - {name: City and County of San Francisco, url: https://www.sf.gov, roles: [producer, licensor]}
       - {name: DataSF, url: https://datasf.org/opendata/, roles: [processor]}
     provenance:
+      # No canonical link, Socrata exposes view metadata as JSON but no STAC.
       via: https://data.sfgov.org/
-      canonical: https://data.sfgov.org/api/views/ramy-di5m.json
       updated: "2026-07-21T00:00:00Z"
     temporal: ["2018-10-12T00:00:00Z", null]
     derivatives: {pmtiles: true, thumbnail: true}
@@ -275,8 +307,9 @@ collections:
       title: rasterio RGB.byte.tif test fixture (GeoTIFF)
       stable: true
     providers:
-      - {name: rasterio, url: https://github.com/rasterio/rasterio, roles: [producer, licensor, host]}
+      - {name: rasterio, url: https://github.com/rasterio/rasterio, roles: [producer, licensor]}
     provenance:
+      via: https://github.com/rasterio/rasterio/blob/main/tests/data/RGB.byte.tif
       updated: "2026-07-21T00:00:00Z"
     temporal: ["2020-01-01T00:00:00Z", null]
     derivatives: {thumbnail: true}
@@ -299,8 +332,42 @@ collections:
       title: Eurostat nrg_pc_204 electricity prices (SDMX-CSV)
       stable: false
     providers:
-      - {name: Eurostat, url: https://ec.europa.eu/eurostat, roles: [producer, licensor, host]}
+      - {name: Eurostat, url: https://ec.europa.eu/eurostat, roles: [producer, licensor]}
     provenance:
+      via: https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table
       updated: "2026-07-21T00:00:00Z"
     temporal: ["2007-01-01T00:00:00Z", null]
     derivatives: {thumbnail: false}
+    # A tabular Collection has no geometry, but the spec still asks its bbox to be
+    # the area of interest the data pertains to. This table reports European
+    # countries, so the world bbox would drag the whole catalog extent global.
+    # Azores in the west to Georgia in the east, Crete in the south to Nordkapp.
+    bbox: [-31.5, 34.0, 46.5, 71.5]
+    # Geometry and attributes live in separate files, so the join is documented
+    # explicitly and a runnable example is emitted into the README.
+    join:
+      column: geo
+      target: reference/natural-earth-countries
+      target_column: ISO_A2
+      target_file: ../../reference/natural-earth-countries/natural-earth-countries.parquet
+      note: >-
+        Eurostat uses NUTS-0 country codes, which match ISO 3166-1 alpha-2 for
+        most countries but not all. Greece is EL rather than GR and the United
+        Kingdom is UK rather than GB, so remap those two before joining if you
+        need them.
+    # SDMX dimension codes are unreadable without prose, and for a table the column
+    # schema is the only semantic handle a consumer gets.
+    columns:
+      DATAFLOW: Eurostat dataflow identifier, agency, table code, and version.
+      LAST UPDATE: Timestamp of the last update Eurostat published for this table.
+      freq: Observation frequency. S is semi-annual.
+      siec: Standard International Energy Product Classification code for the energy carrier, here electricity.
+      nrg_cons: Annual household electricity consumption band the price applies to.
+      unit: Unit of measure for the observed value, for example kilowatt hour.
+      tax: Tax and levy component, which taxes the quoted price includes or excludes.
+      currency: Currency of the observed value, euro, national currency, or purchasing power standard.
+      geo: Reporting country as a Eurostat NUTS-0 code. This is the join key to a geometry Collection.
+      TIME_PERIOD: Reference period, year and semester.
+      OBS_VALUE: The observed electricity price in the stated unit and currency.
+      OBS_FLAG: Observation status flag, for example p provisional, e estimated, d definition differs.
+      CONF_STATUS: Confidentiality status of the observation.

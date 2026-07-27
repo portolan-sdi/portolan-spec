@@ -9,7 +9,7 @@
     "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json",
     "https://stac-extensions.github.io/attribution/v0.1.0/schema.json"
   ],
-  "id": "netherlands-provinces",
+  "id": "boundaries/netherlands-provinces",
   "title": "Netherlands Provinces",
   "description": "The 12 provinces of the Netherlands, administrative boundaries from the Dutch national spatial data infrastructure PDOK, derived from the Kadaster BRK Bestuurlijke Gebieden. Republished as cloud-native GeoParquet with a PMTiles visualization and categorical, labeled MapLibre styles.",
   "license": "CC-BY-4.0",
@@ -73,8 +73,8 @@
       "roles": [
         "data"
       ],
-      "file:size": 1430658,
-      "file:checksum": "122088268a99c4f597e92f568c37c901fc1574b5110bbe2de4962c6a4cb0764953b6",
+      "file:size": 872875,
+      "file:checksum": "12204041b0c384032ead2a68bf154bc35c7806cb906c6604a453d99ecd5e1dc8b374",
       "table:columns": [
         {
           "name": "fid",
@@ -102,7 +102,7 @@
         },
         {
           "name": "geom",
-          "type": "geometry"
+          "type": "geometry('epsg:28992')"
         },
         {
           "name": "bbox",
@@ -111,14 +111,13 @@
       ],
       "table:primary_geometry": "geom",
       "table:row_count": 12,
-      "proj:code": "EPSG:4326"
+      "proj:code": "EPSG:28992"
     },
     "source": {
       "href": "https://service.pdok.nl/kadaster/brk-bestuurlijke-gebieden/atom/downloads/BestuurlijkeGebieden_2026.gpkg",
       "type": "application/geopackage+sqlite3",
       "title": "PDOK Bestuurlijke Gebieden 2026 (GeoPackage)",
       "roles": [
-        "data",
         "source"
       ],
       "file:size": 14495744,
@@ -131,18 +130,8 @@
       "roles": [
         "visual"
       ],
-      "file:size": 423295,
-      "file:checksum": "1220c768276dca58f3a5bc5e895b57cf6515abd4fac3a1b62b5a5146c9bbd7668acd"
-    },
-    "style-default": {
-      "href": "./styles/default.json",
-      "type": "application/vnd.mapbox.style+json",
-      "title": "Default MapLibre style",
-      "roles": [
-        "style"
-      ],
-      "file:size": 505,
-      "file:checksum": "122080527d1499c34674f83bfacf30a6d30afa668f9cd58b9319b5695ceab3869180"
+      "file:size": 435122,
+      "file:checksum": "1220a7a9d30cbd97f9a92161530a4f335aa50db1307ce24ab7d16f7de668595d519e"
     },
     "style-categorical": {
       "href": "./styles/categorical.json",
@@ -151,8 +140,8 @@
       "roles": [
         "style"
       ],
-      "file:size": 1149,
-      "file:checksum": "12203edf9302f8b14817bf4681dd8589723ade9f268f5a290c66c2c9fd3a4fbd8715"
+      "file:size": 1116,
+      "file:checksum": "12209ba3d8136ec149ac47a65465488dd16e17cb90491b370d2955bdbf30bbbec96e"
     },
     "style-labeled": {
       "href": "./styles/labeled.json",
@@ -161,8 +150,8 @@
       "roles": [
         "style"
       ],
-      "file:size": 1592,
-      "file:checksum": "1220d62fa3605884186e2cbbc8790d1f4764896b2ecea30ea057a6dfb311f5a07429"
+      "file:size": 1542,
+      "file:checksum": "12208ca919cc57340e124a236d994f7101f2a4011133feaf8a64b10f1d1af348962c"
     },
     "thumbnail": {
       "href": "./thumbnail.png",
@@ -171,8 +160,8 @@
       "roles": [
         "thumbnail"
       ],
-      "file:size": 194516,
-      "file:checksum": "1220935c19c5778942905bc0a28412a7428817dbcc0f7b8295e8efb57e24a1efc047"
+      "file:size": 188545,
+      "file:checksum": "12203e5bed76be1af81a77828cebf137805a4168848e56289de7d197eb7341ebb2b0"
     }
   },
   "links": [
@@ -200,12 +189,6 @@
       "href": "https://www.pdok.nl/introductie/-/article/bestuurlijke-gebieden",
       "type": "text/html",
       "title": "Original source"
-    },
-    {
-      "rel": "canonical",
-      "href": "https://www.nationaalgeoregister.nl/geonetwork/srv/api/records/208bc283-7c66-4ce7-8ad3-1cf3e8933fb5",
-      "type": "application/json",
-      "title": "Upstream metadata record"
     },
     {
       "rel": "agents",

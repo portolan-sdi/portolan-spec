@@ -6,7 +6,7 @@
     "https://stac-extensions.github.io/file/v2.1.0/schema.json",
     "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
   ],
-  "id": "sample-cog",
+  "id": "raster/sample-cog",
   "title": "Sample Raster COG",
   "description": "A small 3-band Cloud Optimized GeoTIFF used to exercise the raster path end to end. Optimized to a COG with per-band statistics, minimum, maximum, mean, and standard deviation, embedded in the header. From the rasterio test fixtures, a 3-band raster in UTM zone 18N (EPSG:32618).",
   "license": "BSD-3-Clause",
@@ -23,7 +23,14 @@
       "url": "https://github.com/rasterio/rasterio",
       "roles": [
         "producer",
-        "licensor",
+        "licensor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
         "host"
       ]
     }
@@ -56,16 +63,17 @@
       "roles": [
         "data"
       ],
-      "file:size": 1054427,
-      "file:checksum": "1220ab0a989ec31ff8bf06c86a514d0ec289e784453e0a9140bed2086362a59060f7",
+      "file:size": 1054493,
+      "file:checksum": "1220b2e1aa393fe37dc26e516b13c8f4fb3b1e99efd01a6661c894a5e840201c8c96",
       "bands": [
         {
           "data_type": "uint8",
           "statistics": {
             "minimum": 1.0,
             "maximum": 255.0,
-            "mean": 44.4345,
-            "stddev": 58.4901
+            "mean": 44.396,
+            "stddev": 58.4784,
+            "valid_percent": 67.4572
           }
         },
         {
@@ -73,8 +81,9 @@
           "statistics": {
             "minimum": 1.0,
             "maximum": 255.0,
-            "mean": 66.022,
-            "stddev": 58.2034
+            "mean": 65.9922,
+            "stddev": 58.2068,
+            "valid_percent": 67.4572
           }
         },
         {
@@ -82,8 +91,9 @@
           "statistics": {
             "minimum": 1.0,
             "maximum": 255.0,
-            "mean": 71.3932,
-            "stddev": 60.8273
+            "mean": 71.3248,
+            "stddev": 60.8373,
+            "valid_percent": 67.4572
           }
         }
       ],
@@ -94,7 +104,6 @@
       "type": "image/tiff",
       "title": "rasterio RGB.byte.tif test fixture (GeoTIFF)",
       "roles": [
-        "data",
         "source"
       ],
       "file:size": 1745956,
@@ -107,8 +116,8 @@
       "roles": [
         "thumbnail"
       ],
-      "file:size": 224633,
-      "file:checksum": "1220f958fb841d6c507998935bdc1d6871384f7358091cde41e299e24a284300b6aa"
+      "file:size": 243153,
+      "file:checksum": "12203f05e92e5b77ab80d92d7e319053dfa48f00ce72d05f8c7251959b88dbd57971"
     }
   },
   "links": [
@@ -121,6 +130,12 @@
       "rel": "parent",
       "href": "../catalog.json",
       "type": "application/json"
+    },
+    {
+      "rel": "via",
+      "href": "https://github.com/rasterio/rasterio/blob/main/tests/data/RGB.byte.tif",
+      "type": "text/html",
+      "title": "Original source"
     },
     {
       "rel": "agents",

@@ -8,7 +8,7 @@
     "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
     "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json"
   ],
-  "id": "san-francisco-addresses",
+  "id": "mirror/san-francisco-addresses",
   "title": "San Francisco Addresses (EAS)",
   "description": "Point addresses from the City and County of San Francisco Enterprise Addressing System, a 5,000-feature extract of the official DataSF open data layer, converted to cloud-native GeoParquet with a PMTiles visualization. The source asset points at the full live DataSF layer.",
   "license": "PDDL-1.0",
@@ -48,10 +48,10 @@
     "spatial": {
       "bbox": [
         [
-          -122.510661,
-          37.708214,
-          -122.365923,
-          37.828926
+          -122.51042,
+          37.708191,
+          -122.362069,
+          37.827479
         ]
       ]
     },
@@ -72,8 +72,8 @@
       "roles": [
         "data"
       ],
-      "file:size": 497826,
-      "file:checksum": "1220265c6e08c5a7de6438c6218fa209f0acc998f7756685e49722d1a219b09a1613",
+      "file:size": 501424,
+      "file:checksum": "12204c4f7dfe87f4ae4cf5844c5ead6f298768ef749d85d03549175c31e769bd8601",
       "table:columns": [
         {
           "name": "fid",
@@ -215,8 +215,8 @@
       "roles": [
         "visual"
       ],
-      "file:size": 804815,
-      "file:checksum": "12202b778b2935fdf120794d5b10957a94493dfe9e6cfc2ef771cacc92667edaeefd"
+      "file:size": 859881,
+      "file:checksum": "12200dea0e9eb01a74f3b0fcc4b0e915e88cb19e85571351991828478cbe012ccc23"
     },
     "style-default": {
       "href": "./styles/default.json",
@@ -225,8 +225,8 @@
       "roles": [
         "style"
       ],
-      "file:size": 511,
-      "file:checksum": "1220be8d25847ff0fcb455c32885d9ff77b432cc1aca524c456ad9dfd24cd1ee00c3"
+      "file:size": 474,
+      "file:checksum": "12204a4947ddba3cb084a779d7d0dca0d13f32d665a9da0b029e95a55152f61509ce"
     },
     "thumbnail": {
       "href": "./thumbnail.png",
@@ -235,8 +235,8 @@
       "roles": [
         "thumbnail"
       ],
-      "file:size": 409790,
-      "file:checksum": "122028be1ba46a90c2e6a1d67acd971c52c488779771020696610a3b118d89830144"
+      "file:size": 394792,
+      "file:checksum": "1220561ef9990b472b81af48d46c7e0450a9523ab919ab015c5d99f354fc241f9b9c"
     }
   },
   "links": [
@@ -264,12 +264,6 @@
       "href": "https://data.sfgov.org/",
       "type": "text/html",
       "title": "Original source"
-    },
-    {
-      "rel": "canonical",
-      "href": "https://data.sfgov.org/api/views/ramy-di5m.json",
-      "type": "application/json",
-      "title": "Upstream metadata record"
     },
     {
       "rel": "agents",

@@ -2,16 +2,16 @@
   "version": 8,
   "name": "us-counties categorical",
   "sources": {
-    "us-counties": {
+    "data": {
       "type": "vector",
-      "url": "pmtiles://./us-counties.pmtiles"
+      "url": "pmtiles://../us-counties.pmtiles"
     }
   },
   "layers": [
     {
       "id": "us-counties",
       "type": "fill",
-      "source": "us-counties",
+      "source": "data",
       "source-layer": "us-counties",
       "paint": {
         "fill-color": [

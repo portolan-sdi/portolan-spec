@@ -7,7 +7,7 @@
     "https://stac-extensions.github.io/table/v1.2.0/schema.json",
     "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
   ],
-  "id": "natural-earth-populated-places",
+  "id": "reference/natural-earth-populated-places",
   "title": "Natural Earth Populated Places (1:50m)",
   "description": "Point locations of populated places, cities and towns, at 1:50m scale from Natural Earth. Public domain reference points, republished as cloud-native GeoParquet alongside the original zipped Shapefile.",
   "license": "CC0-1.0",
@@ -64,8 +64,8 @@
       "roles": [
         "data"
       ],
-      "file:size": 618510,
-      "file:checksum": "12205f4d83fec2335b8668a9a35edcb3d0861a91886815994fed2f668c178859462e",
+      "file:size": 618506,
+      "file:checksum": "1220acfc4c9abd3e9302626b384b41d7c74c62cc5026289d3aee3bca35a0c13ee5f0",
       "table:columns": [
         {
           "name": "fid",
@@ -637,7 +637,6 @@
       "type": "application/zip",
       "title": "Natural Earth 50m Populated Places (zipped Shapefile)",
       "roles": [
-        "data",
         "source"
       ],
       "file:size": 553649,
@@ -650,8 +649,8 @@
       "roles": [
         "thumbnail"
       ],
-      "file:size": 128377,
-      "file:checksum": "12200967d580d8394f8fcd4e7bc656a25b1cac73c2ad24e3e2f66b16391a5f1857f8"
+      "file:size": 134432,
+      "file:checksum": "12200c8eae74720f9c14bb0899345884fe1be9dac78a437bd096fc4f30736e35d19a"
     }
   },
   "links": [

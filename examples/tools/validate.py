@@ -1,0 +1,97 @@
+"""Validate a built Portolan catalog with reis, the canonical validator.
+
+reis defines Portolan conformance. This module is a thin adapter. It runs reis's
+metadata, structural, schema, and data passes over a built catalog, feeds the
+schema pass the repo's working-copy schema under stac/, restricts the data pass
+to local assets, and fails the build on any error finding.
+"""
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+from typing import TYPE_CHECKING, Callable
+
+import jsonschema
+
+if TYPE_CHECKING:
+    from reis.catalog import Node
+    from reis.data import DataDefect
+    from reis.data.reader import AssetReader, Locator
+
+
+def _local_schema_validator(schema_path: Path) -> Callable[[dict], list[str]]:
+    """A reis schema-pass validator bound to the working-copy schema.
+
+    Reis's schema pass fetches the published profile schema. Here we point it at
+    the committed schema under stac/ so the build tests the working copy, which
+    is what the old validator did. Returns the jsonschema messages for one
+    object, empty when it satisfies the schema.
+    """
+    schema = json.loads(schema_path.read_text())
+    validator = jsonschema.Draft7Validator(schema)
+
+    def validate_object(obj: dict) -> list[str]:
+        return [error.message for error in validator.iter_errors(obj)]
+
+    return validate_object
+
+
+class _LocalOnlyReader:
+    """An AssetReader that drops remote assets so the data pass reads only local
+    files. Remote source assets, the live upstreams whose file:checksum is
+    point-in-time, are skipped rather than fetched, keeping the build offline and
+    free of false checksum mismatches."""
+
+    def __init__(self, inner: "AssetReader") -> None:
+        self._inner = inner
+
+    def locate(self, node: "Node", href: str) -> "Locator | None":
+        located = self._inner.locate(node, href)
+        if located is None or located.is_remote:
+            return None
+        return located
+
+    def stream(self, node: "Node", href: str):
+        located = self._inner.locate(node, href)
+        if located is None or located.is_remote:
+            return None
+        return self._inner.stream(node, href)
+
+
+def _local_only_data_validator() -> "Callable[[Node, AssetReader], list[DataDefect]]":
+    """Wrap reis's byte checker so it reads through a local-only reader."""
+    from reis.data import checks
+
+    def validate_node(node: "Node", reader: "AssetReader") -> "list[DataDefect]":
+        return checks.check_node(node, _LocalOnlyReader(reader))
+
+    return validate_node
+
+
+def validate(out: Path, schema_path: Path) -> None:
+    """Validate the built catalog at out with reis and fail on any error.
+
+    Runs the metadata pass (always), the STAC 1.1.0 structural pass, the schema
+    pass against the working-copy schema, and the data pass over local assets.
+    Prints every finding and raises SystemExit when reis reports an error.
+    """
+    from reis import validate as reis_validate
+
+    report = reis_validate(
+        out,
+        structural=True,
+        schema=True,
+        schema_validator=_local_schema_validator(schema_path),
+        data=True,
+        data_validator=_local_only_data_validator(),
+    )
+    for finding in report.findings:
+        print(
+            f"  {finding.rule_id} {finding.severity.value} {finding.path}: {finding.message}",
+            file=sys.stderr,
+        )
+    if not report.passed:
+        errors = sum(1 for f in report.findings if f.severity.value == "error")
+        raise SystemExit(f"validation failed with {errors} error(s)")
+    print(f"validation passed for {out}", file=sys.stderr)
