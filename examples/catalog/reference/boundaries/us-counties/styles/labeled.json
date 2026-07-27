@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "us-counties categorical",
+  "name": "us-counties labeled",
   "sources": {
     "data": {
       "type": "vector",
@@ -120,6 +120,25 @@
         ],
         "fill-outline-color": "#ffffff",
         "fill-opacity": 0.6
+      }
+    },
+    {
+      "id": "us-counties-labels",
+      "type": "symbol",
+      "source": "data",
+      "source-layer": "us-counties",
+      "layout": {
+        "text-field": [
+          "get",
+          "NAME"
+        ],
+        "text-size": 11,
+        "text-anchor": "center"
+      },
+      "paint": {
+        "text-color": "#222222",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 1
       }
     }
   ]

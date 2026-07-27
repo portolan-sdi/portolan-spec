@@ -18,7 +18,7 @@ from PIL import Image
 
 import tiles
 from common import _hex_rgb
-from derivatives import _category_colors
+from derivatives import CATEGORICAL_VARIANTS, _category_colors
 
 
 _MERC_R = 6378137.0
@@ -124,16 +124,26 @@ def _burn(canvas: np.ndarray, geoms: list[dict], rgb: tuple[int, int, int],
 
 def make_thumbnail_vector(vector_src: Path, out_png: Path, bbox4326: list[float],
                           style: dict, thumb: dict) -> None:
-    """Paint the features over the basemap using the collection `style` block. A
-    categorical field colours by category from the shared palette, otherwise the
-    default colour fills flat. Polygons get a thin outline for granularity."""
+    """Paint the features over the basemap using the collection `style` block.
+
+    The paint is taken from the collection's DEFAULT style, meaning the variant
+    listed first, because core.md requires the thumbnail to be generated from
+    default styling. So a categorical field colours by category from the shared
+    palette only when the default variant is one that paints categorically,
+    otherwise the flat default colour fills. Polygons get a thin outline for
+    granularity."""
     b, merc, w, h = _thumb_grid(bbox4326, thumb["size"], thumb["pad_vector"])
     canvas = _make_canvas_arr(thumb, merc, w, h)
     transform = from_bounds(merc[0], merc[1], merc[2], merc[3], w, h)
     geometry = style.get("geometry", "polygon")
     if _feature_count(vector_src, b):
         radius_m = (merc[2] - merc[0]) / w * 2.5
-        field = style.get("category_field")
+        # CATEGORICAL_VARIANTS are the style variants author_styles paints from the
+        # category palette. Any other default variant paints flat, so the thumbnail
+        # must too.
+        field = (style.get("category_field")
+                 if style.get("default_variant", "default") in CATEGORICAL_VARIANTS
+                 else None)
         feats, outlines = _mercator_geoms(vector_src, b, geometry, radius_m, field)
         if field:
             colors = dict(_category_colors(vector_src, field, style.get("palette")))

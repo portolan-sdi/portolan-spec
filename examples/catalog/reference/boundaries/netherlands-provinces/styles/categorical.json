@@ -2,16 +2,16 @@
   "version": 8,
   "name": "netherlands-provinces categorical",
   "sources": {
-    "netherlands-provinces": {
+    "data": {
       "type": "vector",
-      "url": "pmtiles://./netherlands-provinces.pmtiles"
+      "url": "pmtiles://../netherlands-provinces.pmtiles"
     }
   },
   "layers": [
     {
       "id": "netherlands-provinces",
       "type": "fill",
-      "source": "netherlands-provinces",
+      "source": "data",
       "source-layer": "netherlands-provinces",
       "paint": {
         "fill-color": [

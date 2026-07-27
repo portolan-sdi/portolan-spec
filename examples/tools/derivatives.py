@@ -14,6 +14,14 @@ import duckdb
 from common import run
 from config import PALETTE
 
+# The style variants author_styles paints from the shared category palette. The
+# thumbnail reads this so a categorical default style and the preview agree.
+CATEGORICAL_VARIANTS = ("categorical", "labeled")
+
+# MapLibre source key. formats.md names `data` as the conventional source key and
+# `layers[].source` value for a PMTiles style.
+SOURCE_KEY = "data"
+
 
 def make_pmtiles(vector_src: Path, out_pmtiles: Path, layer_name: str) -> None:
     seq = out_pmtiles.with_suffix(".geojsonl")
@@ -23,9 +31,14 @@ def make_pmtiles(vector_src: Path, out_pmtiles: Path, layer_name: str) -> None:
     con.execute(f"COPY (SELECT * FROM ST_Read('{vector_src}')) "
                 f"TO '{seq}' (FORMAT GDAL, DRIVER 'GeoJSONSeq')")
     con.close()
-    run(["tippecanoe", "-o", str(out_pmtiles), "--force", "-zg",
+    # Run from the collection directory with bare filenames. tippecanoe records
+    # both --name and the verbatim command line in the archive metadata, so
+    # absolute paths here would ship the builder's home directory inside every
+    # published .pmtiles file.
+    run(["tippecanoe", "-o", out_pmtiles.name, "--force", "-zg",
          "--drop-densest-as-needed", "--extend-zooms-if-still-dropping",
-         "-l", layer_name, str(seq)])
+         "--name", layer_name, "-l", layer_name, seq.name],
+        cwd=out_pmtiles.parent)
     seq.unlink(missing_ok=True)
 
 
@@ -76,7 +89,11 @@ def author_styles(styles_dir: Path, layer: str, pmtiles_name: str, vector_src: P
     category_field = st.get("category_field")
     label_field = st.get("label_field")
     graduated_field = st.get("graduated_field")
-    source = {layer: {"type": "vector", "url": f"pmtiles://./{pmtiles_name}"}}
+    # The style file lives in <collection>/styles/ and the PMTiles one level up in
+    # <collection>/, so the url is relative FROM styles/, hence `../`. Writing
+    # `./` here points at <collection>/styles/<name>.pmtiles, which does not
+    # exist, and the style silently fails to load in MapLibre.
+    source = {SOURCE_KEY: {"type": "vector", "url": f"pmtiles://../{pmtiles_name}"}}
 
     def base_paint() -> dict:
         if geom == "point":
@@ -103,7 +120,9 @@ def author_styles(styles_dir: Path, layer: str, pmtiles_name: str, vector_src: P
 
     written = []
     for variant in st.get("variants", ["default"]):
-        layers = [{"id": layer, "type": gl_type, "source": layer,
+        # `source` names the entry in `sources`, `source-layer` names the layer
+        # inside the vector tiles, which is the tippecanoe layer name.
+        layers = [{"id": layer, "type": gl_type, "source": SOURCE_KEY,
                    "source-layer": layer, "paint": base_paint()}]
         if variant == "categorical" and category_field:
             layers[0]["paint"] = categorical_paint(category_field)
@@ -114,7 +133,7 @@ def author_styles(styles_dir: Path, layer: str, pmtiles_name: str, vector_src: P
                 layers[0]["paint"] = categorical_paint(category_field)
             if label_field:
                 layers.append({
-                    "id": f"{layer}-labels", "type": "symbol", "source": layer,
+                    "id": f"{layer}-labels", "type": "symbol", "source": SOURCE_KEY,
                     "source-layer": layer,
                     "layout": {"text-field": ["get", label_field],
                                "text-size": 11, "text-anchor": "center"},
