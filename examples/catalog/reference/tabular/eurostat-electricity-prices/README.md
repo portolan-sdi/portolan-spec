@@ -8,7 +8,7 @@ Original source, https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/n
 Rows, 65412.
 Columns, 13.
 Non-geospatial table, spatial requirements relaxed.
-Note, the upstream source is a live endpoint, so the source checksum reflects the copy fetched at build time.
+Note, the upstream source is a live endpoint, so it is referenced by URL only and not archived as a source asset.
 
 ## Open the data
 

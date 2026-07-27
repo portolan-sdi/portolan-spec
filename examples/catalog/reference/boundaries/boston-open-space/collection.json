@@ -150,17 +150,6 @@
       "table:row_count": 1012,
       "proj:code": "EPSG:4326"
     },
-    "source": {
-      "href": "https://opendata.arcgis.com/api/v3/datasets/2868d370c55d4d458d4ae2224ef8cddd_7/downloads/data?format=shp&spatialRefId=4326",
-      "type": "application/zip",
-      "title": "City of Boston Open Space (zipped Shapefile export)",
-      "roles": [
-        "data",
-        "source"
-      ],
-      "file:size": 1074835,
-      "file:checksum": "1220dae5eae812b5c298d1c29d80540797067672cc63281ae01f3c4784ff7285efaa"
-    },
     "visual": {
       "href": "./boston-open-space.pmtiles",
       "type": "application/vnd.pmtiles",
