@@ -105,4 +105,21 @@ Portolan.
 When a change is normative, bump the spec version per the [bump
 policy](#versioning) in the same PR.
 
+### Companion validator PRs
+
+The spec is ground truth; [reis](https://github.com/portolan-sdi/reis) is its
+deterministic implementation. A catalog conforms to the spec exactly when it
+passes reis, so the two must never diverge.
+
+Every PR that touches normative content (`specs/` or `stac/`) must name its
+matching reis PR in the body:
+
+```
+Companion-PR: portolan-sdi/reis#123
+```
+
+CI verifies the reference. Editorial changes with no conformance impact
+(typos, wording, formatting) skip the requirement with the
+`no-validator-change` label.
+
 See also the [Code of Conduct](CODE_OF_CONDUCT.md).
