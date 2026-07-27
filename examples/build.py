@@ -18,8 +18,10 @@ per-catalog values. For each collection it downloads the true original source
 once, converts it to a cloud-native canonical asset (GeoParquet for vector and
 tabular, COG for raster), builds derivatives (PMTiles, thumbnail, MapLibre
 styles), computes real file:size and sha2-256 multihash file:checksum for every
-asset, and also cites the original file as a source-role asset. It validates the
-output against the committed Portolan schema.
+asset, and also cites the original file as a source-role asset when the upstream
+is a stable download (a live endpoint is referenced by URL only, since pinned
+checksums on bytes the catalog does not control are guaranteed to rot). It
+validates the output against the committed Portolan schema.
 
 Prerequisites (FOSS, on PATH): GDAL 3.x (ogr2ogr, ogrinfo, gdal_translate,
 gdalinfo, gdal_rasterize, gdal_create, gdalwarp) with the Parquet and COG
@@ -827,7 +829,8 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
                                {"table:columns": cols, "table:primary_geometry": geom_col,
                                 "table:row_count": n, "proj:code": "EPSG:4326"})
         exts += [TABLE_EXT, PROJ_EXT]
-        assets["source"] = source_asset(local, src)
+        if src.get("stable", True):
+            assets["source"] = source_asset(local, src)
         if deriv.get("pmtiles"):
             pm = coll_dir / f"{stem}.pmtiles"
             make_pmtiles(norm, pm, layer_name)
@@ -857,7 +860,8 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         n = 0
         assets["data"] = asset(cog, MEDIA["cog"], ["data"], f"{spec['title']} (COG)",
                                {"bands": bands, "proj:code": code})
-        assets["source"] = source_asset(local, src)
+        if src.get("stable", True):
+            assets["source"] = source_asset(local, src)
         # Band statistics live in STAC 1.1 core `bands`. The raster extension v2.0.0
         # schema conflicts with collection-level assets (spec issues #52 / #41), so
         # it is not declared here, projection carries the CRS.
@@ -880,7 +884,8 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         assets["data"] = asset(data_pq, MEDIA["parquet"], ["data"],
                                f"{spec['title']} (Parquet)",
                                {"table:columns": cols, "table:row_count": n})
-        assets["source"] = source_asset(local, src)
+        if src.get("stable", True):
+            assets["source"] = source_asset(local, src)
         exts.append(TABLE_EXT)
         extra_readme = [f"Rows, {n}.", f"Columns, {len(cols)}.",
                         "Non-geospatial table, spatial requirements relaxed."]
@@ -943,8 +948,8 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         f"Original source, {src['url']} .",
     ] + extra_readme
     if not src.get("stable", True):
-        readme_extra.append("Note, the upstream source is a live endpoint, so the source "
-                            "checksum reflects the copy fetched at build time.")
+        readme_extra.append("Note, the upstream source is a live endpoint, so it is "
+                            "referenced by URL only and not archived as a source asset.")
     readme_extra += [""] + open_lines
     agents = [
         f"This collection holds {spec['title']}.",
@@ -953,7 +958,9 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
          if assets.get("visual") else "For a quick preview use the thumbnail asset."),
         f"License is {spec['license']}."
         + (f" Attribute as {attribution}." if attribution else ""),
-        f"The original upstream source is {src['url']} , tagged on the source-role asset.",
+        f"The original upstream source is {src['url']} , "
+        + ("tagged on the source-role asset."
+           if src.get("stable", True) else "a live endpoint referenced by URL only."),
     ]
     write_sidecars(coll_dir, spec["title"], spec["description"].strip(), readme_extra, agents)
 

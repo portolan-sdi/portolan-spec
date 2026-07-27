@@ -76,10 +76,12 @@ Mirrors get a `via` link, and any Collection with `provenance.canonical` gets a
 
 ## Pipeline per kind
 
-Every path downloads the source once into `.cache`, produces a cloud-native
-canonical `data` Asset, and also emits a `source`-role Asset that points at the
-upstream URL with the real `file:size` and multihash `file:checksum` of the
-fetched file.
+Every path downloads the source once into `.cache` and produces a cloud-native
+canonical `data` Asset. When the manifest marks the source `stable: true`, it
+also emits a `source`-role Asset that points at the upstream URL with the real
+`file:size` and multihash `file:checksum` of the fetched file. A `stable: false`
+source (a live endpoint) is referenced by URL in the sidecars only, because
+pinned checksums on bytes the catalog does not control are guaranteed to rot.
 
 - `vector`. `to_geoparquet` normalizes to EPSG:4326 with ogr2ogr into a GeoPackage, computes the bbox and count from it, then writes the canonical asset as a web-optimized GeoParquet 2.0 file with geoparquet-io's web profile (native geometry type, per row group GeospatialStatistics, a retained covering bbox column for page-level pruning, a Parquet page index, Hilbert ordering, and byte-targeted fetch-sized row groups). Derivatives read the normalized GeoPackage, not the 2.0 output. Optional PMTiles come from ogr2ogr GeoJSONSeq into tippecanoe, with a web-map-links `pmtiles` link. Optional MapLibre styles are authored by `author_styles` from the real field values and read the PMTiles. The GeoParquet `data` asset also carries `table:columns` from a DuckDB `DESCRIBE`, geometry column included, and `proj:code` `EPSG:4326`, declaring the table and projection extensions.
 - `raster`. `to_cog` builds a COG with embedded statistics. Band statistics go in STAC 1.1 core `bands`, and `proj:code` carries the CRS through the projection extension.
@@ -116,7 +118,7 @@ GeoPackage, `_rasterize` burns features from the collection `style` block, and
 - `gdal_rasterize` writes only band 1 by default. Pass `-b 1 -b 2 -b 3` to fill an RGB canvas.
 - Zip sources are extracted before reading, because GDAL `/vsizip` keys off a `.zip` suffix that the cached filename does not have.
 - The raster extension v2.0.0 is not declared, its schema conflicts with Collection-level assets (spec issues #52 and #41). Statistics still ship in core `bands`.
-- The Boston, San Francisco, and Eurostat sources are live endpoints, so their `source` checksums are point-in-time and each README says so.
+- The Boston, San Francisco, and Eurostat sources are live endpoints (`stable: false`), so they carry no `source`-role Asset and each README says so. Pinning a checksum on a live query URL guarantees a validator failure once upstream changes.
 
 ## Validation
 

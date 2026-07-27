@@ -114,17 +114,6 @@
         }
       ],
       "table:row_count": 65412
-    },
-    "source": {
-      "href": "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/nrg_pc_204/?format=SDMX-CSV&compressed=false",
-      "type": "text/csv",
-      "title": "Eurostat nrg_pc_204 electricity prices (SDMX-CSV)",
-      "roles": [
-        "data",
-        "source"
-      ],
-      "file:size": 6241780,
-      "file:checksum": "1220d7347e2ac295fcf7fb55b986118134f66db5ff58f3837b3b26b7e6e66ca511b0"
     }
   },
   "links": [

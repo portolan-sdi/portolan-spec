@@ -208,17 +208,6 @@
       "table:row_count": 5000,
       "proj:code": "EPSG:4326"
     },
-    "source": {
-      "href": "https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=5000",
-      "type": "application/geo+json",
-      "title": "DataSF San Francisco Addresses with Units (GeoJSON, 5k extract)",
-      "roles": [
-        "data",
-        "source"
-      ],
-      "file:size": 4326949,
-      "file:checksum": "12208d97b1357b40e063c8820e1ace051745886fa0b525e05d0da6a528660a2c670c"
-    },
     "visual": {
       "href": "./san-francisco-addresses.pmtiles",
       "type": "application/vnd.pmtiles",
