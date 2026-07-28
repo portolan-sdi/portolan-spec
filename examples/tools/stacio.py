@@ -334,15 +334,21 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
             exts.append(WEBMAP_EXT)
             links.append(link("pmtiles", f"./{pm.name}", MEDIA["pmtiles"], "Web map tiles",
                               {"pmtiles:layers": [layer_name]}))
-            # styles read the PMTiles, so only author them where a visual exists
+            # styles read the PMTiles, so only author them where a visual exists.
+            # The default variant (first in style.variants) is keyed style-default
+            # so the default is discoverable without relying on asset order, which
+            # a JSON object does not guarantee. core.md requires exactly that.
+            default_variant = (spec.get("style", {}).get("variants") or ["default"])[0]
             for sp in author_styles(coll_dir / "styles", layer_name, pm.name, norm, spec):
-                assets[f"style-{sp.stem}"] = style_asset(sp, sp.stem)
+                key = "style-default" if sp.stem == default_variant else f"style-{sp.stem}"
+                assets[key] = style_asset(sp, sp.stem)
         if deriv.get("thumbnail", True):
             th = coll_dir / "thumbnail.png"
             tbbox = spec.get("thumbnail_bbox") or bbox
             # core.md, the thumbnail is "generated from default styling", and the
-            # default style is the one listed first. Pass that variant through so
-            # the preview and styles/<first>.json cannot drift apart.
+            # default style is the first variant, published under the style-default
+            # key. Pass that variant through so the preview and styles/<first>.json
+            # cannot drift apart.
             st = spec.get("style") or {}
             style = {**st, "geometry": spec.get("geometry", "polygon"),
                      "default_variant": (st.get("variants") or ["default"])[0]}

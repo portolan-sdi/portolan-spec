@@ -9,6 +9,16 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+### Changed
+
+- **Default style is identified by a reserved asset key**
+  ([`specs/portolan/core.md`](specs/portolan/core.md)): a collection with more than
+  one style now MUST key its default style asset `style-default`, replacing the
+  previous guidance that the default SHOULD be "listed first". STAC `assets` is an
+  unordered JSON object, so order is not a reliable signal; the reserved key lets a
+  client find the default deterministically. `PORTO-CORE-070` moves from `SHOULD`
+  to `MUST`, and the reference catalog and generator are updated to match.
+
 ## 0.1.0 - 2026-07-27
 
 First tagged release, consolidating the specification from a working draft into a

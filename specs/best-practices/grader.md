@@ -113,7 +113,7 @@ dimensions; the A+ sits above them all.
 
 - **A** — Every geospatial collection has a thumbnail that resolves and was
   rendered from its default style, plus at least one style asset per render
-  path with the default listed first. The catalog as a whole offers three or
+  path with the default keyed `style-default`. The catalog as a whole offers three or
   more visualizations that express genuinely different aspects of the data —
   a categorical theme, a confidence surface, a density view — not three
   renderings of the same picture. The only exception is data that is truly

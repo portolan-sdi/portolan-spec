@@ -153,7 +153,7 @@
       "file:size": 4564130,
       "file:checksum": "12207b1ded32a1575ad3c27432aba77c3dac2697c9a4bcd2cdf448b4cb7c03dca318"
     },
-    "style-categorical": {
+    "style-default": {
       "href": "./styles/categorical.json",
       "type": "application/vnd.mapbox.style+json",
       "title": "Categorical MapLibre style",

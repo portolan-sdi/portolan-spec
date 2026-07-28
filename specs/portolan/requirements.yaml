@@ -652,11 +652,14 @@ requirements:
       thumbnail.
 
   - id: PORTO-CORE-070
-    severity: SHOULD
-    enforcement: process
+    severity: MUST
+    enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Where multiple styles exist, the default SHOULD be listed first.
+      Because STAC assets are an unordered JSON object, the default style is
+      identified by a reserved asset key rather than by position: when a
+      collection provides more than one style, exactly one style asset MUST use
+      the key `style-default`.
 
   # ------------------------------------------------------------- formats.md
   - id: PORTO-FMT-001

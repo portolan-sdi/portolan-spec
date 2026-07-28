@@ -452,8 +452,12 @@ clients how to draw it, in a format appropriate to that render path. Style files
 STAC assets: each style MUST be registered as a collection-level asset with `roles:
 ["style"]`, alongside the data and thumbnail. A client or agent discovers a
 collection's styles by filtering assets on that role, so no separate manifest is
-needed and this specification defines none. Where multiple styles exist, the default
-SHOULD be listed first.
+needed and this specification defines none. Because STAC assets are an unordered
+JSON object, the default style is identified by a reserved asset key rather than by
+position: when a collection provides more than one style, exactly one style asset
+MUST use the key `style-default`. The remaining styles use descriptive
+`style-<variant>` keys such as `style-labeled`, and every style carries a
+human-readable name in its `title`.
 
 The concrete style format is defined per data format in [`formats.md`](formats.md):
 for vector (PMTiles) it is a MapLibre GL style file, while raster styling is still
