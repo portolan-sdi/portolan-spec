@@ -20,6 +20,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from PIL import Image
+
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
@@ -291,6 +293,41 @@ def check_build_items_rejects_missing_image_asset() -> None:
         raise AssertionError("a feature with no image asset must fail loudly")
 
 
+def check_minimal_json() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(td) / "minimal.json"
+        items = [
+            {"bbox": [-105.0, 39.0, -104.9, 39.1],
+             "assets": {"image": {"href": "https://example.invalid/a.tif",
+                                  "type": "image/tiff", "file:size": 1}}},
+        ]
+        n = mosaic.write_minimal_json(items, out)
+        doc = json.loads(out.read_text())
+        assert n == 1, n
+        assert doc["type"] == "FeatureCollection", doc["type"]
+        feat = doc["features"][0]
+        assert set(feat) == {"bbox", "assets"}, f"minimal shape only, got {set(feat)}"
+        assert set(feat["assets"]["image"]) == {"href"}, feat["assets"]["image"]
+        assert feat["assets"]["image"]["href"] == "https://example.invalid/a.tif"
+
+
+def check_thumbnail_mosaic() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(td) / "thumbnail.png"
+        thumb = {"size": 128, "ocean": (238, 243, 248), "pad_raster": 0.1,
+                 "pad_vector": 0.06, "basemap": None}
+        tiles = [
+            ([-105.0, 39.0, -104.95, 39.05], np.full((3, 8, 8), 200, "uint8")),
+            ([-104.95, 39.05, -104.9, 39.1], np.full((3, 8, 8), 60, "uint8")),
+        ]
+        mosaic.make_thumbnail_mosaic(tiles, out, [-105.0, 39.0, -104.9, 39.1], thumb)
+        assert out.exists(), "thumbnail was not written"
+        with Image.open(out) as im:
+            assert max(im.size) == 128, im.size
+            colors = {c for _, c in im.convert("RGB").getcolors(maxcolors=1 << 16)}
+        assert len(colors) > 1, "every pixel is one colour, no tiles were pasted"
+
+
 if __name__ == "__main__":
     print("check_mosaic.py")
     check("fetch returns features", check_fetch_returns_features)
@@ -307,6 +344,8 @@ if __name__ == "__main__":
           check_build_items_rejects_missing_datetime)
     check("build_items rejects a feature with no image asset",
           check_build_items_rejects_missing_image_asset)
+    check("minimal.json carries only bbox and href", check_minimal_json)
+    check("thumbnail mosaic pastes tiles", check_thumbnail_mosaic)
     if FAILURES:
         raise SystemExit(f"{len(FAILURES)} failure(s)")
     print("all ok")

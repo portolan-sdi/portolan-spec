@@ -25,6 +25,7 @@ MEDIA = {
     "pmtiles": "application/vnd.pmtiles",
     "style": "application/vnd.mapbox.style+json",
     "png": "image/png",
+    "geojson": "application/geo+json",
 }
 
 # Categorical palette shared by the thumbnails and the MapLibre styles, so a

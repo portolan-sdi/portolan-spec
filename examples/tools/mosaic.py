@@ -21,11 +21,13 @@ from typing import Callable
 import numpy as np
 import rasterio
 import rasterio.errors
+from PIL import Image
 from rasterio.enums import Resampling
 
 from config import FILE_EXT, MEDIA, PROJ_EXT, STAC_VERSION, USER_AGENT
 from fetch import fetch
 from stacio import link, remote_asset
+from thumbnails import _make_canvas_arr, _thumb_grid, _to_merc
 
 # /vsicurl issues a directory listing per open unless told not to, which triples
 # the request count against a blob store that has no directories anyway.
@@ -304,3 +306,57 @@ def write_items_parquet(items: list[dict], out: Path,
         table.to_reader(max_chunksize=row_group_size),
         out, compression="zstd")
     return table.num_rows
+
+
+def write_minimal_json(items: list[dict], out: Path) -> int:
+    """A compact bbox-plus-href index for browser mosaic clients.
+
+    Not something the spec asks for. It exists because a client-side mosaic needs
+    every footprint and href in one request, which is why deck.gl-raster hand-baked
+    such a file rather than calling a STAC API per load. Registered with the
+    `metadata` role, and evidence for spec issue #44.
+    """
+    doc = {
+        "type": "FeatureCollection",
+        "features": [
+            {"bbox": i["bbox"],
+             "assets": {"image": {"href": i["assets"]["image"]["href"]}}}
+            for i in items
+        ],
+    }
+    out.write_text(json.dumps(doc, separators=(",", ":")) + "\n")
+    return len(doc["features"])
+
+
+def make_thumbnail_mosaic(tiles: list[tuple[list[float], np.ndarray]], out_png: Path,
+                          bbox4326: list[float], thumb: dict) -> None:
+    """Paste each scene's overview into one Mercator canvas.
+
+    The pixels are the real upstream imagery, read once per scene at its coarsest
+    overview, so the preview shows the mosaic rather than a footprint sketch.
+    """
+    _, merc, w, h = _thumb_grid(bbox4326, thumb["size"], thumb.get("pad_raster", 0.4))
+    canvas = _make_canvas_arr(thumb, merc, w, h)
+
+    span_x = merc[2] - merc[0]
+    span_y = merc[3] - merc[1]
+    for bbox, arr in tiles:
+        x0, y0 = _to_merc(bbox[0], bbox[1])
+        x1, y1 = _to_merc(bbox[2], bbox[3])
+        # Mercator y grows north, raster rows grow south.
+        left = int(round((min(x0, x1) - merc[0]) / span_x * w))
+        right = int(round((max(x0, x1) - merc[0]) / span_x * w))
+        top = int(round((merc[3] - max(y0, y1)) / span_y * h))
+        bottom = int(round((merc[3] - min(y0, y1)) / span_y * h))
+        tw, th = max(1, right - left), max(1, bottom - top)
+        if left >= w or top >= h or right <= 0 or bottom <= 0:
+            continue
+        rgb = np.moveaxis(arr[:3], 0, -1) if arr.shape[0] >= 3 else \
+            np.repeat(np.moveaxis(arr[:1], 0, -1), 3, axis=-1)
+        patch = np.asarray(Image.fromarray(rgb.astype("uint8")).resize(
+            (tw, th), Image.BILINEAR))
+        sl = (slice(max(0, top), min(h, bottom)), slice(max(0, left), min(w, right)))
+        ph, pw = sl[0].stop - sl[0].start, sl[1].stop - sl[1].start
+        canvas[sl] = patch[:ph, :pw]
+
+    Image.fromarray(canvas).save(out_png, optimize=True)
