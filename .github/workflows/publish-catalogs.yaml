@@ -1,0 +1,168 @@
+name: Publish Catalogs
+
+# Builds an example catalog from its manifest and publishes it to the Portolan
+# repository on Source Cooperative, so the example is readable at a real URL.
+# A catalog that only exists in git proves the bytes are right but proves
+# nothing about how a client reads it, over HTTP range requests against a real
+# object store. This closes that gap.
+#
+# Every manifest under examples/manifests/ becomes a matrix entry, so adding a
+# new catalog is adding a YAML file and nothing else.
+#
+# It runs when a manifest or any generator module changes on main, since either
+# one changes the bytes a catalog is made of, and on demand for a single catalog
+# or a dry run. The build refetches five third-party sources, so it is not on
+# every push.
+#
+# Layout, matching what is already in the bucket:
+#   main            -> portolan/portolan-pipeline/<catalog>/main/
+#   any other ref   -> portolan/portolan-pipeline/<catalog>/branches/<ref>/
+# so a hand-dispatched branch run can be previewed without disturbing main.
+#
+# The `source-coop` environment is declared so required reviewers can be added
+# later without touching this file.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # A manifest names the sources and describes the whole catalog.
+      - 'examples/manifests/**'
+      # The generator itself, every module under examples/tools/.
+      - 'examples/**/*.py'
+      - 'scripts/publish_catalogs.py'
+      - '.github/workflows/publish-catalogs.yaml'
+  workflow_dispatch:
+    inputs:
+      catalog:
+        description: 'Manifest stem to publish, or "all"'
+        type: string
+        default: all
+      dry_run:
+        description: 'List the transfers without making them'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  # Never cancel in flight. A cancelled sync leaves a half-published catalog,
+  # which is worse than a queued one.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      catalogs: ${{ steps.pick.outputs.catalogs }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@v9.0.0
+
+      - name: Resolve the catalogs to publish
+        id: pick
+        env:
+          # Through the environment, never interpolated into the script body.
+          # On a push there is no inputs context, so everything is published.
+          CATALOG: ${{ inputs.catalog || 'all' }}
+        run: |
+          set -euo pipefail
+          if [ "$CATALOG" = "all" ]; then
+            CATALOGS=$(uv run scripts/publish_catalogs.py --list)
+          else
+            # An unknown stem exits non-zero here, before any job spends ten
+            # minutes building the wrong thing.
+            CATALOGS=$(uv run scripts/publish_catalogs.py --list --catalog "$CATALOG")
+          fi
+          echo "catalogs=$CATALOGS" >> "$GITHUB_OUTPUT"
+          echo "Publishing: $CATALOGS"
+
+  publish:
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        catalog: ${{ fromJSON(needs.discover.outputs.catalogs) }}
+    environment:
+      name: source-coop
+      url: ${{ steps.publish.outputs.url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # In noble's universe repo, so no source build. Only the vector path uses
+      # it, for the PMTiles derivatives.
+      - name: Install tippecanoe
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends tippecanoe
+          tippecanoe --version
+
+      # peak/action-setup-s5cmd publishes no tags, so this is pinned to a commit
+      # rather than tracking main. The job holds publishing credentials, and a
+      # mutable third-party ref in it is a supply-chain hole. Reads as `@main`
+      # in peak's own README.
+      - name: Install s5cmd
+        uses: peak/action-setup-s5cmd@bde462e7399c68b4a9b05549d90b0e7d5c95e60f
+        with:
+          version: v2.3.0
+
+      - uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+          # Each entrypoint carries its own PEP 723 dependencies, so the cache
+          # key has to follow the scripts rather than a lockfile.
+          cache-dependency-glob: 'examples/tools/**/*.py'
+
+      # The upstream downloads dominate the build. Keyed on the manifest, since
+      # that is what names the sources.
+      - name: Cache the upstream downloads
+        uses: actions/cache@v6
+        with:
+          path: examples/.cache
+          key: sources-${{ matrix.catalog }}-${{ hashFiles(format('examples/manifests/{0}.*', matrix.catalog)) }}
+          restore-keys: sources-${{ matrix.catalog }}-
+
+      - name: Build the catalog
+        env:
+          CATALOG: ${{ matrix.catalog }}
+        run: |
+          set -euo pipefail
+          # Build into a clean tree. The committed one is a snapshot, and a
+          # collection dropped from the manifest would otherwise survive there
+          # and get published as though it were still current.
+          rm -rf "examples/catalog/${CATALOG}"
+          uv run examples/tools/build.py --catalog "$CATALOG"
+
+      # Nothing unvalidated reaches a public URL. Errors and warnings both fail,
+      # the same gate the weekly catalog-upstream run applies.
+      - name: Validate the built catalog
+        env:
+          CATALOG: ${{ matrix.catalog }}
+        run: uv run scripts/check_catalogs.py --catalog "$CATALOG"
+
+      - name: Publish to Source Cooperative
+        id: publish
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SOURCE_COOP_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SOURCE_COOP_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-west-2
+          CATALOG: ${{ matrix.catalog }}
+          DRY_RUN: ${{ inputs.dry_run || false }}
+        run: |
+          set -euo pipefail
+          ARGS=(--catalog "$CATALOG")
+          if [ "$DRY_RUN" = "true" ]; then
+            ARGS+=(--dry-run)
+          fi
+          uv run scripts/publish_catalogs.py "${ARGS[@]}"
