@@ -65,6 +65,17 @@ uv run examples/tools/tests/check_fetch.py
 uv run examples/tools/tests/check_styles.py
 ```
 
+Publishing a built catalog to Source Cooperative needs `s5cmd` on PATH as well,
+and credentials for the Portolan repository in the environment or an AWS
+profile. Always dry-run first, the sync deletes what the local tree does not
+have.
+
+```bash
+uv run scripts/publish_catalogs.py --list                     # the publishable stems
+uv run scripts/publish_catalogs.py --catalog reference --dry-run
+uv run scripts/publish_catalogs.py --catalog reference
+```
+
 ## The core principle
 
 Everything catalog-specific lives in the manifest, never in the generator. That
@@ -245,11 +256,11 @@ coordinated change across this repo and rashid, update the local schema,
 regenerate the reference catalog, re-vendor fixtures into rashid, then bump the
 rashid range here.
 
-## What CI runs, and why it is split in two
+## What CI runs, and why it is split in three
 
 The committed catalogs used to be checked by nothing, so they could drift out of
 conformance between rebuilds unnoticed. Two workflows cover that now, split on
-whether the check needs the network.
+whether the check needs the network, and a third publishes what they check.
 
 `.github/workflows/examples-checks.yaml` runs `tests/run_all.py` on every push
 and pull request, with no path filter. Every check in there is offline and
@@ -263,6 +274,18 @@ proves their `file:size` and `file:checksum`. It is not a PR gate on purpose. It
 depends on five third-party servers, so gating merges on it would block work
 whenever one of them is briefly down, which says nothing about the PR. A failure
 opens an issue instead, or comments on the open one.
+
+`.github/workflows/publish-catalogs.yaml` builds each manifest and uploads the
+result to the Portolan repository on Source Cooperative with
+`scripts/publish_catalogs.py`, so an example is readable at a real URL rather
+than only in git. It runs when a manifest or a generator module lands on main,
+and on demand for one catalog or as a dry run. `main` publishes to
+`portolan/portolan-pipeline/<catalog>/main/` and any other ref to
+`.../branches/<ref>/`, so a branch can be previewed without disturbing main.
+Transfers go through `s5cmd`, which handles a tree of many small JSON files far
+better than the AWS CLI. Nothing reaches a public URL unvalidated, the same
+`check_catalogs.py` gate runs between the build and the upload, and afterwards
+the published `catalog.json` is refetched over HTTPS and its `id` checked.
 
 `check_catalogs.py` reads the rashid requirement out of `build.py`'s PEP 723
 header with `tomllib`, so the validator that checks a catalog is the validator
