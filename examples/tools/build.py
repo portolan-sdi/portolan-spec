@@ -37,7 +37,7 @@ inside their wheels, so no GDAL command-line install is needed.
 
 Run:
     uv run examples/tools/build.py
-    uv run examples/tools/build.py --catalog reference
+    uv run examples/tools/build.py --catalog portolan-reference
     uv run examples/tools/build.py --only boundaries/us-counties
 """
 from __future__ import annotations

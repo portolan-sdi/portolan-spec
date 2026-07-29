@@ -29,8 +29,8 @@ expected and terminal, see examples/tools/CLAUDE.md.
 
 Usage::
 
-    uv run scripts/check_catalogs.py
-    uv run scripts/check_catalogs.py --catalog reference
+    uv run examples/tools/check_catalogs.py
+    uv run examples/tools/check_catalogs.py --catalog portolan-reference
 """
 
 from __future__ import annotations
@@ -51,8 +51,8 @@ PEP_723_BLOCK = (
 
 
 def _repo_root() -> Path:
-    # scripts/check_catalogs.py -> repo root is two levels up
-    return Path(__file__).resolve().parent.parent
+    # examples/tools/check_catalogs.py -> repo root is three levels up
+    return Path(__file__).resolve().parent.parent.parent
 
 
 def script_dependencies(script: Path) -> list[str]:

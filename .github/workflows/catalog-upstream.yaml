@@ -47,7 +47,7 @@ jobs:
           # pipefail is not on in the default runner shell, so without it the
           # step would take tee's exit code and never fail.
           set -o pipefail
-          uv run scripts/check_catalogs.py 2>&1 | tee findings.txt
+          uv run examples/tools/check_catalogs.py 2>&1 | tee findings.txt
 
       - name: Report drift
         if: failure() && steps.check.outcome == 'failure'
@@ -62,7 +62,7 @@ jobs:
 
           # findings.txt is this workflow's own output, not user input.
           {
-            echo "\`scripts/check_catalogs.py\` failed on a scheduled run."
+            echo "\`examples/tools/check_catalogs.py\` failed on a scheduled run."
             echo "An example catalog no longer validates against its upstream sources."
             echo
             echo "Run: ${RUN_URL}"
@@ -71,7 +71,7 @@ jobs:
             tail -c 40000 findings.txt
             echo '```'
             echo
-            echo "Reproduce locally with \`uv run scripts/check_catalogs.py\`."
+            echo "Reproduce locally with \`uv run examples/tools/check_catalogs.py\`."
             echo "If an upstream changed, rebuild with \`uv run examples/tools/build.py\`"
             echo "and commit the result."
           } > issue-body.md

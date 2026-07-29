@@ -20,7 +20,7 @@ from validate import _LocalOnlyReader  # noqa: E402
 
 REPO = Path(__file__).resolve().parent.parent.parent.parent
 SCHEMA = REPO / "stac/json-schema/v0.1.0/schema.json"
-REFERENCE = REPO / "examples/catalog/reference"
+REFERENCE = REPO / "examples/catalog/portolan-reference"
 
 import shutil  # noqa: E402
 import tempfile  # noqa: E402
@@ -35,7 +35,7 @@ def check_reference_catalog_passes() -> None:
 
 def check_self_link_fails() -> None:
     with tempfile.TemporaryDirectory() as tmp:
-        dst = Path(tmp) / "reference"
+        dst = Path(tmp) / "portolan-reference"
         shutil.copytree(REFERENCE, dst)
         # Inject a forbidden self link into one Collection.
         col = dst / "boundaries/us-counties/collection.json"

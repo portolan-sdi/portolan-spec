@@ -29,7 +29,7 @@ versioned standard. A catalog declares this version by carrying
   ([`specs/portolan/requirements.yaml`](specs/portolan/requirements.yaml)): 115
   requirements (84 MUST, 17 SHOULD, 14 MAY), each with a stable ID, a severity, an
   enforcement mode, and a verbatim quote from the prose.
-  [`scripts/check_requirements.py`](scripts/check_requirements.py) anchors every
+  [`specs/tools/check_requirements.py`](specs/tools/check_requirements.py) anchors every
   normative keyword in the prose to a manifest entry, and CI fails on drift.
 - **Conformance model**: the versioned schema URI is the single signal of
   specification version, declared on catalogs and collections only, with items

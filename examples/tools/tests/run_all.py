@@ -12,7 +12,7 @@ Every check here is offline and deterministic. check_tiles.py fetches from a
 fake host, check_fetch.py runs against a local HTTP server, and check_validate.py
 reads the committed catalog through validate.py's local-only reader. Nothing
 reaches a third-party server, so this is safe to gate a pull request on. The
-upstream sources are proven separately by scripts/check_catalogs.py.
+upstream sources are proven separately by examples/tools/check_catalogs.py.
 
 Every check runs even after one fails, because a single failure should not hide
 the other eight.
