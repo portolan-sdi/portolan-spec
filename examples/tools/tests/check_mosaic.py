@@ -98,14 +98,41 @@ class _SizedHandler(http.server.BaseHTTPRequestHandler):
         pass
 
 
+class _NotFoundHandler(http.server.BaseHTTPRequestHandler):
+    def do_HEAD(self) -> None:  # noqa: N802
+        self.send_response(404)
+        self.end_headers()
+
+    def log_message(self, *args) -> None:
+        pass
+
+
 def check_remote_size() -> None:
     server = http.server.HTTPServer(("127.0.0.1", 0), _SizedHandler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     try:
         url = f"http://127.0.0.1:{server.server_port}/tile.tif"
-        assert mosaic.remote_size(url) == 4242, mosaic.remote_size(url)
+        size = mosaic.remote_size(url)
+        assert size == 4242, size
     finally:
         server.shutdown()
+        server.server_close()
+
+
+def check_remote_size_handles_404() -> None:
+    server = http.server.HTTPServer(("127.0.0.1", 0), _NotFoundHandler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        url = f"http://127.0.0.1:{server.server_port}/missing.tif"
+        try:
+            mosaic.remote_size(url)
+        except SystemExit as exc:
+            assert url in str(exc), f"error message must name the href: {exc}"
+            return
+        raise AssertionError("remote_size must raise SystemExit on 404")
+    finally:
+        server.shutdown()
+        server.server_close()
 
 
 def check_remote_asset_has_size_and_no_checksum() -> None:
@@ -123,6 +150,7 @@ if __name__ == "__main__":
     check("fetch returns features", check_fetch_returns_features)
     check("fetch rejects an unconsumed next page", check_fetch_rejects_unconsumed_page)
     check("remote size comes from HEAD", check_remote_size)
+    check("remote size handles 404", check_remote_size_handles_404)
     check("remote asset carries size and no checksum",
           check_remote_asset_has_size_and_no_checksum)
     if FAILURES:

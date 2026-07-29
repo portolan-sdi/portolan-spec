@@ -14,10 +14,11 @@ from urllib.request import Request, urlopen
 import numpy as np
 from PIL import Image
 
+from config import USER_AGENT
+
 _ORIGIN = math.pi * 6378137.0  # 20037508.342789244, half the Mercator world
 _WORLD = 2 * _ORIGIN
 _TILE = 256
-_UA = "portolan-reference/0.1"
 
 
 def _tile_zoom(merc: list[float], w: int, max_zoom: int = 19) -> int:
@@ -45,7 +46,7 @@ def _fetch_tile(url: str, z: int, x: int, y: int, cache: Path) -> Path:
     p.parent.mkdir(parents=True, exist_ok=True)
     tile_url = url.format(z=z, x=x, y=y)
     try:
-        req = Request(tile_url, headers={"User-Agent": _UA})
+        req = Request(tile_url, headers={"User-Agent": USER_AGENT})
         with urlopen(req, timeout=30) as r:
             data = r.read()
     except Exception as e:

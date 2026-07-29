@@ -10,8 +10,11 @@ from __future__ import annotations
 
 import json
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 
+from config import USER_AGENT
 from fetch import fetch
 
 
@@ -35,9 +38,6 @@ def fetch_stac_items(url: str, cache: Path, stable: bool = False) -> list[dict]:
     return features
 
 
-import urllib.request
-
-
 def remote_size(href: str) -> int:
     """`Content-Length` for an asset this catalog does not host.
 
@@ -45,9 +45,13 @@ def remote_size(href: str) -> int:
     the bytes, so this is read fresh at build time rather than cached.
     """
     req = urllib.request.Request(href, method="HEAD",
-                                 headers={"User-Agent": "portolan-reference/0.1"})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        length = r.headers.get("Content-Length")
+                                 headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            length = r.headers.get("Content-Length")
+    except (urllib.error.HTTPError, urllib.error.URLError,
+            TimeoutError, OSError) as exc:
+        raise SystemExit(f"HEAD {href} failed, {exc}") from exc
     if not length:
         raise SystemExit(f"{href} returned no Content-Length, so file:size is unknowable")
     return int(length)

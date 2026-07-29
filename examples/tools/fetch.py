@@ -14,6 +14,8 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
+from config import USER_AGENT
+
 
 # --------------------------------------------------------------------------- io
 def fetch(url: str, cache: Path, stable: bool = True) -> Path:
@@ -34,7 +36,7 @@ def fetch(url: str, cache: Path, stable: bool = True) -> Path:
     if stable and dest.exists() and dest.stat().st_size > 0:
         return dest
     print(f"  fetch {url}", file=sys.stderr)
-    req = urllib.request.Request(url, headers={"User-Agent": "portolan-reference/0.1"})
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     tmp = dest.with_suffix(dest.suffix + ".part")
     with urllib.request.urlopen(req, timeout=180) as r, tmp.open("wb") as f:
         while True:

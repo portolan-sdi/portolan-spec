@@ -14,6 +14,10 @@ PROJ_EXT = "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
 ATTRIBUTION_EXT = "https://stac-extensions.github.io/attribution/v0.1.0/schema.json"
 STAC_VERSION = "1.1.0"
 
+# One identity for every read this generator performs. Some hosts answer the
+# default Python-urllib User-Agent with a 403.
+USER_AGENT = "portolan-reference/0.1"
+
 MEDIA = {
     "geoparquet": "application/vnd.apache.parquet",
     "parquet": "application/vnd.apache.parquet",
