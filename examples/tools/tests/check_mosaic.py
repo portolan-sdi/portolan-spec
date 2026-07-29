@@ -1,6 +1,16 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["rasterio>=1.5", "numpy", "Pillow>=11"]
+# dependencies = [
+#   "pyyaml>=6.0.3",
+#   "duckdb>=1.5.5",
+#   "jsonschema>=4.26.0",
+#   "pyarrow>=25",
+#   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
+#   "rasterio>=1.5",
+#   "numpy",
+#   "Pillow>=11",
+#   "rio-cogeo>=5.3",
+# ]
 # ///
 """Offline checks for the raster-mosaic generator path."""
 from __future__ import annotations
@@ -70,10 +80,51 @@ def check_fetch_rejects_unconsumed_page() -> None:
         raise AssertionError("a paged response must fail loudly")
 
 
+import http.server  # noqa: E402
+import threading  # noqa: E402
+
+import stacio  # noqa: E402
+
+
+class _SizedHandler(http.server.BaseHTTPRequestHandler):
+    BODY = b"x" * 4242
+
+    def do_HEAD(self) -> None:  # noqa: N802
+        self.send_response(200)
+        self.send_header("Content-Length", str(len(self.BODY)))
+        self.end_headers()
+
+    def log_message(self, *args) -> None:
+        pass
+
+
+def check_remote_size() -> None:
+    server = http.server.HTTPServer(("127.0.0.1", 0), _SizedHandler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        url = f"http://127.0.0.1:{server.server_port}/tile.tif"
+        assert mosaic.remote_size(url) == 4242, mosaic.remote_size(url)
+    finally:
+        server.shutdown()
+
+
+def check_remote_asset_has_size_and_no_checksum() -> None:
+    a = stacio.remote_asset("https://example.invalid/t.tif", "image/tiff",
+                            ["data"], "Tile", 4242, {"proj:code": "EPSG:26913"})
+    assert a["file:size"] == 4242, a
+    assert "file:checksum" not in a, "a checksum must never be invented"
+    assert a["href"].startswith("https://"), a["href"]
+    assert a["roles"] == ["data"], a
+    assert a["proj:code"] == "EPSG:26913", a
+
+
 if __name__ == "__main__":
     print("check_mosaic.py")
     check("fetch returns features", check_fetch_returns_features)
     check("fetch rejects an unconsumed next page", check_fetch_rejects_unconsumed_page)
+    check("remote size comes from HEAD", check_remote_size)
+    check("remote asset carries size and no checksum",
+          check_remote_asset_has_size_and_no_checksum)
     if FAILURES:
         raise SystemExit(f"{len(FAILURES)} failure(s)")
     print("all ok")

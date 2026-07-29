@@ -116,6 +116,24 @@ def source_asset(local: Path, spec_source: dict) -> dict:
             "file:size": filesize(local), "file:checksum": multihash(local)}
 
 
+def remote_asset(href: str, media: str, roles: list[str], title: str,
+                 size: int, extra: dict | None = None) -> dict:
+    """An asset whose bytes live on a host this catalog does not control.
+
+    Carries `file:size`, read from a HEAD at build time, and deliberately no
+    `file:checksum`. core.md requires the checksum to be regenerated "in the same
+    operation that uploads the files", which presumes the publisher uploads them.
+    A mirror of someone else's COGs cannot, and a digest it cannot verify would be
+    a false claim, so the field is omitted and the resulting PTL-AST-003 and
+    PTL-SCH-001 are baselined. See NAIP-MIRROR-FOLLOWUP.md.
+    """
+    a: dict[str, Any] = {"href": href, "type": media, "title": title,
+                         "roles": roles, "file:size": size}
+    if extra:
+        a.update(extra)
+    return a
+
+
 def add_source_asset(assets: dict, local: Path, spec_source: dict) -> None:
     """Attach the `source` Asset, but only for a stable upstream download.
 

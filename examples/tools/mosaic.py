@@ -33,3 +33,21 @@ def fetch_stac_items(url: str, cache: Path, stable: bool = False) -> list[dict]:
             "Raise the manifest limit so one request covers the query.")
     print(f"  {len(features)} items from the STAC search", file=sys.stderr)
     return features
+
+
+import urllib.request
+
+
+def remote_size(href: str) -> int:
+    """`Content-Length` for an asset this catalog does not host.
+
+    core.md requires `file:size` on every asset and rashid verifies it against
+    the bytes, so this is read fresh at build time rather than cached.
+    """
+    req = urllib.request.Request(href, method="HEAD",
+                                 headers={"User-Agent": "portolan-reference/0.1"})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        length = r.headers.get("Content-Length")
+    if not length:
+        raise SystemExit(f"{href} returned no Content-Length, so file:size is unknowable")
+    return int(length)
