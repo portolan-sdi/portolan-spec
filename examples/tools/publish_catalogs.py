@@ -56,6 +56,12 @@ BUCKET = "s3://us-west-2.opendata.source.coop"
 # together, they address the same bytes over S3 and over HTTPS.
 REPO_PREFIX = "portolan/portolan-pipeline"
 PUBLIC_BASE = "https://data.source.coop/portolan/portolan-pipeline"
+# The two human-facing views of the same bytes. `data.` serves the objects,
+# the bare domain serves Source Cooperative's file browser, and STAC Browser
+# renders the catalog. All three are derived from PUBLIC_BASE in review_urls,
+# never reassembled, so moving the repository moves all of them together.
+SOURCE_COOP_BASE = "https://source.coop/portolan/portolan-pipeline"
+BROWSER_BASE = "https://browser.portolan-sdi.org/#/external/"
 
 # portolan-pipeline publishes into this same repository, so its prefix taxonomy
 # is the one to match rather than invent a second. See its docs/branch-versioning.md.
@@ -175,6 +181,21 @@ def destination(catalog_id: str, ns: str) -> tuple[str, str]:
         raise SystemExit(f"refusing to publish catalog id {catalog_id!r}")
     tail = f"{REPO_PREFIX}/{catalog_id}/{ns}"
     return f"{BUCKET}/{tail}/", f"{PUBLIC_BASE}/{catalog_id}/{ns}/"
+
+
+def review_urls(public_url: str) -> tuple[str, str]:
+    """The STAC Browser and Source Cooperative views of a published catalog.
+
+    Both are derived from the public URL rather than reassembled from the parts,
+    so a prefix that publishes to one place cannot link to another. STAC Browser
+    addresses an external catalog by URL with the scheme dropped, and the file
+    browser serves the same path from the bare domain.
+    """
+    if not public_url.startswith(PUBLIC_BASE):
+        raise SystemExit(f"cannot derive review links from {public_url!r}")
+    browser = f"{BROWSER_BASE}{public_url.removeprefix('https://')}catalog.json"
+    tail = public_url.removeprefix(PUBLIC_BASE).rstrip("/")
+    return browser, f"{SOURCE_COOP_BASE}{tail}"
 
 
 def tree_summary(tree: Path) -> tuple[int, int]:
@@ -369,7 +390,19 @@ def main() -> int:
 
     write_step_summary(rows)
     if rows:
-        write_output("url", rows[-1][1])
+        # The matrix publishes one catalog per job, so the last row is the only
+        # row under CI. These feed the pull request comment and the environment
+        # URL, and a dry run writes none of them, which is what keeps the
+        # comment step from firing on a run that uploaded nothing.
+        catalog_id, public_url, count, size = rows[-1]
+        browser_url, repo_url = review_urls(public_url)
+        write_output("url", public_url)
+        write_output("browser_url", browser_url)
+        write_output("repo_url", repo_url)
+        write_output("files", str(count))
+        write_output("size", f"{size / 1_048_576:.1f} MiB")
+        print(f"browse {browser_url}")
+        print(f"files  {repo_url}")
     print(f"\n{len(rows)}/{len(selected)} catalogs published")
     return 0
 

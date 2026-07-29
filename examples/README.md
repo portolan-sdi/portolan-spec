@@ -112,7 +112,9 @@ Cooperative, where the reference catalog is readable at
 
 CI publishes on every push to `main` that changes a manifest, a generator module,
 or a committed rebuild, since each changes the bytes a catalog is made of. A pull
-request gets its own preview under `PRs/<number>/`, torn down when it closes.
+request gets its own preview under `PRs/<number>/`, torn down when it closes, and
+a comment linking it in [STAC Browser](https://browser.portolan-sdi.org/) so
+review can open the catalog rather than read a diff of Parquet and COG.
 Publishing by hand needs Source Cooperative credentials in the environment and
 `s5cmd` on your PATH.
 

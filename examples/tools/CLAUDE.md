@@ -318,6 +318,16 @@ upload. `.github/workflows/teardown-previews.yaml` deletes a PR's previews when
 it closes, guarded so that only a numeric PR number resolving to a path that
 still contains `/PRs/<n>/` is ever deleted.
 
+A published preview is also commented onto the pull request, so review looks at
+a rendered catalog rather than at a diff of Parquet, COG, and PMTiles. The
+comment is marked `<!-- portolan-publish:<stem> -->` and rewritten in place, one
+per catalog, so ten pushes leave one comment rather than ten. `review_urls` in
+`publish_catalogs.py` derives both links from the public URL the run actually
+uploaded to rather than reassembling them from the parts, so a link cannot point
+at a prefix this run did not write. The STAC Browser form drops the scheme,
+`https://browser.portolan-sdi.org/#/external/data.source.coop/...`, and the file
+browser serves the same path from the bare `source.coop` domain.
+
 `check_catalogs.py` reads the rashid requirement out of `build.py`'s PEP 723
 header with `tomllib`, so the validator that checks a catalog is the validator
 that built it and there is no second pin to drift. It is generic over every tree
