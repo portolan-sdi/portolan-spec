@@ -37,7 +37,10 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: astral-sh/setup-uv@v9
+      # setup-uv stopped publishing floating major tags after v7, so this is
+      # pinned to an exact version while checkout above can float. It needs a
+      # Dependabot config to stay current, see the note in the PR.
+      - uses: astral-sh/setup-uv@v9.0.0
         with:
           enable-cache: true
           # Each check_*.py carries its own PEP 723 dependencies, so the cache
