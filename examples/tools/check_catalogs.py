@@ -30,7 +30,7 @@ expected and terminal, see examples/tools/CLAUDE.md.
 Usage::
 
     uv run examples/tools/check_catalogs.py
-    uv run examples/tools/check_catalogs.py --catalog reference
+    uv run examples/tools/check_catalogs.py --catalog portolan-reference
 """
 
 from __future__ import annotations

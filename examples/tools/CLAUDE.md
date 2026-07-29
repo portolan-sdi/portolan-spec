@@ -35,15 +35,15 @@ Inputs and outputs live under `examples/`, not here.
 
 | Path | What it is |
 |------|------------|
-| `../manifests/*.yaml` | Inputs. One file describes one whole catalog |
-| `../catalog/<stem>/` | Output. One STAC tree per manifest, named after the file stem |
+| `../manifests/*.yaml` | Inputs. One file describes one whole catalog. Named after the `id` it declares |
+| `../catalog/<stem>/` | Output. One STAC tree per manifest, named after the file stem, which equals the catalog id |
 | `../.cache/` | Downloaded upstream sources, git-ignored, safe to delete |
 
 ## Running it
 
 ```bash
 uv run examples/tools/build.py                                # build every manifest
-uv run examples/tools/build.py --catalog reference            # one manifest by stem
+uv run examples/tools/build.py --catalog portolan-reference   # one manifest by stem
 uv run examples/tools/build.py --only boundaries/us-counties  # one Collection, skips validation
 ```
 
@@ -76,8 +76,8 @@ have.
 
 ```bash
 uv run examples/tools/publish_catalogs.py --list                     # the publishable stems
-uv run examples/tools/publish_catalogs.py --catalog reference --dry-run
-uv run examples/tools/publish_catalogs.py --catalog reference
+uv run examples/tools/publish_catalogs.py --catalog portolan-reference --dry-run
+uv run examples/tools/publish_catalogs.py --catalog portolan-reference
 ```
 
 ## The core principle
@@ -215,7 +215,7 @@ rebuild.
 
 ```bash
 uv run --with "rashid[data]>=0.1.3,<0.2.0" \
-  rashid check --schema examples/catalog/reference
+  rashid check --schema examples/catalog/portolan-reference
 ```
 
 The build is clean apart from eight infos, which are expected and terminal. Do
@@ -303,8 +303,9 @@ second one that would sit confusingly beside it. The layout is
 | pull request N | `<id>/PRs/N/`, deleted when it closes |
 
 Three details of that scheme are load bearing and easy to get wrong. The key is
-the catalog **id** from the manifest, not the manifest file name, so
-`reference.yaml` publishes to `portolan-reference/`. A slug collapses every run
+the catalog **id** from the manifest, not the manifest file name. Every manifest
+is named after the id it declares, so `portolan-reference.yaml` publishes to
+`portolan-reference/` and the two never drift. A slug collapses every run
 of characters outside `[a-z0-9._-]` to one dash, so `feat/x` becomes `feat-x`
 and stays a single path segment. And the default-branch test runs on the raw
 ref, so a branch named `Main` lands in `branches/main` rather than overwriting
@@ -339,7 +340,7 @@ infos above are advisory and do not fail it.
 Two known gaps. `check_catalogs.py` validates against the profile schema bundled
 in the rashid wheel, while `validate.py` injects the working copy under `stac/`,
 so a change to `stac/json-schema/` is proven by the build rather than by CI. And
-`check_validate.py` is hardcoded to the `reference` tree, so a second catalog
+`check_validate.py` is hardcoded to the `portolan-reference` tree, so a second catalog
 gets weekly coverage immediately but per-PR coverage only once that script is
 generalized.
 

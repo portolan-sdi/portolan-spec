@@ -16,7 +16,9 @@ taxonomy here is its taxonomy rather than a second one. The layout is
 `branches/<slug>` for any other branch, and `PRs/<number>` for a pull request.
 A PR number is stable across a force-push where a branch name is not, and it is
 what the teardown deletes when the PR closes. The id comes from the manifest,
-not the file name, so `reference.yaml` publishes to `portolan-reference/`.
+not the file name. Name each manifest after the id it declares, so
+`portolan-reference.yaml` builds `catalog/portolan-reference/` and publishes to
+`portolan-reference/`, one name everywhere.
 
 Transfers run through s5cmd rather than the AWS CLI. A catalog is a few hundred
 small JSON files next to a handful of large Parquet and COG assets, and s5cmd
@@ -31,8 +33,8 @@ success but published nothing readable is the failure worth catching.
 Usage::
 
     uv run examples/tools/publish_catalogs.py --list
-    uv run examples/tools/publish_catalogs.py --catalog reference --dry-run
-    uv run examples/tools/publish_catalogs.py --catalog reference
+    uv run examples/tools/publish_catalogs.py --catalog portolan-reference --dry-run
+    uv run examples/tools/publish_catalogs.py --catalog portolan-reference
     uv run examples/tools/publish_catalogs.py --teardown-pr 106 --dry-run
 """
 
@@ -85,8 +87,11 @@ def manifest_catalogs(root: Path) -> dict[str, str]:
     """Every catalog this repo can build, mapping manifest stem to catalog id.
 
     The stem names the build directory and the matrix entry, the id names the
-    published prefix. They differ, `reference.yaml` declares `portolan-reference`,
-    so both are needed and neither can be derived from the other.
+    published prefix. Every manifest is named after the id it declares, so by
+    convention the two coincide. This still reads the declared id rather than
+    assuming it from the stem, because the id is what a catalog is published
+    under and a manifest that breaks the convention has to be caught, not
+    silently published to a prefix nobody named.
     """
     manifests = root / "examples/manifests"
     if not manifests.is_dir():

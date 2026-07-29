@@ -62,7 +62,7 @@ boundaries/
 
 Catalogs can nest. Collections sit one level deep and never nest inside each
 other. A generated catalog covering vector, raster, tabular, and mirrored data
-lives in [`examples/catalog/reference/`](examples/catalog/reference/).
+lives in [`examples/catalog/portolan-reference/`](examples/catalog/portolan-reference/).
 
 ## Portolan philosophy
 

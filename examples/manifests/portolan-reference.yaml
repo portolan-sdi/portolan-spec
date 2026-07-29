@@ -2,7 +2,9 @@
 #
 # One manifest file describes one whole catalog. build.py reads every *.yaml in
 # this directory and builds each into its own tree under the output directory,
-# named after the file stem (this file builds catalog/reference/).
+# named after the file stem (this file builds catalog/portolan-reference/). Name
+# the file after the `id` below, so the stem, the build directory, and the
+# published prefix are all one name.
 #
 # Every source below is the TRUE original upstream, in its native format, pulled
 # directly from the producer (not a CDN convenience mirror or a derived sample).

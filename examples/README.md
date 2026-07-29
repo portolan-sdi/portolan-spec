@@ -4,7 +4,7 @@ Working reference catalogs that exercise the spec end to end.
 
 ## Portolan Reference Catalog
 
-[`catalog/reference/`](catalog/reference/) is a complete, v0.1-conformant
+[`catalog/portolan-reference/`](catalog/portolan-reference/) is a complete, v0.1-conformant
 Portolan catalog built from real, openly licensed data pulled from its original
 upstream sources. It is the canonical reference for what a valid Portolan catalog
 looks like. When in doubt about how to structure a Catalog, a Collection, or an
@@ -47,13 +47,15 @@ The catalog is produced by the generator in [`tools/`](tools/) from the
 manifests in [`manifests/`](manifests/). Each manifest file describes one whole
 catalog and holds everything catalog-specific, so the generator itself carries
 no per-catalog values. It reads every manifest in the directory and builds each
-into `catalog/<manifest-stem>/`. It is a small set of plain modules under
+into `catalog/<manifest-stem>/`. Each manifest is named after the `id` it
+declares, so the manifest, the build directory, and the published prefix all
+read the same. It is a small set of plain modules under
 `tools/` run through the [`build.py`](tools/build.py) entrypoint, which carries a
 PEP 723 dependency header, so `uv` resolves its Python dependencies on the fly.
 
 ```bash
 uv run examples/tools/build.py                              # build every manifest
-uv run examples/tools/build.py --catalog reference          # one catalog
+uv run examples/tools/build.py --catalog portolan-reference   # one catalog
 uv run examples/tools/build.py --only boundaries/us-counties   # one Collection
 ```
 
@@ -99,7 +101,7 @@ in a reference example is a real defect.
 
 ```bash
 uv run examples/tools/check_catalogs.py                      # every catalog
-uv run examples/tools/check_catalogs.py --catalog reference  # one catalog
+uv run examples/tools/check_catalogs.py --catalog portolan-reference  # one catalog
 ```
 
 ### Where it is published
@@ -120,8 +122,8 @@ Publishing by hand needs Source Cooperative credentials in the environment and
 
 ```bash
 uv run examples/tools/publish_catalogs.py --list                        # publishable stems
-uv run examples/tools/publish_catalogs.py --catalog reference --dry-run
-uv run examples/tools/publish_catalogs.py --catalog reference
+uv run examples/tools/publish_catalogs.py --catalog portolan-reference --dry-run
+uv run examples/tools/publish_catalogs.py --catalog portolan-reference
 ```
 
 ### Note, CRS and engine changes
