@@ -7,7 +7,7 @@
 #   "pyarrow>=25",
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
 #   "rasterio>=1.5",
-#   "rashid[data] @ git+https://github.com/portolan-sdi/rashid.git@4302f169374a17265f219824486e217591195aad",
+#   "rashid[data]>=0.1.3,<0.2.0",
 #   "rio-cogeo>=5.3",
 #   "Pillow>=11",
 # ]

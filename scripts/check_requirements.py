@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.12"
 # dependencies = ["pyyaml>=6"]
 # ///
 """Verify requirements.yaml and the spec prose agree, both directions.
