@@ -1,0 +1,48 @@
+name: Examples
+
+# The generator under examples/tools/ ships nine checks and nothing ran them.
+# They cover catalog conformance, the committed COG and GeoParquet, the MapLibre
+# style URLs, the thumbnail geometry, and the fetch cache. Several of them catch
+# defects nothing else does, see examples/tools/CLAUDE.md.
+#
+# Every check is offline and deterministic, and the whole suite runs in about
+# twelve seconds. So this runs on every pull request with no path filter, which
+# keeps it eligible to be a required status check. A path-filtered workflow
+# cannot be required, it stays pending on the PRs it skips.
+#
+# The upstream sources are a different problem. Proving them means refetching
+# five third-party servers, which is slow and fails for reasons unrelated to any
+# PR, so that runs on a schedule in catalog-upstream.yaml instead.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  # Superseded PR runs are worth cancelling. Runs on main are not, a cancelled
+  # one leaves a gap in the record of what was green.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@v9
+        with:
+          enable-cache: true
+          # Each check_*.py carries its own PEP 723 dependencies, so the cache
+          # key has to follow the scripts rather than a lockfile.
+          cache-dependency-glob: 'examples/tools/**/*.py'
+
+      - name: Run the generator checks
+        run: uv run examples/tools/tests/run_all.py
