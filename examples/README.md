@@ -86,6 +86,42 @@ stale cached copy would publish data that no longer matches upstream. That is
 what core.md asks for when it requires those values to be regenerated at publish
 time.
 
+### Revalidating it
+
+The build validates what it just wrote.
+[`check_catalogs.py`](tools/check_catalogs.py) revalidates what is committed,
+with the data pass on, so it refetches the stable upstream sources and proves the
+`file:size` and `file:checksum` published for each. That is the one check that
+catches an upstream drifting away from a checksum this repo already published.
+It reads the rashid pin out of `build.py`, so the validator that checks a catalog
+is the validator that built it. Errors and warnings both fail, because a warning
+in a reference example is a real defect.
+
+```bash
+uv run examples/tools/check_catalogs.py                      # every catalog
+uv run examples/tools/check_catalogs.py --catalog reference  # one catalog
+```
+
+### Where it is published
+
+A catalog that only exists in git proves the bytes are right and proves nothing
+about how a client reads it, over HTTP range requests against a real object
+store. So each catalog is also published to the Portolan repository on Source
+Cooperative, where the reference catalog is readable at
+<https://data.source.coop/portolan/portolan-pipeline/portolan-reference/main/>.
+
+CI publishes on every push to `main` that changes a manifest, a generator module,
+or a committed rebuild, since each changes the bytes a catalog is made of. A pull
+request gets its own preview under `PRs/<number>/`, torn down when it closes.
+Publishing by hand needs Source Cooperative credentials in the environment and
+`s5cmd` on your PATH.
+
+```bash
+uv run examples/tools/publish_catalogs.py --list                        # publishable stems
+uv run examples/tools/publish_catalogs.py --catalog reference --dry-run
+uv run examples/tools/publish_catalogs.py --catalog reference
+```
+
 ### Note, CRS and engine changes
 
 The design to preserve the source CRS and move the data path off the GDAL
