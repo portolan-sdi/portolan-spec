@@ -31,7 +31,7 @@ name: Publish Catalogs
 on:
   push:
     branches: [main]
-    paths:
+    paths: &catalog-paths
       # A manifest names the sources and describes the whole catalog.
       - 'examples/manifests/**'
       # The generator itself, every module under examples/tools/.
@@ -41,15 +41,14 @@ on:
       - 'examples/catalog/**'
       - '.github/workflows/publish-catalogs.yaml'
   # A pull request publishes a preview to PRs/<number>, torn down when it
-  # closes. Actions expands no YAML anchors, so this list is duplicated from the
-  # one above on purpose. Keep them identical.
+  # closes. The path list is the anchor above rather than a copy of it, so the
+  # two triggers cannot drift into publishing on main for a path that no longer
+  # previews on a pull request. Actions has expanded anchors since September
+  # 2025. Merge keys are still unsupported, and an anchor cannot cross into
+  # another file, neither of which this needs.
   pull_request:
     types: [opened, synchronize, reopened]
-    paths:
-      - 'examples/manifests/**'
-      - 'examples/**/*.py'
-      - 'examples/catalog/**'
-      - '.github/workflows/publish-catalogs.yaml'
+    paths: *catalog-paths
   workflow_dispatch:
     inputs:
       catalog:
@@ -215,8 +214,17 @@ jobs:
       # skips this step rather than a second condition on the input.
       - name: Comment the review links on the pull request
         if: github.event_name == 'pull_request' && steps.publish.outputs.browser_url != ''
+        # The catalog is live by the time this runs. The publish is the
+        # contract and the comment is a convenience, so a deleted comment, a
+        # transient 5xx, or a secondary rate limit leaves the reviewer without
+        # a link rather than turning a successful publish red.
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
+          # Both the search and the create path read the repository from here,
+          # rather than one being told explicitly and the other inferring it
+          # from the git remote.
+          GH_REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           CATALOG: ${{ matrix.catalog }}
           BROWSER_URL: ${{ steps.publish.outputs.browser_url }}
@@ -245,16 +253,38 @@ jobs:
             echo "this pull request, and deleted when it closes."
           } > comment.md
 
-          EXISTING=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
-            --paginate --jq '.[] | select(.body | contains(env.MARKER)) | .id' \
-            | head -1)
+          # Three conditions, not one. The marker alone is not enough, because
+          # GitHub's quote reply reproduces raw markdown including the HTML
+          # comment, so a reviewer quoting this comment writes the marker into
+          # a comment of their own and this step would then rewrite their
+          # words. The token posts as the GitHub Actions app, whose login is
+          # github-actions[bot]. A comment a maintainer collapsed as outdated
+          # is passed over as well, so the next push writes a fresh visible
+          # comment rather than editing a hidden one. That last field reads
+          # null on a comment nobody collapsed, so if the API ever stops
+          # returning it the clause falls back to the old behavior.
+          ALL=$(gh api "repos/{owner}/{repo}/issues/${PR_NUMBER}/comments" --paginate --jq '
+            .[]
+            | select(
+                .user.login == "github-actions[bot]"
+                and .minimized == null
+                and (.body | contains(env.MARKER))
+              )
+            | .id')
+
+          # The first match, taken by expansion rather than by piping into
+          # head. head closes the pipe the moment it has its line, gh dies of
+          # SIGPIPE, and pipefail turns that into a failed step as soon as a
+          # pull request carries more comments than one page holds. No match
+          # leaves this empty.
+          EXISTING=${ALL%%$'\n'*}
 
           if [ -n "$EXISTING" ]; then
             # jq builds the payload, so a body containing quotes or newlines
             # cannot break out of the JSON.
             jq -Rs '{body: .}' < comment.md > payload.json
             gh api -X PATCH --silent --input payload.json \
-              "repos/${GITHUB_REPOSITORY}/issues/comments/${EXISTING}"
+              "repos/{owner}/{repo}/issues/comments/${EXISTING}"
             echo "updated comment ${EXISTING}"
           else
             gh pr comment "$PR_NUMBER" --body-file comment.md
