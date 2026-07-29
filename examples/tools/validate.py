@@ -12,29 +12,26 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
-import jsonschema
-
 if TYPE_CHECKING:
     from rashid.catalog import Node
     from rashid.data import DataDefect
     from rashid.data.reader import AssetReader, Locator
+    from rashid.schema import Validator
 
 
-def _local_schema_validator(schema_path: Path) -> Callable[[dict], list[str]]:
+def _local_schema_validator(schema_path: Path) -> "Validator":
     """A rashid schema-pass validator bound to the working-copy schema.
 
-    Rashid's schema pass fetches the published profile schema. Here we point it
-    at the committed schema under stac/ so the build tests the working copy,
-    which is what the old validator did. Returns the jsonschema messages for one
+    Rashid's schema pass resolves the published profile schema from the copies
+    bundled in its wheel. Here we point it at the committed schema under stac/
+    so the build tests the working copy. rashid's own `validator_from_schema`
+    builds it, which keeps the SchemaError contract and the oneOf error
+    narrowing rashid's reporting expects. Returns the schema errors for one
     object, empty when it satisfies the schema.
     """
-    schema = json.loads(schema_path.read_text())
-    validator = jsonschema.Draft7Validator(schema)
+    from rashid.schema import validator_from_schema
 
-    def validate_object(obj: dict) -> list[str]:
-        return [error.message for error in validator.iter_errors(obj)]
-
-    return validate_object
+    return validator_from_schema(json.loads(schema_path.read_text()))
 
 
 class _LocalOnlyReader:
