@@ -1,5 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
+# dependencies = ["pyyaml>=6.0.3"]
 # ///
 """Publish a built example catalog to the Portolan repository on Source Cooperative.
 
@@ -9,9 +10,13 @@ uploads that tree to https://data.source.coop/portolan/portolan-pipeline/ so the
 example is reachable at a real URL, which is the only way to exercise a Portolan
 catalog the way a client actually reads one, over HTTP range requests.
 
-The layout is <stem>/main/ for the default branch and <stem>/branches/<ref>/ for
-anything else, so a branch can be previewed without touching what main
-publishes. That mirrors the layout already in the bucket.
+portolan-pipeline already publishes into this same repository, so the prefix
+taxonomy here is its taxonomy rather than a second one. The layout is
+<catalog id>/<namespace>, where the namespace is `main` for main or master,
+`branches/<slug>` for any other branch, and `PRs/<number>` for a pull request.
+A PR number is stable across a force-push where a branch name is not, and it is
+what the teardown deletes when the PR closes. The id comes from the manifest,
+not the file name, so `reference.yaml` publishes to `portolan-reference/`.
 
 Transfers run through s5cmd rather than the AWS CLI. A catalog is a few hundred
 small JSON files next to a handful of large Parquet and COG assets, and s5cmd
@@ -28,6 +33,7 @@ Usage::
     uv run scripts/publish_catalogs.py --list
     uv run scripts/publish_catalogs.py --catalog reference --dry-run
     uv run scripts/publish_catalogs.py --catalog reference
+    uv run scripts/publish_catalogs.py --teardown-pr 106 --dry-run
 """
 
 from __future__ import annotations
@@ -43,20 +49,25 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+import yaml
+
 BUCKET = "s3://us-west-2.opendata.source.coop"
 # The Source Cooperative repository. Both halves of this pair have to move
 # together, they address the same bytes over S3 and over HTTPS.
 REPO_PREFIX = "portolan/portolan-pipeline"
 PUBLIC_BASE = "https://data.source.coop/portolan/portolan-pipeline"
 
-DEFAULT_BRANCH = "main"
+# portolan-pipeline publishes into this same repository, so its prefix taxonomy
+# is the one to match rather than invent a second. See its docs/branch-versioning.md.
+DEFAULT_BRANCHES = {"main", "master"}
+# Everything outside this set collapses to a single dash, so a branch name is
+# one path segment. `feat/x` becomes `feat-x`, never a nested directory.
+UNSAFE_IN_SLUG = re.compile(r"[^a-z0-9._-]+")
 # Cloudflare fronts data.source.coop and 403s the default Python-urllib agent.
 USER_AGENT = "portolan-spec-publish (+https://github.com/portolan-sdi/portolan-spec)"
 # Finder litters the tree on macOS. It is gitignored, so CI never sees it, but a
 # maintainer publishing from a working copy would otherwise ship it.
 EXCLUDED_NAMES = {".DS_Store"}
-# A ref becomes a URL path, so keep it to what is safe in one.
-SAFE_REF = re.compile(r"^[A-Za-z0-9._/-]+$")
 
 
 def _repo_root() -> Path:
@@ -64,43 +75,106 @@ def _repo_root() -> Path:
     return Path(__file__).resolve().parent.parent
 
 
-def manifest_stems(root: Path) -> list[str]:
-    """Every catalog this repo knows how to build, by manifest file stem."""
+def manifest_catalogs(root: Path) -> dict[str, str]:
+    """Every catalog this repo can build, mapping manifest stem to catalog id.
+
+    The stem names the build directory and the matrix entry, the id names the
+    published prefix. They differ, `reference.yaml` declares `portolan-reference`,
+    so both are needed and neither can be derived from the other.
+    """
     manifests = root / "examples/manifests"
     if not manifests.is_dir():
-        return []
-    return sorted(
-        {path.stem for path in manifests.iterdir() if path.suffix in {".yaml", ".yml"}}
-    )
+        return {}
+    found = {}
+    for path in sorted(manifests.iterdir()):
+        if path.suffix not in {".yaml", ".yml"}:
+            continue
+        declared = yaml.safe_load(path.read_text()).get("id")
+        if not declared:
+            raise SystemExit(f"{path} declares no id, which names its published prefix")
+        found[path.stem] = str(declared)
+    return found
 
 
-def current_ref() -> str:
-    """The branch being published from, in CI or in a working copy."""
-    ref = os.environ.get("GITHUB_REF_NAME")
-    if ref:
-        return ref
-    completed = subprocess.run(
-        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
+def slugify_ref(ref: str) -> str:
+    """Turn a git ref into one safe path segment, as portolan-pipeline does."""
+    slug = UNSAFE_IN_SLUG.sub("-", ref.strip().lower()).strip("-./")
+    return slug or "unnamed"
+
+
+def _git_branch(command: list[str]) -> str:
+    """Stripped stdout of a git branch-name command, empty when it fails."""
+    try:
+        completed = subprocess.run(
+            command, capture_output=True, text=True, check=True, timeout=10
+        )
+    except (subprocess.SubprocessError, OSError):
+        return ""
     return completed.stdout.strip()
 
 
-def ref_leaf(ref: str) -> str:
-    """The prefix segment a ref publishes under."""
-    if not SAFE_REF.match(ref) or ".." in ref:
-        raise SystemExit(f"refusing to publish from ref {ref!r}, it is not path-safe")
-    return DEFAULT_BRANCH if ref == DEFAULT_BRANCH else f"branches/{ref}"
+def local_branch() -> str:
+    """The checked-out branch, for a run with no CI environment."""
+    branch = _git_branch(["git", "branch", "--show-current"])
+    if branch:
+        return branch
+    branch = _git_branch(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+    if branch and branch != "HEAD":
+        return branch
+    return "local"
 
 
-def destination(catalog: str, leaf: str) -> tuple[str, str]:
-    """The s3:// target and the public https:// URL for one catalog and ref."""
-    if not catalog or "/" in catalog or ".." in catalog:
-        raise SystemExit(f"refusing to publish catalog name {catalog!r}")
-    tail = f"{REPO_PREFIX}/{catalog}/{leaf}"
-    return f"{BUCKET}/{tail}/", f"{PUBLIC_BASE}/{catalog}/{leaf}/"
+def pull_request_number() -> str | None:
+    """The PR this run belongs to, when it is a pull_request event."""
+    if os.environ.get("GITHUB_EVENT_NAME") != "pull_request":
+        return None
+    # refs/pull/123/merge. The trailing slash is required, matching upstream.
+    match = re.search(r"refs/pull/(\d+)/", os.environ.get("GITHUB_REF", ""))
+    number = match.group(1) if match else os.environ.get("PR_NUMBER", "")
+    if not number.isdigit():
+        # Upstream falls back to a literal "0" here. Publishing every
+        # unidentifiable run on top of PRs/0 is worse than refusing.
+        raise SystemExit(
+            "pull_request event with no usable PR number, "
+            f"GITHUB_REF={os.environ.get('GITHUB_REF', '')!r}"
+        )
+    return number
+
+
+def namespace() -> str:
+    """The per-run prefix segment, keyed on the git context.
+
+    A pull request goes to PRs/<number>, stable across a force-push where a
+    branch name is not, and deletable by number when the PR closes.
+
+    The default-branch test is on the raw ref, not a lowercased one, matching
+    upstream. It reads like an oversight and is the safer behaviour, a branch
+    named `Main` lands in branches/ rather than overwriting the canonical
+    catalog at main/.
+    """
+    pr = pull_request_number()
+    if pr:
+        return f"PRs/{pr}"
+    event = os.environ.get("GITHUB_EVENT_NAME")
+    if event in {"push", "workflow_dispatch"}:
+        ref = os.environ.get("GITHUB_REF_NAME") or local_branch()
+    else:
+        ref = local_branch()
+    if ref in DEFAULT_BRANCHES:
+        return "main"
+    return f"branches/{slugify_ref(ref)}"
+
+
+def destination(catalog_id: str, ns: str) -> tuple[str, str]:
+    """The s3:// target and the public https:// URL for one catalog and run.
+
+    Keyed on the catalog id rather than the manifest file name, since the id is
+    what the published catalog calls itself and what portolan-pipeline keys on.
+    """
+    if not catalog_id or "/" in catalog_id or ".." in catalog_id:
+        raise SystemExit(f"refusing to publish catalog id {catalog_id!r}")
+    tail = f"{REPO_PREFIX}/{catalog_id}/{ns}"
+    return f"{BUCKET}/{tail}/", f"{PUBLIC_BASE}/{catalog_id}/{ns}/"
 
 
 def tree_summary(tree: Path) -> tuple[int, int]:
@@ -135,7 +209,9 @@ def sync(tree: Path, target: str, dry_run: bool) -> None:
         command += ["--exclude", f"*{name}"]
     command += [f"{tree}/", target]
     print(f"$ {' '.join(command)}")
-    subprocess.run(command, check=True)
+    completed = subprocess.run(command, check=False)
+    if completed.returncode != 0:
+        raise SystemExit(f"s5cmd failed with exit {completed.returncode}, {target}")
 
 
 def verify(public_url: str, expected_id: str) -> None:
@@ -167,6 +243,37 @@ def verify(public_url: str, expected_id: str) -> None:
             f"{url} has id {published.get('id')!r}, expected {expected_id!r}"
         )
     print(f"verified {url} (id {expected_id})")
+
+
+def teardown(catalog_ids: list[str], number: str, dry_run: bool) -> int:
+    """Delete one pull request's preview prefixes.
+
+    Guarded in layers, because this is the only code here that deletes a prefix
+    outright rather than reconciling one. The number must be all digits, and the
+    resolved target must still look like a PR prefix after it is built. Neither
+    main/ nor branches/ can be reached even if a caller lies about the number.
+    """
+    if not number.isdigit():
+        raise SystemExit(f"refusing to tear down, PR number is not numeric, {number!r}")
+    if shutil.which("s5cmd") is None:
+        raise SystemExit("s5cmd is not on PATH, see https://github.com/peak/s5cmd")
+
+    for catalog_id in catalog_ids:
+        target, _ = destination(catalog_id, f"PRs/{number}")
+        if f"/PRs/{number}/" not in target:
+            raise SystemExit(f"refusing to tear down, unexpected target {target!r}")
+        command = ["s5cmd"]
+        if dry_run:
+            command.append("--dry-run")
+        # A prefix with nothing under it is normal, a PR that never published.
+        command += ["rm", f"{target}*"]
+        print(f"$ {' '.join(command)}")
+        completed = subprocess.run(command, capture_output=True, text=True, check=False)
+        print(completed.stdout, end="")
+        if completed.returncode != 0 and "no object found" not in completed.stderr:
+            raise SystemExit(completed.stderr.strip())
+        print(f"torn down {target}")
+    return 0
 
 
 def write_output(key: str, value: str) -> None:
@@ -201,14 +308,17 @@ def main() -> int:
     parser.add_argument("--list", action="store_true", help="print the manifest stems as JSON and exit")
     parser.add_argument("--dry-run", action="store_true", help="show the transfers without making them")
     parser.add_argument("--built", default=root / "examples/catalog", type=Path, help="root the built catalogs live under")
+    parser.add_argument("--teardown-pr", default=None, metavar="N", help="delete the PRs/N preview of every catalog and exit")
     args = parser.parse_args()
 
-    stems = manifest_stems(root)
-    if not stems:
+    catalogs = manifest_catalogs(root)
+    if not catalogs:
         raise SystemExit(f"no manifests found in {root / 'examples/manifests'}")
-    if args.catalog and args.catalog not in stems:
-        raise SystemExit(f"unknown catalog {args.catalog!r}, manifests are {stems}")
-    selected = [args.catalog] if args.catalog else stems
+    if args.catalog and args.catalog not in catalogs:
+        raise SystemExit(
+            f"unknown catalog {args.catalog!r}, manifests are {sorted(catalogs)}"
+        )
+    selected = [args.catalog] if args.catalog else sorted(catalogs)
 
     # --list feeds the build matrix, so a typo in the dispatch input fails here
     # rather than after a job has already spent ten minutes building.
@@ -216,30 +326,46 @@ def main() -> int:
         print(json.dumps(selected))
         return 0
 
-    leaf = ref_leaf(current_ref())
+    # Identity, not truthiness. An empty --teardown-pr is a caller that meant to
+    # tear down and lost the number, and falling through to publish there would
+    # upload where it was asked to delete.
+    if args.teardown_pr is not None:
+        return teardown(
+            [catalogs[stem] for stem in selected], args.teardown_pr, args.dry_run
+        )
+
+    ns = namespace()
     rows = []
-    for catalog in selected:
-        tree = args.built / catalog
+    for stem in selected:
+        tree = args.built / stem
         root_json = tree / "catalog.json"
         if not root_json.is_file():
             raise SystemExit(
                 f"{root_json} is missing, build it with "
-                f"'uv run examples/tools/build.py --catalog {catalog}'"
+                f"'uv run examples/tools/build.py --catalog {stem}'"
             )
-        catalog_id = json.loads(root_json.read_text())["id"]
-        target, public_url = destination(catalog, leaf)
+        # The manifest names the prefix, the build has to agree. A rebuild that
+        # changed the id while the manifest did not would otherwise publish to
+        # one prefix and be verified at another.
+        built_id = json.loads(root_json.read_text())["id"]
+        if built_id != catalogs[stem]:
+            raise SystemExit(
+                f"{root_json} has id {built_id!r} but its manifest declares "
+                f"{catalogs[stem]!r}, rebuild before publishing"
+            )
+        target, public_url = destination(built_id, ns)
         count, size = tree_summary(tree)
 
-        print(f"::group::{catalog} -> {target}")
-        print(f"{count} files, {size / 1_048_576:.1f} MiB, catalog id {catalog_id}")
+        print(f"::group::{stem} -> {target}")
+        print(f"{count} files, {size / 1_048_576:.1f} MiB, catalog id {built_id}")
         sync(tree, target, args.dry_run)
         print("::endgroup::")
 
         if args.dry_run:
             print(f"dry run, nothing was uploaded to {target}")
         else:
-            verify(public_url, catalog_id)
-            rows.append((catalog, public_url, count, size))
+            verify(public_url, built_id)
+            rows.append((built_id, public_url, count, size))
 
     write_step_summary(rows)
     if rows:
