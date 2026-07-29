@@ -4,6 +4,7 @@ collection and catalog builders.
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -518,7 +519,62 @@ def _group_meta(manifest: dict, seg: str) -> tuple[str, str]:
     return seg.title(), f"{seg} Collections."
 
 
+# PORTO-CORE-013, "Collection IDs SHOULD contain only lowercase letters,
+# numbers, hyphens, and underscores, start with a letter, and be unique within
+# the catalog." Enforced as an error here rather than left to rashid, because
+# every one of these becomes a directory name and an href before any validator
+# sees the tree.
+ID_SEGMENT = re.compile(r"^[a-z][a-z0-9_-]*$")
+
+
+def check_collection_ids(specs: list[dict]) -> None:
+    """Reject collection ids that would build a broken or unsafe tree.
+
+    Each id is split on `/` into a group segment and a collection segment, and
+    the whole generator assumes exactly that shape. One segment puts a
+    Collection and its group Catalog in the same directory, where the sidecars
+    of one overwrite the other. Three or more leaves the parent link pointing at
+    a catalog that is never written. Neither is caught downstream, both produce
+    a tree that validates field by field while its links go nowhere.
+
+    Uniqueness matters more than it looks. `build_collection` rmtree's the
+    target directory first, so a duplicate id silently deletes the earlier
+    build and leaves the group catalog carrying the same child link twice.
+    """
+    seen: dict[str, int] = {}
+    errors: list[str] = []
+    for index, spec in enumerate(specs):
+        cid = str(spec.get("id", ""))
+        if cid in seen:
+            errors.append(
+                f"collection[{index}] id {cid!r} duplicates collection[{seen[cid]}], "
+                "the second build would delete the first"
+            )
+        seen.setdefault(cid, index)
+        segments = cid.split("/")
+        if len(segments) != 2:
+            errors.append(
+                f"collection[{index}] id {cid!r} has {len(segments)} segment(s), "
+                "ids are '<catalog>/<collection>'"
+            )
+        for segment in segments:
+            if not ID_SEGMENT.match(segment):
+                errors.append(
+                    f"collection[{index}] id {cid!r} has segment {segment!r}, "
+                    "which is not lowercase letters, numbers, hyphens, and "
+                    "underscores starting with a letter"
+                )
+    if errors:
+        raise SystemExit(
+            f"{len(errors)} collection id error(s):\n"
+            + "\n".join(f"  - {err}" for err in errors)
+        )
+
+
 def build_catalog(manifest: dict, out: Path, cache: Path, only: str | None) -> None:
+    # Validated against the whole manifest, never the --only subset, so a broken
+    # id cannot hide behind a filtered build.
+    check_collection_ids(manifest["collections"])
     out.mkdir(parents=True, exist_ok=True)
     thumb = build_thumb_ctx(manifest, cache)
     specs = manifest["collections"]
@@ -536,8 +592,13 @@ def build_catalog(manifest: dict, out: Path, cache: Path, only: str | None) -> N
     updates = [b["updated"] for b in built if b.get("updated")]
     catalog_updated = max(updates) if updates else None
 
-    # intermediate (nested) catalogs, titles come from the manifest
-    for gseg, colls in groups.items():
+    # Intermediate (nested) catalogs, titles come from the manifest. Skipped
+    # under --only for the same reason the root below is. `groups` is built from
+    # the filtered list, so rewriting one here would drop every sibling
+    # Collection from its child links while leaving them on disk, unreachable.
+    # --only also skips validation, so nothing downstream would catch it, and a
+    # committed rebuild now publishes.
+    for gseg, colls in ({} if only else groups).items():
         gdir = out / gseg
         gdir.mkdir(parents=True, exist_ok=True)
         gtitle, gdesc = _group_meta(manifest, gseg)
