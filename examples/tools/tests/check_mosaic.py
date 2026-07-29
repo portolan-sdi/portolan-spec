@@ -208,6 +208,52 @@ def check_read_overview_rejects_unreadable() -> None:
         raise AssertionError("read_overview must raise SystemExit for unreadable input")
 
 
+def check_build_items() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        coll = Path(td) / "colorado-2023"
+        coll.mkdir(parents=True)
+        feats = [_item("a"), _item("b")]
+
+        def fake_probe(href: str):
+            return 4242, [{"data_type": "uint8", "statistics": {
+                "minimum": 1.0, "maximum": 2.0, "mean": 1.5,
+                "stddev": 0.5, "approximate": True}}], np.zeros((1, 4, 4), "uint8")
+
+        items, links, bbox, tiles = mosaic.build_items(
+            feats, coll, "imagery/colorado-2023", "NAIP Colorado 2023", fake_probe)
+
+        assert len(items) == 2 and len(links) == 2, (len(items), len(links))
+        assert bbox == [-105.0, 39.0, -104.9, 39.1], bbox
+        assert len(tiles) == 2, tiles
+        assert tiles[0][0] == feats[0]["bbox"], tiles[0][0]
+        assert tiles[0][1].shape == (1, 4, 4), tiles[0][1].shape
+
+        written = json.loads((coll / "a" / "item.json").read_text())
+        assert written["type"] == "Feature", written["type"]
+        assert written["stac_version"] == "1.1.0", written["stac_version"]
+        assert written["collection"] == "imagery/colorado-2023", written["collection"]
+        assert written["properties"]["datetime"] == "2023-10-20T16:00:00Z", written["properties"]
+        assert written["properties"]["proj:code"] == "EPSG:26913", written["properties"]
+
+        img = written["assets"]["image"]
+        assert img["href"] == "https://example.invalid/a.tif", img["href"]
+        assert img["file:size"] == 4242, img
+        assert "file:checksum" not in img, "no invented checksum on a remote asset"
+        assert img["roles"] == ["data"], img
+        assert img["bands"][0]["statistics"]["approximate"] is True, img["bands"]
+
+        rels = {l["rel"]: l["href"] for l in written["links"]}
+        assert rels["root"] == "../../../catalog.json", rels
+        assert rels["parent"] == "../collection.json", rels
+        assert rels["collection"] == "../collection.json", rels
+        assert "self" not in rels, "objects must not carry a self link"
+
+        assert links[0]["rel"] == "item", links[0]
+        assert links[0]["href"] == "./a/item.json", links[0]
+        assert links[0]["type"] == "application/geo+json", links[0]
+        assert links[0]["title"] == "a", links[0]
+
+
 if __name__ == "__main__":
     print("check_mosaic.py")
     check("fetch returns features", check_fetch_returns_features)
@@ -219,6 +265,7 @@ if __name__ == "__main__":
     check("read_overview yields bands and pixels", check_read_overview)
     check("read_overview rejects no overviews", check_read_overview_rejects_no_overviews)
     check("read_overview rejects unreadable input", check_read_overview_rejects_unreadable)
+    check("build_items writes conforming items", check_build_items)
     if FAILURES:
         raise SystemExit(f"{len(FAILURES)} failure(s)")
     print("all ok")
