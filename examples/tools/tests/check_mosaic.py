@@ -242,7 +242,7 @@ def check_build_items() -> None:
         assert img["roles"] == ["data"], img
         assert img["bands"][0]["statistics"]["approximate"] is True, img["bands"]
 
-        rels = {l["rel"]: l["href"] for l in written["links"]}
+        rels = {entry["rel"]: entry["href"] for entry in written["links"]}
         assert rels["root"] == "../../../catalog.json", rels
         assert rels["parent"] == "../collection.json", rels
         assert rels["collection"] == "../collection.json", rels
@@ -252,6 +252,43 @@ def check_build_items() -> None:
         assert links[0]["href"] == "./a/item.json", links[0]
         assert links[0]["type"] == "application/geo+json", links[0]
         assert links[0]["title"] == "a", links[0]
+
+
+def check_build_items_rejects_missing_datetime() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        coll = Path(td) / "colorado-2023"
+        coll.mkdir(parents=True)
+        feat = _item("a")
+        del feat["properties"]["datetime"]
+
+        def fake_probe(href: str):
+            return 4242, [], np.zeros((1, 4, 4), "uint8")
+
+        try:
+            mosaic.build_items([feat], coll, "imagery/colorado-2023", "NAIP", fake_probe)
+        except SystemExit as exc:
+            assert "a" in str(exc), str(exc)
+            assert "datetime" in str(exc).lower(), str(exc)
+            return
+        raise AssertionError("a feature with no datetime must fail loudly")
+
+
+def check_build_items_rejects_missing_image_asset() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        coll = Path(td) / "colorado-2023"
+        coll.mkdir(parents=True)
+        feat = _item("a")
+        del feat["assets"]["image"]
+
+        def fake_probe(href: str):
+            return 4242, [], np.zeros((1, 4, 4), "uint8")
+
+        try:
+            mosaic.build_items([feat], coll, "imagery/colorado-2023", "NAIP", fake_probe)
+        except SystemExit as exc:
+            assert "a" in str(exc), str(exc)
+            return
+        raise AssertionError("a feature with no image asset must fail loudly")
 
 
 if __name__ == "__main__":
@@ -266,6 +303,10 @@ if __name__ == "__main__":
     check("read_overview rejects no overviews", check_read_overview_rejects_no_overviews)
     check("read_overview rejects unreadable input", check_read_overview_rejects_unreadable)
     check("build_items writes conforming items", check_build_items)
+    check("build_items rejects a feature with no datetime",
+          check_build_items_rejects_missing_datetime)
+    check("build_items rejects a feature with no image asset",
+          check_build_items_rejects_missing_image_asset)
     if FAILURES:
         raise SystemExit(f"{len(FAILURES)} failure(s)")
     print("all ok")

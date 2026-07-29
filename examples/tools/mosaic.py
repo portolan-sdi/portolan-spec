@@ -30,6 +30,11 @@ from stacio import link, remote_asset
 # the request count against a blob store that has no directories anyway.
 os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR")
 
+# GDAL has no default timeout, so one unresponsive object would stall a whole
+# build. These bound a single read the way remote_size bounds its HEAD.
+os.environ.setdefault("GDAL_HTTP_CONNECTTIMEOUT", "30")
+os.environ.setdefault("GDAL_HTTP_TIMEOUT", "60")
+
 
 def fetch_stac_items(url: str, cache: Path, stable: bool = False) -> list[dict]:
     """Every item from a STAC search response, refusing a truncated result.
@@ -80,7 +85,8 @@ def read_overview(href: str) -> tuple[list[dict], np.ndarray]:
     not satisfy PORTO-FMT-026, which requires statistics embedded in the file, and
     that failure is baselined rather than papered over. A missing overview is an
     error, not absorbed, because reading full resolution would pull gigabytes over
-    a slow network.
+    a slow network. The read itself is time-bounded by the module's GDAL HTTP
+    timeout settings, so one unresponsive object fails rather than stalling.
     """
     path = href if href.startswith("/vsicurl/") or Path(href).exists() else f"/vsicurl/{href}"
     try:
@@ -133,6 +139,19 @@ def _proj_code(props: dict) -> str | None:
     return None
 
 
+def _image_href(feature: dict) -> str:
+    """The upstream COG href for one feature, naming the feature when it is missing.
+
+    924 scenes make a bare KeyError useless for finding which one was malformed,
+    so this names the feature id the way every other failure in this module does.
+    """
+    image = (feature.get("assets") or {}).get("image") or {}
+    href = image.get("href")
+    if not href:
+        raise SystemExit(f"{feature.get('id')} has no image asset href")
+    return href
+
+
 def build_items(features: list[dict], coll_dir: Path, cid: str, title: str,
                 probe: Callable[[str], tuple[int, list[dict], np.ndarray]],
                 ) -> tuple[list[dict], list[dict], list[float],
@@ -144,16 +163,18 @@ def build_items(features: list[dict], coll_dir: Path, cid: str, title: str,
     collection-level assets.
     """
     depth = len(cid.split("/"))
-    hrefs = [f["assets"]["image"]["href"] for f in features]
+    hrefs = [_image_href(f) for f in features]
     with ThreadPoolExecutor(max_workers=8) as pool:
         probed = list(pool.map(probe, hrefs))
 
     items: list[dict] = []
     links: list[dict] = []
     tiles: list[tuple[list[float], np.ndarray]] = []
-    for feature, (size, bands, arr) in zip(features, probed):
+    for feature, href, (size, bands, arr) in zip(features, hrefs, probed, strict=True):
         iid = feature["id"]
         props = feature.get("properties") or {}
+        if not props.get("datetime"):
+            raise SystemExit(f"{iid} has no datetime, so it cannot be a conforming item")
         out = {k: v for k, v in props.items() if k in _KEEP}
         code = _proj_code(props)
         if code:
@@ -168,7 +189,7 @@ def build_items(features: list[dict], coll_dir: Path, cid: str, title: str,
             "bbox": feature["bbox"],
             "properties": out,
             "assets": {"image": remote_asset(
-                feature["assets"]["image"]["href"], MEDIA["cog"], ["data"],
+                href, MEDIA["cog"], ["data"],
                 f"{title} scene {iid}", size,
                 {"bands": bands} | ({"proj:code": code} if code else {}))},
             "links": [
