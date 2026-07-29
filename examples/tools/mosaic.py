@@ -9,13 +9,22 @@ see NAIP-MIRROR-FOLLOWUP.md.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
 
+import numpy as np
+import rasterio
+from rasterio.enums import Resampling
+
 from config import USER_AGENT
 from fetch import fetch
+
+# /vsicurl issues a directory listing per open unless told not to, which triples
+# the request count against a blob store that has no directories anyway.
+os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR")
 
 
 def fetch_stac_items(url: str, cache: Path, stable: bool = False) -> list[dict]:
@@ -55,3 +64,36 @@ def remote_size(href: str) -> int:
     if not length:
         raise SystemExit(f"{href} returned no Content-Length, so file:size is unknowable")
     return int(length)
+
+
+def read_overview(href: str) -> tuple[list[dict], np.ndarray]:
+    """STAC 1.1 `bands` and the coarsest overview for one COG.
+
+    One range-read pass serves both the statistics and the thumbnail mosaic. The
+    upstream COGs carry no embedded STATISTICS_* tags, so these are computed here.
+    They are derived from an overview rather than full resolution and are flagged
+    `approximate`, which is what the incubating stats encoding asks for. They do
+    not satisfy PORTO-FMT-026, which requires statistics embedded in the file, and
+    that failure is baselined rather than papered over.
+    """
+    path = href if href.startswith("/vsicurl/") or Path(href).exists() else f"/vsicurl/{href}"
+    with rasterio.open(path) as d:
+        levels = d.overviews(1)
+        factor = levels[-1] if levels else 1
+        shape = (d.count, max(1, d.height // factor), max(1, d.width // factor))
+        arr = d.read(out_shape=shape, resampling=Resampling.average)
+        dtypes = list(d.dtypes)
+    bands: list[dict] = []
+    for i in range(arr.shape[0]):
+        plane = arr[i].astype("float64")
+        bands.append({
+            "data_type": dtypes[i],
+            "statistics": {
+                "minimum": float(plane.min()),
+                "maximum": float(plane.max()),
+                "mean": round(float(plane.mean()), 6),
+                "stddev": round(float(plane.std()), 6),
+                "approximate": True,
+            },
+        })
+    return bands, arr

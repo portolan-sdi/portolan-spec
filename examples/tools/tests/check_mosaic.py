@@ -83,6 +83,10 @@ def check_fetch_rejects_unconsumed_page() -> None:
 import http.server  # noqa: E402
 import threading  # noqa: E402
 
+import numpy as np  # noqa: E402
+import rasterio  # noqa: E402
+from rasterio.transform import from_origin  # noqa: E402
+
 import stacio  # noqa: E402
 
 
@@ -145,6 +149,39 @@ def check_remote_asset_has_size_and_no_checksum() -> None:
     assert a["proj:code"] == "EPSG:26913", a
 
 
+def _write_cog(path: Path) -> None:
+    """A small 2-band GeoTIFF with overviews, enough to exercise the reader."""
+    data = np.zeros((2, 1024, 1024), dtype="uint8")
+    data[0, :512, :] = 10
+    data[0, 512:, :] = 250
+    data[1, :, :] = 100
+    profile = {"driver": "GTiff", "height": 1024, "width": 1024, "count": 2,
+               "dtype": "uint8", "crs": "EPSG:26913",
+               "transform": from_origin(500000, 4400000, 0.3, 0.3),
+               "tiled": True, "blockxsize": 512, "blockysize": 512}
+    with rasterio.open(path, "w", **profile) as dst:
+        dst.write(data)
+        dst.build_overviews([2, 4])
+
+
+def check_read_overview() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        tif = Path(td) / "t.tif"
+        _write_cog(tif)
+        bands, arr = mosaic.read_overview(str(tif))
+        assert len(bands) == 2, bands
+        assert arr.shape[0] == 2, arr.shape
+        assert arr.shape[1] < 1024, f"must read an overview, not full res, got {arr.shape}"
+        stats = bands[0]["statistics"]
+        for key in ("minimum", "maximum", "mean", "stddev"):
+            assert key in stats, f"{key} missing from {stats}"
+        assert stats["minimum"] == 10, stats
+        assert stats["maximum"] == 250, stats
+        assert bands[0]["data_type"] == "uint8", bands[0]
+        assert bands[0]["statistics"]["approximate"] is True, \
+            "overview-derived statistics must be flagged approximate"
+
+
 if __name__ == "__main__":
     print("check_mosaic.py")
     check("fetch returns features", check_fetch_returns_features)
@@ -153,6 +190,7 @@ if __name__ == "__main__":
     check("remote size handles 404", check_remote_size_handles_404)
     check("remote asset carries size and no checksum",
           check_remote_asset_has_size_and_no_checksum)
+    check("read_overview yields bands and pixels", check_read_overview)
     if FAILURES:
         raise SystemExit(f"{len(FAILURES)} failure(s)")
     print("all ok")
