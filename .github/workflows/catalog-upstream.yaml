@@ -1,0 +1,87 @@
+name: Catalog Upstream
+
+# Proves the upstream sources the example catalogs cite. rashid's data pass
+# refetches every stable source and checks the file:size and file:checksum
+# published for it. Spec issue #80 was an upstream drifting away from a
+# published checksum, and nothing else in CI catches that.
+#
+# This is deliberately not a pull-request gate. It depends on five third-party
+# servers, so a merge would be blocked by a source being briefly unreachable,
+# which says nothing about the PR. Weekly catches drift just as well. The
+# committed bytes are still checked on every PR, offline, by
+# examples-checks.yaml.
+#
+# A failure opens an issue rather than going unread in a scheduled run nobody
+# watches, and comments on the existing one instead of filing a duplicate.
+
+on:
+  schedule:
+    # Mondays, 06:17 UTC. Off the hour, since scheduled runs bunch up on it.
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@v9
+        with:
+          enable-cache: true
+          cache-dependency-glob: 'examples/tools/**/*.py'
+
+      - name: Validate every catalog against its upstream sources
+        id: check
+        run: |
+          # pipefail is not on in the default runner shell, so without it the
+          # step would take tee's exit code and never fail.
+          set -o pipefail
+          uv run scripts/check_catalogs.py 2>&1 | tee findings.txt
+
+      - name: Report drift
+        if: failure() && steps.check.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          gh label create upstream-drift --force \
+            --color d93f0b --description "An example catalog stopped validating"
+
+          # findings.txt is this workflow's own output, not user input.
+          {
+            echo "\`scripts/check_catalogs.py\` failed on a scheduled run."
+            echo "An example catalog no longer validates against its upstream sources."
+            echo
+            echo "Run: ${RUN_URL}"
+            echo
+            echo '```'
+            tail -c 40000 findings.txt
+            echo '```'
+            echo
+            echo "Reproduce locally with \`uv run scripts/check_catalogs.py\`."
+            echo "If an upstream changed, rebuild with \`uv run examples/tools/build.py\`"
+            echo "and commit the result."
+          } > issue-body.md
+
+          EXISTING=$(gh issue list --label upstream-drift --state open \
+            --json number --jq '.[0].number // empty')
+
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body-file issue-body.md
+          else
+            gh issue create --label upstream-drift \
+              --title "An example catalog no longer validates upstream" \
+              --body-file issue-body.md
+          fi
