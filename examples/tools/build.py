@@ -5,6 +5,7 @@
 #   "duckdb>=1.5.5",
 #   "jsonschema>=4.26.0",
 #   "pyarrow>=25",
+#   "stac-geoparquet",
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
 #   "rasterio>=1.5",
 #   "rashid[data]>=0.1.3,<0.2.0",

@@ -9,6 +9,7 @@ see NAIP-MIRROR-FOLLOWUP.md.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sys
 import urllib.error
@@ -218,3 +219,83 @@ def build_items(features: list[dict], coll_dir: Path, cid: str, title: str,
     bbox = [min(b[0] for b in bboxes), min(b[1] for b in bboxes),
             max(b[2] for b in bboxes), max(b[3] for b in bboxes)]
     return items, links, bbox, tiles
+
+
+# PORTO-FMT-043 caps a row group at 150,000 rows, so no caller can ask for more.
+MAX_ROW_GROUP_ROWS = 150_000
+
+
+def hilbert_key(bbox: list[float], order: int = 16) -> int:
+    """A Hilbert index for a bbox centroid, for spatially clustering rows.
+
+    Plain d2xy-style bit interleaving on a 2**order grid over WGS84. Good enough
+    to cluster neighbours, which is what a row-group skip needs.
+    """
+    side = 1 << order
+    cx = (bbox[0] + bbox[2]) / 2.0
+    cy = (bbox[1] + bbox[3]) / 2.0
+    x = min(side - 1, max(0, int((cx + 180.0) / 360.0 * side)))
+    y = min(side - 1, max(0, int((cy + 90.0) / 180.0 * side)))
+    d = 0
+    s = side >> 1
+    while s > 0:
+        rx = 1 if (x & s) > 0 else 0
+        ry = 1 if (y & s) > 0 else 0
+        d += s * s * ((3 * rx) ^ ry)
+        # Rotate the quadrant. The reflection folds against the full grid side,
+        # not against the current level, which is what makes the curve continuous.
+        if ry == 0:
+            if rx == 1:
+                x = side - 1 - x
+                y = side - 1 - y
+            x, y = y, x
+        s >>= 1
+    return d
+
+
+def write_items_parquet(items: list[dict], out: Path,
+                        row_group_size: int = 128) -> int:
+    """The stac-geoparquet item mirror, spatially ordered before the write.
+
+    PORTO-FMT-043 binds this file to the GeoParquet storage rules, spatially
+    ordered rows, per-row-group spatial statistics, and row groups no larger than
+    150,000 rows. The plain stac-geoparquet writer applies no sorting and sets no
+    row-group size, and rashid rejects the result with PTL-DAT-006, so rows are
+    Hilbert-sorted and the row-group size is set explicitly. Registered by the
+    caller as a collection-level asset with the `collection-mirror` role, which
+    PORTO-FMT-041 says is the whole requirement, no `rel: "items"` link needed.
+
+    A spike measured this writer and geoparquet-io's web profile against the
+    pinned rashid over a 924-item fixture. Both clear PTL-DAT-006 at 8 row
+    groups. This one wins on fidelity. geoparquet-io routes the table through
+    DuckDB, which widens every string to `large_string` and every list to
+    `large_list`, and which restamps the `datetime` column with the builder's
+    local timezone rather than UTC, so the same items produce different bytes on
+    different machines. It also needs the same explicit row-group cap, because
+    its byte-targeted profile writes 924 small rows as one row group. See
+    NAIP-MIRROR-FOLLOWUP.md for the measurements.
+
+    The batches carry no `geo` metadata of their own, so the write goes through
+    stac-geoparquet's own `to_parquet` rather than `pyarrow.parquet.write_table`.
+    A plain `write_table` drops the `geo` key, and rashid then reads the file as
+    plain Parquet and skips every GeoParquet rule, which passes for the wrong
+    reason. Row groups come from the batch size, since `to_parquet` writes one
+    row group per batch.
+    """
+    # stac-geoparquet is scoped to this function, the house pattern for a heavy
+    # dependency, and load bearing because tests/check_mosaic.py resolves none.
+    import stac_geoparquet
+
+    # Importing it calls logging.basicConfig at INFO on stdout, which prints a
+    # per-batch progress line into whatever the caller is writing there.
+    logging.getLogger("stac_geoparquet").setLevel(logging.WARNING)
+
+    ordered = [i for _, i in sorted(
+        ((hilbert_key(i["bbox"]), i) for i in items), key=lambda p: p[0])]
+    table = stac_geoparquet.arrow.parse_stac_items_to_arrow(ordered).read_all()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.unlink(missing_ok=True)
+    stac_geoparquet.arrow.to_parquet(
+        table.to_reader(max_chunksize=min(row_group_size, MAX_ROW_GROUP_ROWS)),
+        out, compression="zstd")
+    return table.num_rows
