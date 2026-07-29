@@ -149,8 +149,8 @@ def check_remote_asset_has_size_and_no_checksum() -> None:
     assert a["proj:code"] == "EPSG:26913", a
 
 
-def _write_cog(path: Path) -> None:
-    """A small 2-band GeoTIFF with overviews, enough to exercise the reader."""
+def _write_cog(path: Path, overviews: bool = True) -> None:
+    """A small 2-band GeoTIFF with optional overviews, enough to exercise the reader."""
     data = np.zeros((2, 1024, 1024), dtype="uint8")
     data[0, :512, :] = 10
     data[0, 512:, :] = 250
@@ -161,7 +161,8 @@ def _write_cog(path: Path) -> None:
                "tiled": True, "blockxsize": 512, "blockysize": 512}
     with rasterio.open(path, "w", **profile) as dst:
         dst.write(data)
-        dst.build_overviews([2, 4])
+        if overviews:
+            dst.build_overviews([2, 4])
 
 
 def check_read_overview() -> None:
@@ -182,6 +183,31 @@ def check_read_overview() -> None:
             "overview-derived statistics must be flagged approximate"
 
 
+def check_read_overview_rejects_no_overviews() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        tif = Path(td) / "t.tif"
+        _write_cog(tif, overviews=False)
+        try:
+            mosaic.read_overview(str(tif))
+        except SystemExit as exc:
+            assert str(tif) in str(exc), f"error message must name the path: {exc}"
+            assert "overview" in str(exc).lower(), f"error must mention overviews: {exc}"
+            return
+        raise AssertionError("read_overview must raise SystemExit when no overviews are found")
+
+
+def check_read_overview_rejects_unreadable() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        txt = Path(td) / "t.txt"
+        txt.write_text("not a raster")
+        try:
+            mosaic.read_overview(str(txt))
+        except SystemExit as exc:
+            assert str(txt) in str(exc), f"error message must name the path: {exc}"
+            return
+        raise AssertionError("read_overview must raise SystemExit for unreadable input")
+
+
 if __name__ == "__main__":
     print("check_mosaic.py")
     check("fetch returns features", check_fetch_returns_features)
@@ -191,6 +217,8 @@ if __name__ == "__main__":
     check("remote asset carries size and no checksum",
           check_remote_asset_has_size_and_no_checksum)
     check("read_overview yields bands and pixels", check_read_overview)
+    check("read_overview rejects no overviews", check_read_overview_rejects_no_overviews)
+    check("read_overview rejects unreadable input", check_read_overview_rejects_unreadable)
     if FAILURES:
         raise SystemExit(f"{len(FAILURES)} failure(s)")
     print("all ok")

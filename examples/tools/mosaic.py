@@ -17,6 +17,7 @@ from pathlib import Path
 
 import numpy as np
 import rasterio
+import rasterio.errors
 from rasterio.enums import Resampling
 
 from config import USER_AGENT
@@ -74,15 +75,24 @@ def read_overview(href: str) -> tuple[list[dict], np.ndarray]:
     They are derived from an overview rather than full resolution and are flagged
     `approximate`, which is what the incubating stats encoding asks for. They do
     not satisfy PORTO-FMT-026, which requires statistics embedded in the file, and
-    that failure is baselined rather than papered over.
+    that failure is baselined rather than papered over. A missing overview is an
+    error, not absorbed, because reading full resolution would pull gigabytes over
+    a slow network.
     """
     path = href if href.startswith("/vsicurl/") or Path(href).exists() else f"/vsicurl/{href}"
-    with rasterio.open(path) as d:
-        levels = d.overviews(1)
-        factor = levels[-1] if levels else 1
-        shape = (d.count, max(1, d.height // factor), max(1, d.width // factor))
-        arr = d.read(out_shape=shape, resampling=Resampling.average)
-        dtypes = list(d.dtypes)
+    try:
+        with rasterio.open(path) as d:
+            levels = d.overviews(1)
+            if not levels:
+                raise SystemExit(
+                    f"{href} reports no overviews, so a read would pull the scene "
+                    "at full resolution")
+            factor = levels[-1]
+            shape = (d.count, max(1, d.height // factor), max(1, d.width // factor))
+            arr = d.read(out_shape=shape, resampling=Resampling.average)
+            dtypes = list(d.dtypes)
+    except rasterio.errors.RasterioIOError as exc:
+        raise SystemExit(f"cannot open {href}, {exc}") from exc
     bands: list[dict] = []
     for i in range(arr.shape[0]):
         plane = arr[i].astype("float64")
