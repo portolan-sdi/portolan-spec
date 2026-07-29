@@ -25,7 +25,7 @@ bootstraps `sys.path` with its own directory so they import as flat names.
 | `tiles.py` | XYZ basemap tile fetch and mosaic for thumbnails |
 | `stacio.py` | STAC assembly, manifest, providers, assets, links, sidecars, catalog builders |
 | `validate.py` | Thin adapter over rashid, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
-| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_fetch.py`, and `check_styles.py` |
+| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_fetch.py`, and `check_styles.py`, plus `run_all.py` which runs the lot |
 
 Inputs and outputs live under `examples/`, not here.
 
@@ -49,10 +49,12 @@ geoparquet-io) on the fly. The whole generator, data path and thumbnails
 alike, runs on DuckDB spatial, rasterio, and rio-cogeo, none of it shells out
 to the GDAL CLI, so the only prerequisites on PATH are `tippecanoe` and `uv`.
 
-The test scripts run the same way.
+The test scripts run the same way, and `run_all.py` runs all of them, reporting
+every result rather than stopping at the first failure. That is what CI runs.
 
 ```bash
-uv run examples/tools/tests/check_compliance.py
+uv run examples/tools/tests/run_all.py           # all of them
+uv run examples/tools/tests/check_compliance.py  # or one at a time
 uv run examples/tools/tests/check_web_output.py
 uv run examples/tools/tests/check_validate.py
 uv run examples/tools/tests/check_tiles.py
@@ -197,8 +199,8 @@ proven by running rashid directly, without the adapter. Do that before publishin
 rebuild.
 
 ```bash
-uv run --with "rashid[data] @ git+https://github.com/portolan-sdi/rashid.git" \
-  rashid check --data examples/catalog/reference
+uv run --with "rashid[data]>=0.1.3,<0.2.0" \
+  rashid check --schema examples/catalog/reference
 ```
 
 The build is clean apart from eight infos, which are expected and terminal. Do
@@ -237,10 +239,45 @@ entirely, four send no CORS header, and none sends
 `Access-Control-Expose-Headers`. Nothing the generator can fix, those are third
 party servers. The spec should scope those MUSTs to assets the publisher hosts.
 
-rashid is a pinned git dependency in `build.py`'s PEP 723 header. Bumping the
-Portolan schema is a coordinated change across this repo and rashid, update the
-local schema, regenerate the reference catalog, re-vendor fixtures into rashid,
-then bump the rashid pin here.
+rashid comes from PyPI, pinned to a compatible range in `build.py`'s PEP 723
+header, currently `rashid[data]>=0.1.3,<0.2.0`. Bumping the Portolan schema is a
+coordinated change across this repo and rashid, update the local schema,
+regenerate the reference catalog, re-vendor fixtures into rashid, then bump the
+rashid range here.
+
+## What CI runs, and why it is split in two
+
+The committed catalogs used to be checked by nothing, so they could drift out of
+conformance between rebuilds unnoticed. Two workflows cover that now, split on
+whether the check needs the network.
+
+`.github/workflows/examples-checks.yaml` runs `tests/run_all.py` on every push
+and pull request, with no path filter. Every check in there is offline and
+deterministic and the suite takes about twelve seconds, so there is no reason to
+filter, and an unfiltered workflow is the only kind that can be a required
+status check. A path-filtered one stays pending on the PRs it skips.
+
+`.github/workflows/catalog-upstream.yaml` runs `scripts/check_catalogs.py`
+weekly and on demand. That is the one that refetches the upstream sources and
+proves their `file:size` and `file:checksum`. It is not a PR gate on purpose. It
+depends on five third-party servers, so gating merges on it would block work
+whenever one of them is briefly down, which says nothing about the PR. A failure
+opens an issue instead, or comments on the open one.
+
+`check_catalogs.py` reads the rashid requirement out of `build.py`'s PEP 723
+header with `tomllib`, so the validator that checks a catalog is the validator
+that built it and there is no second pin to drift. It is generic over every tree
+under `examples/catalog/`, so a new manifest is covered as soon as its output is
+committed. Its gate is errors and warnings, since rashid's own exit code fires
+on errors alone and a warning in a reference example is a real defect. The eight
+infos above are advisory and do not fail it.
+
+Two known gaps. `check_catalogs.py` validates against the profile schema bundled
+in the rashid wheel, while `validate.py` injects the working copy under `stac/`,
+so a change to `stac/json-schema/` is proven by the build rather than by CI. And
+`check_validate.py` is hardcoded to the `reference` tree, so a second catalog
+gets weekly coverage immediately but per-PR coverage only once that script is
+generalized.
 
 ## Conventions
 
