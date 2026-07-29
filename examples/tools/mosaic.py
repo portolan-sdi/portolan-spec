@@ -163,7 +163,18 @@ def build_items(features: list[dict], coll_dir: Path, cid: str, title: str,
     collection-level assets.
     """
     depth = len(cid.split("/"))
-    hrefs = [_image_href(f) for f in features]
+
+    # Both checks below read only what the search response already carries, so
+    # they run before a single probe goes out. A malformed scene anywhere in
+    # the batch fails here rather than after 924 network round trips.
+    hrefs: list[str] = []
+    for feature in features:
+        props = feature.get("properties") or {}
+        if not props.get("datetime"):
+            raise SystemExit(
+                f"{feature.get('id')} has no datetime, so it cannot be a conforming item")
+        hrefs.append(_image_href(feature))
+
     with ThreadPoolExecutor(max_workers=8) as pool:
         probed = list(pool.map(probe, hrefs))
 
@@ -173,8 +184,6 @@ def build_items(features: list[dict], coll_dir: Path, cid: str, title: str,
     for feature, href, (size, bands, arr) in zip(features, hrefs, probed, strict=True):
         iid = feature["id"]
         props = feature.get("properties") or {}
-        if not props.get("datetime"):
-            raise SystemExit(f"{iid} has no datetime, so it cannot be a conforming item")
         out = {k: v for k, v in props.items() if k in _KEEP}
         code = _proj_code(props)
         if code:

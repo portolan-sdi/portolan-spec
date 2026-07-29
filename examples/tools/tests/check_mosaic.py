@@ -258,7 +258,7 @@ def check_build_items_rejects_missing_datetime() -> None:
     with tempfile.TemporaryDirectory() as td:
         coll = Path(td) / "colorado-2023"
         coll.mkdir(parents=True)
-        feat = _item("a")
+        feat = _item("zz-tile-0417")
         del feat["properties"]["datetime"]
 
         def fake_probe(href: str):
@@ -267,7 +267,7 @@ def check_build_items_rejects_missing_datetime() -> None:
         try:
             mosaic.build_items([feat], coll, "imagery/colorado-2023", "NAIP", fake_probe)
         except SystemExit as exc:
-            assert "a" in str(exc), str(exc)
+            assert "zz-tile-0417" in str(exc), str(exc)
             assert "datetime" in str(exc).lower(), str(exc)
             return
         raise AssertionError("a feature with no datetime must fail loudly")
@@ -277,7 +277,7 @@ def check_build_items_rejects_missing_image_asset() -> None:
     with tempfile.TemporaryDirectory() as td:
         coll = Path(td) / "colorado-2023"
         coll.mkdir(parents=True)
-        feat = _item("a")
+        feat = _item("zz-tile-0417")
         del feat["assets"]["image"]
 
         def fake_probe(href: str):
@@ -286,7 +286,7 @@ def check_build_items_rejects_missing_image_asset() -> None:
         try:
             mosaic.build_items([feat], coll, "imagery/colorado-2023", "NAIP", fake_probe)
         except SystemExit as exc:
-            assert "a" in str(exc), str(exc)
+            assert "zz-tile-0417" in str(exc), str(exc)
             return
         raise AssertionError("a feature with no image asset must fail loudly")
 
