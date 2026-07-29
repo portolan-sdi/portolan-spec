@@ -2,7 +2,7 @@
 #
 # Every normative statement in core.md and formats.md carries a stable ID
 # here, anchored to the verbatim sentence it governs (whitespace-normalized
-# by scripts/check_requirements.py). Severity maps RFC 2119 keywords onto
+# by specs/tools/check_requirements.py). Severity maps RFC 2119 keywords onto
 # MUST / SHOULD / MAY (MUST NOT -> MUST, SHOULD NOT -> SHOULD,
 # REQUIRED -> MUST, RECOMMENDED -> SHOULD, OPTIONAL / NOT REQUIRED -> MAY).
 #
@@ -11,7 +11,7 @@
 #   process   - not machine-checkable from the catalog or its bytes
 #               (publish-time behavior, upstream knowledge, guidance).
 #
-# Run `uv run scripts/check_requirements.py` after editing the spec or this
+# Run `uv run specs/tools/check_requirements.py` after editing the spec or this
 # file; it fails when a quote no longer anchors or a keyword occurrence is
 # not covered by a requirement or exclusion.
 

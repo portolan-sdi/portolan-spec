@@ -9,9 +9,11 @@ this before editing the generator.
 ## Layout
 
 The generator is a set of modules under `examples/tools/`, each owning one
-responsibility. Only `build.py` and the two test files are `uv run` entrypoints
-and carry a PEP 723 header. The sibling modules are plain modules, and `build.py`
-bootstraps `sys.path` with its own directory so they import as flat names.
+responsibility. `build.py`, `check_catalogs.py`, `publish_catalogs.py`, and the
+files under `tests/` are `uv run` entrypoints and carry a PEP 723 header. The
+rest are plain modules, and `build.py` bootstraps `sys.path` with its own
+directory so they import as flat names. The three entrypoints import nothing
+from the modules beside them, so they stay runnable on their own.
 
 | Module | Responsibility |
 |--------|----------------|
@@ -25,6 +27,8 @@ bootstraps `sys.path` with its own directory so they import as flat names.
 | `tiles.py` | XYZ basemap tile fetch and mosaic for thumbnails |
 | `stacio.py` | STAC assembly, manifest, providers, assets, links, sidecars, catalog builders |
 | `validate.py` | Thin adapter over rashid, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
+| `check_catalogs.py` | Entrypoint. Runs rashid over every committed catalog with the data pass on, reading the rashid pin out of `build.py`'s PEP 723 header |
+| `publish_catalogs.py` | Entrypoint. Uploads a built catalog to Source Cooperative, and tears a pull request's preview down |
 | `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_fetch.py`, and `check_styles.py`, plus `run_all.py` which runs the lot |
 
 Inputs and outputs live under `examples/`, not here.
@@ -71,9 +75,9 @@ profile. Always dry-run first, the sync deletes what the local tree does not
 have.
 
 ```bash
-uv run scripts/publish_catalogs.py --list                     # the publishable stems
-uv run scripts/publish_catalogs.py --catalog reference --dry-run
-uv run scripts/publish_catalogs.py --catalog reference
+uv run examples/tools/publish_catalogs.py --list                     # the publishable stems
+uv run examples/tools/publish_catalogs.py --catalog reference --dry-run
+uv run examples/tools/publish_catalogs.py --catalog reference
 ```
 
 ## The core principle
@@ -268,7 +272,7 @@ deterministic and the suite takes about twelve seconds, so there is no reason to
 filter, and an unfiltered workflow is the only kind that can be a required
 status check. A path-filtered one stays pending on the PRs it skips.
 
-`.github/workflows/catalog-upstream.yaml` runs `scripts/check_catalogs.py`
+`.github/workflows/catalog-upstream.yaml` runs `examples/tools/check_catalogs.py`
 weekly and on demand. That is the one that refetches the upstream sources and
 proves their `file:size` and `file:checksum`. It is not a PR gate on purpose. It
 depends on five third-party servers, so gating merges on it would block work
@@ -277,7 +281,7 @@ opens an issue instead, or comments on the open one.
 
 `.github/workflows/publish-catalogs.yaml` builds each manifest and uploads the
 result to the Portolan repository on Source Cooperative with
-`scripts/publish_catalogs.py`, so an example is readable at a real URL rather
+`examples/tools/publish_catalogs.py`, so an example is readable at a real URL rather
 than only in git. It runs when a manifest, a generator module, or a committed
 rebuild lands on main, on every pull request, and on demand for one catalog or
 as a dry run. Transfers go through `s5cmd`, which handles a tree of many small

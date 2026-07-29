@@ -9,7 +9,7 @@ name: Teardown Previews
 # It deletes only the closing PR's own prefixes. main/ and branches/ are
 # unreachable from here. The guards are layered, the script refuses a
 # non-numeric PR number and refuses again if the target it assembles does not
-# still look like a PR prefix. See scripts/publish_catalogs.py.
+# still look like a PR prefix. See examples/tools/publish_catalogs.py.
 
 on:
   pull_request:
@@ -54,4 +54,4 @@ jobs:
             echo "No Source Cooperative credentials configured, skipping teardown."
             exit 0
           fi
-          uv run scripts/publish_catalogs.py --teardown-pr "$PR_NUMBER"
+          uv run examples/tools/publish_catalogs.py --teardown-pr "$PR_NUMBER"

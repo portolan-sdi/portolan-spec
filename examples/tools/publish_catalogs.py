@@ -30,10 +30,10 @@ success but published nothing readable is the failure worth catching.
 
 Usage::
 
-    uv run scripts/publish_catalogs.py --list
-    uv run scripts/publish_catalogs.py --catalog reference --dry-run
-    uv run scripts/publish_catalogs.py --catalog reference
-    uv run scripts/publish_catalogs.py --teardown-pr 106 --dry-run
+    uv run examples/tools/publish_catalogs.py --list
+    uv run examples/tools/publish_catalogs.py --catalog reference --dry-run
+    uv run examples/tools/publish_catalogs.py --catalog reference
+    uv run examples/tools/publish_catalogs.py --teardown-pr 106 --dry-run
 """
 
 from __future__ import annotations
@@ -71,8 +71,8 @@ EXCLUDED_NAMES = {".DS_Store"}
 
 
 def _repo_root() -> Path:
-    # scripts/publish_catalogs.py -> repo root is two levels up
-    return Path(__file__).resolve().parent.parent
+    # examples/tools/publish_catalogs.py -> repo root is three levels up
+    return Path(__file__).resolve().parent.parent.parent
 
 
 def manifest_catalogs(root: Path) -> dict[str, str]:

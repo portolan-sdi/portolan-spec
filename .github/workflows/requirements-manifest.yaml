@@ -2,7 +2,7 @@ name: Requirements Manifest
 
 # Keeps specs/portolan/requirements.yaml and the spec prose in lockstep.
 # The manifest anchors a stable ID to every normative sentence; rashid keys
-# its coverage gate to those IDs. See scripts/check_requirements.py.
+# its coverage gate to those IDs. See specs/tools/check_requirements.py.
 
 on:
   push:
@@ -19,4 +19,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uv run scripts/check_requirements.py
+      - run: uv run specs/tools/check_requirements.py

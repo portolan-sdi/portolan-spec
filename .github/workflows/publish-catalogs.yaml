@@ -9,15 +9,17 @@ name: Publish Catalogs
 # Every manifest under examples/manifests/ becomes a matrix entry, so adding a
 # new catalog is adding a YAML file and nothing else.
 #
-# It runs when a manifest or any generator module changes on main, since either
-# one changes the bytes a catalog is made of, and on demand for a single catalog
-# or a dry run. The build refetches five third-party sources, so it is not on
-# every push.
+# It runs when a manifest, a generator module, or a committed rebuild lands on
+# main, since each changes the bytes a catalog is made of, on every pull request,
+# and on demand for a single catalog or a dry run. The build refetches five
+# third-party sources, so it is not on every push.
 #
-# Layout, matching what is already in the bucket:
-#   main            -> portolan/portolan-pipeline/<catalog>/main/
-#   any other ref   -> portolan/portolan-pipeline/<catalog>/branches/<ref>/
-# so a hand-dispatched branch run can be previewed without disturbing main.
+# The prefix taxonomy is CartoDB/portolan-pipeline's, which publishes into this
+# same Source Cooperative repository. See examples/tools/CLAUDE.md.
+#
+#   push to main or master  -> portolan/portolan-pipeline/<catalog id>/main/
+#   push to any other branch -> .../<catalog id>/branches/<slug>/
+#   pull request N          -> .../<catalog id>/PRs/N/, deleted when it closes
 #
 # The `source-coop` environment is declared so required reviewers can be added
 # later without touching this file.
@@ -33,7 +35,6 @@ on:
       # A committed rebuild, which is how upstream drift reaches the repo. The
       # published copy would otherwise stay stale until something else changed.
       - 'examples/catalog/**'
-      - 'scripts/publish_catalogs.py'
       - '.github/workflows/publish-catalogs.yaml'
   # A pull request publishes a preview to PRs/<number>, torn down when it
   # closes. Actions expands no YAML anchors, so this list is duplicated from the
@@ -44,7 +45,6 @@ on:
       - 'examples/manifests/**'
       - 'examples/**/*.py'
       - 'examples/catalog/**'
-      - 'scripts/publish_catalogs.py'
       - '.github/workflows/publish-catalogs.yaml'
   workflow_dispatch:
     inputs:
@@ -78,6 +78,12 @@ jobs:
           persist-credentials: false
 
       - uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+          # publish_catalogs.py carries its own PEP 723 dependencies, so the key
+          # follows the script. Without a glob that matches something, setup-uv
+          # warns that the cache can never be invalidated.
+          cache-dependency-glob: 'examples/tools/publish_catalogs.py'
 
       - name: Resolve the catalogs to publish
         id: pick
@@ -88,11 +94,11 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$CATALOG" = "all" ]; then
-            CATALOGS=$(uv run scripts/publish_catalogs.py --list)
+            CATALOGS=$(uv run examples/tools/publish_catalogs.py --list)
           else
             # An unknown stem exits non-zero here, before any job spends ten
             # minutes building the wrong thing.
-            CATALOGS=$(uv run scripts/publish_catalogs.py --list --catalog "$CATALOG")
+            CATALOGS=$(uv run examples/tools/publish_catalogs.py --list --catalog "$CATALOG")
           fi
           echo "catalogs=$CATALOGS" >> "$GITHUB_OUTPUT"
           echo "Publishing: $CATALOGS"
@@ -170,7 +176,7 @@ jobs:
       - name: Validate the built catalog
         env:
           CATALOG: ${{ matrix.catalog }}
-        run: uv run scripts/check_catalogs.py --catalog "$CATALOG"
+        run: uv run examples/tools/check_catalogs.py --catalog "$CATALOG"
 
       - name: Publish to Source Cooperative
         id: publish
@@ -186,4 +192,4 @@ jobs:
           if [ "$DRY_RUN" = "true" ]; then
             ARGS+=(--dry-run)
           fi
-          uv run scripts/publish_catalogs.py "${ARGS[@]}"
+          uv run examples/tools/publish_catalogs.py "${ARGS[@]}"

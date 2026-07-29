@@ -24,7 +24,7 @@ MUST and SHOULD ID maps to at least one rule and one test.
 
 Usage::
 
-    uv run scripts/check_requirements.py
+    uv run specs/tools/check_requirements.py
 """
 
 from __future__ import annotations
@@ -35,7 +35,8 @@ from pathlib import Path
 
 import yaml
 
-ROOT = Path(__file__).resolve().parent.parent
+# specs/tools/check_requirements.py -> repo root is three levels up
+ROOT = Path(__file__).resolve().parent.parent.parent
 MANIFEST = ROOT / "specs" / "portolan" / "requirements.yaml"
 
 KEYWORD = re.compile(
