@@ -38,8 +38,9 @@ jobs:
           persist-credentials: false
 
       # setup-uv stopped publishing floating major tags after v7, so this is
-      # pinned to an exact version while checkout above can float. It needs a
-      # Dependabot config to stay current, see the note in the PR.
+      # pinned to an exact version while checkout above can float. What raises
+      # it is .github/dependabot.yml, since an exact pin is only safe while
+      # something keeps it current.
       - uses: astral-sh/setup-uv@v9.0.0
         with:
           enable-cache: true

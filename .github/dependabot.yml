@@ -1,0 +1,17 @@
+# Keeps the actions in .github/workflows/ current.
+#
+# Several of them are pinned exactly rather than to a floating major, because
+# setup-uv stopped publishing major tags after v7 and peak/action-setup-s5cmd
+# publishes no tags at all, so the jobs holding publishing credentials pin it to
+# a commit. An exact pin is only safe while something raises it. Without this
+# config those versions freeze at whatever was current the day they were
+# written, and the repo quietly ships an action nobody has looked at in a year.
+#
+# Directory / covers .github/workflows/ for this ecosystem.
+
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

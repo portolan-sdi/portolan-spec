@@ -29,6 +29,12 @@ jobs:
     # A fork PR never published a preview, since publish is skipped there, and
     # it gets no credentials to delete one with either.
     if: github.event.pull_request.head.repo.full_name == github.repository
+    # The same environment publish-catalogs.yaml declares, so the two jobs read
+    # the credentials from the same place. Whatever holds the secrets for the
+    # publish has to hold them for the delete, or the previews outlive the
+    # thing that made them. No url, this job publishes nothing.
+    environment:
+      name: source-coop
     steps:
       - uses: actions/checkout@v7
         with:
@@ -50,8 +56,19 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
         run: |
           set -euo pipefail
+          # A run that gets this far is a non-fork pull request, which always
+          # has credentials. Missing ones mean they were moved or revoked, and
+          # the deletion this workflow exists to make cannot happen. Skipping
+          # quietly would report success while leaving the preview in a public
+          # bucket forever, and the orphan would be invisible because every
+          # check stayed green. Better to be red now than to find out later
+          # from the bucket.
           if [ -z "${AWS_ACCESS_KEY_ID:-}" ]; then
-            echo "No Source Cooperative credentials configured, skipping teardown."
-            exit 0
+            echo "::error::No Source Cooperative credentials in this job, so the" \
+              "preview catalogs for PR ${PR_NUMBER} were not deleted and will" \
+              "stay in the public bucket. Check that SOURCE_COOP_ACCESS_KEY_ID" \
+              "and SOURCE_COOP_SECRET_ACCESS_KEY are readable from the" \
+              "source-coop environment."
+            exit 1
           fi
           uv run examples/tools/publish_catalogs.py --teardown-pr "$PR_NUMBER"

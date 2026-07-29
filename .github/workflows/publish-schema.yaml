@@ -9,6 +9,10 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # The build is a handful of curls against raw.githubusercontent plus a Pages
+    # deploy. A run that has not finished in fifteen minutes is stuck on one of
+    # them, and a release should not wait six hours to be told so.
+    timeout-minutes: 15
     permissions:
       pages: write
       id-token: write
@@ -16,7 +20,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Build site from tracked and pinned schema versions
         env:

@@ -5,14 +5,23 @@ on:
     branches: [main]
   pull_request:
 
+# Reads the repo and nothing else. Without this the job inherits whatever the
+# repository default is, which can be write-all.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Validating the examples takes seconds. Everything slow here is a network
+    # call, the npm install and the pretest fetch of the extension schemas,
+    # and a stalled fetch hangs rather than fails.
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: stac
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
