@@ -357,6 +357,9 @@ def make_thumbnail_mosaic(tiles: list[tuple[list[float], np.ndarray]], out_png: 
             (tw, th), Image.BILINEAR))
         sl = (slice(max(0, top), min(h, bottom)), slice(max(0, left), min(w, right)))
         ph, pw = sl[0].stop - sl[0].start, sl[1].stop - sl[1].start
-        canvas[sl] = patch[:ph, :pw]
+        # A tile whose north or west edge falls off the canvas has its visible
+        # region in the patch's south-east part, not at the patch's own origin.
+        po, plo = max(0, -top), max(0, -left)
+        canvas[sl] = patch[po:po + ph, plo:plo + pw]
 
     Image.fromarray(canvas).save(out_png, optimize=True)

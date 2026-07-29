@@ -26,6 +26,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
 import mosaic  # noqa: E402
+import thumbnails  # noqa: E402
 
 FAILURES: list[str] = []
 
@@ -307,6 +308,7 @@ def check_minimal_json() -> None:
         assert doc["type"] == "FeatureCollection", doc["type"]
         feat = doc["features"][0]
         assert set(feat) == {"bbox", "assets"}, f"minimal shape only, got {set(feat)}"
+        assert feat["bbox"] == items[0]["bbox"], feat["bbox"]
         assert set(feat["assets"]["image"]) == {"href"}, feat["assets"]["image"]
         assert feat["assets"]["image"]["href"] == "https://example.invalid/a.tif"
 
@@ -316,16 +318,44 @@ def check_thumbnail_mosaic() -> None:
         out = Path(td) / "thumbnail.png"
         thumb = {"size": 128, "ocean": (238, 243, 248), "pad_raster": 0.1,
                  "pad_vector": 0.06, "basemap": None}
+        bbox4326 = [-105.0, 39.0, -104.9, 39.1]
+        # Bright sits south-west, dark sits north-east.
+        bright_bbox = [-105.0, 39.0, -104.95, 39.05]
+        dark_bbox = [-104.95, 39.05, -104.9, 39.1]
         tiles = [
-            ([-105.0, 39.0, -104.95, 39.05], np.full((3, 8, 8), 200, "uint8")),
-            ([-104.95, 39.05, -104.9, 39.1], np.full((3, 8, 8), 60, "uint8")),
+            (bright_bbox, np.full((3, 8, 8), 200, "uint8")),
+            (dark_bbox, np.full((3, 8, 8), 60, "uint8")),
         ]
-        mosaic.make_thumbnail_mosaic(tiles, out, [-105.0, 39.0, -104.9, 39.1], thumb)
+        mosaic.make_thumbnail_mosaic(tiles, out, bbox4326, thumb)
         assert out.exists(), "thumbnail was not written"
+
+        _, merc, w, h = thumbnails._thumb_grid(bbox4326, thumb["size"], thumb["pad_raster"])
+        span_x = merc[2] - merc[0]
+        span_y = merc[3] - merc[1]
+
+        def _center_pixel(bbox: list[float]) -> tuple[int, int]:
+            """The canvas pixel at a tile's own centre, by the same forward
+            projection make_thumbnail_mosaic itself uses to place the tile."""
+            cx, cy = thumbnails._to_merc((bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2)
+            col = int((cx - merc[0]) / span_x * w)
+            row = int((merc[3] - cy) / span_y * h)
+            return col, row
+
+        bright_col, bright_row = _center_pixel(bright_bbox)
+        dark_col, dark_row = _center_pixel(dark_bbox)
+
         with Image.open(out) as im:
             assert max(im.size) == 128, im.size
-            colors = {c for _, c in im.convert("RGB").getcolors(maxcolors=1 << 16)}
+            rgb = im.convert("RGB")
+            colors = {c for _, c in rgb.getcolors(maxcolors=1 << 16)}
+            bright_px = rgb.getpixel((bright_col, bright_row))
+            dark_px = rgb.getpixel((dark_col, dark_row))
+
         assert len(colors) > 1, "every pixel is one colour, no tiles were pasted"
+        assert bright_px[0] > 150, f"bright tile must read bright at its own centre, got {bright_px}"
+        assert dark_px[0] < 100, f"dark tile must read dark at its own centre, got {dark_px}"
+        assert bright_row > dark_row, "the bright south tile must sit lower on canvas than the dark north tile"
+        assert bright_col < dark_col, "the bright west tile must sit left of the dark east tile on canvas"
 
 
 if __name__ == "__main__":
