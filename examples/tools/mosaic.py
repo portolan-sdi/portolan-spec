@@ -228,7 +228,7 @@ MAX_ROW_GROUP_ROWS = 150_000
 def hilbert_key(bbox: list[float], order: int = 16) -> int:
     """A Hilbert index for a bbox centroid, for spatially clustering rows.
 
-    Plain d2xy-style bit interleaving on a 2**order grid over WGS84. Good enough
+    Standard xy2d Hilbert index on a 2**order grid over WGS84. Good enough
     to cluster neighbours, which is what a row-group skip needs.
     """
     side = 1 << order
@@ -282,6 +282,11 @@ def write_items_parquet(items: list[dict], out: Path,
     reason. Row groups come from the batch size, since `to_parquet` writes one
     row group per batch.
     """
+    if row_group_size > MAX_ROW_GROUP_ROWS:
+        raise SystemExit(
+            f"row_group_size {row_group_size} exceeds the PORTO-FMT-043 cap of "
+            f"{MAX_ROW_GROUP_ROWS}")
+
     # stac-geoparquet is scoped to this function, the house pattern for a heavy
     # dependency, and load bearing because tests/check_mosaic.py resolves none.
     import stac_geoparquet
@@ -296,6 +301,6 @@ def write_items_parquet(items: list[dict], out: Path,
     out.parent.mkdir(parents=True, exist_ok=True)
     out.unlink(missing_ok=True)
     stac_geoparquet.arrow.to_parquet(
-        table.to_reader(max_chunksize=min(row_group_size, MAX_ROW_GROUP_ROWS)),
+        table.to_reader(max_chunksize=row_group_size),
         out, compression="zstd")
     return table.num_rows

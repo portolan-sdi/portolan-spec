@@ -104,12 +104,25 @@ def check_rows_are_spatially_ordered() -> None:
         "hilbert order must cluster neighbours more tightly than input order"
 
 
+def check_row_group_size_above_cap_raises() -> None:
+    """Calling with row_group_size above the cap must raise SystemExit."""
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(td) / "items.parquet"
+        try:
+            mosaic.write_items_parquet(_items(10), out, row_group_size=999_777)
+            raise AssertionError("expected SystemExit to be raised")
+        except SystemExit as exc:
+            message = str(exc)
+            assert "999777" in message, f"expected 999777 in message, got {message}"
+
+
 if __name__ == "__main__":
     print("check_items_parquet.py")
     check("row count matches item count", check_row_count_matches_items)
     check("several row groups are written", check_multiple_row_groups)
     check("row groups stay within the 150k cap", check_row_groups_within_cap)
     check("rows are spatially ordered", check_rows_are_spatially_ordered)
+    check("row group size above cap raises", check_row_group_size_above_cap_raises)
     if FAILURES:
         raise SystemExit(f"{len(FAILURES)} failure(s)")
     print("all ok")
