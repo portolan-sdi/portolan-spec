@@ -278,14 +278,41 @@ opens an issue instead, or comments on the open one.
 `.github/workflows/publish-catalogs.yaml` builds each manifest and uploads the
 result to the Portolan repository on Source Cooperative with
 `scripts/publish_catalogs.py`, so an example is readable at a real URL rather
-than only in git. It runs when a manifest or a generator module lands on main,
-and on demand for one catalog or as a dry run. `main` publishes to
-`portolan/portolan-pipeline/<catalog>/main/` and any other ref to
-`.../branches/<ref>/`, so a branch can be previewed without disturbing main.
-Transfers go through `s5cmd`, which handles a tree of many small JSON files far
-better than the AWS CLI. Nothing reaches a public URL unvalidated, the same
-`check_catalogs.py` gate runs between the build and the upload, and afterwards
-the published `catalog.json` is refetched over HTTPS and its `id` checked.
+than only in git. It runs when a manifest, a generator module, or a committed
+rebuild lands on main, on every pull request, and on demand for one catalog or
+as a dry run. Transfers go through `s5cmd`, which handles a tree of many small
+JSON files far better than the AWS CLI. Nothing reaches a public URL
+unvalidated, the same `check_catalogs.py` gate runs between the build and the
+upload, and afterwards the published `catalog.json` is refetched over HTTPS and
+its `id` checked.
+
+The prefix taxonomy is not ours. `CartoDB/portolan-pipeline` already publishes
+into the same Source Cooperative repository, so `publish_catalogs.py`
+reimplements its scheme from `docs/branch-versioning.md` rather than inventing a
+second one that would sit confusingly beside it. The layout is
+`<catalog id>/<namespace>`.
+
+| git context | published prefix |
+| --- | --- |
+| push to `main` or `master` | `<id>/main/` |
+| push to any other branch | `<id>/branches/<slug>/` |
+| pull request N | `<id>/PRs/N/`, deleted when it closes |
+
+Three details of that scheme are load bearing and easy to get wrong. The key is
+the catalog **id** from the manifest, not the manifest file name, so
+`reference.yaml` publishes to `portolan-reference/`. A slug collapses every run
+of characters outside `[a-z0-9._-]` to one dash, so `feat/x` becomes `feat-x`
+and stays a single path segment. And the default-branch test runs on the raw
+ref, so a branch named `Main` lands in `branches/main` rather than overwriting
+the canonical catalog. That last one reads like an upstream oversight and is the
+safer behaviour, so it is matched deliberately. The ground-truth cases from
+their `tests/test_context.py` all pass against our implementation.
+
+A pull request from a fork is skipped rather than run, since GitHub withholds
+secrets there and the build would burn its full runtime only to fail at the
+upload. `.github/workflows/teardown-previews.yaml` deletes a PR's previews when
+it closes, guarded so that only a numeric PR number resolving to a path that
+still contains `/PRs/<n>/` is ever deleted.
 
 `check_catalogs.py` reads the rashid requirement out of `build.py`'s PEP 723
 header with `tomllib`, so the validator that checks a catalog is the validator
