@@ -1,0 +1,57 @@
+name: Teardown Previews
+
+# Deletes a pull request's preview catalogs when the PR closes, merged or not.
+#
+# publish-catalogs.yaml puts each PR's build at <catalog id>/PRs/<number>/.
+# Without this they accumulate forever, and a public bucket slowly fills with
+# builds of branches nobody remembers.
+#
+# It deletes only the closing PR's own prefixes. main/ and branches/ are
+# unreachable from here. The guards are layered, the script refuses a
+# non-numeric PR number and refuses again if the target it assembles does not
+# still look like a PR prefix. See scripts/publish_catalogs.py.
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number }}
+  cancel-in-progress: false
+
+jobs:
+  teardown:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # A fork PR never published a preview, since publish is skipped there, and
+    # it gets no credentials to delete one with either.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Same commit pin as publish-catalogs.yaml, this repo publishes no tags.
+      - name: Install s5cmd
+        uses: peak/action-setup-s5cmd@bde462e7399c68b4a9b05549d90b0e7d5c95e60f
+        with:
+          version: v2.3.0
+
+      - uses: astral-sh/setup-uv@v9.0.0
+
+      - name: Delete the preview prefixes
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SOURCE_COOP_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SOURCE_COOP_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-west-2
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          set -euo pipefail
+          if [ -z "${AWS_ACCESS_KEY_ID:-}" ]; then
+            echo "No Source Cooperative credentials configured, skipping teardown."
+            exit 0
+          fi
+          uv run scripts/publish_catalogs.py --teardown-pr "$PR_NUMBER"

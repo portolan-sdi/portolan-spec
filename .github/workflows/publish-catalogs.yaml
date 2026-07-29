@@ -30,6 +30,20 @@ on:
       - 'examples/manifests/**'
       # The generator itself, every module under examples/tools/.
       - 'examples/**/*.py'
+      # A committed rebuild, which is how upstream drift reaches the repo. The
+      # published copy would otherwise stay stale until something else changed.
+      - 'examples/catalog/**'
+      - 'scripts/publish_catalogs.py'
+      - '.github/workflows/publish-catalogs.yaml'
+  # A pull request publishes a preview to PRs/<number>, torn down when it
+  # closes. Actions expands no YAML anchors, so this list is duplicated from the
+  # one above on purpose. Keep them identical.
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'examples/manifests/**'
+      - 'examples/**/*.py'
+      - 'examples/catalog/**'
       - 'scripts/publish_catalogs.py'
       - '.github/workflows/publish-catalogs.yaml'
   workflow_dispatch:
@@ -85,6 +99,13 @@ jobs:
 
   publish:
     needs: discover
+    # A pull request from a fork gets no secrets, so the publish step would run
+    # the whole build and then fail at the upload with an auth error. Skip it
+    # instead. Everything that validates a fork's change still runs in
+    # examples-checks.yaml, which needs no credentials.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
