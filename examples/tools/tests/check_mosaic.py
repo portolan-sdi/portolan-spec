@@ -93,6 +93,15 @@ from rasterio.transform import from_origin  # noqa: E402
 import stacio  # noqa: E402
 
 
+def check_open_snippet_covers_mosaic() -> None:
+    lines, agents = stacio.open_snippet("raster-mosaic", "items.parquet")
+    body = "\n".join(lines)
+    assert "## Open the data" in body, body[:200]
+    assert "items.parquet" in body, "the mirror must be named in the README"
+    assert "rioxarray" in body or "rasterio" in body, "show how to read a scene COG"
+    assert "items.parquet" in agents, agents
+
+
 class _SizedHandler(http.server.BaseHTTPRequestHandler):
     BODY = b"x" * 4242
 
@@ -413,6 +422,7 @@ if __name__ == "__main__":
     check("thumbnail mosaic pastes tiles", check_thumbnail_mosaic)
     check("thumbnail mosaic paints a west-overhanging tile's own sub-region",
           check_thumbnail_mosaic_west_overhang)
+    check("open_snippet covers the mosaic kind", check_open_snippet_covers_mosaic)
     if FAILURES:
         raise SystemExit(f"{len(FAILURES)} failure(s)")
     print("all ok")

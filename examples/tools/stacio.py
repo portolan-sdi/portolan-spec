@@ -256,6 +256,35 @@ def open_snippet(kind: str, data_name: str) -> tuple[list[str], str]:
         ]
         agents = f'Read the COG `data` asset with rioxarray.open_rasterio("{data_name}") for xarray, or rasterio.'
         return lines, agents
+    if kind == "raster-mosaic":
+        lines = [
+            "## Open the data",
+            "",
+            "This Collection describes scenes it does not host. Each Item carries "
+            "its Cloud Optimized GeoTIFF as an item-level asset, and the asset "
+            "href points at the upstream host. Read the whole item index in one "
+            "query with DuckDB.",
+            "",
+            "```sql",
+            "INSTALL spatial; LOAD spatial;",
+            f"SELECT id, bbox, assets FROM read_parquet('{data_name}') LIMIT 5;",
+            "```",
+            "",
+            "Then read any single scene straight from the upstream host, over "
+            "range requests, without downloading it.",
+            "",
+            "```python",
+            "import rasterio",
+            "",
+            'href = "<the image asset href from an Item>"',
+            'with rasterio.open(f"/vsicurl/{href}") as src:',
+            "    print(src.profile, src.overviews(1))",
+            "```",
+        ]
+        agents = (f"Read the item index `{data_name}` with DuckDB, then open a "
+                  "scene's image href through /vsicurl with rasterio. Do not "
+                  "download a scene, they are about 1.8 GB each.")
+        return lines, agents
     # tabular
     lines = [
         "## Open the data",
@@ -324,8 +353,17 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
     src = spec["source"]
     out_crs = resolve_output_crs(spec, manifest_output_crs)
 
-    print(f"[{cid}] fetch + convert ({kind})", file=sys.stderr)
-    local = fetch(src["url"], cache, stable=src.get("stable", True))
+    if kind == "raster-mosaic":
+        # A raster-mosaic source is a STAC search endpoint, not a file to
+        # convert. The branch below reads it itself through fetch_stac_items,
+        # which calls this same fetch with the same cache key, so fetching it
+        # again here would be a second request against an unencoded
+        # cql2-json search URL before that branch ever runs.
+        print(f"[{cid}] build items from a STAC search ({kind})", file=sys.stderr)
+        local = None
+    else:
+        print(f"[{cid}] fetch + convert ({kind})", file=sys.stderr)
+        local = fetch(src["url"], cache, stable=src.get("stable", True))
 
     exts = [SCHEMA_URI, FILE_EXT]
     assets: dict[str, dict] = {}
@@ -410,6 +448,53 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
                         + ("bounding box is the area of interest the data pertains to, "
                            f"{aoi}, not a geometry footprint." if aoi else
                            "data is global, so the bounding box is the whole world.")]
+
+    elif kind == "raster-mosaic":
+        # Function-scoped, not a module-level import. mosaic.py already imports
+        # link and remote_asset from this module, so a top-level import back the
+        # other way here would be circular. This is the one place in this file
+        # where that is the correct fix.
+        from mosaic import (build_items, fetch_stac_items, make_thumbnail_mosaic,
+                            probe_remote, write_items_parquet, write_minimal_json)
+
+        features = fetch_stac_items(src["url"], cache, stable=src.get("stable", True))
+        items, item_links, bbox, tiles = build_items(
+            features, coll_dir, cid, spec["title"], probe_remote)
+        n = len(items)
+        links += item_links
+
+        mirror = coll_dir / "items.parquet"
+        rows = write_items_parquet(items, mirror)
+        if rows != n:
+            raise SystemExit(f"{cid} mirror holds {rows} rows for {n} items")
+        data_name = mirror.name
+        # PORTO-FMT-041, the mirror is a collection-level asset with the
+        # collection-mirror role. That registration is the whole requirement,
+        # no rel="items" link is needed.
+        assets["items"] = asset(mirror, MEDIA["geoparquet"], ["collection-mirror"],
+                                f"{spec['title']} stac-geoparquet item mirror")
+        # Scene COGs are item-level only. core.md forbids listing them here.
+        exts += [PROJ_EXT]
+
+        if deriv.get("minimal_json", False):
+            minimal = coll_dir / "minimal.json"
+            write_minimal_json(items, minimal)
+            assets["minimal"] = asset(minimal, MEDIA["json"], ["metadata"],
+                                      f"{spec['title']} compact bbox and href index")
+        if deriv.get("thumbnail", True):
+            th = coll_dir / "thumbnail.png"
+            tbbox = spec.get("thumbnail_bbox") or bbox
+            make_thumbnail_mosaic(tiles, th, tbbox, thumb)
+            assets["thumbnail"] = asset(th, MEDIA["png"], ["thumbnail"], _thumb_desc(thumb))
+        extra_readme = [
+            f"Scenes, {n}.",
+            "Scene bytes, hosted upstream and referenced by URL, not copied here.",
+            f"Cloud-native asset, {mirror.name} (stac-geoparquet item mirror).",
+            "Note, scene assets carry file:size but no file:checksum, because this "
+            "catalog does not host those bytes and cannot regenerate a digest at "
+            "publish time. See NAIP-MIRROR-FOLLOWUP.md.",
+        ]
+
     else:
         raise ValueError(f"unknown kind {kind}")
 
