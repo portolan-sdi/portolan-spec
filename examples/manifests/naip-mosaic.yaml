@@ -7,8 +7,7 @@
 # That is legal under core.md, which requires an absolute asset href to use https
 # and says nothing about who serves it, but it collides with the requirement that
 # every asset carry a file:checksum regenerated at publish time. The residual
-# non-conformance is recorded in examples/expected-findings/naip-mosaic.json and
-# analysed in NAIP-MIRROR-FOLLOWUP.md.
+# non-conformance is recorded in examples/expected-findings/naip-mosaic.json.
 #
 # The tile list reproduces the query the deck.gl-raster naip-mosaic example
 # documents in its own README, so this catalog mirrors exactly what that example
@@ -78,8 +77,9 @@ collections:
     #
     # Upstream instead links the FSA site policy page, which is generic and never
     # names NAIP, and declares its own license as proprietary, which
-    # PORTO-CORE-060 forbids. See NAIP-MIRROR-FOLLOWUP.md, including the caveat
-    # that the mark reaches slightly further than 17 USC 105 does.
+    # PORTO-CORE-060 forbids. Worth flagging, the mark reaches slightly further
+    # than 17 USC 105 does, since the statute clears US Government copyright
+    # only within the United States.
     license_url: https://creativecommons.org/publicdomain/mark/1.0/
     attribution: NAIP imagery provided by USDA Farm Service Agency
     source:

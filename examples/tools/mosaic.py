@@ -3,8 +3,7 @@
 A mosaic collection describes many scenes it does not host. core.md requires each
 scene to be an item carrying its COG as an item-level asset, so this module emits
 items rather than a collection-level data asset. The COG bytes stay upstream, so
-`file:size` comes from a HEAD and `file:checksum` is omitted rather than invented,
-see NAIP-MIRROR-FOLLOWUP.md.
+`file:size` comes from a HEAD and `file:checksum` is omitted rather than invented.
 """
 from __future__ import annotations
 
@@ -94,9 +93,9 @@ def read_overview(href: str) -> tuple[list[dict], np.ndarray]:
     this catalog validates under --data-scope local, which treats the 924 remote
     COGs as unfetchable. So no statistics rule ever fires and there is nothing for
     the accepted list to hold. Note the reason is custody, not a disabled pass.
-    Verifying statistics embedded in a file requires reading the file. Recorded in
-    NAIP-MIRROR-FOLLOWUP.md instead, because an accepted entry for a rule that
-    cannot fire would be a false record.
+    Verifying statistics embedded in a file requires reading the file. This stays
+    deliberately unbaselined rather than recorded anywhere, because an accepted
+    entry for a rule that cannot fire would be a false record.
 
     A missing overview is an error, not absorbed, because reading full resolution
     would pull gigabytes over a slow network. The read itself is time-bounded by
@@ -316,8 +315,7 @@ def write_items_parquet(items: list[dict], out: Path,
     `large_list`, and which restamps the `datetime` column with the builder's
     local timezone rather than UTC, so the same items produce different bytes on
     different machines. It also needs the same explicit row-group cap, because
-    its byte-targeted profile writes 924 small rows as one row group. See
-    NAIP-MIRROR-FOLLOWUP.md for the measurements.
+    its byte-targeted profile writes 924 small rows as one row group.
 
     The batches carry no `geo` metadata of their own, so the write goes through
     stac-geoparquet's own `to_parquet` rather than `pyarrow.parquet.write_table`.
@@ -369,7 +367,7 @@ def write_minimal_json(items: list[dict], out: Path) -> int:
     a `visual` mosaic overview would list none. It is simply unnamed, because
     core.md calls PMTiles "the recommended vector format today" and names no raster
     equivalent. So this index fills the first hole, not the second, and it remains
-    a local invention either way. See NAIP-MIRROR-FOLLOWUP.md section 9.
+    a local invention either way.
     """
     doc = {
         "type": "FeatureCollection",

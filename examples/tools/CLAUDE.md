@@ -350,9 +350,9 @@ One thing the pass still cannot reach. The embedded COG statistics MUSTs,
 `PORTO-FMT-026` through `029`, are unverifiable for a mirror by construction.
 Upstream NAIP COGs carry no `STATISTICS_*` band tags, this catalog publishes
 approximate values read from each scene's coarsest overview into STAC core `bands`
-instead, and no configured gate sees the difference. That gap is recorded in
-`NAIP-MIRROR-FOLLOWUP.md` rather than baselined, because an accepted entry for a
-rule that never fires would be a false record.
+instead, and no configured gate sees the difference. That gap stays deliberately
+unbaselined, because an accepted entry for a rule that never fires would be a
+false record.
 
 ## What CI runs, and why it is split in three
 

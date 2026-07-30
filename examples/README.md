@@ -202,9 +202,6 @@ inside the catalog tree, and only the remote hrefs are treated as unfetchable. S
 [`tools/CLAUDE.md`](tools/CLAUDE.md) for how it works and what it still cannot
 reach.
 
-The conformance gaps this catalog exposed, and what to do about each, are analysed
-in [`NAIP-MIRROR-FOLLOWUP.md`](../NAIP-MIRROR-FOLLOWUP.md).
-
 It is also the first Collection in the repo to carry a `canonical` link, since the
 Planetary Computer publishes its own STAC and none of the reference catalog's eight
 upstreams does. So it exercises a conditional MUST that had shipped untested.

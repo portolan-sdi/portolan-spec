@@ -125,7 +125,7 @@ def remote_asset(href: str, media: str, roles: list[str], title: str,
     operation that uploads the files", which presumes the publisher uploads them.
     A mirror of someone else's COGs cannot, and a digest it cannot verify would be
     a false claim, so the field is omitted and the resulting PTL-AST-003 and
-    PTL-SCH-001 are baselined. See NAIP-MIRROR-FOLLOWUP.md.
+    PTL-SCH-001 are baselined.
     """
     a: dict[str, Any] = {"href": href, "type": media, "title": title,
                          "roles": roles, "file:size": size}
@@ -506,7 +506,7 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
             f"Cloud-native asset, {mirror.name} (stac-geoparquet item mirror).",
             "Note, scene assets carry file:size but no file:checksum, because this "
             "catalog does not host those bytes and cannot regenerate a digest at "
-            "publish time. See NAIP-MIRROR-FOLLOWUP.md.",
+            "publish time.",
         ]
 
     else:
