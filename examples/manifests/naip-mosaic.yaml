@@ -49,7 +49,15 @@ collections:
       every footprint in one request.
     keywords: [naip, imagery, aerial, colorado, cog, mosaic, usda]
     license: other
-    license_url: https://www.fsa.usda.gov/help/policies-and-links/
+    # core.md asks the rel=license link to point at the license text, and public
+    # domain has no license instrument to point at. The US Government Public
+    # Domain Mark is the closest thing to one, and data.gov's NAIP record cites
+    # it for this imagery specifically. Upstream instead links the FSA site
+    # policy page, which is generic and never names NAIP, and declares its own
+    # license as proprietary, which PORTO-CORE-060 forbids. FSA Notice AP-26
+    # states that all NAIP imagery since 2003 has been placed in the public
+    # domain, so `other` plus this link is the conformant reading.
+    license_url: https://www.usa.gov/publicdomain/label/1.0/
     attribution: NAIP imagery provided by USDA Farm Service Agency
     source:
       url: >-
