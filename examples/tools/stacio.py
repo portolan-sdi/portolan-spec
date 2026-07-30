@@ -126,7 +126,19 @@ def remote_asset(href: str, media: str, roles: list[str], title: str,
     A mirror of someone else's COGs cannot, and a digest it cannot verify would be
     a false claim, so the field is omitted and the resulting PTL-AST-003 and
     PTL-SCH-001 are baselined.
+
+    `file:size` is published on the same unread bytes, which looks like the same
+    problem and is not. `Content-Length` is the host's own statement about its own
+    object, so repeating it attributes the claim to whoever made it, while a digest
+    would be this catalog asserting something about bytes it never read. core.md
+    also makes `file:size` a MUST a mirror can satisfy honestly and the checksum
+    one it cannot, so the asymmetry follows the spec rather than convenience.
     """
+    if extra and "file:checksum" in extra:
+        # Omitting the checksum is a custody claim about bytes this catalog never
+        # read, not a formatting choice, so no caller may pass one back in.
+        raise ValueError(
+            f"file:checksum must never be set on a remote asset, {href}")
     a: dict[str, Any] = {"href": href, "type": media, "title": title,
                          "roles": roles, "file:size": size}
     if extra:
@@ -468,12 +480,14 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         # link and remote_asset from this module, so a top-level import back the
         # other way here would be circular. This is the one place in this file
         # where that is the correct fix.
-        from mosaic import (build_items, fetch_stac_items, make_thumbnail_mosaic,
-                            probe_remote, write_items_parquet, write_minimal_json)
+        from mosaic import (build_items, check_item_datetimes, fetch_stac_items,
+                            make_thumbnail_mosaic, probe_remote,
+                            write_items_parquet, write_minimal_json)
 
         features = fetch_stac_items(src["url"], cache, stable=src.get("stable", True))
         items, item_links, bbox, tiles = build_items(
             features, coll_dir, cid, spec["title"], probe_remote)
+        check_item_datetimes(items, cid, spec.get("temporal"))
         n = len(items)
         links += item_links
 
@@ -487,8 +501,9 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         # no rel="items" link is needed.
         assets["items"] = asset(mirror, MEDIA["geoparquet"], ["collection-mirror"],
                                 f"{spec['title']} stac-geoparquet item mirror")
-        # Scene COGs are item-level only. core.md forbids listing them here.
-        exts += [PROJ_EXT]
+        # Scene COGs are item-level only, core.md forbids listing them here, so
+        # nothing at this level carries a projection value and the Collection
+        # declares no projection extension. The Items declare it themselves.
 
         if deriv.get("minimal_json", False):
             minimal = coll_dir / "minimal.json"

@@ -72,6 +72,20 @@ def check_fetch_returns_features() -> None:
         assert got[0]["id"] == "a", got[0]["id"]
 
 
+def check_fetch_rejects_empty_response() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        cache = Path(td) / "cache"
+        cache.mkdir()
+        payload = Path(td) / "resp.json"
+        payload.write_text(json.dumps(_search_response([])))
+        try:
+            mosaic.fetch_stac_items(payload.as_uri(), cache, stable=True)
+        except SystemExit as exc:
+            assert "no features" in str(exc).lower(), str(exc)
+            return
+        raise AssertionError("an empty response must fail rather than publish an empty collection")
+
+
 def check_fetch_rejects_unconsumed_page() -> None:
     with tempfile.TemporaryDirectory() as td:
         cache = Path(td) / "cache"
@@ -216,6 +230,45 @@ def check_remote_asset_has_size_and_no_checksum() -> None:
     assert a["href"].startswith("https://"), a["href"]
     assert a["roles"] == ["data"], a
     assert a["proj:code"] == "EPSG:26913", a
+
+
+def check_remote_asset_refuses_an_injected_checksum() -> None:
+    """`extra` must not be a way back in for the one field this kind forbids.
+
+    The two call sites in mosaic.py never pass a checksum, but that is convention.
+    This drives the constructor itself, which is where the invariant has to live.
+    """
+    try:
+        stacio.remote_asset(
+            "https://example.invalid/t.tif", "image/tiff", ["data"], "Tile", 4242,
+            {"file:checksum": "1220" + "00" * 32})
+    except ValueError as exc:
+        assert "file:checksum" in str(exc), str(exc)
+        assert "https://example.invalid/t.tif" in str(exc), str(exc)
+        return
+    raise AssertionError("a synthesized file:checksum must be refused, not merged")
+
+
+def check_item_datetimes_rejects_an_out_of_range_item() -> None:
+    """A scene outside the manifest's declared interval must fail the build.
+
+    The Items come from a live search, so upstream growth outside the window
+    would otherwise publish a Collection whose extent does not bound its own
+    Items. The bbox self-corrects, the extent does not.
+    """
+    inside = {"id": "in-range", "properties": {"datetime": "2023-09-01T00:00:00Z"}}
+    outside = {"id": "zz-tile-0417", "properties": {"datetime": "2024-04-01T00:00:00Z"}}
+    temporal = ["2023-08-09T16:00:00Z", "2023-10-20T16:00:00Z"]
+
+    mosaic.check_item_datetimes([inside], "imagery/colorado-2023", temporal)
+
+    try:
+        mosaic.check_item_datetimes([inside, outside], "imagery/colorado-2023", temporal)
+    except SystemExit as exc:
+        assert "zz-tile-0417" in str(exc), str(exc)
+        assert "2024-04-01T00:00:00Z" in str(exc), str(exc)
+        return
+    raise AssertionError("an item outside the declared temporal extent must fail loudly")
 
 
 def _write_cog(path: Path, overviews: bool = True) -> None:
@@ -412,7 +465,9 @@ def check_minimal_json() -> None:
         n = mosaic.write_minimal_json(items, out)
         doc = json.loads(out.read_text())
         assert n == 1, n
-        assert doc["type"] == "FeatureCollection", doc["type"]
+        assert "type" not in doc, (
+            "the index must not claim to be a FeatureCollection, its entries "
+            "carry no type and no geometry")
         feat = doc["features"][0]
         assert set(feat) == {"bbox", "assets"}, f"minimal shape only, got {set(feat)}"
         assert feat["bbox"] == items[0]["bbox"], feat["bbox"]
@@ -503,11 +558,16 @@ def check_thumbnail_mosaic_west_overhang() -> None:
 if __name__ == "__main__":
     print("check_mosaic.py")
     check("fetch returns features", check_fetch_returns_features)
+    check("fetch rejects an empty response", check_fetch_rejects_empty_response)
     check("fetch rejects an unconsumed next page", check_fetch_rejects_unconsumed_page)
     check("remote size comes from HEAD", check_remote_size)
     check("remote size handles 404", check_remote_size_handles_404)
     check("remote asset carries size and no checksum",
           check_remote_asset_has_size_and_no_checksum)
+    check("remote asset refuses an injected checksum",
+          check_remote_asset_refuses_an_injected_checksum)
+    check("item datetimes must fall inside the declared extent",
+          check_item_datetimes_rejects_an_out_of_range_item)
     check("read_overview yields bands and pixels", check_read_overview)
     check("read_overview rejects no overviews", check_read_overview_rejects_no_overviews)
     check("read_overview rejects unreadable input", check_read_overview_rejects_unreadable)

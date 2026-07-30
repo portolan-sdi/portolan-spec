@@ -9,11 +9,11 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import sys
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
@@ -28,14 +28,20 @@ from fetch import fetch
 from stacio import link, remote_asset
 from thumbnails import _make_canvas_arr, _thumb_grid, _to_merc
 
-# /vsicurl issues a directory listing per open unless told not to, which triples
-# the request count against a blob store that has no directories anyway.
-os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR")
-
-# GDAL has no default timeout, so one unresponsive object would stall a whole
-# build. These bound a single read the way remote_size bounds its HEAD.
-os.environ.setdefault("GDAL_HTTP_CONNECTTIMEOUT", "30")
-os.environ.setdefault("GDAL_HTTP_TIMEOUT", "60")
+# Applied per read through rasterio.Env rather than to os.environ, because a
+# process-wide setdefault would outlive this module. build.py builds every
+# manifest in one process and naip-mosaic.yaml sorts first, so the other
+# catalogs would otherwise be converted under settings they never asked for.
+_GDAL_READ_ENV = {
+    # /vsicurl issues a directory listing per open unless told not to, which
+    # triples the request count against a blob store that has no directories
+    # anyway.
+    "GDAL_DISABLE_READDIR_ON_OPEN": "EMPTY_DIR",
+    # GDAL has no default timeout, so one unresponsive object would stall a
+    # whole build. These bound a single read the way remote_size bounds its HEAD.
+    "GDAL_HTTP_CONNECTTIMEOUT": "30",
+    "GDAL_HTTP_TIMEOUT": "60",
+}
 
 
 def fetch_stac_items(url: str, cache: Path, stable: bool = False) -> list[dict]:
@@ -99,12 +105,12 @@ def read_overview(href: str) -> tuple[list[dict], np.ndarray]:
 
     A missing overview is an error, not absorbed, because reading full resolution
     would pull gigabytes over a slow network. The read itself is time-bounded by
-    the module's GDAL HTTP timeout settings, so one unresponsive object fails
+    the _GDAL_READ_ENV timeouts scoped around it, so one unresponsive object fails
     rather than stalling.
     """
     path = href if href.startswith("/vsicurl/") or Path(href).exists() else f"/vsicurl/{href}"
     try:
-        with rasterio.open(path) as d:
+        with rasterio.Env(**_GDAL_READ_ENV), rasterio.open(path) as d:
             levels = d.overviews(1)
             if not levels:
                 raise SystemExit(
@@ -264,6 +270,37 @@ def build_items(features: list[dict], coll_dir: Path, cid: str, title: str,
     return items, links, bbox, tiles
 
 
+def _instant(stamp: str) -> datetime:
+    """One RFC 3339 timestamp as a comparable datetime."""
+    return datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+
+
+def check_item_datetimes(items: list[dict], cid: str, temporal: list | None) -> None:
+    """Fail when an Item falls outside the Collection's declared temporal extent.
+
+    The other kinds convert a pinned download, so a hardcoded manifest extent
+    cannot drift away from the data. Here the Items are built from a live STAC
+    search on every run. `build_items` derives the spatial bbox from the Items it
+    built so the bbox self-corrects, and nothing does the same for the temporal
+    extent. This asserts rather than derives, which keeps the interval a statement
+    the manifest author made, and turns an upstream scene outside the window into
+    a loud failure rather than a Collection whose extent does not bound its own
+    Items.
+    """
+    if not temporal:
+        return
+    start = _instant(temporal[0]) if temporal[0] else None
+    end = _instant(temporal[1]) if len(temporal) > 1 and temporal[1] else None
+    for item in items:
+        stamp = item["properties"]["datetime"]
+        moment = _instant(stamp)
+        if (start and moment < start) or (end and moment > end):
+            raise SystemExit(
+                f"{cid} item {item['id']} has datetime {stamp}, outside the "
+                f"declared temporal extent {temporal}. Widen the manifest "
+                "interval or narrow the search.")
+
+
 # PORTO-FMT-043 caps a row group at 150,000 rows, so no caller can ask for more.
 MAX_ROW_GROUP_ROWS = 150_000
 
@@ -341,7 +378,6 @@ def write_items_parquet(items: list[dict], out: Path,
         ((hilbert_key(i["bbox"]), i) for i in items), key=lambda p: p[0])]
     table = stac_geoparquet.arrow.parse_stac_items_to_arrow(ordered).read_all()
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.unlink(missing_ok=True)
     stac_geoparquet.arrow.to_parquet(
         table.to_reader(max_chunksize=row_group_size),
         out, compression="zstd")
@@ -368,9 +404,16 @@ def write_minimal_json(items: list[dict], out: Path) -> int:
     core.md calls PMTiles "the recommended vector format today" and names no raster
     equivalent. So this index fills the first hole, not the second, and it remains
     a local invention either way.
+
+    It carries no `type` key. It used to declare itself a `FeatureCollection`,
+    which RFC 7946 does not allow, since every member of `features` would then owe
+    a `type` and a `geometry` and these carry neither by design. The asset is
+    registered `application/json` with a `metadata` role rather than
+    `application/geo+json`, so nothing else read that key, and a repo that is
+    ground truth for a geospatial standard should not ship a document claiming a
+    shape it does not have.
     """
     doc = {
-        "type": "FeatureCollection",
         "features": [
             {"bbox": i["bbox"],
              "assets": {"image": {"href": i["assets"]["image"]["href"]}}}

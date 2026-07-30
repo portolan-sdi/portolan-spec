@@ -204,14 +204,18 @@ def write_step_summary(rows: list[tuple[Path, dict, bool]]) -> None:
     path = os.environ.get("GITHUB_STEP_SUMMARY")
     if not path:
         return
+    # Result is the first column because a baselined catalog reports thousands of
+    # accepted errors, and a count with no verdict beside it reads as a failure to
+    # anyone scanning the run.
     lines = [
-        "| Catalog | Errors | Warnings | Infos | Files |",
-        "| --- | --- | --- | --- | --- |",
+        "| Catalog | Result | Errors | Warnings | Infos | Files |",
+        "| --- | --- | --- | --- | --- | --- |",
     ]
     lines += [
-        f"| `{catalog.name}` | {data['error_count']} | {data['warning_count']} "
+        f"| `{catalog.name}` | {'pass' if ok else '**fail**'} "
+        f"| {data['error_count']} | {data['warning_count']} "
         f"| {data['info_count']} | {data['files_checked']} |"
-        for catalog, data, _ in rows
+        for catalog, data, ok in rows
     ]
     with open(path, "a", encoding="utf-8") as handle:
         handle.write("\n".join(lines) + "\n")

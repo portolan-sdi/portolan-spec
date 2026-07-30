@@ -5,7 +5,11 @@
 #   "duckdb>=1.5.5",
 #   "jsonschema>=4.26.0",
 #   "pyarrow>=25",
-#   "stac-geoparquet",
+#   # Bounded because this writer determines the published file:checksum of
+#   # items.parquet and the row-group layout PTL-DAT-006 and PTL-DAT-016 read.
+#   # A change to its arrow schema or its to_parquet defaults rewrites those
+#   # bytes. 0.8.1 is what resolves today and is the floor.
+#   "stac-geoparquet>=0.8.1",
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
 #   "rasterio>=1.5",
 #   # Pinned to the exact merge commit of portolan-sdi/rashid#87, which answers

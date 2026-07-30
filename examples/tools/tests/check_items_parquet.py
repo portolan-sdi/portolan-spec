@@ -1,7 +1,10 @@
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
-#   "stac-geoparquet",
+#   # Bounded, and kept level with build.py's own bound. This writer determines
+#   # the published file:checksum of items.parquet, so a floor here means these
+#   # checks and the build read the same writer.
+#   "stac-geoparquet>=0.8.1",
 #   "pyarrow>=25",
 #   "numpy",
 #   "pyyaml>=6.0.3",
