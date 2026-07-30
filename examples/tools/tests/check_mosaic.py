@@ -357,6 +357,42 @@ def check_thumbnail_mosaic() -> None:
         assert dark_px[0] < 100, f"dark tile must read dark at its own centre, got {dark_px}"
 
 
+def check_thumbnail_mosaic_west_overhang() -> None:
+    """A tile whose west edge falls off the canvas must paint its own
+    correct sub-region there, not the sub-region the patch's own origin
+    would give under an unclipped slice.
+
+    A flat fill cannot tell these two sub-regions apart, since every pixel
+    of a flat tile has the same value wherever it is sliced from. The tile
+    here carries a west-to-east ramp instead, one distinct value per column,
+    so only the true correct sub-region produces the expected value.
+    """
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(td) / "thumbnail.png"
+        thumb = {"size": 64, "ocean": (238, 243, 248), "pad_raster": 0.0,
+                 "pad_vector": 0.06, "basemap": None}
+        # The canvas covers lon -10 to 10. The tile covers lon -30 to 0, so
+        # its western two thirds, lon -30 to -10, overhangs off canvas.
+        bbox4326 = [-10.0, 0.0, 10.0, 20.0]
+        tile_bbox = [-30.0, 0.0, 0.0, 20.0]
+        ramp = np.tile(np.arange(256, dtype="uint8"), (3, 4, 1))
+        mosaic.make_thumbnail_mosaic([(tile_bbox, ramp)], out, bbox4326, thumb)
+
+        # Mercator x is a linear function of longitude, so the fraction along
+        # the tile at the canvas west edge equals the plain longitude
+        # fraction. The canvas west edge sits at bbox4326's own west edge,
+        # since pad_raster is 0 here.
+        fraction = (bbox4326[0] - tile_bbox[0]) / (tile_bbox[2] - tile_bbox[0])
+        expected = 255 * fraction
+
+        _, _, _, h = thumbnails._thumb_grid(bbox4326, thumb["size"], thumb["pad_raster"])
+        with Image.open(out) as im:
+            got = im.convert("RGB").getpixel((0, h // 2))[0]
+
+        assert abs(got - expected) <= 20, (
+            f"west overhang must read the ramp's own value near {expected}, got {got}")
+
+
 if __name__ == "__main__":
     print("check_mosaic.py")
     check("fetch returns features", check_fetch_returns_features)
@@ -375,6 +411,8 @@ if __name__ == "__main__":
           check_build_items_rejects_missing_image_asset)
     check("minimal.json carries only bbox and href", check_minimal_json)
     check("thumbnail mosaic pastes tiles", check_thumbnail_mosaic)
+    check("thumbnail mosaic paints a west-overhanging tile's own sub-region",
+          check_thumbnail_mosaic_west_overhang)
     if FAILURES:
         raise SystemExit(f"{len(FAILURES)} failure(s)")
     print("all ok")
