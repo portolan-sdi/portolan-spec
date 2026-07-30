@@ -48,6 +48,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from check_catalogs import load_baseline
 from stacio import load_manifest, build_catalog
 from validate import validate
 
@@ -85,7 +86,8 @@ def main() -> int:
         cat_out = args.out / mf.stem
         build_catalog(manifest, cat_out, args.cache, args.only)
         if not args.no_validate and not args.only:
-            validate(cat_out, args.schema)
+            baseline = load_baseline(root, cat_out)
+            validate(cat_out, args.schema, baseline=baseline or None)
     print("done", file=sys.stderr)
     return 0
 

@@ -66,12 +66,16 @@ def _local_only_data_validator() -> "Callable[[Node, AssetReader], list[DataDefe
     return validate_node
 
 
-def validate(out: Path, schema_path: Path) -> None:
+def validate(out: Path, schema_path: Path, baseline: dict | None = None) -> None:
     """Validate the built catalog at out with rashid and fail on any error.
 
     Runs the metadata pass (always), the STAC 1.1.0 structural pass, the schema
     pass against the working-copy schema, and the data pass over local assets.
     Prints every finding and raises SystemExit when rashid reports an error.
+
+    When baseline is given, its accepted rules are filtered out first through
+    check_catalogs.apply_baseline, the same logic the standalone gate uses, so
+    a known non-conformance stays visible without failing the build.
     """
     from rashid import validate as rashid_validate
 
@@ -88,6 +92,27 @@ def validate(out: Path, schema_path: Path) -> None:
             f"  {finding.rule_id} {finding.severity.value} {finding.path}: {finding.message}",
             file=sys.stderr,
         )
+    if baseline:
+        from check_catalogs import apply_baseline
+
+        data = {
+            "findings": [
+                {
+                    "rule_id": finding.rule_id,
+                    "severity": finding.severity.value,
+                    "path": finding.path,
+                    "message": finding.message,
+                }
+                for finding in report.findings
+            ]
+        }
+        _, reasons = apply_baseline(data, baseline)
+        if reasons:
+            for reason in reasons:
+                print(f"  UNEXPECTED {reason}", file=sys.stderr)
+            raise SystemExit(f"validation failed, {len(reasons)} reason(s) above")
+        print(f"validation passed for {out}, baseline accepted the rest", file=sys.stderr)
+        return
     if not report.passed:
         errors = sum(1 for f in report.findings if f.severity.value == "error")
         raise SystemExit(f"validation failed with {errors} error(s)")

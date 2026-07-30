@@ -91,24 +91,65 @@ def catalogs(root: Path, only: str | None) -> list[Path]:
     return found
 
 
-def run_rashid(requirement: str, catalog: Path) -> dict:
+def load_baseline(root: Path, catalog: Path) -> dict:
+    """The accepted-findings baseline for one catalog, or an empty dict.
+
+    A catalog with no baseline stays at zero tolerance, which is where
+    portolan-reference sits. JSON rather than YAML so this script keeps running
+    on the standard library alone.
+    """
+    path = root / "examples/expected-findings" / f"{catalog.name}.json"
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def apply_baseline(data: dict, baseline: dict) -> tuple[list[dict], list[str]]:
+    """Findings the baseline does not accept, and why the gate should fail.
+
+    Accepting a rule is not silencing it. A rule absent from the baseline fails,
+    and an accepted rule over its ceiling fails, so a regression cannot hide
+    behind a known gap.
+    """
+    accepted = {entry["rule"]: entry for entry in baseline.get("accepted", [])}
+    counts: dict[str, int] = {}
+    unexpected: list[dict] = []
+    for finding in data["findings"]:
+        rule = finding["rule_id"]
+        if finding["severity"] == "info":
+            continue
+        if rule in accepted:
+            counts[rule] = counts.get(rule, 0) + 1
+        else:
+            unexpected.append(finding)
+
+    reasons = [
+        f"{f['rule_id']} at {f['path']} is not in the baseline: {f['message']}"
+        for f in unexpected
+    ]
+    reasons += [
+        f"{rule} occurred {seen} times, over its baseline ceiling of "
+        f"{accepted[rule]['max_count']}"
+        for rule, seen in sorted(counts.items())
+        if seen > accepted[rule]["max_count"]
+    ]
+    return unexpected, reasons
+
+
+def run_rashid(requirement: str, catalog: Path, data_pass: bool = True) -> dict:
     """rashid's JSON report for one catalog tree."""
-    completed = subprocess.run(
-        [
-            "uv", "run", "--with", requirement,
-            "rashid", "check", "--schema", "--all", "--json", str(catalog),
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    cmd = ["uv", "run", "--with", requirement,
+           "rashid", "check", "--schema", "--all", "--json", str(catalog)]
+    if not data_pass:
+        cmd.append("--no-data")
+    completed = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if not completed.stdout.strip():
         sys.stderr.write(completed.stderr)
         raise SystemExit(f"rashid produced no report for {catalog}")
     return json.loads(completed.stdout)
 
 
-def report(catalog: Path, data: dict, root: Path) -> bool:
+def report(catalog: Path, data: dict, root: Path, baseline: dict) -> bool:
     """Print one catalog's findings. True when it passes the gate."""
     print(f"::group::{catalog.relative_to(root)}")
     for finding in data["findings"]:
@@ -120,8 +161,17 @@ def report(catalog: Path, data: dict, root: Path) -> bool:
         f"  {data['error_count']} error(s), {data['warning_count']} warning(s), "
         f"{data['info_count']} info(s) across {data['files_checked']} files."
     )
+    if not baseline:
+        print("::endgroup::")
+        return data["error_count"] + data["warning_count"] == 0
+    _, reasons = apply_baseline(data, baseline)
+    accepted = {e["rule"] for e in baseline.get("accepted", [])}
+    print(f"  baseline accepts {', '.join(sorted(accepted))}, "
+          f"data pass {'on' if baseline.get('data_pass', True) else 'off'}.")
+    for reason in reasons:
+        print(f"  UNEXPECTED {reason}")
     print("::endgroup::")
-    return data["error_count"] + data["warning_count"] == 0
+    return not reasons
 
 
 def write_step_summary(rows: list[tuple[Path, dict, bool]]) -> None:
@@ -156,8 +206,9 @@ def main() -> int:
 
     rows = []
     for catalog in trees:
-        data = run_rashid(requirement, catalog)
-        rows.append((catalog, data, report(catalog, data, root)))
+        baseline = load_baseline(root, catalog)
+        data = run_rashid(requirement, catalog, data_pass=baseline.get("data_pass", True))
+        rows.append((catalog, data, report(catalog, data, root, baseline)))
 
     write_step_summary(rows)
 
