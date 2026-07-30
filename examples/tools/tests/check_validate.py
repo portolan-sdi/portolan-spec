@@ -92,6 +92,15 @@ def _reader_over(inner):
     """
     from rashid.data.reader import LocalOnlyReader
 
+    # Decision, 2026-07-30. The two callers below were written against this repo's
+    # own _LocalOnlyReader, which this branch deleted in favour of rashid's. They
+    # are kept rather than deleted, as an upstream contract test. The reason is
+    # that check_validate_narrows_the_data_pass_to_local_assets proves the factory
+    # is handed to rashid and proves nothing about what the factory does, so if
+    # LocalOnlyReader ever stopped dropping remote hrefs the wiring check would
+    # still pass and naip-mosaic's build would quietly start streaming 1.86 TB.
+    # These two are the only thing asserting that behaviour, and the private
+    # attribute below is the price of asserting it.
     reader = LocalOnlyReader.__new__(LocalOnlyReader)
     reader._inner = inner
     return reader

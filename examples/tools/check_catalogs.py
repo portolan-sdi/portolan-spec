@@ -6,8 +6,10 @@
 examples/catalog/ holds the built trees of every example catalog this repo
 publishes. portolan-reference is committed in full, Parquet and COG included,
 and is the canonical worked example. naip-mosaic is not committed, it is
-gitignored and built fresh from its manifest before this runs, in CI and on
-demand. This runs rashid over whichever trees are present.
+gitignored, so it is present only when something built it first.
+publish-catalogs.yaml does exactly that, building each manifest and then gating
+it here. The weekly catalog-upstream.yaml run builds nothing, so it no longer
+covers that catalog at all. This runs rashid over whichever trees are present.
 
 The data pass runs at full scope by default, which is what separates this check
 from the generator checks under examples/tools/tests/. Those read the committed

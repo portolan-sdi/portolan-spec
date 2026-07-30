@@ -159,8 +159,9 @@ Done.
 
 ## NAIP Mosaic Mirror
 
-[`catalog/naip-mosaic/`](catalog/naip-mosaic/) is the second catalog, and unlike
-the reference catalog it is **not** fully conformant. That is the point of it. One
+`catalog/naip-mosaic/`, built from
+[`manifests/naip-mosaic.yaml`](manifests/naip-mosaic.yaml), is the second
+catalog, and unlike the reference catalog it is **not** fully conformant. That is the point of it. One
 Collection publishes 924 National Agriculture Imagery Program scenes as per-scene
 Items whose Cloud Optimized GeoTIFFs stay on the Microsoft Planetary Computer.
 
@@ -172,9 +173,8 @@ on each object. `file:checksum` is omitted, because obtaining it honestly means
 reading every scene and inventing it would be a false claim.
 
 **`catalog/naip-mosaic/` is not committed, unlike the reference catalog.** It is
-936 files of metadata the generator reproduces from
-[`manifests/naip-mosaic.yaml`](manifests/naip-mosaic.yaml) in about seventy
-seconds, so `examples/.gitignore` excludes it and CI builds it fresh rather than
+936 files of metadata the generator reproduces from that manifest in about
+1 m 45 s, so `examples/.gitignore` excludes it and CI builds it fresh rather than
 git carrying a snapshot. `publish-catalogs.yaml` builds it, gates it with
 `check_catalogs.py`, and publishes it to Source Cooperative on every pull request
 and on every push to main. Two things get worse for this catalog because of that.

@@ -12,8 +12,16 @@ The generator is a set of modules under `examples/tools/`, each owning one
 responsibility. `build.py`, `check_catalogs.py`, `publish_catalogs.py`, and the
 files under `tests/` are `uv run` entrypoints and carry a PEP 723 header. The
 rest are plain modules, and `build.py` bootstraps `sys.path` with its own
-directory so they import as flat names. The three entrypoints import nothing
-from the modules beside them, so they stay runnable on their own.
+directory so they import as flat names. `build.py` and `publish_catalogs.py`
+import nothing from the modules beside them, so they stay runnable on their own.
+
+`check_catalogs.py` is the deliberate exception. It is an entrypoint and a shared
+module both, `build.py` imports `load_baseline` from it and `validate.py` imports
+`apply_baseline`, so the build-time and the gate-time paths read one baseline
+implementation rather than two that can drift. It declares no dependencies of its
+own and runs on the standard library alone, so importing it costs nothing and its
+empty PEP 723 header stays valid. Keep it that way, a dependency added there
+would land on every importer.
 
 | Module | Responsibility |
 |--------|----------------|
@@ -28,7 +36,7 @@ from the modules beside them, so they stay runnable on their own.
 | `tiles.py` | XYZ basemap tile fetch and mosaic for thumbnails |
 | `stacio.py` | STAC assembly, manifest, providers, assets, links, sidecars, catalog builders |
 | `validate.py` | Thin adapter over rashid, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
-| `check_catalogs.py` | Entrypoint. Runs rashid over every built catalog tree, reading the rashid pin out of `build.py`'s PEP 723 header. Data pass full unless a baseline narrows it with `data_scope`, findings gated against `../expected-findings/<stem>.json` |
+| `check_catalogs.py` | Entrypoint, and the shared module holding the baseline loader and matcher. Runs rashid over every built catalog tree, reading the rashid pin out of `build.py`'s PEP 723 header. Data pass full unless a baseline narrows it with `data_scope`, findings gated against `../expected-findings/<stem>.json` |
 | `publish_catalogs.py` | Entrypoint. Uploads a built catalog to Source Cooperative, and tears a pull request's preview down |
 | `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_fetch.py`, `check_styles.py`, `check_mosaic.py`, `check_items_parquet.py`, and `check_baseline.py`, plus `run_all.py` which runs the lot |
 
@@ -107,12 +115,12 @@ Each entry in `collections`.
 - `geometry`. `polygon`, `point`, or `line`. Vector only, drives style and thumbnail paint.
 - `title`, `description`, `keywords`, `license`, `attribution?`.
 - `license_url?`. Required only when `license` is `other`. The URL of the license text. The generator emits the mandatory `rel: license` link from it.
-- `source`. `{url, media_type, title, layer?, stable}`. The true original upstream file. `stable: false` marks a live endpoint.
+- `source`. `{url, media_type, title, layer?, stable}`. The true original upstream file, and for `raster-mosaic` the STAC search endpoint the Items are read from, which the generator explicitly refuses to treat as a downloadable original. `stable: false` marks a live endpoint, and `raster-mosaic` must set it or the build fails.
 - `providers`. List of `{name, url, roles}`. Roles are `producer`, `licensor`, `processor`, `host`.
 - `provenance`. `{via?, canonical?, updated?}`.
 - `temporal`. `[start, end_or_null]`.
 - `thumbnail_bbox?`. `[minx, miny, maxx, maxy]`. Frames the preview only, not the data. Use it for antimeridian-spanning data.
-- `derivatives`. `{pmtiles, thumbnail}`. Booleans that toggle the PMTiles and thumbnail outputs.
+- `derivatives`. `{pmtiles, thumbnail, minimal_json}`. Booleans that toggle the PMTiles, the thumbnail, and the `minimal.json` bbox and href index. `minimal_json` is read on the `raster-mosaic` path only and defaults off.
 - `style?`. Per-Collection paint, `{color, outline, opacity, palette?, category_field?, label_field?, graduated_field?, variants?}`. Drives both the MapLibre styles and the thumbnail paint. `category_field` colours by category from the shared palette, `graduated_field` interpolates a numeric ramp, `label_field` adds labels, and `variants` lists which style files to author. The FIRST variant is the default style and is what the thumbnail renders.
 - `columns?`. `{column_name: description}`. Merged into `table:columns` by `describe_columns`. A Parquet footer carries names and types but no semantics, so the prose has to come from the manifest. Required in spirit for `tabular`, where the column schema is the only semantic handle a consumer gets.
 - `bbox?`. Tabular only. The area of interest the table pertains to, which core.md asks for in place of a geometric footprint. Absent, the fallback is the whole world, correct only for a genuinely global table.

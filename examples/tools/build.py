@@ -33,14 +33,20 @@ per-catalog values. For each collection it downloads the true original source
 once, converts it to a cloud-native canonical asset (GeoParquet for vector and
 tabular, COG for raster), builds derivatives (PMTiles, thumbnail, MapLibre
 styles), computes real file:size and sha2-256 multihash file:checksum for every
-asset, and also cites the original file as a source-role asset. It validates the
-output against the committed Portolan schema.
+asset whose bytes it hosts, and cites the original file as a source-role asset.
+It validates the output against the committed Portolan schema.
+
+The raster-mosaic kind is the exception to both of those. It hosts nothing, so it
+emits one Item per upstream scene carrying file:size from a HEAD and no
+file:checksum at all, and it writes no source-role asset, which stacio raises as a
+manifest error rather than treating as a supported configuration.
 
 The generator is a small set of plain sibling modules under examples/tools/, run
 through this build.py entrypoint. config holds the static constants, common the
-shared helpers, fetch the downloader, convert the format conversions,
-derivatives the PMTiles and MapLibre styles, thumbnails the previews, stacio the
-STAC assembly and catalog builders, and validate the conformance checks.
+shared helpers, fetch the downloader, convert the format conversions, mosaic the
+raster-mosaic path over an upstream STAC search, derivatives the PMTiles and
+MapLibre styles, thumbnails the previews, stacio the STAC assembly and catalog
+builders, and validate the conformance checks.
 
 Prerequisites (FOSS, on PATH): tippecanoe and uv. The data and thumbnail paths
 run on DuckDB spatial, rasterio, and rio-cogeo, which vendor their own GDAL

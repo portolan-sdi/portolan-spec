@@ -14,8 +14,11 @@ PROJ_EXT = "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
 ATTRIBUTION_EXT = "https://stac-extensions.github.io/attribution/v0.1.0/schema.json"
 STAC_VERSION = "1.1.0"
 
-# One identity for every read this generator performs. Some hosts answer the
-# default Python-urllib User-Agent with a 403.
+# One identity for every urllib read this generator performs, meaning fetch.py,
+# tiles.py, and mosaic.remote_size. Some hosts answer the default Python-urllib
+# User-Agent with a 403. It does not cover the ranged COG reads in
+# mosaic.read_overview, which go through GDAL and /vsicurl and send GDAL's own
+# user agent, since no GDAL_HTTP_USERAGENT is set anywhere.
 USER_AGENT = "portolan-reference/0.1"
 
 MEDIA = {
