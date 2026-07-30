@@ -76,7 +76,13 @@ uv run examples/tools/tests/check_thumbnails.py
 uv run examples/tools/tests/check_cog.py
 uv run examples/tools/tests/check_fetch.py
 uv run examples/tools/tests/check_styles.py
+uv run examples/tools/tests/check_mosaic.py
+uv run examples/tools/tests/check_items_parquet.py
+uv run examples/tools/tests/check_baseline.py
 ```
+
+`run_all.py` globs `check_*.py`, so a new check is picked up by adding the file.
+The list above is the twelve on disk today and exists for running one at a time.
 
 Publishing a built catalog to Source Cooperative needs `s5cmd` on PATH as well,
 and credentials for the Portolan repository in the environment or an AWS
@@ -478,12 +484,26 @@ built. Its gate is errors and warnings, since rashid's own exit code fires
 on errors alone and a warning in a reference example is a real defect. The eight
 infos above are advisory and do not fail it.
 
-Two known gaps. `check_catalogs.py` validates against the profile schema bundled
-in the rashid wheel, while `validate.py` injects the working copy under `stac/`,
-so a change to `stac/json-schema/` is proven by the build rather than by CI. And
-`check_validate.py` is hardcoded to the `portolan-reference` tree, so a second catalog
-gets weekly coverage immediately but per-PR coverage only once that script is
-generalized.
+Three known gaps.
+
+`check_catalogs.py` validates against the profile schema bundled in the rashid
+wheel and reaches local bytes with `--data-scope local`, while `validate.py`
+injects the working copy under `stac/` and uses `LocalOnlyReader`. So a change to
+`stac/json-schema/` is proven by the build rather than by CI. Exact counts made
+that gap load bearing rather than merely a coverage difference. The two paths now
+have to agree on the finding count, not just on pass or fail, so one extra or one
+missing `PTL-SCH-001` between the bundled schema and the working copy fails the
+build. They agree today, verified by hashing both and diffing their findings on a
+built item.
+
+`check_validate.py` is hardcoded to the `portolan-reference` tree, so a second
+catalog gets per-PR coverage only once that script is generalized.
+
+`catalog-upstream.yaml` builds nothing, so its weekly upstream proof covers the
+committed trees alone. `naip-mosaic` is gitignored and never present there. Its
+upstream is instead refetched by `publish-catalogs.yaml`, which rebuilds it from
+the manifest and gates it before publishing, so the coverage exists but it is
+per-publish rather than weekly.
 
 ## Conventions
 

@@ -304,7 +304,8 @@ def main() -> int:
     for catalog in failed:
         print(
             f"::error::{catalog.relative_to(root)} no longer validates. Rebuild it with "
-            f"'uv run examples/tools/build.py --catalog {catalog.name}' and commit the result."
+            f"'uv run examples/tools/build.py --catalog {catalog.name}'. Commit the "
+            f"result only if this catalog's tree is tracked, naip-mosaic's is not."
         )
     print(f"\n{len(rows) - len(failed)}/{len(rows)} catalogs passed")
     return 1 if failed else 0

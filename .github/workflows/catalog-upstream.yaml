@@ -1,9 +1,16 @@
 name: Catalog Upstream
 
-# Proves the upstream sources the example catalogs cite. rashid's data pass
-# refetches every stable source and checks the file:size and file:checksum
+# Proves the upstream sources a committed example catalog cites. rashid's data
+# pass refetches every stable source and checks the file:size and file:checksum
 # published for it. Spec issue #80 was an upstream drifting away from a
 # published checksum, and nothing else in CI catches that.
+#
+# Scope is whatever tree is checked out, because this job builds nothing.
+# portolan-reference is committed, so it is covered. naip-mosaic is gitignored
+# and absent here, so it is not, and check_catalogs.py globs the trees it finds
+# rather than erroring on one that never arrived. That catalog's upstream is
+# instead refetched by publish-catalogs.yaml, which rebuilds it from its
+# manifest and gates it before publishing.
 #
 # This is deliberately not a pull-request gate. It depends on five third-party
 # servers, so a merge would be blocked by a source being briefly unreachable,
@@ -41,7 +48,7 @@ jobs:
           enable-cache: true
           cache-dependency-glob: 'examples/tools/**/*.py'
 
-      - name: Validate every catalog against its upstream sources
+      - name: Validate every committed catalog against its upstream sources
         id: check
         run: |
           # pipefail is not on in the default runner shell, so without it the
@@ -72,8 +79,8 @@ jobs:
             echo '```'
             echo
             echo "Reproduce locally with \`uv run examples/tools/check_catalogs.py\`."
-            echo "If an upstream changed, rebuild with \`uv run examples/tools/build.py\`"
-            echo "and commit the result."
+            echo "If an upstream changed, rebuild with \`uv run examples/tools/build.py\`."
+            echo "Commit the result only for a catalog whose tree is tracked."
           } > issue-body.md
 
           EXISTING=$(gh issue list --label upstream-drift --state open \
