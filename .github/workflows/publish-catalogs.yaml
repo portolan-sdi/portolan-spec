@@ -36,8 +36,14 @@ on:
       - 'examples/manifests/**'
       # The generator itself, every module under examples/tools/.
       - 'examples/**/*.py'
-      # A committed rebuild, which is how upstream drift reaches the repo. The
-      # published copy would otherwise stay stale until something else changed.
+      # The accepted-findings baseline, which is what stands between a known
+      # spec gap and a silenced one. check_catalogs.py is its only reader and
+      # this job is the only place CI runs that against a built naip-mosaic, so
+      # without this a PR touching the baseline alone reaches no rashid run.
+      - 'examples/expected-findings/**'
+      # A committed rebuild, which is how upstream drift reaches the repo for a
+      # committed catalog. naip-mosaic is gitignored and never arrives this way,
+      # it is rebuilt from its manifest by the job below.
       - 'examples/catalog/**'
       - '.github/workflows/publish-catalogs.yaml'
   # A pull request publishes a preview to PRs/<number>, torn down when it

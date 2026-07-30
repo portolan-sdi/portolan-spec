@@ -3,9 +3,16 @@
 # ///
 """Offline checks for the expected-findings gate.
 
-A baseline exists so a known spec gap stays visible instead of being silenced by
---no-validate. It must therefore fail on anything it does not name, and fail when
-a named rule exceeds its ceiling. Otherwise it is just a mute button.
+A baseline exists so a known spec gap stays visible rather than silenced. It must
+therefore fail on anything it does not name, and on a named rule whose count,
+path, severity or message does not match the entry exactly. A ceiling was the
+earlier design and it was the wrong one, see apply_baseline in check_catalogs.py.
+
+This runs on every pull request with no path filter, and it is the only check
+that does. That is why the assertions on the committed baseline below are exact
+values rather than shape. A widened path_glob or message_glob is a real change to
+what the catalog tolerates, and it lands with no rashid run of its own unless
+something here objects to it.
 """
 from __future__ import annotations
 
@@ -136,15 +143,20 @@ def check_real_baseline_loads() -> None:
     for entry in base["accepted"]:
         assert entry["why"].strip(), f"{entry['rule']} needs a justification"
         assert entry["issue"].strip(), f"{entry['rule']} needs an issue reference"
-        assert entry["severity"] in {"error", "warning"}, entry
-        assert entry["path_glob"].strip(), f"{entry['rule']} needs a path glob"
-        assert entry["message_glob"].strip(), f"{entry['rule']} needs a message glob"
-        assert isinstance(entry["count"], int), f"{entry['rule']} needs an exact count"
-    # Pinned, because these two are the whole gate. A silent edit here is the one
-    # change that can widen the catalog's tolerance without touching any code,
-    # and it is the reason check_baseline.py runs on every push.
-    counts = {a["rule"]: a["count"] for a in base["accepted"]}
-    assert counts == {"PTL-AST-003": 1848, "PTL-SCH-001": 924}, counts
+    # Pinned by value, not by shape. Every field here narrows what the gate will
+    # accept, so relaxing any one of them widens the catalog's tolerance without
+    # touching a line of code. path_glob is the sharpest: loosened to */*/*/* it
+    # would excuse PTL-AST-003 on items.parquet, a file this project does host
+    # and must checksum, which is the hole check_wrong_path_is_not_accepted
+    # exists to prove closed. Update these together with the baseline, in a
+    # commit that says why the catalog changed.
+    assert {a["rule"]: (a["severity"], a["path_glob"], a["message_glob"], a["count"])
+            for a in base["accepted"]} == {
+        "PTL-AST-003": ("error", "imagery/*/*/item.json",
+                        "asset '*' has no file:checksum", 1848),
+        "PTL-SCH-001": ("error", "imagery/*/*/item.json",
+                        "*'file:checksum' is a required property*", 924),
+    }, base["accepted"]
     assert base.get("matching_why", "").strip(), "exact matching needs a reason"
     assert base.get("recount_how", "").strip(), "a reader needs the recount recipe"
 
