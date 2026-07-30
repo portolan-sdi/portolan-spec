@@ -62,10 +62,9 @@ uv run examples/tools/build.py --only boundaries/us-counties   # one Collection
 Prerequisites on your PATH, `tippecanoe` and `uv`. The whole generator, vector
 and raster conversion and thumbnails alike, runs on DuckDB spatial, rasterio,
 and rio-cogeo, not the GDAL CLI, so no GDAL command-line install is needed.
-The generator downloads each source once into a git-ignored cache, converts
-it, computes real checksums, writes the STAC tree with `AGENTS.md` and
-`README.md` beside every node, and validates the result with rashid, the
-canonical Portolan validator.
+The generator writes the STAC tree with `AGENTS.md` and `README.md` beside
+every node and validates the result with rashid, the canonical Portolan
+validator.
 
 Thumbnails are drawn in Web Mercator at the data's true aspect ratio over a CARTO
 light tile basemap, so previews read as maps rather than stretched squares. The
