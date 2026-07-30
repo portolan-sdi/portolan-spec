@@ -152,8 +152,9 @@ something to silence with a link to a landing page or an ISO record.
 
 ## Pipeline per kind
 
-Every path downloads the source into `.cache` and produces a cloud-native
-canonical `data` Asset. When the manifest marks the source `stable: true`, it
+Vector, raster, and tabular kinds download the source into `.cache` and
+produce a cloud-native canonical `data` Asset. Raster-mosaic mirrors remote Items
+without downloading. When the manifest marks the source `stable: true`, it
 also emits a `source`-role Asset that points at the upstream URL with the real
 `file:size` and multihash `file:checksum` of the fetched file. A `stable: false`
 source, meaning a live endpoint, is referenced by URL in the sidecars only,
