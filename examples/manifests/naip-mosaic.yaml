@@ -2,7 +2,7 @@
 #
 # Every other example catalog in this repo hosts the bytes it describes. This one
 # cannot. The 924 Colorado 2023 NAIP scenes average 2.01 GB and total 1.86 TB,
-# summed from the file:size of every committed item rather than estimated, so the
+# summed from the file:size of every built item rather than estimated, so the
 # Collection publishes metadata and points at the upstream host.
 # That is legal under core.md, which requires an absolute asset href to use https
 # and says nothing about who serves it, but it collides with the requirement that

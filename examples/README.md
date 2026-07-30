@@ -91,7 +91,7 @@ time.
 ### Revalidating it
 
 The build validates what it just wrote.
-[`check_catalogs.py`](tools/check_catalogs.py) revalidates what is committed,
+[`check_catalogs.py`](tools/check_catalogs.py) revalidates the built tree,
 with the data pass at full scope unless a baseline narrows it, so it refetches the
 stable upstream sources and proves the `file:size` and `file:checksum` published
 for each. That is the one check that
@@ -170,6 +170,22 @@ host differ. What is new is that it does not host the bytes it describes. 1.86 T
 of imagery lives upstream and is referenced by URL. `file:size` comes from a HEAD
 on each object. `file:checksum` is omitted, because obtaining it honestly means
 reading every scene and inventing it would be a false claim.
+
+**`catalog/naip-mosaic/` is not committed, unlike the reference catalog.** It is
+936 files of metadata the generator reproduces from
+[`manifests/naip-mosaic.yaml`](manifests/naip-mosaic.yaml) in about seventy
+seconds, so `examples/.gitignore` excludes it and CI builds it fresh rather than
+git carrying a snapshot. `publish-catalogs.yaml` builds it, gates it with
+`check_catalogs.py`, and publishes it to Source Cooperative on every pull request
+and on every push to main. Two things get worse for this catalog because of that.
+The weekly `catalog-upstream.yaml` run only iterates the committed trees under
+`examples/catalog/`, so it no longer covers `naip-mosaic` at all. And
+`publish-catalogs.yaml` skips a pull request from a fork, since GitHub withholds
+its secrets there, so a fork's pull request now gets no validation of this
+catalog whatsoever, where the committed tree used to be at least readable in the
+diff. What does not change, the publish workflow's path triggers still fire for
+this catalog through `examples/manifests/**` and `examples/**/*.py`, only the
+`examples/catalog/**` trigger has nothing left to match for it.
 
 That leaves 2772 errors the generator cannot fix, so this catalog is gated against
 an accepted-findings baseline in

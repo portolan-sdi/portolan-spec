@@ -6,6 +6,8 @@ Written 2026-07-30 against commit `eba25f4`. Every number here was measured, and
 
 The catalog publishes 924 Microsoft Planetary Computer NAIP scenes as metadata. The imagery stays upstream. It is the first Portolan catalog in this repo that does not host the bytes it describes, and that single difference is what surfaced everything below.
 
+**Note added later, Task 12.** At the time of writing, `examples/catalog/naip-mosaic/` was a committed tree, and every command below that reads a path under it ran directly against a checkout. As of Task 12 the tree is no longer committed, it is built from `examples/manifests/naip-mosaic.yaml` and published to Source Cooperative by CI instead. Reproducing any command below now needs `uv run examples/tools/build.py --catalog naip-mosaic` first. The commands and their output are left exactly as run.
+
 ---
 
 ## 1. The custody gap, unfiled and the main subject
@@ -237,7 +239,7 @@ info  PTL-DAT-005  asset 'items' spatial metadata could not be read (Parquet mag
 0/1 catalogs passed
 ```
 
-So the scoped pass genuinely reads local bytes and the gate genuinely fails on them. `PTL-DAT-006` ordering and `PTL-DAT-016` row-per-item parity now run against the committed `items.parquet` too, where section 8 previously had to measure them by hand.
+So the scoped pass genuinely reads local bytes and the gate genuinely fails on them. `PTL-DAT-006` ordering and `PTL-DAT-016` row-per-item parity now run against the built `items.parquet` too, where section 8 previously had to measure them by hand.
 
 What stays unchecked is the bytes of the 1848 remote assets, which no gate here has ever read and which `PTL-AST-003` already records as unverifiable. `examples/tools/tests/check_items_parquet.py` stays as a fast offline check on the writer, no longer as the only thing standing between us and an unsorted mirror.
 

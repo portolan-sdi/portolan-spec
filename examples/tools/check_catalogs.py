@@ -1,10 +1,13 @@
 # /// script
 # requires-python = ">=3.12"
 # ///
-"""Validate every committed example catalog with rashid, upstream sources included.
+"""Validate every built example catalog with rashid, upstream sources included.
 
-examples/catalog/ holds the canonical examples of a conformant Portolan catalog,
-committed in full, Parquet and COG included. This runs rashid over each of them.
+examples/catalog/ holds the built trees of every example catalog this repo
+publishes. portolan-reference is committed in full, Parquet and COG included,
+and is the canonical worked example. naip-mosaic is not committed, it is
+gitignored and built fresh from its manifest before this runs, in CI and on
+demand. This runs rashid over whichever trees are present.
 
 The data pass runs at full scope by default, which is what separates this check
 from the generator checks under examples/tools/tests/. Those read the committed
@@ -225,6 +228,12 @@ def main() -> int:
 
     trees = catalogs(root, args.catalog)
     if not trees:
+        manifest = root / "examples/manifests" / f"{args.catalog}.yaml"
+        if args.catalog and manifest.exists():
+            raise SystemExit(
+                f"{args.catalog} has a manifest but no built tree. Build it "
+                f"first with 'uv run examples/tools/build.py --catalog {args.catalog}'."
+            )
         raise SystemExit(f"no catalogs found under {root / 'examples/catalog'}")
 
     rows = []

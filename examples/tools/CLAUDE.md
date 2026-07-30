@@ -28,7 +28,7 @@ from the modules beside them, so they stay runnable on their own.
 | `tiles.py` | XYZ basemap tile fetch and mosaic for thumbnails |
 | `stacio.py` | STAC assembly, manifest, providers, assets, links, sidecars, catalog builders |
 | `validate.py` | Thin adapter over rashid, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
-| `check_catalogs.py` | Entrypoint. Runs rashid over every committed catalog, reading the rashid pin out of `build.py`'s PEP 723 header. Data pass full unless a baseline narrows it with `data_scope`, findings gated against `../expected-findings/<stem>.json` |
+| `check_catalogs.py` | Entrypoint. Runs rashid over every built catalog tree, reading the rashid pin out of `build.py`'s PEP 723 header. Data pass full unless a baseline narrows it with `data_scope`, findings gated against `../expected-findings/<stem>.json` |
 | `publish_catalogs.py` | Entrypoint. Uploads a built catalog to Source Cooperative, and tears a pull request's preview down |
 | `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_fetch.py`, `check_styles.py`, `check_mosaic.py`, `check_items_parquet.py`, and `check_baseline.py`, plus `run_all.py` which runs the lot |
 
@@ -332,7 +332,7 @@ the pass.
 **Narrowing the scope is not skipping the pass.** The Collection's own
 `items.parquet` is now fully checked, `PTL-DAT-001` checksum, `PTL-DAT-002` size,
 `PTL-DAT-006` spatial ordering, `PTL-DAT-016` row-per-item parity and the rest. On
-the committed tree the result is identical to the old `--no-data` run, 2772 errors
+the built tree the result is identical to the old `--no-data` run, 2772 errors
 across 927 files, so adopting it cost nothing and gained the local rules. Verified
 by mutation, truncating `items.parquet` by 2000 bytes in a temp copy makes the gate
 fail on `PTL-DAT-001` and `PTL-DAT-002`, neither of which is in the baseline.
@@ -356,7 +356,7 @@ rule that never fires would be a false record.
 
 ## What CI runs, and why it is split in three
 
-The committed catalogs used to be checked by nothing, so they could drift out of
+The example catalogs used to be checked by nothing, so they could drift out of
 conformance between rebuilds unnoticed. Two workflows cover that now, split on
 whether the check needs the network, and a third publishes what they check.
 
@@ -371,7 +371,10 @@ weekly and on demand. That is the one that refetches the upstream sources and
 proves their `file:size` and `file:checksum`. It is not a PR gate on purpose. It
 depends on five third-party servers, so gating merges on it would block work
 whenever one of them is briefly down, which says nothing about the PR. A failure
-opens an issue instead, or comments on the open one.
+opens an issue instead, or comments on the open one. It discovers catalogs by
+globbing built trees under `examples/catalog/`, and this run never builds one
+itself, so since `naip-mosaic` stopped being committed it no longer covers that
+catalog at all.
 
 `.github/workflows/publish-catalogs.yaml` builds each manifest and uploads the
 result to the Portolan repository on Source Cooperative with
@@ -382,7 +385,10 @@ as a dry run. Transfers go through `s5cmd`, which handles a tree of many small
 JSON files far better than the AWS CLI. Nothing reaches a public URL
 unvalidated, the same `check_catalogs.py` gate runs between the build and the
 upload, and afterwards the published `catalog.json` is refetched over HTTPS and
-its `id` checked.
+its `id` checked. Its path triggers still fire for `naip-mosaic` through
+`examples/manifests/**` and `examples/**/*.py`, since that catalog is no longer
+committed the `examples/catalog/**` trigger simply has nothing left to match
+for it.
 
 The prefix taxonomy is not ours. `CartoDB/portolan-pipeline` already publishes
 into the same Source Cooperative repository, so `publish_catalogs.py`
@@ -409,7 +415,9 @@ their `tests/test_context.py` all pass against our implementation.
 
 A pull request from a fork is skipped rather than run, since GitHub withholds
 secrets there and the build would burn its full runtime only to fail at the
-upload. `.github/workflows/teardown-previews.yaml` deletes a PR's previews when
+upload. That costs `naip-mosaic` more than the other catalogs, a fork's pull
+request gets no validation of it whatsoever, where the committed tree used to be
+at least readable in the diff. `.github/workflows/teardown-previews.yaml` deletes a PR's previews when
 it closes, guarded so that only a numeric PR number resolving to a path that
 still contains `/PRs/<n>/` is ever deleted.
 
@@ -427,7 +435,7 @@ browser serves the same path from the bare `source.coop` domain.
 header with `tomllib`, so the validator that checks a catalog is the validator
 that built it and there is no second pin to drift. It is generic over every tree
 under `examples/catalog/`, so a new manifest is covered as soon as its output is
-committed. Its gate is errors and warnings, since rashid's own exit code fires
+built. Its gate is errors and warnings, since rashid's own exit code fires
 on errors alone and a warning in a reference example is a real defect. The eight
 infos above are advisory and do not fail it.
 
