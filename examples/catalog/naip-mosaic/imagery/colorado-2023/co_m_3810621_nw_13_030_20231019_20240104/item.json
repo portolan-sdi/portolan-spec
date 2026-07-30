@@ -1,0 +1,144 @@
+{
+  "type": "Feature",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
+  ],
+  "id": "co_m_3810621_nw_13_030_20231019_20240104",
+  "collection": "imagery/colorado-2023",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -106.432743,
+          38.684856
+        ],
+        [
+          -106.434116,
+          38.753531
+        ],
+        [
+          -106.504811,
+          38.752642
+        ],
+        [
+          -106.503371,
+          38.683969
+        ],
+        [
+          -106.432743,
+          38.684856
+        ]
+      ]
+    ]
+  },
+  "bbox": [
+    -106.504811,
+    38.683969,
+    -106.432743,
+    38.753531
+  ],
+  "properties": {
+    "gsd": 0.3,
+    "datetime": "2023-10-19T16:00:00Z",
+    "proj:bbox": [
+      369240.0,
+      4282779.6,
+      375384.9,
+      4290402.6
+    ],
+    "proj:shape": [
+      25410,
+      20483
+    ],
+    "proj:centroid": {
+      "lat": 38.71875,
+      "lon": -106.46876
+    },
+    "proj:transform": [
+      0.3,
+      0.0,
+      369240.0,
+      0.0,
+      -0.3,
+      4290402.6,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "proj:code": "EPSG:26913"
+  },
+  "assets": {
+    "image": {
+      "href": "https://naipeuwest.blob.core.windows.net/naip/v002/co/2023/co_030cm_2023/38106/m_3810621_nw_13_030_20231019_20240104.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "title": "NAIP Colorado 2023 scene co_m_3810621_nw_13_030_20231019_20240104",
+      "roles": [
+        "data"
+      ],
+      "file:size": 2185513906,
+      "bands": [
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 16.0,
+            "maximum": 220.0,
+            "mean": 96.010249,
+            "stddev": 39.374377,
+            "approximate": true
+          }
+        },
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 40.0,
+            "maximum": 219.0,
+            "mean": 95.427692,
+            "stddev": 30.700793,
+            "approximate": true
+          }
+        },
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 33.0,
+            "maximum": 215.0,
+            "mean": 66.562776,
+            "stddev": 25.734743,
+            "approximate": true
+          }
+        },
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 40.0,
+            "maximum": 232.0,
+            "mean": 149.230305,
+            "stddev": 22.749949,
+            "approximate": true
+          }
+        }
+      ],
+      "proj:code": "EPSG:26913"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "collection",
+      "href": "../collection.json",
+      "type": "application/json"
+    }
+  ]
+}

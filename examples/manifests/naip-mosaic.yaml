@@ -1,0 +1,69 @@
+# A Portolan mirror of imagery hosted by someone else.
+#
+# Every other example catalog in this repo hosts the bytes it describes. This one
+# cannot. The 924 Colorado 2023 NAIP scenes average 1.85 GB, about 1.7 TB in
+# total, so the Collection publishes metadata and points at the upstream host.
+# That is legal under core.md, which requires an absolute asset href to use https
+# and says nothing about who serves it, but it collides with the requirement that
+# every asset carry a file:checksum regenerated at publish time. The residual
+# non-conformance is recorded in examples/expected-findings/naip-mosaic.json and
+# analysed in NAIP-MIRROR-FOLLOWUP.md.
+#
+# The tile list reproduces the query the deck.gl-raster naip-mosaic example
+# documents in its own README, so this catalog mirrors exactly what that example
+# hand-bakes into minimal_stac.json.
+id: naip-mosaic
+title: NAIP Aerial Imagery Mosaics
+description: >-
+  Cloud-native mirror Collections of National Agriculture Imagery Program
+  scenes, modelled as per-scene STAC Items whose Cloud Optimized GeoTIFFs stay
+  on the host that publishes them.
+schema_uri: https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json
+
+host:
+  name: Portolan SDI
+  url: https://www.portolan-sdi.org/
+  email: portolan@googlegroups.com
+
+thumbnails:
+  size: 768
+  pad_raster: 0.1
+
+catalogs:
+  imagery:
+    title: Aerial Imagery
+    description: Per-scene aerial imagery Collections mirrored from their publisher.
+
+collections:
+  # ------------------------------------------------------------------ imagery/
+  - id: imagery/colorado-2023
+    kind: raster-mosaic
+    title: NAIP Colorado 2023
+    description: >-
+      The 924 National Agriculture Imagery Program scenes covering a Colorado
+      study area flown between August and October 2023, at 0.3 m ground sample
+      distance in UTM zone 13N. Each scene is a four-band Cloud Optimized
+      GeoTIFF of red, green, blue and near infrared, hosted by the Microsoft
+      Planetary Computer and referenced here by URL. The Collection publishes a
+      stac-geoparquet item mirror and a compact bbox index so a client can load
+      every footprint in one request.
+    keywords: [naip, imagery, aerial, colorado, cog, mosaic, usda]
+    license: other
+    license_url: https://www.fsa.usda.gov/help/policies-and-links/
+    attribution: NAIP imagery provided by USDA Farm Service Agency
+    source:
+      url: >-
+        https://planetarycomputer.microsoft.com/api/stac/v1/search?collections=naip&bbox=-106.6059,38.7455,-104.5917,40.4223&datetime=2023-01-01T00:00:00Z/2023-12-31T23:59:59Z&filter-lang=cql2-json&filter={"op":"=","args":[{"property":"naip:state"},"co"]}&limit=1000
+      media_type: application/geo+json
+      title: Microsoft Planetary Computer NAIP STAC search, Colorado 2023
+      stable: false
+    providers:
+      - {name: USDA Farm Service Agency, url: https://www.fsa.usda.gov/, roles: [producer, licensor]}
+      - {name: Esri, url: https://www.esri.com/, roles: [processor]}
+      - {name: Microsoft, url: https://planetarycomputer.microsoft.com, roles: [processor]}
+    provenance:
+      via: https://planetarycomputer.microsoft.com/dataset/naip
+      canonical: https://planetarycomputer.microsoft.com/api/stac/v1/collections/naip
+      updated: "2026-07-30T00:00:00Z"
+    temporal: ["2023-08-09T16:00:00Z", "2023-10-20T16:00:00Z"]
+    derivatives: {thumbnail: true, minimal_json: true}
