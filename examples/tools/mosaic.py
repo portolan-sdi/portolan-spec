@@ -357,11 +357,17 @@ def write_minimal_json(items: list[dict], out: Path) -> int:
     `metadata` role.
 
     This file used to cite spec issue #44. That was wrong, #44 is a root-level
-    GeoParquet for Collection search, nothing to do with rendering. The real gap is
-    that PORTO-CORE-065 offers two render paths and both assume a single
-    collection-level data asset, which core.md's Raster Collections rule forbids a
-    multi-scene Collection from having. So this index is a local invention filling
-    a hole the spec has not closed. See NAIP-MIRROR-FOLLOWUP.md section 9.
+    GeoParquet for Collection search, nothing to do with rendering.
+
+    The real gap is narrower than it first looks. PORTO-CORE-065 offers two render
+    paths. Rendering from source assumes a single collection-level data asset,
+    which core.md's Raster Collections rule forbids a multi-scene Collection from
+    having, so that branch is genuinely closed here. The derivative branch is NOT
+    closed, since that rule forbids only scene COGs as collection-level assets and
+    a `visual` mosaic overview would list none. It is simply unnamed, because
+    core.md calls PMTiles "the recommended vector format today" and names no raster
+    equivalent. So this index fills the first hole, not the second, and it remains
+    a local invention either way. See NAIP-MIRROR-FOLLOWUP.md section 9.
     """
     doc = {
         "type": "FeatureCollection",

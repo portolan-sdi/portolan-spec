@@ -16,6 +16,8 @@ The catalog publishes 924 Microsoft Planetary Computer NAIP scenes as metadata. 
 Assets MUST carry `file:size` and `file:checksum` from the [file
 extension](https://github.com/stac-extensions/file).
 
+[... core.md:241, a sentence requiring multihash encoding, elided ...]
+
 These embedded values MUST be regenerated at publish time, in the same
 operation that uploads the files, so they always match what is in the bucket.
 ```
@@ -158,9 +160,9 @@ band 4 NONE
 
 ---
 
-## 4. A correction for #98 and #100
+## 4. A correction for #98, and a narrowing for #100
 
-[#98](https://github.com/portolan-sdi/portolan-spec/issues/98) and [#100](https://github.com/portolan-sdi/portolan-spec/issues/100) both rest on rashid#66, the finding that `PTL-DAT-006` passes vacuously on a single row group. That issue is now **closed as completed**, and the pinned `rashid[data]>=0.1.3,<0.2.0` rejects a plain unsorted single-row-group mirror.
+[#98](https://github.com/portolan-sdi/portolan-spec/issues/98) and [#100](https://github.com/portolan-sdi/portolan-spec/issues/100) both cite rashid#66, the finding that `PTL-DAT-006` passes vacuously on a single row group. That issue is now **closed as completed**, and the pinned `rashid[data]>=0.1.3,<0.2.0` rejects a plain unsorted single-row-group mirror.
 
 ```
 the file is a single row group of 924 rows whose rows do not cluster spatially
@@ -172,6 +174,18 @@ Measured during the Task 5 spike over a 924-item fixture, and reproduced indepen
 - `pyarrow.parquet.write_table` drops the `geo` key, after which rashid reads the file as plain Parquet and skips `PTL-DAT-006`, `007`, `008` and `012` entirely. That is a pass for the wrong reason and it is easy to ship by accident.
 
 The committed mirror clears the rule on its own bytes.
+
+**What this does and does not do to each issue.** For #98 it corrects one paragraph, the premise that a plain unsorted mirror slips through. Its core ask, that the reference catalog carry an item-mirror example, is untouched and still open. For #100 it corrects nothing, and the first draft of this section had that backwards. #100 asks the spec to say whether the row-group criteria are the requirement or a way of measuring it, and rashid's own source says the ambiguity survives the fix.
+
+```python
+# rashid/data/checks.py, _chunked_bboxes
+    Partitioning reads FMT-006's row-group criteria as a measurement method
+    rather than as the requirement, which the spec implies but does not say.
+    portolan-spec#100 records the ambiguity: both tests compare row groups, so
+    a file with one group has no stated evaluation.
+```
+
+So the validator now measures single-row-group files by chunking rows instead, which closes the hole in practice while leaving the spec question #100 raises exactly where it was.
 
 ```console
 $ uv run --with "pyarrow>=25" python -c "
@@ -188,9 +202,13 @@ print(sorted(k.decode() for k in f.schema_arrow.metadata))"
 
 ---
 
-## 5. rashid scalability, filed
+## 5. rashid scalability, filed and answered
 
-[rashid#86](https://github.com/portolan-sdi/rashid/issues/86) is open. The data pass streams every asset in full, even when there is no checksum to hash, because size is a byte counter and format detection reads the leading bytes. Timed at 5 m 56 s for 2 scenes during design, which extrapolates to roughly 45 hours for 924, alongside the 1.86 TB from section 1.
+**This one is closing.** [rashid#86](https://github.com/portolan-sdi/rashid/issues/86) was filed from this work, and [rashid PR #87](https://github.com/portolan-sdi/rashid/pull/87), "feat(data): add --data-scope so a metadata-only mirror can be validated", merged 2026-07-30 citing it. `--data-scope local` runs every data rule against assets inside the catalog tree and treats a remote href as unfetchable, which is exactly the middle setting this catalog wanted.
+
+It is not released yet. The latest tag is `v0.1.3` from 2026-07-29, which predates the merge, and the pin is `rashid[data]>=0.1.3,<0.2.0`, so the next release picks it up with no change here. Everything below describes the stance until then, not a permanent one.
+
+The original problem. The data pass streams every asset in full, even when there is no checksum to hash, because size is a byte counter and format detection reads the leading bytes. Timed at 5 m 56 s for 2 scenes during design, which extrapolates to roughly 45 hours for 924, alongside the 1.86 TB from section 1.
 
 ```console
 $ python3 -c "print(f'{(356 / 2) * 924 / 3600:.1f} hours')"
@@ -199,7 +217,9 @@ $ python3 -c "print(f'{(356 / 2) * 924 / 3600:.1f} hours')"
 
 Read that as a single-threaded extrapolation from two scenes rather than a prediction. Either way it is not a CI job, so `examples/expected-findings/naip-mosaic.json` sets `data_pass` to false and `check_catalogs.py` passes `--no-data` for this catalog.
 
-That skips the two checks a mirror most needs, `PTL-DAT-006` ordering and `PTL-DAT-016` row-per-item parity, on the Collection's own local `items.parquet`. `examples/tools/tests/check_items_parquet.py` covers them offline instead. Note precisely what it covers. It exercises `write_items_parquet` over a synthetic 300-item fixture and asserts row-per-item parity, several row groups, the 150,000-row cap, and that Hilbert order clusters neighbours more tightly than input order. It does not read the committed `items.parquet` and it does not run rashid, so it proves the writer rather than the artifact.
+**The off switch is a temporary stance, not a design.** It skips the two checks a mirror most needs, `PTL-DAT-006` ordering and `PTL-DAT-016` row-per-item parity, on the Collection's own local `items.parquet`. Those are precisely what `--data-scope local` restores, and PR #87 also adds `PTL-DAT-016` to the runner's data-rule set, which had omitted it. When the flag lands in a release, this catalog should move to `--data-scope local` and the `data_pass` switch in the baseline should go.
+
+Until then `examples/tools/tests/check_items_parquet.py` covers the gap offline. Note precisely what it covers. It exercises `write_items_parquet` over a synthetic 300-item fixture and asserts row-per-item parity, several row groups, the 150,000-row cap, and that Hilbert order clusters neighbours more tightly than input order. It does not read the committed `items.parquet` and it does not run rashid, so it proves the writer rather than the artifact. Section 8 measures the committed file against rashid's own ordering functions directly, which is the closest thing to the real check available before the release.
 
 ---
 
@@ -213,7 +233,7 @@ $ curl -s "https://planetarycomputer.microsoft.com/api/sas/v1/token/naipeuwest/n
 2026-07-30T02:03:16Z
 ```
 
-So the service's designed access path is a signed one, and the unsigned access this catalog depends on is a property of the container's current public ACL rather than something the publisher has committed to. If that ACL changes, every asset href in this catalog stops resolving and there is nothing in the metadata to fall back to. That is a durability risk a metadata-only mirror carries, and it is worth stating in the Collection documentation. It is not a spec gap.
+So the service offers a signed access path for this container, and the unsigned access this catalog depends on is a property of the container's current public ACL rather than something the publisher has committed to. If that ACL changes, every asset href in this catalog stops resolving and there is nothing in the metadata to fall back to. That is a durability risk a metadata-only mirror carries, and it is worth stating in the Collection documentation. It is not a spec gap.
 
 ---
 
@@ -235,9 +255,9 @@ license 'proprietary'
 
 Upstream declares `proprietary` and links a generic FSA site policy page that never names NAIP, while titling that link "Public Domain". The spec says nothing about a mirror whose upstream metadata is itself non-conformant, which is a small gap in its own right. This catalog does not inherit the value, which is right.
 
-**No SPDX identifier fits.** Checked against the SPDX license list at version `e4c1f27`, 733 identifiers. There is no identifier for United States federal public domain. The US public-domain entries are agency-specific software notices, `NIST-PD`, `NCBI-PD` and `NTIA-PD`, none of them USDA. So `other` is the conformant value.
+**No SPDX identifier is a clean fit, though one is arguable.** Checked against the SPDX license list at version `e4c1f27`, 733 identifiers. There is no identifier for United States federal public domain as such. The public-domain and public-domain-adjacent entries are `CC-PDDC`, `CC-PDM-1.0`, `NCBI-PD`, `NIST-PD`, `NIST-PD-fallback`, `NIST-PD-TNT`, `NTIA-PD`, `PDDL-1.0`, `SAX-PD` and `SAX-PD-2.0`. The US ones are agency-specific software notices and none is USDA. `PORTO-CORE-059` permits `other` only "when no SPDX identifier fits", so read the next paragraph before treating `other` as settled.
 
-There is a near miss worth naming, because a reviewer will find it. SPDX carries `CC-PDM-1.0`, Creative Commons' Public Domain Mark 1.0, whose `seeAlso` is the very URL this Collection now links as its license text. Declaring `license: "CC-PDM-1.0"` would drop the `other` branch entirely. It was not taken, because the mark records a third party's assessment that a work is already free of copyright rather than a license the rightsholder granted, and putting an assessment in the `license` field claims more than USDA said. The link keeps the same instrument in the `rel=license` position, where the spec asks for text a reader can consult, without asserting it is the license. Reasonable people could differ, and that is itself a signal the spec has not answered the public domain case.
+**The disputed point, stated as disputed.** SPDX carries `CC-PDM-1.0`, Creative Commons' Public Domain Mark 1.0, whose `seeAlso` is the very URL this Collection now links as its license text. If that identifier fits, then `PORTO-CORE-059` does not permit `other` here and this Collection is wrong. It was not taken, because the mark records a third party's assessment that a work is already free of copyright rather than a license the rightsholder granted, and putting an assessment in the `license` field claims more than USDA said. The link keeps the same instrument in the `rel=license` position, where the spec asks for text a reader can consult, without asserting it is the license. That reasoning is a judgement, not a derivation, and a reviewer could land the other way. The spec gives no rule for choosing, which is the actual finding.
 
 **The public domain status is asserted by the producer, inside the data.** Every scene's TIFF carries it in `TIFFTAG_IMAGEDESCRIPTION`.
 
@@ -299,7 +319,25 @@ None of the other eight has a STAC-publishing upstream, which is why all eight r
 
 **Absolute `https` asset hrefs.** `core.md` requires an absolute href to use `https` and says nothing about who serves it. That silence is what makes this catalog legal at all, and it needed no change.
 
-**The item mirror.** `PORTO-FMT-040` through `043` bind `items.parquet` to the GeoParquet storage rules. A 924-row mirror satisfies all of them, measured in section 4.
+**The item mirror.** `PORTO-FMT-040` is a SHOULD, and `041` through `043` are MUSTs. The 924-row mirror satisfies all four. Section 4 measures only row count, row-group layout, byte size and metadata keys, so `PORTO-FMT-043`'s spatial half is measured here instead, by calling the pinned rashid's own functions against the committed file rather than by reimplementing its criteria.
+
+```console
+$ uv run --with "rashid[data]>=0.1.3,<0.2.0" python -c "
+import pyarrow.parquet as pq
+from rashid.data import checks as C
+pf = pq.ParquetFile('examples/catalog/naip-mosaic/imagery/colorado-2023/items.parquet')
+geo = C._geo_metadata(pf)
+cov = C._covering_bboxes(pf, geo)
+print('per-row-group covering bboxes recovered:', len(cov))
+print('_is_spatially_ordered(row groups):', C._is_spatially_ordered(cov))
+rows = C._row_bboxes(pf, geo)
+print('_is_spatially_ordered(chunked rows):', C._is_spatially_ordered(C._chunked_bboxes(rows)))"
+per-row-group covering bboxes recovered: 8
+_is_spatially_ordered(row groups): True
+_is_spatially_ordered(chunked rows): True
+```
+
+`_covering_bboxes` reads Parquet min and max statistics for the `bbox` covering columns, so recovering 8 of them is itself the evidence that per-row-group spatial statistics are present. Note this is the check that section 5 says no configured gate runs for this catalog. It passes, it is simply not wired into CI.
 
 ---
 
@@ -315,7 +353,7 @@ provider with the `host` role, listed as the last element.
 
 This catalog serves the metadata and Microsoft serves every byte of imagery. There is no way to record that. The built Collection lists Portolan SDI as `host` and Microsoft as `processor`, which understates what Microsoft does, and the alternative would name as host an organization that does not maintain this copy of the catalog. `core.md` already anticipates the near case, a catalog on S3 lists the city GIS office rather than AWS, but that is one party operating a copy on rented storage. Split hosting is a different shape and the cardinality forbids expressing it.
 
-**`PORTO-CORE-065` and `PORTO-CORE-067`, no render path for a 924-scene raster Collection.** Both branches of `PORTO-CORE-065` are written for one data asset. Rendering from source turns on whether "the data asset is small and simple enough for clients to draw directly", singular, and the derivative branch names PMTiles as the recommended format, which is vector. Meanwhile `core.md` requires the opposite arrangement for exactly this case.
+**`PORTO-CORE-065` and `PORTO-CORE-067`, no render path for a 924-scene raster Collection.** The two branches fail this Collection for different reasons, and the difference matters. Rendering from source turns on whether "the data asset is small and simple enough for clients to draw directly", singular, and `core.md` forbids the collection-level data asset that reading presumes.
 
 ```
 A collection holding multiple raster scenes MUST model each scene as an item
@@ -323,7 +361,9 @@ carrying its COG as an item-level asset; scene COGs MUST NOT be listed as
 collection-level assets.
 ```
 
-So a multi-scene raster Collection is forbidden from having the collection-level data asset that both render branches presume. This is why `minimal.json` exists, a compact bbox-and-href index registered with the `metadata` role so a client-side mosaic can load every footprint in one request. It is invention, not conformance. `PORTO-CORE-067` then requires styles as standalone assets except for a self-rendering path, and whether 924 four-band uint8 COGs count as self-rendering is undecided.
+Read that rule narrowly, because it is narrow. It forbids listing **scene COGs** as collection-level assets. It does not forbid a collection-level asset as such, so the derivative branch stays open, and a mosaic overview carrying `roles: ["visual"]` would satisfy it while listing no scene COG at all. The derivative branch fails for a different reason, that `core.md` names "PMTiles is the recommended vector format today" and names no raster equivalent. So the real gap is narrower than the first reading suggests. Rendering from source is genuinely closed to a multi-scene raster Collection, while the derivative route is open but unnamed, with no raster visualization format specified for it.
+
+This is why `minimal.json` exists, a compact bbox-and-href index registered with the `metadata` role so a client-side mosaic can load every footprint in one request. It is invention, not conformance. `PORTO-CORE-067` then requires styles as standalone assets except for a self-rendering path, and whether 924 four-band uint8 COGs count as self-rendering is undecided.
 
 Existing issues nearby, none of which is this. [#41](https://github.com/portolan-sdi/portolan-spec/issues/41) and [#55](https://github.com/portolan-sdi/portolan-spec/issues/55) are raster styling and colormaps. [#73](https://github.com/portolan-sdi/portolan-spec/issues/73) is closed and settled how multi-scene raster is modelled, which is the rule quoted above. [#44](https://github.com/portolan-sdi/portolan-spec/issues/44) is a root-level GeoParquet for Collection search and is unrelated, despite what `mosaic.write_minimal_json`'s docstring says. This wants a new issue.
 

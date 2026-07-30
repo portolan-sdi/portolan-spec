@@ -54,9 +54,18 @@ collections:
     # domain has no license instrument to point at. The Public Domain Mark 1.0
     # deed is the closest thing, versioned, stable, and a mark rather than a
     # grant, which matches imagery that was placed in the public domain rather
-    # than waived through an instrument USDA never applied. No SPDX identifier
-    # expresses United States federal public domain, so `other` plus this link is
-    # the conformant reading under PORTO-CORE-059.
+    # than waived through an instrument USDA never applied.
+    #
+    # `other` here is a judgement call, not a derivation, so do not read it as
+    # settled. PORTO-CORE-059 permits `other` only when no SPDX identifier fits,
+    # and SPDX does carry CC-PDM-1.0, whose own seeAlso is the exact URL linked
+    # below. Declaring license: CC-PDM-1.0 would therefore be defensible and would
+    # remove the `other` branch entirely. It was not chosen because the mark
+    # records a third party's assessment that a work is already free of copyright
+    # rather than a license the rightsholder granted, and putting an assessment in
+    # the license field claims more than USDA said. SPDX has nothing for United
+    # States federal public domain as such. A reviewer could land the other way,
+    # and the spec gives no rule for choosing.
     #
     # The public domain status is asserted by the producer inside the data. Every
     # scene's TIFFTAG_IMAGEDESCRIPTION reads "Image courtesy of USDA Farm Service

@@ -291,7 +291,7 @@ thumbnail, while `PTL-SCH-001` is reported per file so it fires once per
 `item.json` however many of that Item's assets are short the property. Getting that
 backwards inflates the expected total to 3696.
 
-### Why data_pass is off for naip-mosaic
+### Why data_pass is off for naip-mosaic, and why that is temporary
 
 The baseline sets `data_pass` to false and `check_catalogs.py` passes `--no-data`
 for this catalog. rashid's data pass streams every asset in full, even when there
@@ -301,9 +301,23 @@ the leading bytes. Against 924 remote scenes that is 1.86 TB and, extrapolating 
 [portolan-sdi/rashid#86](https://github.com/portolan-sdi/rashid/issues/86), framed
 as a use case rather than a defect.
 
+**That issue has been answered, so plan to undo this.**
+[rashid PR #87](https://github.com/portolan-sdi/rashid/pull/87) merged 2026-07-30
+and adds `--data-scope local`, which runs every data rule against assets inside the
+catalog tree and treats a remote href as unfetchable. That is the middle setting
+this catalog wanted, and the PR also adds `PTL-DAT-016` to the runner's data-rule
+set, which had omitted it.
+
+It is not released yet. The latest tag is `v0.1.3` from 2026-07-29, which predates
+the merge, and the pin here is `rashid[data]>=0.1.3,<0.2.0`, so the next release
+picks it up with no edit. When it lands, move this catalog to `--data-scope local`
+and drop the `data_pass` switch from the baseline. Leave the switch alone until
+then, because the pinned rashid does not have the flag.
+
 Turning the pass off costs the two checks a mirror most needs on the Collection's
 own local `items.parquet`, `PTL-DAT-006` spatial ordering and `PTL-DAT-016`
-row-per-item parity. `tests/check_items_parquet.py` covers them offline instead.
+row-per-item parity. Those are exactly what `--data-scope local` restores.
+`tests/check_items_parquet.py` covers them offline in the meantime.
 Know what it does and does not prove. It runs `write_items_parquet` over a synthetic
 300-item fixture and asserts row-per-item parity, several row groups, the
 150,000-row cap, that Hilbert order clusters neighbours more tightly than input
