@@ -156,5 +156,43 @@ Done.
 - The reference generator no longer requires the GDAL command-line tools at
   all. `tippecanoe` and `uv` are the only prerequisites on PATH now.
 
+## NAIP Mosaic Mirror
+
+[`catalog/naip-mosaic/`](catalog/naip-mosaic/) is the second catalog, and unlike
+the reference catalog it is **not** fully conformant. That is the point of it. One
+Collection publishes 924 National Agriculture Imagery Program scenes as per-scene
+Items whose Cloud Optimized GeoTIFFs stay on the Microsoft Planetary Computer.
+
+The difference from the reference catalog is custody, not provenance. This
+Collection is a mirror by the same rule as the other eight, its producer and its
+host differ. What is new is that it does not host the bytes it describes. 1.86 TB
+of imagery lives upstream and is referenced by URL. `file:size` comes from a HEAD
+on each object. `file:checksum` is omitted, because obtaining it honestly means
+reading every scene and inventing it would be a false claim.
+
+That leaves 2772 errors the generator cannot fix, so this catalog is gated against
+an accepted-findings baseline in
+[`expected-findings/naip-mosaic.json`](expected-findings/naip-mosaic.json) rather
+than against zero. The baseline names each rule, why it fires, and where the
+question is tracked. A rule it does not name still fails, and a named rule over its
+ceiling still fails, so a real regression cannot hide behind a known gap. The
+reference catalog has no baseline and stays at zero tolerance.
+
+The baseline also turns rashid's data pass off for this catalog, since that pass
+streams every asset in full and 924 remote scenes is not a CI job. See
+[`tools/CLAUDE.md`](tools/CLAUDE.md) for what covers the gap instead.
+
+The conformance gaps this catalog exposed, and what to do about each, are analysed
+in [`NAIP-MIRROR-FOLLOWUP.md`](../NAIP-MIRROR-FOLLOWUP.md).
+
+It is also the first Collection in the repo to carry a `canonical` link, since the
+Planetary Computer publishes its own STAC and none of the reference catalog's eight
+upstreams does. So it exercises a conditional MUST that had shipped untested.
+
+`publish_catalogs.py --list` reports `naip-mosaic` as a publishable stem, so once
+this work lands on `main` the catalog will publish to
+`https://data.source.coop/portolan/portolan-pipeline/naip-mosaic/main/`. **That URL
+is not live yet.**
+
 The normative requirements are in [`specs/portolan/`](../specs/portolan/) and the
 profile is in [`stac/`](../stac/).

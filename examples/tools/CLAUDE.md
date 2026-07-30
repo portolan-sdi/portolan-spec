@@ -22,14 +22,15 @@ from the modules beside them, so they stay runnable on their own.
 | `common.py` | Shared helpers, subprocess runner, checksums, value formatting |
 | `fetch.py` | Downloads sources into `.cache` and unpacks zipped shapefiles |
 | `convert.py` | Format conversions, vector to GeoParquet, raster to COG, CSV to Parquet |
+| `mosaic.py` | The `raster-mosaic` path. Reads an upstream STAC search, emits one Item per scene with the COG left upstream, writes the `items.parquet` mirror, the `minimal.json` bbox index, and the mosaic thumbnail |
 | `derivatives.py` | PMTiles tiles and data-driven MapLibre styles |
 | `thumbnails.py` | Web Mercator preview rendering over the tile basemap fetched by `tiles.py` |
 | `tiles.py` | XYZ basemap tile fetch and mosaic for thumbnails |
 | `stacio.py` | STAC assembly, manifest, providers, assets, links, sidecars, catalog builders |
 | `validate.py` | Thin adapter over rashid, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
-| `check_catalogs.py` | Entrypoint. Runs rashid over every committed catalog with the data pass on, reading the rashid pin out of `build.py`'s PEP 723 header |
+| `check_catalogs.py` | Entrypoint. Runs rashid over every committed catalog, reading the rashid pin out of `build.py`'s PEP 723 header. Data pass on unless a baseline turns it off, findings gated against `../expected-findings/<stem>.json` |
 | `publish_catalogs.py` | Entrypoint. Uploads a built catalog to Source Cooperative, and tears a pull request's preview down |
-| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_fetch.py`, and `check_styles.py`, plus `run_all.py` which runs the lot |
+| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_fetch.py`, `check_styles.py`, `check_mosaic.py`, `check_items_parquet.py`, and `check_baseline.py`, plus `run_all.py` which runs the lot |
 
 Inputs and outputs live under `examples/`, not here.
 
@@ -102,7 +103,7 @@ Top level of each file in `manifests/`.
 Each entry in `collections`.
 
 - `id`. A path like `boundaries/us-counties`. The first segment is the nested Catalog, the last is the Collection id.
-- `kind`. One of `vector`, `raster`, `tabular`. Selects the conversion path.
+- `kind`. One of `vector`, `raster`, `raster-mosaic`, `tabular`. Selects the conversion path.
 - `geometry`. `polygon`, `point`, or `line`. Vector only, drives style and thumbnail paint.
 - `title`, `description`, `keywords`, `license`, `attribution?`.
 - `license_url?`. Required only when `license` is `other`. The URL of the license text. The generator emits the mandatory `rel: license` link from it.
@@ -153,6 +154,7 @@ rot. `add_source_asset` is the single gate.
 
 - `vector`. `to_geoparquet` converts with DuckDB spatial, preserving the source CRS or the manifest `output_crs`, and also builds a WGS84 GeoPackage for the bbox, the PMTiles feed, the thumbnail, and style sampling. It then writes the canonical asset as a web-optimized GeoParquet 2.0 file with geoparquet-io's web profile (native geometry type, per row group GeospatialStatistics, a retained covering bbox column for page-level pruning, a Parquet page index, Hilbert ordering, and byte-targeted fetch-sized row groups). Derivatives read the WGS84 GeoPackage, not the 2.0 output. Optional PMTiles come from a DuckDB GeoJSONSeq export into tippecanoe, with a web-map-links `pmtiles` link. Optional MapLibre styles are authored by `author_styles` from the real field values and read the PMTiles. The GeoParquet `data` asset also carries `table:columns` from a DuckDB `DESCRIBE`, geometry column included, and `proj:code` derived from the real output CRS, declaring the table and projection extensions.
 - `raster`. `to_cog` builds the COG with rasterio, preserving the source CRS or warping to the manifest `output_crs`. Band statistics come from rasterio and numpy and go in STAC 1.1 core `bands`, minimum, maximum, mean, stddev, and valid percent, and `proj:code` carries the real output CRS through the projection extension. The same values are embedded as GDAL `STATISTICS_*` band tags, which is where rashid reads them. Overview depth is left to rio-cogeo rather than pinned, see the gotcha below.
+- `raster-mosaic`. `mosaic.py` fetches an upstream STAC search response and emits one Item per scene, each carrying the upstream COG href unchanged. Nothing is downloaded and nothing is converted, so the source must be marked `stable: false` and `stacio` raises if it is not. Per scene it costs two HEADs, for the COG and the thumbnail sizes, and one ranged read of the coarsest internal overview, which serves both the `bands` statistics and the mosaic thumbnail. Those statistics are flagged `approximate` because an overview is not the full raster. The Collection also gets an `items.parquet` mirror with the `collection-mirror` role, Hilbert-sorted with an explicit row-group size, and a `minimal.json` bbox-and-href index with the `metadata` role for client-side mosaic viewers. `file:checksum` is omitted on every remote asset, which is the residual non-conformance the baseline accepts.
 - `tabular`. `to_table_parquet` reads the CSV with DuckDB and writes Parquet. Columns are described with the table extension. No geometry, the spatial extent is the whole world and spatial rules are relaxed.
 
 A Collection whose manifest sets `attribution` declares the attribution extension and carries a top-level `attribution` field.
@@ -259,6 +261,65 @@ header, currently `rashid[data]>=0.1.3,<0.2.0`. Bumping the Portolan schema is a
 coordinated change across this repo and rashid, update the local schema,
 regenerate the reference catalog, re-vendor fixtures into rashid, then bump the
 rashid range here.
+
+### The expected-findings baseline
+
+`portolan-reference` is fully conformant and stays at zero tolerance.
+`naip-mosaic` cannot be, because it publishes metadata for COGs hosted by the
+Microsoft Planetary Computer and `file:checksum` on bytes this project never reads
+is unobtainable rather than merely unimplemented. So `check_catalogs.py` gates that
+catalog against `../expected-findings/naip-mosaic.json` instead.
+
+A baseline is not a mute button, and `tests/check_baseline.py` asserts that.
+
+- A catalog with no baseline file keeps zero tolerance. That is where
+  `portolan-reference` sits, and adding a catalog does not change it.
+- A rule the baseline does not name fails the gate, so a new defect cannot hide
+  behind a known gap.
+- A named rule over its `max_count` ceiling fails, so a known gap growing is still
+  a regression.
+- Infos never fail, matching the reference catalog's eight terminal `PTL-PRO-002`
+  findings.
+- Every entry carries a `why` and an `issue`, so a reader can tell an accepted gap
+  from a silenced one without leaving the file.
+
+`naip-mosaic` accepts exactly two rules, `PTL-AST-003` at a ceiling of 2000 and
+`PTL-SCH-001` at 1000. The real counts are 1848 and 924, summing to the 2772 the
+gate reports. Note the asymmetry, `PTL-AST-003` is reported per asset so it fires
+twice per Item, once for the scene COG and once for the referenced upstream
+thumbnail, while `PTL-SCH-001` is reported per file so it fires once per
+`item.json` however many of that Item's assets are short the property. Getting that
+backwards inflates the expected total to 3696.
+
+### Why data_pass is off for naip-mosaic
+
+The baseline sets `data_pass` to false and `check_catalogs.py` passes `--no-data`
+for this catalog. rashid's data pass streams every asset in full, even when there
+is no checksum to hash, because size is a byte counter and format detection reads
+the leading bytes. Against 924 remote scenes that is 1.86 TB and, extrapolating a
+2-scene timing of 5 m 56 s, on the order of 45 hours. Filed as
+[portolan-sdi/rashid#86](https://github.com/portolan-sdi/rashid/issues/86), framed
+as a use case rather than a defect.
+
+Turning the pass off costs the two checks a mirror most needs on the Collection's
+own local `items.parquet`, `PTL-DAT-006` spatial ordering and `PTL-DAT-016`
+row-per-item parity. `tests/check_items_parquet.py` covers them offline instead.
+Know what it does and does not prove. It runs `write_items_parquet` over a synthetic
+300-item fixture and asserts row-per-item parity, several row groups, the
+150,000-row cap, that Hilbert order clusters neighbours more tightly than input
+order, and that an over-cap `row_group_size` raises. It does not read the committed
+`items.parquet` and it does not invoke rashid, so it proves the writer rather than
+the artifact.
+
+Two things the skipped pass would also have covered, and now nothing does.
+`PTL-DAT-009` and `PTL-DAT-010` cannot fire under either gate anyway, since
+`validate.py`'s local-only reader returns None for any remote asset, so they are
+deliberately absent from the baseline rather than overlooked. The embedded COG
+statistics MUSTs are the real loss. Upstream NAIP COGs carry no `STATISTICS_*` band
+tags, this catalog publishes approximate values read from each scene's coarsest
+overview into STAC core `bands` instead, and no configured gate sees the difference.
+That gap is recorded in `NAIP-MIRROR-FOLLOWUP.md` rather than baselined, because an
+accepted entry for a rule that never fires would be a false record.
 
 ## What CI runs, and why it is split in three
 
