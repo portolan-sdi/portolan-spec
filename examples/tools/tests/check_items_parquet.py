@@ -115,6 +115,44 @@ def check_rows_are_spatially_ordered() -> None:
         "hilbert order must cluster neighbours more tightly than input order"
 
 
+def check_default_row_group_size_keeps_locality_margin() -> None:
+    """The default must clear PTL-DAT-006 on locality with real margin.
+
+    Every consecutive row-group pair in this file overlaps, so the low-overlap
+    criterion fails and locality is the only thing carrying the rule. rashid
+    compares the mean row-group bbox area over the file extent against
+    `max(0.25, 2.0 / groups)`. The old default of 128 put the 924-scene build on
+    exactly 8 row groups, where that relaxation stops, and scored 0.2467 against
+    0.250. A few scenes either way would have flipped the gate for no change in
+    quality, so this pins the margin rather than only the pass.
+    """
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(td) / "items.parquet"
+        mosaic.write_items_parquet(_items(924), out)
+        meta = pq.ParquetFile(out).metadata
+        names = [meta.schema.column(i).path for i in range(len(meta.schema))]
+        ix = {n: i for i, n in enumerate(names) if n.startswith("bbox.")}
+        assert ix, "the covering bbox column is what carries row-group statistics"
+        boxes = []
+        for g in range(meta.num_row_groups):
+            rg = meta.row_group(g)
+            st = {n: rg.column(i).statistics for n, i in ix.items()}
+            boxes.append((st["bbox.xmin"].min, st["bbox.ymin"].min,
+                          st["bbox.xmax"].max, st["bbox.ymax"].max))
+
+        def area(b) -> float:
+            return max(0.0, b[2] - b[0]) * max(0.0, b[3] - b[1])
+
+        extent = (min(b[0] for b in boxes), min(b[1] for b in boxes),
+                  max(b[2] for b in boxes), max(b[3] for b in boxes))
+        ratio = sum(area(b) for b in boxes) / len(boxes) / area(extent)
+        limit = max(0.25, 2.0 / len(boxes))
+        assert ratio < limit, f"locality {ratio:.4f} is over the {limit:.3f} limit"
+        assert limit - ratio > 0.05, (
+            f"locality {ratio:.4f} clears {limit:.3f} by only {limit - ratio:.4f}, "
+            "which upstream adding a few scenes would erase")
+
+
 def check_row_group_size_above_cap_raises() -> None:
     """Calling with row_group_size above the cap must raise SystemExit."""
     with tempfile.TemporaryDirectory() as td:
@@ -133,6 +171,8 @@ if __name__ == "__main__":
     check("several row groups are written", check_multiple_row_groups)
     check("row groups stay within the 150k cap", check_row_groups_within_cap)
     check("rows are spatially ordered", check_rows_are_spatially_ordered)
+    check("the default row group size keeps locality margin",
+          check_default_row_group_size_keeps_locality_margin)
     check("row group size above cap raises", check_row_group_size_above_cap_raises)
     if FAILURES:
         raise SystemExit(f"{len(FAILURES)} failure(s)")

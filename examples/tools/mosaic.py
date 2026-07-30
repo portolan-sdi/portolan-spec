@@ -80,7 +80,19 @@ def remote_size(href: str) -> int:
         raise SystemExit(f"HEAD {href} failed, {exc}") from exc
     if not length:
         raise SystemExit(f"{href} returned no Content-Length, so file:size is unknowable")
-    return int(length)
+    try:
+        size = int(length)
+    except ValueError:
+        raise SystemExit(
+            f"{href} returned a non-numeric Content-Length {length!r}") from None
+    # The guard above tests the raw header string, and "0" is truthy, so a zero
+    # length reaches here intact. rashid requires a positive file:size and the
+    # profile schema allows zero, so an unchecked zero publishes a false size
+    # that only the asset rule ever objects to. Refuse it at the source.
+    if size <= 0:
+        raise SystemExit(
+            f"{href} returned Content-Length {size}, so file:size would be a lie")
+    return size
 
 
 def read_overview(href: str) -> tuple[list[dict], np.ndarray]:
@@ -334,7 +346,7 @@ def hilbert_key(bbox: list[float], order: int = 16) -> int:
 
 
 def write_items_parquet(items: list[dict], out: Path,
-                        row_group_size: int = 128) -> int:
+                        row_group_size: int = 64) -> int:
     """The stac-geoparquet item mirror, spatially ordered before the write.
 
     PORTO-FMT-043 binds this file to the GeoParquet storage rules, spatially
@@ -345,9 +357,23 @@ def write_items_parquet(items: list[dict], out: Path,
     caller as a collection-level asset with the `collection-mirror` role, which
     PORTO-FMT-041 says is the whole requirement, no `rel: "items"` link needed.
 
+    The default of 64 is chosen for margin, not for the row cap. PTL-DAT-006
+    offers two tests and this file fails the first one, every consecutive
+    row-group pair overlaps, so the locality test is the only thing carrying it.
+    rashid measures locality as the mean row-group bbox area over the file
+    extent and compares it against `max(0.25, 2.0 / groups)`. On the 924-scene
+    build the old default of 128 landed on exactly 8 row groups, which is where
+    that relaxation stops, and scored 0.2467 against a limit of 0.250. A handful
+    of scenes added upstream would have tipped it over and turned the gate red
+    for no change in quality. 64 gives 15 row groups and 0.1171 against the same
+    0.250, so the margin is real rather than a rounding accident. Sweeping the
+    same Hilbert order, 64 scores 0.1171, 100 scores 0.1830, and 124 scores
+    0.2398, so lower is uniformly better here until the row groups get too small
+    to be worth fetching.
+
     A spike measured this writer and geoparquet-io's web profile against the
-    pinned rashid over a 924-item fixture. Both clear PTL-DAT-006 at 8 row
-    groups. This one wins on fidelity. geoparquet-io routes the table through
+    pinned rashid over a 924-item fixture. Both clear PTL-DAT-006. This one wins
+    on fidelity. geoparquet-io routes the table through
     DuckDB, which widens every string to `large_string` and every list to
     `large_list`, and which restamps the `datetime` column with the builder's
     local timezone rather than UTC, so the same items produce different bytes on

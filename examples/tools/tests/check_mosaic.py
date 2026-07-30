@@ -194,6 +194,58 @@ class _NotFoundHandler(http.server.BaseHTTPRequestHandler):
         pass
 
 
+class _ZeroLengthHandler(http.server.BaseHTTPRequestHandler):
+    def do_HEAD(self) -> None:  # noqa: N802
+        self.send_response(200)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
+    def log_message(self, *args) -> None:
+        pass
+
+
+class _JunkLengthHandler(http.server.BaseHTTPRequestHandler):
+    def do_HEAD(self) -> None:  # noqa: N802
+        self.send_response(200)
+        self.send_header("Content-Length", "banana")
+        self.end_headers()
+
+    def log_message(self, *args) -> None:
+        pass
+
+
+def _expect_systemexit(handler, path: str) -> str:
+    server = http.server.HTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        url = f"http://127.0.0.1:{server.server_port}/{path}"
+        try:
+            mosaic.remote_size(url)
+        except SystemExit as exc:
+            assert url in str(exc), f"error message must name the href: {exc}"
+            return str(exc)
+        raise AssertionError(f"remote_size must raise SystemExit for {path}")
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def check_remote_size_rejects_zero() -> None:
+    """A zero Content-Length must fail rather than publish file:size 0.
+
+    The guard tests the raw header string and "0" is truthy, so this used to
+    sail through and emit a file:size of 0. rashid wants a positive integer and
+    the profile schema allows zero, so only the asset rule ever objected, and
+    the baseline entry it lands in already accepts that rule.
+    """
+    _expect_systemexit(_ZeroLengthHandler, "empty.tif")
+
+
+def check_remote_size_rejects_non_numeric() -> None:
+    """A junk Content-Length must fail the same friendly way, not ValueError."""
+    _expect_systemexit(_JunkLengthHandler, "junk.tif")
+
+
 def check_remote_size() -> None:
     server = http.server.HTTPServer(("127.0.0.1", 0), _SizedHandler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -562,6 +614,8 @@ if __name__ == "__main__":
     check("fetch rejects an unconsumed next page", check_fetch_rejects_unconsumed_page)
     check("remote size comes from HEAD", check_remote_size)
     check("remote size handles 404", check_remote_size_handles_404)
+    check("remote size rejects zero", check_remote_size_rejects_zero)
+    check("remote size rejects non-numeric", check_remote_size_rejects_non_numeric)
     check("remote asset carries size and no checksum",
           check_remote_asset_has_size_and_no_checksum)
     check("remote asset refuses an injected checksum",
