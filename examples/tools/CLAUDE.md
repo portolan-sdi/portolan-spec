@@ -299,20 +299,50 @@ A baseline is not a mute button, and `tests/check_baseline.py` asserts that.
   `portolan-reference` sits, and adding a catalog does not change it.
 - A rule the baseline does not name fails the gate, so a new defect cannot hide
   behind a known gap.
-- A named rule over its `max_count` ceiling fails, so a known gap growing is still
-  a regression.
+- A named rule off its exact `count`, in either direction, fails.
+- A named rule firing at a path its `path_glob` does not cover fails, so a rule
+  accepted for remote assets cannot excuse itself on a local file.
+- A named rule firing at a severity its entry does not declare fails.
+- A named rule whose message misses its `message_glob` fails, so the same rule
+  failing for a new reason is a new defect.
 - Infos never fail, matching the reference catalog's eight terminal `PTL-PRO-002`
   findings.
 - Every entry carries a `why` and an `issue`, so a reader can tell an accepted gap
   from a silenced one without leaving the file.
 
-`naip-mosaic` accepts exactly two rules, `PTL-AST-003` at a ceiling of 2000 and
-`PTL-SCH-001` at 1000. The real counts are 1848 and 924, summing to the 2772 the
-gate reports. Note the asymmetry, `PTL-AST-003` is reported per asset so it fires
-twice per Item, once for the scene COG and once for the referenced upstream
-thumbnail, while `PTL-SCH-001` is reported per file so it fires once per
-`item.json` however many of that Item's assets are short the property. Getting that
-backwards inflates the expected total to 3696.
+`naip-mosaic` accepts exactly two rules, `PTL-AST-003` at exactly 1848 and
+`PTL-SCH-001` at exactly 924, summing to the 2772 the gate reports, both scoped to
+`imagery/*/*/item.json` at severity error. Note the asymmetry, `PTL-AST-003` is
+reported per asset so it fires twice per Item, once for the scene COG and once for
+the referenced upstream thumbnail, while `PTL-SCH-001` is reported per file so it
+fires once per `item.json` however many of that Item's assets are short the
+property. Getting that backwards inflates the expected total to 3696.
+
+**Why exact counts and not ceilings.** A ceiling cannot control `PTL-SCH-001`. The
+profile schema's top level is a `oneOf`, so jsonschema collapses every violation in
+an object into exactly one error, and rashid reports one finding per file. Measured
+on a real built item, adding a `self` link, an `s3` href, a deleted `roles` array
+and a nonsense bbox all at once left the count at one. So 924 is saturated and
+stops responding to new defects, and any ceiling above it accepts them in silence.
+An exact count fails in both directions, which also closes the opposite hole, an
+upstream search returning fewer scenes than it should and `publish_catalogs.py`
+replacing a good published catalog with a gutted one through `s5cmd sync --delete`.
+
+Both counts move with the scene count, so an upstream change fails the gate until
+someone updates them. That is the intended review point. Rebuild, read the totals
+off the gate output, and change them in the commit that explains why the scene
+count moved. `tests/check_baseline.py` pins both numbers, because the baseline is
+the one input that can widen tolerance without touching any code.
+
+**What still gets through, and it is worth knowing.** An exact count cannot see a
+second violation appearing inside an Item that already fails, since the count stays
+at one per file either way. `message_glob` covers most of that, because jsonschema
+reports a best-match error and a fresh defect usually outranks the checksum one.
+Measured on a real built item, a `self` link reports "False schema does not allow"
+and a deleted `roles` array reports "'roles' is a required property", and both miss
+the glob and fail the gate. An `s3` href still reports the checksum message and
+still slips through. Closing that last one needs rashid to report the schema pass
+per violation rather than per object, which is an upstream change, not one here.
 
 ### Why naip-mosaic runs a narrowed data scope
 

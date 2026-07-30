@@ -3,19 +3,25 @@
   "why": "This catalog mirrors metadata for Cloud Optimized GeoTIFFs hosted by the Microsoft Planetary Computer. It does not host the scene bytes or the referenced thumbnail bytes, so two Portolan requirements cannot be met by any amount of generator work. Each entry names the rule, the reason, and the upstream issue that tracks it.",
   "data_scope": "local",
   "data_scope_why": "rashid's default data pass streams every asset in full, which here is 1.86 TB of COGs hosted by the Microsoft Planetary Computer. --data-scope local, added by portolan-sdi/rashid#87 answering the rashid#86 filed from this work, runs every data rule but treats a remote href as unfetchable. So this is not a skipped pass. The Collection's own local assets, items.parquet above all, are fully checked for checksum, size, format, spatial ordering, per-row-group statistics and row-per-item parity. What stays unchecked is the bytes of the 1848 remote assets, which no gate here has ever read and which PTL-AST-003 below already records as unverifiable.",
+  "matching_why": "Each entry pins an exact count, a severity, a path glob and a message glob, and all of them have to match before a finding counts as known. A ceiling was the wrong control. PTL-SCH-001 comes out of the profile-schema pass, whose top level is a oneOf, so jsonschema collapses every violation in an object into exactly one error. Measured on a real built item, adding a self link, an s3 href, a deleted roles array and a nonsense bbox left the count at one. So the 924 saturates and stops responding to new defects, and any ceiling above it accepts them silently. An exact count fails in both directions, which also catches the opposite failure, an upstream search returning fewer scenes than it should and a gutted catalog being published over the good one by s5cmd sync --delete. The path glob keeps a rule accepted for remote assets from also excusing itself on items.parquet, a file this project does host and must checksum. The message glob covers the rest of the collapse, partly. An exact count cannot see a second violation inside an Item that already fails, because the count stays at one per file either way, but the reported message often changes. Adding a self link reports False schema does not allow, and deleting an asset's roles reports roles is a required property, and both miss the glob and fail the gate. An s3 href still reports the checksum message and still slips through, so this narrows the hole rather than closing it.",
+  "recount_how": "Both counts follow from the scene count, so they move together whenever upstream adds or drops a scene. That is a deliberate review point rather than a nuisance. Rebuild, read the two totals off the gate output, and update them in the same commit that explains why the scene count changed. PTL-AST-003 is 2 per Item, one for the scene COG and one for the referenced upstream thumbnail. PTL-SCH-001 is 1 per Item.",
   "accepted": [
     {
       "rule": "PTL-AST-003",
       "severity": "error",
-      "max_count": 2000,
-      "why": "file:checksum is omitted on the scene COG asset and on the referenced upstream thumbnail asset. core.md requires it to be regenerated at publish time, in the same operation that uploads the files, which presumes the publisher uploads them. Computing it would mean reading 1.86 TB, summed from the file:size of every built item, and inventing it would be a false claim.",
+      "count": 1848,
+      "path_glob": "imagery/*/*/item.json",
+      "message_glob": "asset '*' has no file:checksum",
+      "why": "file:checksum is omitted on the scene COG asset and on the referenced upstream thumbnail asset. core.md requires it to be regenerated at publish time, in the same operation that uploads the files, which presumes the publisher uploads them. Computing it would mean reading 1.86 TB, summed from the file:size of every built item, and inventing it would be a false claim. Reported per asset, so 2 per Item across 924 Items.",
       "issue": "unfiled"
     },
     {
       "rule": "PTL-SCH-001",
       "severity": "error",
-      "max_count": 1000,
-      "why": "The same omission seen by the profile schema, which requires file:checksum on every asset but validates each item file once. The count stays at one per item no matter how many of its assets, the scene COG or the referenced upstream thumbnail, are short the property.",
+      "count": 924,
+      "path_glob": "imagery/*/*/item.json",
+      "message_glob": "*'file:checksum' is a required property*",
+      "why": "The same omission seen by the profile schema, which requires file:checksum on every asset but validates each item file once. The count stays at one per item no matter how many of its assets, the scene COG or the referenced upstream thumbnail, are short the property. That collapse is exactly why this entry pins an exact count rather than a ceiling, see matching_why.",
       "issue": "unfiled"
     }
   ]

@@ -46,6 +46,7 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import json
 import os
 import re
@@ -114,34 +115,78 @@ def load_baseline(root: Path, catalog: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def path_matches(path: str, pattern: str) -> bool:
+    """Glob a finding path segment by segment, so `*` never crosses a `/`.
+
+    fnmatch over the whole string would let `imagery/*/item.json` match a path
+    nested any number of directories deeper, which is the opposite of what an
+    entry scoping a rule to one place is asking for.
+    """
+    parts = path.split("/")
+    globs = pattern.split("/")
+    if len(parts) != len(globs):
+        return False
+    return all(fnmatch.fnmatchcase(part, glob)
+               for part, glob in zip(parts, globs, strict=True))
+
+
 def apply_baseline(data: dict, baseline: dict) -> tuple[list[dict], list[str]]:
     """Findings the baseline does not accept, and why the gate should fail.
 
-    Accepting a rule is not silencing it. A rule absent from the baseline fails,
-    and an accepted rule over its ceiling fails, so a regression cannot hide
-    behind a known gap.
+    Accepting a rule is not silencing it. Four things line up before a finding
+    counts as known, and any one of them missing fails the gate.
+
+    The rule has to be named. The finding's path has to match the entry's
+    `path_glob`, so a rule accepted for 1848 remote assets cannot also excuse
+    itself on a local file the publisher does host. The severity has to be the
+    one the entry declares, so a rule promoted from warning to error reads as a
+    regression rather than a match. And the message has to match `message_glob`.
+
+    The tally is an exact `count` rather than a ceiling. A ceiling cannot
+    control PTL-SCH-001, because the profile-schema pass emits exactly one
+    finding per object however many things are wrong inside it, so the count
+    saturates at one per file and stops responding to new defects entirely. An
+    exact count fails in both directions, which also makes a shrunken upstream
+    response visible instead of letting a gutted catalog through underneath the
+    old ceiling.
+
+    `message_glob` is what covers the rest of that collapse, and it is worth
+    being precise about how far it reaches. An exact count cannot see a second
+    violation appearing inside an Item that already fails, because the count
+    stays at one per file either way. The message can, since jsonschema reports
+    a best-match error and a new defect often outranks the checksum one.
+    Measured on a real built item, adding a `self` link reports "False schema
+    does not allow ..." and deleting an asset's `roles` reports "'roles' is a
+    required property", both of which miss the glob and fail the gate. An `s3`
+    href still reports the checksum message and still slips through. So this
+    narrows the hole rather than closing it, and the residue is recorded in
+    ../CLAUDE.md rather than left for someone to rediscover.
     """
     accepted = {entry["rule"]: entry for entry in baseline.get("accepted", [])}
-    counts: dict[str, int] = {}
+    counts: dict[str, int] = {rule: 0 for rule in accepted}
     unexpected: list[dict] = []
     for finding in data["findings"]:
-        rule = finding["rule_id"]
         if finding["severity"] == "info":
             continue
-        if rule in accepted:
-            counts[rule] = counts.get(rule, 0) + 1
+        entry = accepted.get(finding["rule_id"])
+        if (entry is not None
+                and finding["severity"] == entry["severity"]
+                and path_matches(finding["path"], entry["path_glob"])
+                and fnmatch.fnmatchcase(finding["message"], entry["message_glob"])):
+            counts[finding["rule_id"]] += 1
         else:
             unexpected.append(finding)
 
     reasons = [
-        f"{f['rule_id']} at {f['path']} is not in the baseline: {f['message']}"
+        f"{f['rule_id']} {f['severity']} at {f['path']} is not accepted by the "
+        f"baseline, {f['message']}"
         for f in unexpected
     ]
     reasons += [
-        f"{rule} occurred {seen} times, over its baseline ceiling of "
-        f"{accepted[rule]['max_count']}"
+        f"{rule} occurred {seen} times, and the baseline expects exactly "
+        f"{accepted[rule]['count']}"
         for rule, seen in sorted(counts.items())
-        if seen > accepted[rule]["max_count"]
+        if seen != accepted[rule]["count"]
     ]
     return unexpected, reasons
 
@@ -192,9 +237,14 @@ def report(catalog: Path, data: dict, root: Path, baseline: dict) -> bool:
         print("::endgroup::")
         return data["error_count"] + data["warning_count"] == 0
     _, reasons = apply_baseline(data, baseline)
-    accepted = {e["rule"] for e in baseline.get("accepted", [])}
+    # The expected counts print alongside the rule names because they are what a
+    # reader has to copy back into the baseline when upstream legitimately gains
+    # or loses a scene.
+    accepted = ", ".join(
+        f"{e['rule']} x{e['count']}"
+        for e in sorted(baseline.get("accepted", []), key=lambda e: e["rule"]))
     scope = baseline.get("data_scope")
-    print(f"  baseline accepts {', '.join(sorted(accepted))}, "
+    print(f"  baseline accepts {accepted}, "
           f"data scope {scope if scope else 'full'}.")
     for reason in reasons:
         print(f"  UNEXPECTED {reason}")
