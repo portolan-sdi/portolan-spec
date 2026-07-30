@@ -82,14 +82,24 @@ def read_overview(href: str) -> tuple[list[dict], np.ndarray]:
     """STAC 1.1 `bands` and the coarsest overview for one COG.
 
     One range-read pass serves both the statistics and the thumbnail mosaic. The
-    upstream COGs carry no embedded STATISTICS_* tags, so these are computed here.
-    They are derived from an overview rather than full resolution and are flagged
-    `approximate`, which is what the incubating stats encoding asks for. They do
-    not satisfy PORTO-FMT-026, which requires statistics embedded in the file, and
-    that failure is baselined rather than papered over. A missing overview is an
-    error, not absorbed, because reading full resolution would pull gigabytes over
-    a slow network. The read itself is time-bounded by the module's GDAL HTTP
-    timeout settings, so one unresponsive object fails rather than stalling.
+    upstream COGs carry no embedded STATISTICS_* tags, checked directly on a scene,
+    so these are computed here. They are derived from an overview rather than full
+    resolution and are flagged `approximate`, which is what the incubating stats
+    encoding asks for.
+
+    They do not satisfy PORTO-FMT-026 through 029, which want statistics embedded
+    in the file and written at creation time. A mirror creates no file, so that is
+    unreachable rather than unimplemented. Note this failure is UNDETECTED, not
+    baselined. rashid reads embedded COG statistics in its data pass, the baseline
+    turns that pass off for this catalog, so no statistics rule ever fires and
+    there is nothing for the accepted list to hold. Recorded in
+    NAIP-MIRROR-FOLLOWUP.md instead, because an accepted entry for a rule that
+    cannot fire would be a false record.
+
+    A missing overview is an error, not absorbed, because reading full resolution
+    would pull gigabytes over a slow network. The read itself is time-bounded by
+    the module's GDAL HTTP timeout settings, so one unresponsive object fails
+    rather than stalling.
     """
     path = href if href.startswith("/vsicurl/") or Path(href).exists() else f"/vsicurl/{href}"
     try:
@@ -344,7 +354,14 @@ def write_minimal_json(items: list[dict], out: Path) -> int:
     Not something the spec asks for. It exists because a client-side mosaic needs
     every footprint and href in one request, which is why deck.gl-raster hand-baked
     such a file rather than calling a STAC API per load. Registered with the
-    `metadata` role, and evidence for spec issue #44.
+    `metadata` role.
+
+    This file used to cite spec issue #44. That was wrong, #44 is a root-level
+    GeoParquet for Collection search, nothing to do with rendering. The real gap is
+    that PORTO-CORE-065 offers two render paths and both assume a single
+    collection-level data asset, which core.md's Raster Collections rule forbids a
+    multi-scene Collection from having. So this index is a local invention filling
+    a hole the spec has not closed. See NAIP-MIRROR-FOLLOWUP.md section 9.
     """
     doc = {
         "type": "FeatureCollection",

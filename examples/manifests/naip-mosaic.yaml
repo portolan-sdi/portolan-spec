@@ -1,8 +1,9 @@
 # A Portolan mirror of imagery hosted by someone else.
 #
 # Every other example catalog in this repo hosts the bytes it describes. This one
-# cannot. The 924 Colorado 2023 NAIP scenes average 1.85 GB, about 1.7 TB in
-# total, so the Collection publishes metadata and points at the upstream host.
+# cannot. The 924 Colorado 2023 NAIP scenes average 2.01 GB and total 1.86 TB,
+# summed from the file:size of every committed item rather than estimated, so the
+# Collection publishes metadata and points at the upstream host.
 # That is legal under core.md, which requires an absolute asset href to use https
 # and says nothing about who serves it, but it collides with the requirement that
 # every asset carry a file:checksum regenerated at publish time. The residual
@@ -50,14 +51,27 @@ collections:
     keywords: [naip, imagery, aerial, colorado, cog, mosaic, usda]
     license: other
     # core.md asks the rel=license link to point at the license text, and public
-    # domain has no license instrument to point at. The US Government Public
-    # Domain Mark is the closest thing to one, and data.gov's NAIP record cites
-    # it for this imagery specifically. Upstream instead links the FSA site
-    # policy page, which is generic and never names NAIP, and declares its own
-    # license as proprietary, which PORTO-CORE-060 forbids. FSA Notice AP-26
-    # states that all NAIP imagery since 2003 has been placed in the public
-    # domain, so `other` plus this link is the conformant reading.
-    license_url: https://www.usa.gov/publicdomain/label/1.0/
+    # domain has no license instrument to point at. The Public Domain Mark 1.0
+    # deed is the closest thing, versioned, stable, and a mark rather than a
+    # grant, which matches imagery that was placed in the public domain rather
+    # than waived through an instrument USDA never applied. No SPDX identifier
+    # expresses United States federal public domain, so `other` plus this link is
+    # the conformant reading under PORTO-CORE-059.
+    #
+    # The public domain status is asserted by the producer inside the data. Every
+    # scene's TIFFTAG_IMAGEDESCRIPTION reads "Image courtesy of USDA Farm Service
+    # Agency's National Agriculture Imagery Program (NAIP) under FPAC-Geo, Farm
+    # Production and Conservation contract 12FPC222A0007. Imagery has been placed
+    # in the public domain and may be used and reproduced without permission or
+    # fee. Please credit 'NAIP imagery provided by USDA Farm Service Agency' on
+    # any use." The attribution value below reproduces that requested credit
+    # string exactly.
+    #
+    # Upstream instead links the FSA site policy page, which is generic and never
+    # names NAIP, and declares its own license as proprietary, which
+    # PORTO-CORE-060 forbids. See NAIP-MIRROR-FOLLOWUP.md, including the caveat
+    # that the mark reaches slightly further than 17 USC 105 does.
+    license_url: https://creativecommons.org/publicdomain/mark/1.0/
     attribution: NAIP imagery provided by USDA Farm Service Agency
     source:
       url: >-

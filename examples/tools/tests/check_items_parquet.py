@@ -13,7 +13,7 @@
 """Offline checks for the stac-geoparquet item mirror.
 
 PTL-DAT-006 and PTL-DAT-016 live in rashid's data pass, which the naip-mosaic
-catalog disables because reading 1.7 TB of upstream COGs weekly is not a CI job.
+catalog disables because reading 1.86 TB of upstream COGs weekly is not a CI job.
 So the ordering and the row-per-item parity are asserted here instead. Without
 this check an unsorted or desynchronised mirror would ship unnoticed.
 """

@@ -2,13 +2,13 @@
   "catalog": "naip-mosaic",
   "why": "This catalog mirrors metadata for Cloud Optimized GeoTIFFs hosted by the Microsoft Planetary Computer. It does not host the scene bytes or the referenced thumbnail bytes, so two Portolan requirements cannot be met by any amount of generator work. Each entry names the rule, the reason, and the upstream issue that tracks it.",
   "data_pass": false,
-  "data_pass_why": "rashid's data pass reads every asset. Measured at 5 m 56 s for 2 scenes, so 924 scenes is about 45 hours and 1.7 TB of egress. Ordering and row-per-item parity for items.parquet are asserted instead by examples/tools/tests/check_items_parquet.py.",
+  "data_pass_why": "rashid's data pass reads every asset. Measured at 5 m 56 s for 2 scenes, so 924 scenes is about 45 hours and 1.86 TB of egress, that total summed from the file:size of every committed item rather than estimated. Ordering and row-per-item parity for items.parquet are asserted instead by examples/tools/tests/check_items_parquet.py.",
   "accepted": [
     {
       "rule": "PTL-AST-003",
       "severity": "error",
       "max_count": 2000,
-      "why": "file:checksum is omitted on the scene COG asset and on the referenced upstream thumbnail asset. core.md requires it to be regenerated at publish time, in the same operation that uploads the files, which presumes the publisher uploads them. Computing it would mean reading 1.7 TB, and inventing it would be a false claim.",
+      "why": "file:checksum is omitted on the scene COG asset and on the referenced upstream thumbnail asset. core.md requires it to be regenerated at publish time, in the same operation that uploads the files, which presumes the publisher uploads them. Computing it would mean reading 1.86 TB, summed from the file:size of every committed item, and inventing it would be a false claim.",
       "issue": "unfiled, see NAIP-MIRROR-FOLLOWUP.md"
     },
     {

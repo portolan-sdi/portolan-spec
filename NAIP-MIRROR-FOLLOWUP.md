@@ -47,6 +47,8 @@ print(t, 'bytes =', round(t/1e12, 3), 'TB, mean', round(t/924/1e9, 2), 'GB')"
 1859248614649 bytes = 1.859 TB, mean 2.01 GB
 ```
 
+That total is a sum of all 924 published sizes, not an extrapolation from a sample. 1.86 TB decimal, 1.691 TiB, at a 2.01 GB mean with a 1.51 to 2.25 GB range, plus 10.4 MB of thumbnails.
+
 1.86 TB read on every publish, to produce a value that describes bytes this project does not control and cannot keep from changing. Synthesizing the checksums would be a false claim about data nobody here has hashed. Omitting them is the only honest option, which is why the baseline exists rather than a workaround.
 
 **Note the upstream `file` extension makes `file:checksum` optional.** Portolan raises it to a MUST. That is a deliberate Portolan choice, not inherited from STAC, so it is Portolan's to scope.
@@ -233,11 +235,11 @@ license 'proprietary'
 
 Upstream declares `proprietary` and links a generic FSA site policy page that never names NAIP, while titling that link "Public Domain". The spec says nothing about a mirror whose upstream metadata is itself non-conformant, which is a small gap in its own right. This catalog does not inherit the value, which is right.
 
-**No SPDX identifier fits.** Checked against the SPDX license list at version `e4c1f27`, 733 identifiers. There is no identifier for United States federal public domain. The US public-domain entries are agency-specific software notices, `NIST-PD`, `NCBI-PD` and `NTIA-PD`, and `CC-PDM-1.0` is Creative Commons' Public Domain Mark rather than a government instrument. So `other` is the conformant value.
+**No SPDX identifier fits.** Checked against the SPDX license list at version `e4c1f27`, 733 identifiers. There is no identifier for United States federal public domain. The US public-domain entries are agency-specific software notices, `NIST-PD`, `NCBI-PD` and `NTIA-PD`, none of them USDA. So `other` is the conformant value.
 
-**The public domain status checks out, but the citation in the manifest is weak.** FSA Notice AP-26 says verbatim, "Since the start of NAIP in 2003, all acquired imagery has been placed in public domain allowing unrestricted use and sharing of the data." Read the rest of the notice before leaning on it. AP-26 is dated 11-27-17 with a disposal date of March 1, 2018, and its actual purpose was a survey exploring whether to move NAIP to a licensed data model. It is expired, and its own subject is the possible end of the status it records.
+There is a near miss worth naming, because a reviewer will find it. SPDX carries `CC-PDM-1.0`, Creative Commons' Public Domain Mark 1.0, whose `seeAlso` is the very URL this Collection now links as its license text. Declaring `license: "CC-PDM-1.0"` would drop the `other` branch entirely. It was not taken, because the mark records a third party's assessment that a work is already free of copyright rather than a license the rightsholder granted, and putting an assessment in the `license` field claims more than USDA said. The link keeps the same instrument in the `rel=license` position, where the spec asks for text a reader can consult, without asserting it is the license. Reasonable people could differ, and that is itself a signal the spec has not answered the public domain case.
 
-**A better citation is inside the data.** Every scene's TIFF carries the grant in `TIFFTAG_IMAGEDESCRIPTION`.
+**The public domain status is asserted by the producer, inside the data.** Every scene's TIFF carries it in `TIFFTAG_IMAGEDESCRIPTION`.
 
 ```console
 $ GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR uv run --with "rasterio>=1.5" python -c "
@@ -247,11 +249,13 @@ with rasterio.open(u) as d: print(d.tags()['TIFFTAG_IMAGEDESCRIPTION'])"
 Image courtesy of USDA Farm Service Agency's National Agriculture Imagery Program (NAIP) under FPAC-Geo, Farm Production and Conservation contract 12FPC222A0007. Imagery has been placed in the public domain and may be used and reproduced without permission or fee. Please credit 'NAIP imagery provided by USDA Farm Service Agency' on any use.
 ```
 
-That is current, per scene, written by the producer's contractor, and it independently confirms the `attribution` string this Collection publishes, which is the same sentence. Worth using in place of AP-26 in the manifest comment, and worth considering as the `rel=license` target given the finding below.
+That is current, per scene, and written by the producer's contractor. It also independently confirms the `attribution` string this Collection publishes, which reproduces the requested credit verbatim. It is now the citation the manifest carries.
 
-### A defect found while writing this, not a spec gap
+**One wrinkle, and it is the reason this belongs in a spec conversation.** The link the Collection points at is Creative Commons' Public Domain Mark 1.0, which asserts a work is free of known copyright restrictions **worldwide**. 17 USC 105 removes copyright from a United States Government work only **within the United States**, and leaves the government free to hold copyright abroad. So the mark reaches slightly further than the statute does. It is still the closest instrument available, since SPDX offers nothing for United States federal public domain and the alternative is a link that serves no license text at all. But a mirror is forced to choose between a link that overstates the grant and no link at all, and `PORTO-CORE-059` gives it no third option. That is a small hole worth naming when the custody work is picked up.
 
-The committed `rel=license` href no longer serves license text.
+### A defect found while writing this, since fixed
+
+The `rel=license` href committed in `ee88086` no longer served license text.
 
 ```console
 $ curl -s "https://www.usa.gov/publicdomain/label/1.0/" -o /dev/null -w "%{http_code}\n"
@@ -262,7 +266,11 @@ t=re.sub(r'<[^>]+>',' ',sys.stdin.read()); print(re.sub(r'\s+',' ',html.unescape
 Redirecting to https://www.usa.gov/government-copyright Redirecting to https://www.usa.gov/government-copyright .
 ```
 
-It answers 200 with a client-side redirect stub, and the target is a general explainer titled "Learn about copyright and federal government materials" rather than an instrument. `PORTO-CORE-059` asks the link to point "to the license text", and this does not. Commit `ee88086` chose this URL over the FSA page for good reasons that still hold, but the URL has stopped working as license text. Needs a replacement.
+It answers 200 with a 521 byte meta refresh stub, and the target is a general explainer titled "Learn about copyright and federal government materials" rather than an instrument. `PORTO-CORE-059` asks the link to point "to the license text", and this did not. The reasoning in `ee88086` still held, the URL had simply stopped working.
+
+Replaced with `https://creativecommons.org/publicdomain/mark/1.0/`, which returns 200 with about 31 KB of real Public Domain Mark 1.0 deed text. It is versioned, stable, and a mark rather than a grant, which matches imagery placed in the public domain rather than waived through an instrument USDA never applied. Note the worldwide-versus-United-States wrinkle above.
+
+Worth noting the class of failure rather than the instance. A `rel=license` link is a URL to somebody else's page, and nothing in the spec or in rashid checks that it still resolves to license text. This one rotted between being chosen and being reviewed, inside the same branch.
 
 ---
 
@@ -335,7 +343,7 @@ Kept here so nobody re-derives them.
 | `PORTO-CORE-055`'s premise, that STAC publication cannot be determined from the mirror's metadata alone, is false for a mirror derived from a STAC search | **Dropped.** The premise concerns what a validator can see. Nothing in the built Item or Collection reveals that the upstream publishes STAC apart from the `canonical` link the requirement is about. The publisher knowing at build time is a different matter from the metadata showing it, and the spec's info-only severity follows correctly from the premise as written |
 | Microsoft's documentation states that data assets require a token, and the terms state access will require a valid token | **Dropped.** Both pages are JavaScript-only and serve no text to any fetch, including the Wayback Machine, so no sentence could be quoted. Replaced in section 6 with the token endpoint's own measured response, which supports the same conclusion |
 | The Planetary Computer is a preview service | **Dropped.** Could not be verified from any fetchable source, and nothing in section 6 needs it |
-| 924 scenes total 1.7 TB at 1.85 GB each | **Imprecise.** The published `file:size` values sum to 1.859 TB at a 2.01 GB mean. 1.7 is the TiB figure. The estimate is still carried in the `naip-mosaic.json` baseline text and the manifest header comment, both of which predate the build |
+| 924 scenes total 1.7 TB at 1.85 GB each | **Corrected everywhere.** Those figures were extrapolated from a single sampled scene. Summing the `file:size` of all 924 committed Items gives 1859248614649 bytes, so 1.86 TB decimal, 1.691 TiB, at a 2.01 GB mean with a 1.51 to 2.25 GB range. 1.7 was the TiB figure read as TB. Now corrected in this document, the `naip-mosaic.json` baseline, the manifest header, `check_items_parquet.py`, and the held drafts. [rashid#86](https://github.com/portolan-sdi/rashid/issues/86) still says 1.67 TB and is left alone, since it is filed in a shared space |
 | The embedded-statistics failure is baselined | **Wrong.** It is undetected. No statistics rule fires because the data pass is off. `mosaic.read_overview`'s docstring says baselined and is inaccurate |
 | The Hilbert curve rotation was a corrected defect | **Not a defect.** The two rotation forms are algebraically equivalent, confirmed at orders 2 through 6 and over 20,000 random order-16 cells. The committed form is a readability fix. Do not cite it as a spec or code gap |
 
