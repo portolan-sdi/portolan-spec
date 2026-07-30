@@ -13,7 +13,7 @@
       "path_glob": "imagery/*/*/item.json",
       "message_glob": "asset '*' has no file:checksum",
       "why": "file:checksum is omitted on the scene COG asset and on the referenced upstream thumbnail asset. core.md requires it to be regenerated at publish time, in the same operation that uploads the files, which presumes the publisher uploads them. Computing it would mean reading 1.86 TB, summed from the file:size of every built item, and inventing it would be a false claim. Reported per asset, so 2 per Item across 924 Items.",
-      "issue": "unfiled"
+      "issue": "https://github.com/portolan-sdi/portolan-spec/issues/112"
     },
     {
       "rule": "PTL-SCH-001",
@@ -22,7 +22,7 @@
       "path_glob": "imagery/*/*/item.json",
       "message_glob": "*'file:checksum' is a required property*",
       "why": "The same omission seen by the profile schema, which requires file:checksum on every asset but validates each item file once. The count stays at one per item no matter how many of its assets, the scene COG or the referenced upstream thumbnail, are short the property. That collapse is exactly why this entry pins an exact count rather than a ceiling, see matching_why.",
-      "issue": "unfiled"
+      "issue": "https://github.com/portolan-sdi/portolan-spec/issues/112"
     }
   ]
 }
