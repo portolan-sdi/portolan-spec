@@ -8,7 +8,7 @@
       "rule": "PTL-AST-003",
       "severity": "error",
       "max_count": 2000,
-      "why": "file:checksum is omitted on the scene COG asset and on the referenced upstream thumbnail asset. core.md requires it to be regenerated at publish time, in the same operation that uploads the files, which presumes the publisher uploads them. Computing it would mean reading 1.86 TB, summed from the file:size of every committed item, and inventing it would be a false claim.",
+      "why": "file:checksum is omitted on the scene COG asset and on the referenced upstream thumbnail asset. core.md requires it to be regenerated at publish time, in the same operation that uploads the files, which presumes the publisher uploads them. Computing it would mean reading 1.86 TB, summed from the file:size of every built item, and inventing it would be a false claim.",
       "issue": "unfiled, see NAIP-MIRROR-FOLLOWUP.md"
     },
     {
