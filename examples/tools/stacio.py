@@ -450,6 +450,20 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
                            "data is global, so the bounding box is the whole world.")]
 
     elif kind == "raster-mosaic":
+        # A raster-mosaic source is a STAC search endpoint, which is an API and
+        # not a directly downloadable original. formats.md scopes the source
+        # asset rule to an original that can be downloaded, and this generator
+        # already declines to archive live endpoints for exactly that reason.
+        # So stable true is a manifest error for this kind rather than a
+        # supported configuration, add_source_asset is never called here, and a
+        # sidecar built under the default would claim an asset that does not
+        # exist.
+        if src.get("stable", True):
+            raise SystemExit(
+                f"{cid} is raster-mosaic and must set source.stable to false, "
+                "a STAC search endpoint is not a directly downloadable "
+                "original and this kind never writes a source asset")
+
         # Function-scoped, not a module-level import. mosaic.py already imports
         # link and remote_asset from this module, so a top-level import back the
         # other way here would be circular. This is the one place in this file

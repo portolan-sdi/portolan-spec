@@ -102,6 +102,60 @@ def check_open_snippet_covers_mosaic() -> None:
     assert "items.parquet" in agents, agents
 
 
+def _mosaic_spec(cid: str, source_extra: dict | None = None) -> dict:
+    """A minimal raster-mosaic manifest spec, host-role provider included so
+    the mirror provenance check needs nothing further. The source url points
+    at a port nothing listens on, so a fetch attempt fails fast and loudly
+    rather than hanging, which is what proves a guard ran before any fetch."""
+    source = {"url": "http://127.0.0.1:1/should-never-be-fetched",
+              "media_type": "application/json", "title": "Test search"}
+    source.update(source_extra or {})
+    return {
+        "id": cid, "kind": "raster-mosaic", "title": "Guard Test",
+        "description": "test", "license": "CC0-1.0",
+        "providers": [{"name": "Test", "url": "https://example.invalid",
+                       "roles": ["host"]}],
+        "source": source,
+    }
+
+
+def check_build_collection_rejects_unstable_default_raster_mosaic() -> None:
+    """A raster-mosaic manifest that simply omits `stable` must fail loudly.
+
+    The shared `add_source_asset` gate defaults `stable` to True for the
+    other three kinds, and a raster-mosaic never calls it at all, so this
+    is the one place a missing key would otherwise turn into a sidecar
+    claiming a source asset that was never written."""
+    with tempfile.TemporaryDirectory() as td:
+        cid = "imagery/naip-guard-omitted"
+        spec = _mosaic_spec(cid)
+        assert "stable" not in spec["source"], "the omission case is the one that matters"
+        thumb = {"size": 64, "ocean": (238, 243, 248), "pad_raster": 0.1,
+                 "pad_vector": 0.06, "basemap": None}
+        try:
+            stacio.build_collection(spec, {}, Path(td) / "catalog",
+                                    Path(td) / "cache", thumb, None)
+        except SystemExit as exc:
+            assert cid in str(exc), str(exc)
+            return
+        raise AssertionError("a raster-mosaic source without stable false must fail loudly")
+
+
+def check_build_collection_rejects_stable_true_raster_mosaic() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        cid = "imagery/naip-guard-true"
+        spec = _mosaic_spec(cid, {"stable": True})
+        thumb = {"size": 64, "ocean": (238, 243, 248), "pad_raster": 0.1,
+                 "pad_vector": 0.06, "basemap": None}
+        try:
+            stacio.build_collection(spec, {}, Path(td) / "catalog",
+                                    Path(td) / "cache", thumb, None)
+        except SystemExit as exc:
+            assert cid in str(exc), str(exc)
+            return
+        raise AssertionError("a raster-mosaic source with stable true must fail loudly")
+
+
 class _SizedHandler(http.server.BaseHTTPRequestHandler):
     BODY = b"x" * 4242
 
@@ -423,6 +477,10 @@ if __name__ == "__main__":
     check("thumbnail mosaic paints a west-overhanging tile's own sub-region",
           check_thumbnail_mosaic_west_overhang)
     check("open_snippet covers the mosaic kind", check_open_snippet_covers_mosaic)
+    check("build_collection rejects a raster-mosaic source with stable omitted",
+          check_build_collection_rejects_unstable_default_raster_mosaic)
+    check("build_collection rejects a raster-mosaic source with stable true",
+          check_build_collection_rejects_stable_true_raster_mosaic)
     if FAILURES:
         raise SystemExit(f"{len(FAILURES)} failure(s)")
     print("all ok")
