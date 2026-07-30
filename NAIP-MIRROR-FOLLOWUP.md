@@ -162,7 +162,7 @@ band 4 NONE
 
 ## 4. A correction for #98, and a narrowing for #100
 
-[#98](https://github.com/portolan-sdi/portolan-spec/issues/98) and [#100](https://github.com/portolan-sdi/portolan-spec/issues/100) both cite rashid#66, the finding that `PTL-DAT-006` passes vacuously on a single row group. That issue is now **closed as completed**, and the pinned `rashid[data]>=0.1.3,<0.2.0` rejects a plain unsorted single-row-group mirror.
+[#98](https://github.com/portolan-sdi/portolan-spec/issues/98) and [#100](https://github.com/portolan-sdi/portolan-spec/issues/100) both cite rashid#66, the finding that `PTL-DAT-006` passes vacuously on a single row group. That issue is now **closed as completed**, and the pinned rashid rejects a plain unsorted single-row-group mirror. The measurement below was taken against `rashid[data]>=0.1.3,<0.2.0`, which was the pin at the time. Section 5 later moved the pin to the `8d9e11f` merge commit.
 
 ```
 the file is a single row group of 924 rows whose rows do not cluster spatially
@@ -342,7 +342,7 @@ None of the other eight has a STAC-publishing upstream, which is why all eight r
 **The item mirror.** `PORTO-FMT-040` is a SHOULD, and `041` through `043` are MUSTs. The 924-row mirror satisfies all four. Section 4 measures only row count, row-group layout, byte size and metadata keys, so `PORTO-FMT-043`'s spatial half is measured here instead, by calling the pinned rashid's own functions against the committed file rather than by reimplementing its criteria.
 
 ```console
-$ uv run --with "rashid[data]>=0.1.3,<0.2.0" python -c "
+$ uv run --with "rashid[data] @ git+https://github.com/portolan-sdi/rashid@8d9e11f2b742e2873a2f397a182c8e1aace07dcc" python -c "
 import pyarrow.parquet as pq
 from rashid.data import checks as C
 pf = pq.ParquetFile('examples/catalog/naip-mosaic/imagery/colorado-2023/items.parquet')

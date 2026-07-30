@@ -90,9 +90,11 @@ def read_overview(href: str) -> tuple[list[dict], np.ndarray]:
     They do not satisfy PORTO-FMT-026 through 029, which want statistics embedded
     in the file and written at creation time. A mirror creates no file, so that is
     unreachable rather than unimplemented. Note this failure is UNDETECTED, not
-    baselined. rashid reads embedded COG statistics in its data pass, the baseline
-    turns that pass off for this catalog, so no statistics rule ever fires and
-    there is nothing for the accepted list to hold. Recorded in
+    baselined. rashid reads embedded COG statistics out of the asset's bytes, and
+    this catalog validates under --data-scope local, which treats the 924 remote
+    COGs as unfetchable. So no statistics rule ever fires and there is nothing for
+    the accepted list to hold. Note the reason is custody, not a disabled pass.
+    Verifying statistics embedded in a file requires reading the file. Recorded in
     NAIP-MIRROR-FOLLOWUP.md instead, because an accepted entry for a rule that
     cannot fire would be a false record.
 

@@ -92,8 +92,9 @@ time.
 
 The build validates what it just wrote.
 [`check_catalogs.py`](tools/check_catalogs.py) revalidates what is committed,
-with the data pass on, so it refetches the stable upstream sources and proves the
-`file:size` and `file:checksum` published for each. That is the one check that
+with the data pass at full scope unless a baseline narrows it, so it refetches the
+stable upstream sources and proves the `file:size` and `file:checksum` published
+for each. That is the one check that
 catches an upstream drifting away from a checksum this repo already published.
 It reads the rashid pin out of `build.py`, so the validator that checks a catalog
 is the validator that built it. Errors and warnings both fail, because a warning
@@ -178,9 +179,12 @@ question is tracked. A rule it does not name still fails, and a named rule over 
 ceiling still fails, so a real regression cannot hide behind a known gap. The
 reference catalog has no baseline and stays at zero tolerance.
 
-The baseline also turns rashid's data pass off for this catalog, since that pass
-streams every asset in full and 924 remote scenes is not a CI job. See
-[`tools/CLAUDE.md`](tools/CLAUDE.md) for what covers the gap instead.
+The baseline also narrows rashid's data scope to `local` for this catalog, since
+the default pass streams every asset in full and 924 remote scenes is not a CI job.
+That is a narrowing, not a skip. Every data rule still runs against the assets
+inside the catalog tree, and only the remote hrefs are treated as unfetchable. See
+[`tools/CLAUDE.md`](tools/CLAUDE.md) for how it works and what it still cannot
+reach.
 
 The conformance gaps this catalog exposed, and what to do about each, are analysed
 in [`NAIP-MIRROR-FOLLOWUP.md`](../NAIP-MIRROR-FOLLOWUP.md).

@@ -6,8 +6,8 @@
 examples/catalog/ holds the canonical examples of a conformant Portolan catalog,
 committed in full, Parquet and COG included. This runs rashid over each of them.
 
-The data pass is left on, which is what separates this check from the generator
-checks under examples/tools/tests/. Those read the committed bytes through a
+The data pass runs at full scope by default, which is what separates this check
+from the generator checks under examples/tools/tests/. Those read the committed bytes through a
 local-only reader and stay offline. This one refetches the stable upstream
 sources and proves the file:size and file:checksum published for each. Spec
 issue #80 was an upstream drifting away from a published checksum, and nothing
