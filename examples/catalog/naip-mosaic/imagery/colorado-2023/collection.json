@@ -80,8 +80,8 @@
       "roles": [
         "collection-mirror"
       ],
-      "file:size": 278573,
-      "file:checksum": "1220bbff240821ef497efce53c8e54baadbedd6da2f84c817c9f2266a46de0a47ed9"
+      "file:size": 306771,
+      "file:checksum": "12209246a998146cf637cf29e1f66bc6e60c72e7b606defb08df2513262241858a55"
     },
     "minimal": {
       "href": "./minimal.json",

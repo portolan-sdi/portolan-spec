@@ -25,6 +25,7 @@ MEDIA = {
     "pmtiles": "application/vnd.pmtiles",
     "style": "application/vnd.mapbox.style+json",
     "png": "image/png",
+    "jpeg": "image/jpeg",
     "json": "application/json",
 }
 

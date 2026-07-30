@@ -54,7 +54,10 @@ def _item(iid: str) -> dict:
         "geometry": {"type": "Polygon", "coordinates": [[
             [-105.0, 39.0], [-104.9, 39.0], [-104.9, 39.1], [-105.0, 39.1], [-105.0, 39.0]]]},
         "properties": {"datetime": "2023-10-20T16:00:00Z", "gsd": 0.3, "proj:epsg": 26913},
-        "assets": {"image": {"href": f"https://example.invalid/{iid}.tif"}},
+        "assets": {
+            "image": {"href": f"https://example.invalid/{iid}.tif"},
+            "thumbnail": {"href": f"https://example.invalid/{iid}.200.jpg"},
+        },
     }
 
 
@@ -280,8 +283,8 @@ def check_build_items() -> None:
         coll.mkdir(parents=True)
         feats = [_item("a"), _item("b")]
 
-        def fake_probe(href: str):
-            return 4242, [{"data_type": "uint8", "statistics": {
+        def fake_probe(href: str, thumb_href: str):
+            return 4242, 1024, [{"data_type": "uint8", "statistics": {
                 "minimum": 1.0, "maximum": 2.0, "mean": 1.5,
                 "stddev": 0.5, "approximate": True}}], np.zeros((1, 4, 4), "uint8")
 
@@ -320,6 +323,29 @@ def check_build_items() -> None:
         assert links[0]["title"] == "a", links[0]
 
 
+def check_build_items_writes_thumbnail_asset() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        coll = Path(td) / "colorado-2023"
+        coll.mkdir(parents=True)
+        feats = [_item("a")]
+
+        def fake_probe(href: str, thumb_href: str):
+            return 4242, 1024, [{"data_type": "uint8", "statistics": {
+                "minimum": 1.0, "maximum": 2.0, "mean": 1.5,
+                "stddev": 0.5, "approximate": True}}], np.zeros((1, 4, 4), "uint8")
+
+        mosaic.build_items(
+            feats, coll, "imagery/colorado-2023", "NAIP Colorado 2023", fake_probe)
+
+        written = json.loads((coll / "a" / "item.json").read_text())
+        thumb = written["assets"]["thumbnail"]
+        assert thumb["roles"] == ["thumbnail"], thumb
+        assert thumb["type"] == "image/jpeg", thumb
+        assert thumb["href"] == "https://example.invalid/a.200.jpg", thumb["href"]
+        assert thumb["file:size"] == 1024, thumb
+        assert "file:checksum" not in thumb, "no invented checksum on a remote asset"
+
+
 def check_build_items_rejects_missing_datetime() -> None:
     with tempfile.TemporaryDirectory() as td:
         coll = Path(td) / "colorado-2023"
@@ -327,8 +353,8 @@ def check_build_items_rejects_missing_datetime() -> None:
         feat = _item("zz-tile-0417")
         del feat["properties"]["datetime"]
 
-        def fake_probe(href: str):
-            return 4242, [], np.zeros((1, 4, 4), "uint8")
+        def fake_probe(href: str, thumb_href: str):
+            return 4242, 1024, [], np.zeros((1, 4, 4), "uint8")
 
         try:
             mosaic.build_items([feat], coll, "imagery/colorado-2023", "NAIP", fake_probe)
@@ -346,8 +372,8 @@ def check_build_items_rejects_missing_image_asset() -> None:
         feat = _item("zz-tile-0417")
         del feat["assets"]["image"]
 
-        def fake_probe(href: str):
-            return 4242, [], np.zeros((1, 4, 4), "uint8")
+        def fake_probe(href: str, thumb_href: str):
+            return 4242, 1024, [], np.zeros((1, 4, 4), "uint8")
 
         try:
             mosaic.build_items([feat], coll, "imagery/colorado-2023", "NAIP", fake_probe)
@@ -355,6 +381,24 @@ def check_build_items_rejects_missing_image_asset() -> None:
             assert "zz-tile-0417" in str(exc), str(exc)
             return
         raise AssertionError("a feature with no image asset must fail loudly")
+
+
+def check_build_items_rejects_missing_thumbnail_asset() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        coll = Path(td) / "colorado-2023"
+        coll.mkdir(parents=True)
+        feat = _item("zz-tile-0417")
+        del feat["assets"]["thumbnail"]
+
+        def fake_probe(href: str, thumb_href: str):
+            raise AssertionError("no probe may run before every href is validated")
+
+        try:
+            mosaic.build_items([feat], coll, "imagery/colorado-2023", "NAIP", fake_probe)
+        except SystemExit as exc:
+            assert "zz-tile-0417" in str(exc), str(exc)
+            return
+        raise AssertionError("a feature with no thumbnail asset must fail loudly")
 
 
 def check_minimal_json() -> None:
@@ -468,10 +512,14 @@ if __name__ == "__main__":
     check("read_overview rejects no overviews", check_read_overview_rejects_no_overviews)
     check("read_overview rejects unreadable input", check_read_overview_rejects_unreadable)
     check("build_items writes conforming items", check_build_items)
+    check("build_items writes the thumbnail asset",
+          check_build_items_writes_thumbnail_asset)
     check("build_items rejects a feature with no datetime",
           check_build_items_rejects_missing_datetime)
     check("build_items rejects a feature with no image asset",
           check_build_items_rejects_missing_image_asset)
+    check("build_items rejects a feature with no thumbnail asset",
+          check_build_items_rejects_missing_thumbnail_asset)
     check("minimal.json carries only bbox and href", check_minimal_json)
     check("thumbnail mosaic pastes tiles", check_thumbnail_mosaic)
     check("thumbnail mosaic paints a west-overhanging tile's own sub-region",

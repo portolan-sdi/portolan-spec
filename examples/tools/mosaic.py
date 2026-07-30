@@ -127,11 +127,16 @@ _KEEP = ("datetime", "start_datetime", "end_datetime", "gsd",
          "proj:shape", "proj:transform", "proj:bbox", "proj:centroid")
 
 
-def probe_remote(href: str) -> tuple[int, list[dict], np.ndarray]:
-    """Size, statistics and overview pixels for one upstream COG."""
+def probe_remote(href: str, thumb_href: str) -> tuple[int, int, list[dict], np.ndarray]:
+    """Sizes, statistics and overview pixels for one upstream scene.
+
+    Both HEADs run in the same worker as the overview read so the thumbnail adds
+    no second pass over the scene list.
+    """
     size = remote_size(href)
+    thumb_size = remote_size(thumb_href)
     bands, arr = read_overview(href)
-    return size, bands, arr
+    return size, thumb_size, bands, arr
 
 
 def _proj_code(props: dict) -> str | None:
@@ -155,8 +160,23 @@ def _image_href(feature: dict) -> str:
     return href
 
 
+def _thumb_href(feature: dict) -> str:
+    """The upstream thumbnail href for one feature, naming the feature when missing.
+
+    Every NAIP feature carries one, so an absence means the upstream response
+    changed shape rather than that this scene happens to lack a preview. Failing
+    is therefore right, and silently dropping the asset on some items would give
+    the collection an inconsistent shape that no consumer could rely on.
+    """
+    thumb = (feature.get("assets") or {}).get("thumbnail") or {}
+    href = thumb.get("href")
+    if not href:
+        raise SystemExit(f"{feature.get('id')} has no thumbnail asset href")
+    return href
+
+
 def build_items(features: list[dict], coll_dir: Path, cid: str, title: str,
-                probe: Callable[[str], tuple[int, list[dict], np.ndarray]],
+                probe: Callable[[str, str], tuple[int, int, list[dict], np.ndarray]],
                 ) -> tuple[list[dict], list[dict], list[float],
                            list[tuple[list[float], np.ndarray]]]:
     """Write one item.json per scene and return them with their links and bbox.
@@ -171,20 +191,23 @@ def build_items(features: list[dict], coll_dir: Path, cid: str, title: str,
     # they run before a single probe goes out. A malformed scene anywhere in
     # the batch fails here rather than after 924 network round trips.
     hrefs: list[str] = []
+    thumb_hrefs: list[str] = []
     for feature in features:
         props = feature.get("properties") or {}
         if not props.get("datetime"):
             raise SystemExit(
                 f"{feature.get('id')} has no datetime, so it cannot be a conforming item")
         hrefs.append(_image_href(feature))
+        thumb_hrefs.append(_thumb_href(feature))
 
     with ThreadPoolExecutor(max_workers=8) as pool:
-        probed = list(pool.map(probe, hrefs))
+        probed = list(pool.map(probe, hrefs, thumb_hrefs))
 
     items: list[dict] = []
     links: list[dict] = []
     tiles: list[tuple[list[float], np.ndarray]] = []
-    for feature, href, (size, bands, arr) in zip(features, hrefs, probed, strict=True):
+    for feature, href, thumb_href, (size, thumb_size, bands, arr) in zip(
+            features, hrefs, thumb_hrefs, probed, strict=True):
         iid = feature["id"]
         props = feature.get("properties") or {}
         out = {k: v for k, v in props.items() if k in _KEEP}
@@ -200,10 +223,17 @@ def build_items(features: list[dict], coll_dir: Path, cid: str, title: str,
             "geometry": feature["geometry"],
             "bbox": feature["bbox"],
             "properties": out,
-            "assets": {"image": remote_asset(
-                href, MEDIA["cog"], ["data"],
-                f"{title} scene {iid}", size,
-                {"bands": bands} | ({"proj:code": code} if code else {}))},
+            "assets": {
+                "image": remote_asset(
+                    href, MEDIA["cog"], ["data"],
+                    f"{title} scene {iid}", size,
+                    {"bands": bands} | ({"proj:code": code} if code else {})),
+                # Referenced, not copied. Upstream publishes a 200 px browse JPEG
+                # beside every COG, so an item preview costs one HEAD and no bytes.
+                "thumbnail": remote_asset(
+                    thumb_href, MEDIA["jpeg"], ["thumbnail"],
+                    f"{title} scene {iid} preview", thumb_size),
+            },
             "links": [
                 link("root", "../" * (depth + 1) + "catalog.json", "application/json"),
                 link("parent", "../collection.json", "application/json"),

@@ -122,6 +122,15 @@
         }
       ],
       "proj:code": "EPSG:26913"
+    },
+    "thumbnail": {
+      "href": "https://naipeuwest.blob.core.windows.net/naip/v002/co/2023/co_030cm_2023/39106/m_3910664_ne_13_030_20230831_20240104.200.jpg",
+      "type": "image/jpeg",
+      "title": "NAIP Colorado 2023 scene co_m_3910664_ne_13_030_20230831_20240104 preview",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 10723
     }
   },
   "links": [
