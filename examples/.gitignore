@@ -4,6 +4,6 @@ __pycache__/
 .DS_Store
 
 # naip-mosaic is not committed. build.py reproduces it from
-# examples/manifests/naip-mosaic.yaml in about 1 m 45 s, and
+# examples/manifests/naip-mosaic.yaml in about 2 m 15 s, and
 # publish-catalogs.yaml publishes the built tree to Source Cooperative.
 catalog/naip-mosaic/

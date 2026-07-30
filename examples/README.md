@@ -174,7 +174,7 @@ reading every scene and inventing it would be a false claim.
 
 **`catalog/naip-mosaic/` is not committed, unlike the reference catalog.** It is
 936 files of metadata the generator reproduces from that manifest in about
-1 m 45 s, so `examples/.gitignore` excludes it and CI builds it fresh rather than
+2 m 15 s, so `examples/.gitignore` excludes it and CI builds it fresh rather than
 git carrying a snapshot. `publish-catalogs.yaml` builds it, gates it with
 `check_catalogs.py`, and publishes it to Source Cooperative on every pull request
 and on every push to main. Two things get worse for this catalog because of that.
