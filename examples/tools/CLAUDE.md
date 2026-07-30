@@ -28,7 +28,7 @@ from the modules beside them, so they stay runnable on their own.
 | `tiles.py` | XYZ basemap tile fetch and mosaic for thumbnails |
 | `stacio.py` | STAC assembly, manifest, providers, assets, links, sidecars, catalog builders |
 | `validate.py` | Thin adapter over rashid, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
-| `check_catalogs.py` | Entrypoint. Runs rashid over every committed catalog, reading the rashid pin out of `build.py`'s PEP 723 header. Data pass on unless a baseline turns it off, findings gated against `../expected-findings/<stem>.json` |
+| `check_catalogs.py` | Entrypoint. Runs rashid over every committed catalog, reading the rashid pin out of `build.py`'s PEP 723 header. Data pass full unless a baseline narrows it with `data_scope`, findings gated against `../expected-findings/<stem>.json` |
 | `publish_catalogs.py` | Entrypoint. Uploads a built catalog to Source Cooperative, and tears a pull request's preview down |
 | `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_fetch.py`, `check_styles.py`, `check_mosaic.py`, `check_items_parquet.py`, and `check_baseline.py`, plus `run_all.py` which runs the lot |
 
@@ -208,15 +208,19 @@ working-copy schema at `../../stac/json-schema/v0.1.0/schema.json`, injected
 so the build tests this repo's schema rather than the published one. The data
 pass reads the built assets and checks checksum, size, format, COG internal
 overviews, COG band statistics including valid percent, and GeoParquet ordering,
-statistics, and row-group size, through a local-only reader that skips remote
-source assets so the build stays offline.
+statistics, and row-group size, through rashid's `LocalOnlyReader`, which skips
+remote source assets so the build stays offline. That class used to be a private
+copy in `validate.py`. rashid ships an equivalent one plus a
+`data_reader_factory` hook as of PR #87, so the copy was deleted and the upstream
+one wired in. `tests/check_validate.py` asserts the wiring, because dropping it
+would silently start streaming every remote asset.
 
 Because the build skips remote assets, the remote `source` checksums are only
 proven by running rashid directly, without the adapter. Do that before publishing a
 rebuild.
 
 ```bash
-uv run --with "rashid[data]>=0.1.3,<0.2.0" \
+uv run --with "rashid[data] @ git+https://github.com/portolan-sdi/rashid@8d9e11f2b742e2873a2f397a182c8e1aace07dcc" \
   rashid check --schema examples/catalog/portolan-reference
 ```
 
@@ -256,11 +260,21 @@ entirely, four send no CORS header, and none sends
 `Access-Control-Expose-Headers`. Nothing the generator can fix, those are third
 party servers. The spec should scope those MUSTs to assets the publisher hosts.
 
-rashid comes from PyPI, pinned to a compatible range in `build.py`'s PEP 723
-header, currently `rashid[data]>=0.1.3,<0.2.0`. Bumping the Portolan schema is a
-coordinated change across this repo and rashid, update the local schema,
-regenerate the reference catalog, re-vendor fixtures into rashid, then bump the
-rashid range here.
+rashid is pinned in `build.py`'s PEP 723 header. It currently points at the exact
+merge commit `8d9e11f2b742e2873a2f397a182c8e1aace07dcc`, which is
+[PR #87](https://github.com/portolan-sdi/rashid/pull/87), rather than at a PyPI
+range, because the `--data-scope` support that catalog validation now depends on
+is not in any release. `v0.1.3` predates the merge. A commit pin rather than
+`@main` keeps the build reproducible. **Return this to a version range once it
+ships.**
+
+There is a second pin, in `tests/check_validate.py`'s own PEP 723 header, because
+that script runs standalone rather than through `build.py`. Move both together.
+`check_catalogs.py` has no pin of its own, it reads `build.py`'s.
+
+Bumping the Portolan schema is a coordinated change across this repo and rashid,
+update the local schema, regenerate the reference catalog, re-vendor fixtures into
+rashid, then bump the rashid pin here.
 
 ### The expected-findings baseline
 
@@ -291,49 +305,54 @@ thumbnail, while `PTL-SCH-001` is reported per file so it fires once per
 `item.json` however many of that Item's assets are short the property. Getting that
 backwards inflates the expected total to 3696.
 
-### Why data_pass is off for naip-mosaic, and why that is temporary
+### Why naip-mosaic runs a narrowed data scope
 
-The baseline sets `data_pass` to false and `check_catalogs.py` passes `--no-data`
-for this catalog. rashid's data pass streams every asset in full, even when there
-is no checksum to hash, because size is a byte counter and format detection reads
-the leading bytes. Against 924 remote scenes that is 1.86 TB and, extrapolating a
-2-scene timing of 5 m 56 s, on the order of 45 hours. Filed as
-[portolan-sdi/rashid#86](https://github.com/portolan-sdi/rashid/issues/86), framed
-as a use case rather than a defect.
+`naip-mosaic` describes 1.86 TB of COGs it does not host. rashid's default data
+pass streams every asset in full, even when there is no checksum to hash, because
+size is a byte counter and format detection reads the leading bytes. Extrapolating
+a 2-scene timing of 5 m 56 s puts a full pass on the order of 45 hours. That is
+not a CI job.
 
-**That issue has been answered, so plan to undo this.**
-[rashid PR #87](https://github.com/portolan-sdi/rashid/pull/87) merged 2026-07-30
-and adds `--data-scope local`, which runs every data rule against assets inside the
-catalog tree and treats a remote href as unfetchable. That is the middle setting
-this catalog wanted, and the PR also adds `PTL-DAT-016` to the runner's data-rule
-set, which had omitted it.
+**This was filed and answered inside a day, and the answer is in the branch.**
+[rashid#86](https://github.com/portolan-sdi/rashid/issues/86) was filed from this
+work, framed as a use case rather than a defect.
+[PR #87](https://github.com/portolan-sdi/rashid/pull/87) merged 2026-07-30 citing
+it, adding `--data-scope local`. It runs every data rule against assets inside the
+catalog tree and treats a remote href as unfetchable, exactly as an `s3` href
+already was. It also adds `PTL-DAT-016` to the runner's data-rule set, which had
+omitted it.
 
-It is not released yet. The latest tag is `v0.1.3` from 2026-07-29, which predates
-the merge, and the pin here is `rashid[data]>=0.1.3,<0.2.0`, so the next release
-picks it up with no edit. When it lands, move this catalog to `--data-scope local`
-and drop the `data_pass` switch from the baseline. Leave the switch alone until
-then, because the pinned rashid does not have the flag.
+So the baseline now carries `"data_scope": "local"` rather than a boolean off
+switch, and `check_catalogs.py` passes `--data-scope local`. A boolean selecting
+between three behaviours would have been worse than a named scope. The field
+absent means the full default pass, which is where `portolan-reference` sits.
+`DATA_SCOPES` is a closed set, so a typo fails loudly instead of silently widening
+the pass.
 
-Turning the pass off costs the two checks a mirror most needs on the Collection's
-own local `items.parquet`, `PTL-DAT-006` spatial ordering and `PTL-DAT-016`
-row-per-item parity. Those are exactly what `--data-scope local` restores.
-`tests/check_items_parquet.py` covers them offline in the meantime.
-Know what it does and does not prove. It runs `write_items_parquet` over a synthetic
-300-item fixture and asserts row-per-item parity, several row groups, the
-150,000-row cap, that Hilbert order clusters neighbours more tightly than input
-order, and that an over-cap `row_group_size` raises. It does not read the committed
-`items.parquet` and it does not invoke rashid, so it proves the writer rather than
-the artifact.
+**Narrowing the scope is not skipping the pass.** The Collection's own
+`items.parquet` is now fully checked, `PTL-DAT-001` checksum, `PTL-DAT-002` size,
+`PTL-DAT-006` spatial ordering, `PTL-DAT-016` row-per-item parity and the rest. On
+the committed tree the result is identical to the old `--no-data` run, 2772 errors
+across 927 files, so adopting it cost nothing and gained the local rules. Verified
+by mutation, truncating `items.parquet` by 2000 bytes in a temp copy makes the gate
+fail on `PTL-DAT-001` and `PTL-DAT-002`, neither of which is in the baseline.
 
-Two things the skipped pass would also have covered, and now nothing does.
-`PTL-DAT-009` and `PTL-DAT-010` cannot fire under either gate anyway, since
-`validate.py`'s local-only reader returns None for any remote asset, so they are
-deliberately absent from the baseline rather than overlooked. The embedded COG
-statistics MUSTs are the real loss. Upstream NAIP COGs carry no `STATISTICS_*` band
-tags, this catalog publishes approximate values read from each scene's coarsest
-overview into STAC core `bands` instead, and no configured gate sees the difference.
-That gap is recorded in `NAIP-MIRROR-FOLLOWUP.md` rather than baselined, because an
-accepted entry for a rule that never fires would be a false record.
+What stays unchecked is the bytes of the 1848 remote assets. No gate here has ever
+read those, and `PTL-AST-003` in the baseline already records them as unverifiable.
+
+`tests/check_items_parquet.py` predates the scope and its old docstring claimed to
+exist because the data pass was off. That is no longer true and the docstring is
+corrected. It stays because it exercises `write_items_parquet` directly over a
+synthetic fixture, so a writer regression fails fast without a rebuild and without
+invoking rashid. The gate proves the artifact, that test proves the code.
+
+One thing the pass still cannot reach. The embedded COG statistics MUSTs,
+`PORTO-FMT-026` through `029`, are unverifiable for a mirror by construction.
+Upstream NAIP COGs carry no `STATISTICS_*` band tags, this catalog publishes
+approximate values read from each scene's coarsest overview into STAC core `bands`
+instead, and no configured gate sees the difference. That gap is recorded in
+`NAIP-MIRROR-FOLLOWUP.md` rather than baselined, because an accepted entry for a
+rule that never fires would be a false record.
 
 ## What CI runs, and why it is split in three
 

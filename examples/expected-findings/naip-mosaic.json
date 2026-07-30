@@ -1,8 +1,8 @@
 {
   "catalog": "naip-mosaic",
   "why": "This catalog mirrors metadata for Cloud Optimized GeoTIFFs hosted by the Microsoft Planetary Computer. It does not host the scene bytes or the referenced thumbnail bytes, so two Portolan requirements cannot be met by any amount of generator work. Each entry names the rule, the reason, and the upstream issue that tracks it.",
-  "data_pass": false,
-  "data_pass_why": "rashid's data pass reads every asset. Measured at 5 m 56 s for 2 scenes, so 924 scenes is about 45 hours and 1.86 TB of egress, that total summed from the file:size of every committed item rather than estimated. Ordering and row-per-item parity for items.parquet are asserted instead by examples/tools/tests/check_items_parquet.py.",
+  "data_scope": "local",
+  "data_scope_why": "rashid's default data pass streams every asset in full, which here is 1.86 TB of COGs hosted by the Microsoft Planetary Computer. --data-scope local, added by portolan-sdi/rashid#87 answering the rashid#86 filed from this work, runs every data rule but treats a remote href as unfetchable. So this is not a skipped pass. The Collection's own local assets, items.parquet above all, are fully checked for checksum, size, format, spatial ordering, per-row-group statistics and row-per-item parity. What stays unchecked is the bytes of the 1848 remote assets, which no gate here has ever read and which PTL-AST-003 below already records as unverifiable.",
   "accepted": [
     {
       "rule": "PTL-AST-003",

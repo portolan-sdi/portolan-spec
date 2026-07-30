@@ -2,7 +2,7 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #   "jsonschema>=4.26.0",
-#   "rashid[data]>=0.1.3,<0.2.0",
+#   "rashid[data] @ git+https://github.com/portolan-sdi/rashid@8d9e11f2b742e2873a2f397a182c8e1aace07dcc",
 # ]
 # ///
 """Standalone checks for the rashid validation adapter.
@@ -16,7 +16,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from validate import _local_schema_validator  # noqa: E402
-from validate import _LocalOnlyReader  # noqa: E402
 
 REPO = Path(__file__).resolve().parent.parent.parent.parent
 SCHEMA = REPO / "stac/json-schema/v0.1.0/schema.json"
@@ -81,9 +80,26 @@ class _FakeReader:
         return iter([b"bytes"])
 
 
+def _reader_over(inner):
+    """rashid's LocalOnlyReader wrapped around a fake inner reader.
+
+    Its real constructor takes a CatalogGraph and builds a FilesystemHttpReader
+    itself, so there is no injection point. This bypasses __init__ and sets the
+    private attribute instead. That is a deliberate dependency on an upstream
+    internal, and the cost of having deleted our own copy of this class. If
+    rashid renames `_inner` this fails loudly here rather than silently widening
+    the data pass, which is the failure that would actually matter.
+    """
+    from rashid.data.reader import LocalOnlyReader
+
+    reader = LocalOnlyReader.__new__(LocalOnlyReader)
+    reader._inner = inner
+    return reader
+
+
 def check_local_only_reader_drops_remote() -> None:
     inner = _FakeReader(remote=True)
-    reader = _LocalOnlyReader(inner)
+    reader = _reader_over(inner)
     assert reader.locate(None, "https://example.invalid/a.parquet") is None
     assert reader.stream(None, "https://example.invalid/a.parquet") is None
     assert inner.streamed is False, "remote asset must not be streamed"
@@ -91,11 +107,37 @@ def check_local_only_reader_drops_remote() -> None:
 
 def check_local_only_reader_keeps_local() -> None:
     inner = _FakeReader(remote=False)
-    reader = _LocalOnlyReader(inner)
+    reader = _reader_over(inner)
     located = reader.locate(None, "a.parquet")
     assert located is not None and located.is_remote is False
     assert reader.stream(None, "a.parquet") is not None
     assert inner.streamed is True, "local asset must be streamed"
+
+
+def check_validate_narrows_the_data_pass_to_local_assets() -> None:
+    """The adapter must hand rashid the local-only factory.
+
+    If this wiring is ever dropped the build silently starts streaming every
+    remote asset, which for naip-mosaic is 1.86 TB. Nothing else catches that,
+    so assert the argument rather than trusting the call site to stay put.
+    """
+    import rashid
+    from rashid.data.reader import LocalOnlyReader
+
+    captured: dict = {}
+    real = rashid.validate
+
+    def spy(*args, **kwargs):
+        captured.update(kwargs)
+        return real(*args, **kwargs)
+
+    rashid.validate = spy
+    try:
+        validate(REFERENCE, SCHEMA)
+    finally:
+        rashid.validate = real
+    assert captured.get("data_reader_factory") is LocalOnlyReader, captured.get(
+        "data_reader_factory")
 
 
 CHECKS = [
@@ -103,6 +145,7 @@ CHECKS = [
     check_schema_validator_flags_broken_object,
     check_local_only_reader_drops_remote,
     check_local_only_reader_keeps_local,
+    check_validate_narrows_the_data_pass_to_local_assets,
     check_reference_catalog_passes,
     check_self_link_fails,
 ]

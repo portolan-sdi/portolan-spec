@@ -8,7 +8,13 @@
 #   "stac-geoparquet",
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
 #   "rasterio>=1.5",
-#   "rashid[data]>=0.1.3,<0.2.0",
+#   # Pinned to the exact merge commit of portolan-sdi/rashid#87, which answers
+#   # the rashid#86 we filed from this work. It adds --data-scope local, so a
+#   # metadata-only mirror runs every local data rule without streaming a single
+#   # remote byte. No release carries it yet, v0.1.3 predates the merge, so this
+#   # is a commit pin rather than main to keep the build reproducible. Return
+#   # this to a version range once it ships.
+#   "rashid[data] @ git+https://github.com/portolan-sdi/rashid@8d9e11f2b742e2873a2f397a182c8e1aace07dcc",
 #   "rio-cogeo>=5.3",
 #   "Pillow>=11",
 # ]

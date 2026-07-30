@@ -10,12 +10,20 @@
 #   "Pillow>=11",
 # ]
 # ///
-"""Offline checks for the stac-geoparquet item mirror.
+"""Offline checks for the stac-geoparquet item mirror writer.
 
-PTL-DAT-006 and PTL-DAT-016 live in rashid's data pass, which the naip-mosaic
-catalog disables because reading 1.86 TB of upstream COGs weekly is not a CI job.
-So the ordering and the row-per-item parity are asserted here instead. Without
-this check an unsorted or desynchronised mirror would ship unnoticed.
+PTL-DAT-006 and PTL-DAT-016 do run against the committed items.parquet now.
+The naip-mosaic catalog uses rashid's --data-scope local, so every data rule is
+applied to assets inside the catalog tree while its 1.86 TB of remote COGs are
+treated as unfetchable. These checks are no longer the only thing standing
+between us and an unsorted mirror, and the docstring said otherwise until the
+scope was adopted.
+
+They stay because they cover something the gate does not. They exercise
+write_items_parquet directly over a synthetic fixture, so they fail on a writer
+regression without a rebuild and without invoking rashid, which makes them a fast
+inner-loop check. The gate proves the committed artifact, these prove the code
+that produces it.
 """
 from __future__ import annotations
 

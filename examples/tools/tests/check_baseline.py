@@ -69,7 +69,8 @@ def check_missing_baseline_is_zero_tolerance() -> None:
 def check_real_baseline_loads() -> None:
     root = HERE.parent.parent.parent
     base = check_catalogs.load_baseline(root, root / "examples/catalog/naip-mosaic")
-    assert base.get("data_pass") is False, base
+    assert base.get("data_scope") == "local", base
+    assert base.get("data_scope_why", "").strip(), "a narrowed scope needs a reason"
     rules = {a["rule"] for a in base["accepted"]}
     assert rules == {"PTL-AST-003", "PTL-SCH-001"}, rules
     for entry in base["accepted"]:

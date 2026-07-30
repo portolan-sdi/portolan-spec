@@ -2,20 +2,22 @@
 
 rashid defines Portolan conformance. This module is a thin adapter. It runs
 rashid's metadata, structural, schema, and data passes over a built catalog,
-feeds the schema pass the repo's working-copy schema under stac/, restricts the
+feeds the schema pass the repo's working-copy schema under stac/, narrows the
 data pass to local assets, and fails the build on any error finding.
+
+The local-only reader used to live here. rashid now ships an equivalent
+LocalOnlyReader and a data_reader_factory hook, added by portolan-sdi/rashid#87,
+so the copy was deleted in favour of the upstream one. Same behaviour, one
+implementation, and path resolution stays with the validator that defines it.
 """
 from __future__ import annotations
 
 import json
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from rashid.catalog import Node
-    from rashid.data import DataDefect
-    from rashid.data.reader import AssetReader, Locator
     from rashid.schema import Validator
 
 
@@ -34,43 +36,14 @@ def _local_schema_validator(schema_path: Path) -> "Validator":
     return validator_from_schema(json.loads(schema_path.read_text()))
 
 
-class _LocalOnlyReader:
-    """An AssetReader that drops remote assets so the data pass reads only local
-    files. Remote source assets, the live upstreams whose file:checksum is
-    point-in-time, are skipped rather than fetched, keeping the build offline and
-    free of false checksum mismatches."""
-
-    def __init__(self, inner: "AssetReader") -> None:
-        self._inner = inner
-
-    def locate(self, node: "Node", href: str) -> "Locator | None":
-        located = self._inner.locate(node, href)
-        if located is None or located.is_remote:
-            return None
-        return located
-
-    def stream(self, node: "Node", href: str):
-        located = self._inner.locate(node, href)
-        if located is None or located.is_remote:
-            return None
-        return self._inner.stream(node, href)
-
-
-def _local_only_data_validator() -> "Callable[[Node, AssetReader], list[DataDefect]]":
-    """Wrap rashid's byte checker so it reads through a local-only reader."""
-    from rashid.data import checks
-
-    def validate_node(node: "Node", reader: "AssetReader") -> "list[DataDefect]":
-        return checks.check_node(node, _LocalOnlyReader(reader))
-
-    return validate_node
-
-
 def validate(out: Path, schema_path: Path, baseline: dict | None = None) -> None:
     """Validate the built catalog at out with rashid and fail on any error.
 
     Runs the metadata pass (always), the STAC 1.1.0 structural pass, the schema
-    pass against the working-copy schema, and the data pass over local assets.
+    pass against the working-copy schema, and the data pass narrowed to local
+    assets. Every data rule still runs, a remote href is simply unfetchable, so
+    a live upstream is never refetched during a build and a point-in-time
+    checksum cannot produce a false mismatch.
     Prints every finding and raises SystemExit when rashid reports an error.
 
     When baseline is given, its accepted rules are filtered out first through
@@ -78,6 +51,7 @@ def validate(out: Path, schema_path: Path, baseline: dict | None = None) -> None
     a known non-conformance stays visible without failing the build.
     """
     from rashid import validate as rashid_validate
+    from rashid.data.reader import LocalOnlyReader
 
     report = rashid_validate(
         out,
@@ -85,7 +59,7 @@ def validate(out: Path, schema_path: Path, baseline: dict | None = None) -> None
         schema=True,
         schema_validator=_local_schema_validator(schema_path),
         data=True,
-        data_validator=_local_only_data_validator(),
+        data_reader_factory=LocalOnlyReader,
     )
     for finding in report.findings:
         print(

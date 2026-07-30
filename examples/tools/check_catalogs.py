@@ -13,6 +13,11 @@ sources and proves the file:size and file:checksum published for each. Spec
 issue #80 was an upstream drifting away from a published checksum, and nothing
 else catches that.
 
+A baseline may narrow that with a data_scope field. "local" runs every data rule
+but treats a remote href as unfetchable, which is what naip-mosaic needs, since
+its assets are 1.86 TB of COGs hosted elsewhere. Narrowing the scope is not the
+same as skipping the pass, the local assets are still fully checked.
+
 That makes this check depend on third-party servers, so it belongs on a schedule
 rather than on a pull request. A source being briefly unreachable is not a reason
 to block a merge, but it is a reason to look.
@@ -136,12 +141,29 @@ def apply_baseline(data: dict, baseline: dict) -> tuple[list[dict], list[str]]:
     return unexpected, reasons
 
 
-def run_rashid(requirement: str, catalog: Path, data_pass: bool = True) -> dict:
-    """rashid's JSON report for one catalog tree."""
+# The data scopes a baseline may ask for. Absent means rashid's default pass,
+# which reads every asset including remote ones. "local" runs every data rule
+# but treats a remote href as unfetchable, which is what a metadata-only mirror
+# needs. Anything else is a typo and must fail rather than silently widen the
+# pass, so this is a closed set rather than a passthrough.
+DATA_SCOPES = frozenset({"local"})
+
+
+def run_rashid(requirement: str, catalog: Path, data_scope: str | None = None) -> dict:
+    """rashid's JSON report for one catalog tree.
+
+    data_scope of None runs the default data pass. "local" adds
+    --data-scope local, so every data rule still runs but only against assets
+    inside the catalog tree.
+    """
+    if data_scope is not None and data_scope not in DATA_SCOPES:
+        raise SystemExit(
+            f"{catalog.name}: unknown data_scope {data_scope!r}, "
+            f"expected one of {sorted(DATA_SCOPES)} or the field omitted")
     cmd = ["uv", "run", "--with", requirement,
            "rashid", "check", "--schema", "--all", "--json", str(catalog)]
-    if not data_pass:
-        cmd.append("--no-data")
+    if data_scope is not None:
+        cmd += ["--data-scope", data_scope]
     completed = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if not completed.stdout.strip():
         sys.stderr.write(completed.stderr)
@@ -166,8 +188,9 @@ def report(catalog: Path, data: dict, root: Path, baseline: dict) -> bool:
         return data["error_count"] + data["warning_count"] == 0
     _, reasons = apply_baseline(data, baseline)
     accepted = {e["rule"] for e in baseline.get("accepted", [])}
+    scope = baseline.get("data_scope")
     print(f"  baseline accepts {', '.join(sorted(accepted))}, "
-          f"data pass {'on' if baseline.get('data_pass', True) else 'off'}.")
+          f"data scope {scope if scope else 'full'}.")
     for reason in reasons:
         print(f"  UNEXPECTED {reason}")
     print("::endgroup::")
@@ -207,7 +230,7 @@ def main() -> int:
     rows = []
     for catalog in trees:
         baseline = load_baseline(root, catalog)
-        data = run_rashid(requirement, catalog, data_pass=baseline.get("data_pass", True))
+        data = run_rashid(requirement, catalog, data_scope=baseline.get("data_scope"))
         rows.append((catalog, data, report(catalog, data, root, baseline)))
 
     write_step_summary(rows)

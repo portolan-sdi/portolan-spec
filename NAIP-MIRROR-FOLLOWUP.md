@@ -156,7 +156,7 @@ band 3 NONE
 band 4 NONE
 ```
 
-**Worth knowing that no configured gate sees this.** rashid checks embedded COG statistics in its data pass, and the data pass is off for this catalog (section 5). The baseline therefore does not list a statistics rule, because none fires. The gap is real and undetected rather than accepted, and recording that plainly here is more honest than adding an accepted entry that can never match.
+**Worth knowing that no gate can see this, even now.** rashid reads embedded COG statistics from the asset's bytes. Since section 5 this catalog runs `--data-scope local`, which checks every local asset but treats the 924 remote COGs as unfetchable, so the statistics rule still never fires. That is not a gap in the scope, it is the same custody problem in another place. Verifying statistics embedded in a file requires reading the file. The baseline therefore lists no statistics rule, because none fires, and the gap is undetected rather than accepted. Recording that plainly here is more honest than adding an accepted entry that can never match.
 
 ---
 
@@ -202,11 +202,9 @@ print(sorted(k.decode() for k in f.schema_arrow.metadata))"
 
 ---
 
-## 5. rashid scalability, filed and answered
+## 5. rashid scalability, filed, answered and adopted
 
-**This one is closing.** [rashid#86](https://github.com/portolan-sdi/rashid/issues/86) was filed from this work, and [rashid PR #87](https://github.com/portolan-sdi/rashid/pull/87), "feat(data): add --data-scope so a metadata-only mirror can be validated", merged 2026-07-30 citing it. `--data-scope local` runs every data rule against assets inside the catalog tree and treats a remote href as unfetchable, which is exactly the middle setting this catalog wanted.
-
-It is not released yet. The latest tag is `v0.1.3` from 2026-07-29, which predates the merge, and the pin is `rashid[data]>=0.1.3,<0.2.0`, so the next release picks it up with no change here. Everything below describes the stance until then, not a permanent one.
+**The best outcome in this document.** [rashid#86](https://github.com/portolan-sdi/rashid/issues/86) was filed from this work on 2026-07-30, framed as a use case rather than a defect. [rashid PR #87](https://github.com/portolan-sdi/rashid/pull/87), "feat(data): add --data-scope so a metadata-only mirror can be validated", merged the same day citing it. The catalog now uses it.
 
 The original problem. The data pass streams every asset in full, even when there is no checksum to hash, because size is a byte counter and format detection reads the leading bytes. Timed at 5 m 56 s for 2 scenes during design, which extrapolates to roughly 45 hours for 924, alongside the 1.86 TB from section 1.
 
@@ -215,11 +213,33 @@ $ python3 -c "print(f'{(356 / 2) * 924 / 3600:.1f} hours')"
 45.7 hours
 ```
 
-Read that as a single-threaded extrapolation from two scenes rather than a prediction. Either way it is not a CI job, so `examples/expected-findings/naip-mosaic.json` sets `data_pass` to false and `check_catalogs.py` passes `--no-data` for this catalog.
+`--no-data` avoided that but dropped the local checks with it, which are the checks a mirror most needs. `--data-scope local` runs every data rule against assets inside the catalog tree and treats a remote href as unfetchable, as an `s3` href already was. That is the middle setting, and it is now what `examples/expected-findings/naip-mosaic.json` asks for through a `data_scope` field.
 
-**The off switch is a temporary stance, not a design.** It skips the two checks a mirror most needs, `PTL-DAT-006` ordering and `PTL-DAT-016` row-per-item parity, on the Collection's own local `items.parquet`. Those are precisely what `--data-scope local` restores, and PR #87 also adds `PTL-DAT-016` to the runner's data-rule set, which had omitted it. When the flag lands in a release, this catalog should move to `--data-scope local` and the `data_pass` switch in the baseline should go.
+No release carries it yet, `v0.1.3` predates the merge, so `build.py` pins the exact merge commit rather than `@main` to keep the build reproducible. That pin returns to a version range once it ships.
 
-Until then `examples/tools/tests/check_items_parquet.py` covers the gap offline. Note precisely what it covers. It exercises `write_items_parquet` over a synthetic 300-item fixture and asserts row-per-item parity, several row groups, the 150,000-row cap, and that Hilbert order clusters neighbours more tightly than input order. It does not read the committed `items.parquet` and it does not run rashid, so it proves the writer rather than the artifact. Section 8 measures the committed file against rashid's own ordering functions directly, which is the closest thing to the real check available before the release.
+**Adopting it cost nothing and gained the local rules.** On the committed tree the result is identical to the old `--no-data` run.
+
+```console
+$ uv run examples/tools/check_catalogs.py --catalog naip-mosaic
+  2772 error(s), 0 warning(s), 0 info(s) across 927 files.
+  baseline accepts PTL-AST-003, PTL-SCH-001, data scope local.
+1/1 catalogs passed
+```
+
+Verified by mutation rather than by absence of findings. Truncating `items.parquet` by 2000 bytes in a temp copy, then running the same gate.
+
+```console
+error PTL-DAT-001  asset 'items' file:checksum does not match the bytes (declared sha256 digest differs from recomputed)
+error PTL-DAT-002  asset 'items' file:size is 306771 but the bytes are 304771
+info  PTL-DAT-005  asset 'items' spatial metadata could not be read (Parquet magic bytes not found in footer...)
+  UNEXPECTED PTL-DAT-001 ... is not in the baseline
+  UNEXPECTED PTL-DAT-002 ... is not in the baseline
+0/1 catalogs passed
+```
+
+So the scoped pass genuinely reads local bytes and the gate genuinely fails on them. `PTL-DAT-006` ordering and `PTL-DAT-016` row-per-item parity now run against the committed `items.parquet` too, where section 8 previously had to measure them by hand.
+
+What stays unchecked is the bytes of the 1848 remote assets, which no gate here has ever read and which `PTL-AST-003` already records as unverifiable. `examples/tools/tests/check_items_parquet.py` stays as a fast offline check on the writer, no longer as the only thing standing between us and an unsorted mirror.
 
 ---
 
@@ -337,7 +357,7 @@ _is_spatially_ordered(row groups): True
 _is_spatially_ordered(chunked rows): True
 ```
 
-`_covering_bboxes` reads Parquet min and max statistics for the `bbox` covering columns, so recovering 8 of them is itself the evidence that per-row-group spatial statistics are present. Note this is the check that section 5 says no configured gate runs for this catalog. It passes, it is simply not wired into CI.
+`_covering_bboxes` reads Parquet min and max statistics for the `bbox` covering columns, so recovering 8 of them is itself the evidence that per-row-group spatial statistics are present. This measurement was taken by hand when no gate ran it. Since section 5 the gate runs `PTL-DAT-006` against this file directly, so it is now covered by CI as well.
 
 ---
 
@@ -384,7 +404,7 @@ Kept here so nobody re-derives them.
 | Microsoft's documentation states that data assets require a token, and the terms state access will require a valid token | **Dropped.** Both pages are JavaScript-only and serve no text to any fetch, including the Wayback Machine, so no sentence could be quoted. Replaced in section 6 with the token endpoint's own measured response, which supports the same conclusion |
 | The Planetary Computer is a preview service | **Dropped.** Could not be verified from any fetchable source, and nothing in section 6 needs it |
 | 924 scenes total 1.7 TB at 1.85 GB each | **Corrected everywhere.** Those figures were extrapolated from a single sampled scene. Summing the `file:size` of all 924 committed Items gives 1859248614649 bytes, so 1.86 TB decimal, 1.691 TiB, at a 2.01 GB mean with a 1.51 to 2.25 GB range. 1.7 was the TiB figure read as TB. Now corrected in this document, the `naip-mosaic.json` baseline, the manifest header, `check_items_parquet.py`, and the held drafts. [rashid#86](https://github.com/portolan-sdi/rashid/issues/86) still says 1.67 TB and is left alone, since it is filed in a shared space |
-| The embedded-statistics failure is baselined | **Wrong.** It is undetected. No statistics rule fires because the data pass is off. `mosaic.read_overview`'s docstring says baselined and is inaccurate |
+| The embedded-statistics failure is baselined | **Wrong.** It is undetected. No statistics rule fires, first because the data pass was off and now because `--data-scope local` cannot fetch the remote COGs it would have to read. `mosaic.read_overview`'s docstring said baselined and is corrected |
 | The Hilbert curve rotation was a corrected defect | **Not a defect.** The two rotation forms are algebraically equivalent, confirmed at orders 2 through 6 and over 20,000 random order-16 cells. The committed form is a readability fix. Do not cite it as a spec or code gap |
 
 ---
@@ -402,4 +422,4 @@ Drafts written and held for human review, not posted. Nothing in this document h
 
 Held for a separate decision, not drafted. The statistics question from section 3, the license reading and the broken license URL from section 7.
 
-Already filed, no action needed. [rashid#86](https://github.com/portolan-sdi/rashid/issues/86) for the data-pass scalability finding.
+Filed, answered and adopted, no action needed. [rashid#86](https://github.com/portolan-sdi/rashid/issues/86) for the data-pass scalability finding, answered by [rashid PR #87](https://github.com/portolan-sdi/rashid/pull/87) and in use on this branch. See section 5.
