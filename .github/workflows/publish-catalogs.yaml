@@ -1,0 +1,291 @@
+name: Publish Catalogs
+
+# Builds an example catalog from its manifest and publishes it to the Portolan
+# repository on Source Cooperative, so the example is readable at a real URL.
+# A catalog that only exists in git proves the bytes are right but proves
+# nothing about how a client reads it, over HTTP range requests against a real
+# object store. This closes that gap.
+#
+# Every manifest under examples/manifests/ becomes a matrix entry, so adding a
+# new catalog is adding a YAML file and nothing else.
+#
+# It runs when a manifest, a generator module, or a committed rebuild lands on
+# main, since each changes the bytes a catalog is made of, on every pull request,
+# and on demand for a single catalog or a dry run. The build refetches five
+# third-party sources, so it is not on every push.
+#
+# The prefix taxonomy is CartoDB/portolan-pipeline's, which publishes into this
+# same Source Cooperative repository. See examples/tools/CLAUDE.md.
+#
+#   push to main or master  -> portolan/portolan-pipeline/<catalog id>/main/
+#   push to any other branch -> .../<catalog id>/branches/<slug>/
+#   pull request N          -> .../<catalog id>/PRs/N/, deleted when it closes
+#
+# On a pull request it also comments the review links, one comment per catalog
+# rewritten in place on each push, so a reviewer opens the built catalog in
+# STAC Browser rather than reading a diff of Parquet, COG, and PMTiles.
+#
+# The `source-coop` environment is declared so required reviewers can be added
+# later without touching this file.
+
+on:
+  push:
+    branches: [main]
+    paths: &catalog-paths
+      # A manifest names the sources and describes the whole catalog.
+      - 'examples/manifests/**'
+      # The generator itself, every module under examples/tools/.
+      - 'examples/**/*.py'
+      # A committed rebuild, which is how upstream drift reaches the repo. The
+      # published copy would otherwise stay stale until something else changed.
+      - 'examples/catalog/**'
+      - '.github/workflows/publish-catalogs.yaml'
+  # A pull request publishes a preview to PRs/<number>, torn down when it
+  # closes. The path list is the anchor above rather than a copy of it, so the
+  # two triggers cannot drift into publishing on main for a path that no longer
+  # previews on a pull request. Actions has expanded anchors since September
+  # 2025. Merge keys are still unsupported, and an anchor cannot cross into
+  # another file, neither of which this needs.
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths: *catalog-paths
+  workflow_dispatch:
+    inputs:
+      catalog:
+        description: 'Manifest stem to publish, or "all"'
+        type: string
+        default: all
+      dry_run:
+        description: 'List the transfers without making them'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  # Never cancel in flight. A cancelled sync leaves a half-published catalog,
+  # which is worse than a queued one.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      catalogs: ${{ steps.pick.outputs.catalogs }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+          # publish_catalogs.py carries its own PEP 723 dependencies, so the key
+          # follows the script. Without a glob that matches something, setup-uv
+          # warns that the cache can never be invalidated.
+          cache-dependency-glob: 'examples/tools/publish_catalogs.py'
+
+      - name: Resolve the catalogs to publish
+        id: pick
+        env:
+          # Through the environment, never interpolated into the script body.
+          # On a push there is no inputs context, so everything is published.
+          CATALOG: ${{ inputs.catalog || 'all' }}
+        run: |
+          set -euo pipefail
+          if [ "$CATALOG" = "all" ]; then
+            CATALOGS=$(uv run examples/tools/publish_catalogs.py --list)
+          else
+            # An unknown stem exits non-zero here, before any job spends ten
+            # minutes building the wrong thing.
+            CATALOGS=$(uv run examples/tools/publish_catalogs.py --list --catalog "$CATALOG")
+          fi
+          echo "catalogs=$CATALOGS" >> "$GITHUB_OUTPUT"
+          echo "Publishing: $CATALOGS"
+
+  publish:
+    needs: discover
+    # A pull request from a fork gets no secrets, so the publish step would run
+    # the whole build and then fail at the upload with an auth error. Skip it
+    # instead. Everything that validates a fork's change still runs in
+    # examples-checks.yaml, which needs no credentials.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # Write is scoped to this job and to pull requests alone, for the review
+    # comment below. Nothing here needs to write contents.
+    permissions:
+      contents: read
+      pull-requests: write
+    strategy:
+      fail-fast: false
+      matrix:
+        catalog: ${{ fromJSON(needs.discover.outputs.catalogs) }}
+    environment:
+      name: source-coop
+      url: ${{ steps.publish.outputs.url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # In noble's universe repo, so no source build. Only the vector path uses
+      # it, for the PMTiles derivatives.
+      - name: Install tippecanoe
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends tippecanoe
+          tippecanoe --version
+
+      # peak/action-setup-s5cmd publishes no tags, so this is pinned to a commit
+      # rather than tracking main. The job holds publishing credentials, and a
+      # mutable third-party ref in it is a supply-chain hole. Reads as `@main`
+      # in peak's own README.
+      - name: Install s5cmd
+        uses: peak/action-setup-s5cmd@bde462e7399c68b4a9b05549d90b0e7d5c95e60f
+        with:
+          version: v2.3.0
+
+      - uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+          # Each entrypoint carries its own PEP 723 dependencies, so the cache
+          # key has to follow the scripts rather than a lockfile.
+          cache-dependency-glob: 'examples/tools/**/*.py'
+
+      # The upstream downloads dominate the build. Keyed on the manifest, since
+      # that is what names the sources.
+      - name: Cache the upstream downloads
+        uses: actions/cache@v6
+        with:
+          path: examples/.cache
+          key: sources-${{ matrix.catalog }}-${{ hashFiles(format('examples/manifests/{0}.*', matrix.catalog)) }}
+          restore-keys: sources-${{ matrix.catalog }}-
+
+      - name: Build the catalog
+        env:
+          CATALOG: ${{ matrix.catalog }}
+        run: |
+          set -euo pipefail
+          # Build into a clean tree. The committed one is a snapshot, and a
+          # collection dropped from the manifest would otherwise survive there
+          # and get published as though it were still current.
+          rm -rf "examples/catalog/${CATALOG}"
+          uv run examples/tools/build.py --catalog "$CATALOG"
+
+      # Nothing unvalidated reaches a public URL. Errors and warnings both fail,
+      # the same gate the weekly catalog-upstream run applies.
+      - name: Validate the built catalog
+        env:
+          CATALOG: ${{ matrix.catalog }}
+        run: uv run examples/tools/check_catalogs.py --catalog "$CATALOG"
+
+      - name: Publish to Source Cooperative
+        id: publish
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SOURCE_COOP_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SOURCE_COOP_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-west-2
+          CATALOG: ${{ matrix.catalog }}
+          DRY_RUN: ${{ inputs.dry_run || false }}
+        run: |
+          set -euo pipefail
+          ARGS=(--catalog "$CATALOG")
+          if [ "$DRY_RUN" = "true" ]; then
+            ARGS+=(--dry-run)
+          fi
+          uv run examples/tools/publish_catalogs.py "${ARGS[@]}"
+
+      # A reviewer cannot read a diff of Parquet, COG, and PMTiles and tell
+      # whether the catalog is sound. This puts the built tree one click away,
+      # rendered, so review is looking at a map rather than at base64.
+      #
+      # One comment per catalog, marked and rewritten in place, so a pull
+      # request with ten pushes carries one comment rather than ten. The URLs
+      # come from publish_catalogs.py, which derives them from the prefix it
+      # actually uploaded to, so a link can never point at a different prefix
+      # than the one this run wrote. A dry run writes no outputs, which is what
+      # skips this step rather than a second condition on the input.
+      - name: Comment the review links on the pull request
+        if: github.event_name == 'pull_request' && steps.publish.outputs.browser_url != ''
+        # The catalog is live by the time this runs. The publish is the
+        # contract and the comment is a convenience, so a deleted comment, a
+        # transient 5xx, or a secondary rate limit leaves the reviewer without
+        # a link rather than turning a successful publish red.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # Both the search and the create path read the repository from here,
+          # rather than one being told explicitly and the other inferring it
+          # from the git remote.
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          CATALOG: ${{ matrix.catalog }}
+          BROWSER_URL: ${{ steps.publish.outputs.browser_url }}
+          REPO_URL: ${{ steps.publish.outputs.repo_url }}
+          PUBLIC_URL: ${{ steps.publish.outputs.url }}
+          FILES: ${{ steps.publish.outputs.files }}
+          SIZE: ${{ steps.publish.outputs.size }}
+        run: |
+          set -euo pipefail
+
+          # Marked per catalog, so a repo with several manifests gets one
+          # comment each rather than the matrix fighting over a single one.
+          export MARKER="<!-- portolan-publish:${CATALOG} -->"
+
+          # Every value below is this workflow's own output or a manifest file
+          # stem. No pull request title, branch name, or body reaches this.
+          {
+            echo "$MARKER"
+            echo "### \`$CATALOG\` is published and ready to explore"
+            echo
+            echo "- [**Open in STAC Browser**](${BROWSER_URL}) to explore the catalog"
+            echo "- [**Browse the files**](${REPO_URL}) on Source Cooperative"
+            echo "- [Root \`catalog.json\`](${PUBLIC_URL}catalog.json)"
+            echo
+            echo "${FILES} files, ${SIZE}. Rebuilt and republished on every push to"
+            echo "this pull request, and deleted when it closes."
+          } > comment.md
+
+          # Three conditions, not one. The marker alone is not enough, because
+          # GitHub's quote reply reproduces raw markdown including the HTML
+          # comment, so a reviewer quoting this comment writes the marker into
+          # a comment of their own and this step would then rewrite their
+          # words. The token posts as the GitHub Actions app, whose login is
+          # github-actions[bot]. A comment a maintainer collapsed as outdated
+          # is passed over as well, so the next push writes a fresh visible
+          # comment rather than editing a hidden one. That last field reads
+          # null on a comment nobody collapsed, so if the API ever stops
+          # returning it the clause falls back to the old behavior.
+          ALL=$(gh api "repos/{owner}/{repo}/issues/${PR_NUMBER}/comments" --paginate --jq '
+            .[]
+            | select(
+                .user.login == "github-actions[bot]"
+                and .minimized == null
+                and (.body | contains(env.MARKER))
+              )
+            | .id')
+
+          # The first match, taken by expansion rather than by piping into
+          # head. head closes the pipe the moment it has its line, gh dies of
+          # SIGPIPE, and pipefail turns that into a failed step as soon as a
+          # pull request carries more comments than one page holds. No match
+          # leaves this empty.
+          EXISTING=${ALL%%$'\n'*}
+
+          if [ -n "$EXISTING" ]; then
+            # jq builds the payload, so a body containing quotes or newlines
+            # cannot break out of the JSON.
+            jq -Rs '{body: .}' < comment.md > payload.json
+            gh api -X PATCH --silent --input payload.json \
+              "repos/{owner}/{repo}/issues/comments/${EXISTING}"
+            echo "updated comment ${EXISTING}"
+          else
+            gh pr comment "$PR_NUMBER" --body-file comment.md
+          fi

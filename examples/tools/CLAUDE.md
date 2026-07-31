@@ -9,9 +9,11 @@ this before editing the generator.
 ## Layout
 
 The generator is a set of modules under `examples/tools/`, each owning one
-responsibility. Only `build.py` and the two test files are `uv run` entrypoints
-and carry a PEP 723 header. The sibling modules are plain modules, and `build.py`
-bootstraps `sys.path` with its own directory so they import as flat names.
+responsibility. `build.py`, `check_catalogs.py`, `publish_catalogs.py`, and the
+files under `tests/` are `uv run` entrypoints and carry a PEP 723 header. The
+rest are plain modules, and `build.py` bootstraps `sys.path` with its own
+directory so they import as flat names. The three entrypoints import nothing
+from the modules beside them, so they stay runnable on their own.
 
 | Module | Responsibility |
 |--------|----------------|
@@ -25,21 +27,23 @@ bootstraps `sys.path` with its own directory so they import as flat names.
 | `tiles.py` | XYZ basemap tile fetch and mosaic for thumbnails |
 | `stacio.py` | STAC assembly, manifest, providers, assets, links, sidecars, catalog builders |
 | `validate.py` | Thin adapter over rashid, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
-| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_fetch.py`, and `check_styles.py` |
+| `check_catalogs.py` | Entrypoint. Runs rashid over every committed catalog with the data pass on, reading the rashid pin out of `build.py`'s PEP 723 header |
+| `publish_catalogs.py` | Entrypoint. Uploads a built catalog to Source Cooperative, and tears a pull request's preview down |
+| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_fetch.py`, and `check_styles.py`, plus `run_all.py` which runs the lot |
 
 Inputs and outputs live under `examples/`, not here.
 
 | Path | What it is |
 |------|------------|
-| `../manifests/*.yaml` | Inputs. One file describes one whole catalog |
-| `../catalog/<stem>/` | Output. One STAC tree per manifest, named after the file stem |
+| `../manifests/*.yaml` | Inputs. One file describes one whole catalog. Named after the `id` it declares |
+| `../catalog/<stem>/` | Output. One STAC tree per manifest, named after the file stem, which equals the catalog id |
 | `../.cache/` | Downloaded upstream sources, git-ignored, safe to delete |
 
 ## Running it
 
 ```bash
 uv run examples/tools/build.py                                # build every manifest
-uv run examples/tools/build.py --catalog reference            # one manifest by stem
+uv run examples/tools/build.py --catalog portolan-reference   # one manifest by stem
 uv run examples/tools/build.py --only boundaries/us-counties  # one Collection, skips validation
 ```
 
@@ -49,10 +53,12 @@ geoparquet-io) on the fly. The whole generator, data path and thumbnails
 alike, runs on DuckDB spatial, rasterio, and rio-cogeo, none of it shells out
 to the GDAL CLI, so the only prerequisites on PATH are `tippecanoe` and `uv`.
 
-The test scripts run the same way.
+The test scripts run the same way, and `run_all.py` runs all of them, reporting
+every result rather than stopping at the first failure. That is what CI runs.
 
 ```bash
-uv run examples/tools/tests/check_compliance.py
+uv run examples/tools/tests/run_all.py           # all of them
+uv run examples/tools/tests/check_compliance.py  # or one at a time
 uv run examples/tools/tests/check_web_output.py
 uv run examples/tools/tests/check_validate.py
 uv run examples/tools/tests/check_tiles.py
@@ -61,6 +67,17 @@ uv run examples/tools/tests/check_thumbnails.py
 uv run examples/tools/tests/check_cog.py
 uv run examples/tools/tests/check_fetch.py
 uv run examples/tools/tests/check_styles.py
+```
+
+Publishing a built catalog to Source Cooperative needs `s5cmd` on PATH as well,
+and credentials for the Portolan repository in the environment or an AWS
+profile. Always dry-run first, the sync deletes what the local tree does not
+have.
+
+```bash
+uv run examples/tools/publish_catalogs.py --list                     # the publishable stems
+uv run examples/tools/publish_catalogs.py --catalog portolan-reference --dry-run
+uv run examples/tools/publish_catalogs.py --catalog portolan-reference
 ```
 
 ## The core principle
@@ -197,8 +214,8 @@ proven by running rashid directly, without the adapter. Do that before publishin
 rebuild.
 
 ```bash
-uv run --with "rashid[data] @ git+https://github.com/portolan-sdi/rashid.git" \
-  rashid check --data examples/catalog/reference
+uv run --with "rashid[data]>=0.1.3,<0.2.0" \
+  rashid check --schema examples/catalog/portolan-reference
 ```
 
 The build is clean apart from eight infos, which are expected and terminal. Do
@@ -237,10 +254,95 @@ entirely, four send no CORS header, and none sends
 `Access-Control-Expose-Headers`. Nothing the generator can fix, those are third
 party servers. The spec should scope those MUSTs to assets the publisher hosts.
 
-rashid is a pinned git dependency in `build.py`'s PEP 723 header. Bumping the
-Portolan schema is a coordinated change across this repo and rashid, update the
-local schema, regenerate the reference catalog, re-vendor fixtures into rashid,
-then bump the rashid pin here.
+rashid comes from PyPI, pinned to a compatible range in `build.py`'s PEP 723
+header, currently `rashid[data]>=0.1.3,<0.2.0`. Bumping the Portolan schema is a
+coordinated change across this repo and rashid, update the local schema,
+regenerate the reference catalog, re-vendor fixtures into rashid, then bump the
+rashid range here.
+
+## What CI runs, and why it is split in three
+
+The committed catalogs used to be checked by nothing, so they could drift out of
+conformance between rebuilds unnoticed. Two workflows cover that now, split on
+whether the check needs the network, and a third publishes what they check.
+
+`.github/workflows/examples-checks.yaml` runs `tests/run_all.py` on every push
+and pull request, with no path filter. Every check in there is offline and
+deterministic and the suite takes about twelve seconds, so there is no reason to
+filter, and an unfiltered workflow is the only kind that can be a required
+status check. A path-filtered one stays pending on the PRs it skips.
+
+`.github/workflows/catalog-upstream.yaml` runs `examples/tools/check_catalogs.py`
+weekly and on demand. That is the one that refetches the upstream sources and
+proves their `file:size` and `file:checksum`. It is not a PR gate on purpose. It
+depends on five third-party servers, so gating merges on it would block work
+whenever one of them is briefly down, which says nothing about the PR. A failure
+opens an issue instead, or comments on the open one.
+
+`.github/workflows/publish-catalogs.yaml` builds each manifest and uploads the
+result to the Portolan repository on Source Cooperative with
+`examples/tools/publish_catalogs.py`, so an example is readable at a real URL rather
+than only in git. It runs when a manifest, a generator module, or a committed
+rebuild lands on main, on every pull request, and on demand for one catalog or
+as a dry run. Transfers go through `s5cmd`, which handles a tree of many small
+JSON files far better than the AWS CLI. Nothing reaches a public URL
+unvalidated, the same `check_catalogs.py` gate runs between the build and the
+upload, and afterwards the published `catalog.json` is refetched over HTTPS and
+its `id` checked.
+
+The prefix taxonomy is not ours. `CartoDB/portolan-pipeline` already publishes
+into the same Source Cooperative repository, so `publish_catalogs.py`
+reimplements its scheme from `docs/branch-versioning.md` rather than inventing a
+second one that would sit confusingly beside it. The layout is
+`<catalog id>/<namespace>`.
+
+| git context | published prefix |
+| --- | --- |
+| push to `main` or `master` | `<id>/main/` |
+| push to any other branch | `<id>/branches/<slug>/` |
+| pull request N | `<id>/PRs/N/`, deleted when it closes |
+
+Three details of that scheme are load bearing and easy to get wrong. The key is
+the catalog **id** from the manifest, not the manifest file name. Every manifest
+is named after the id it declares, so `portolan-reference.yaml` publishes to
+`portolan-reference/` and the two never drift. A slug collapses every run
+of characters outside `[a-z0-9._-]` to one dash, so `feat/x` becomes `feat-x`
+and stays a single path segment. And the default-branch test runs on the raw
+ref, so a branch named `Main` lands in `branches/main` rather than overwriting
+the canonical catalog. That last one reads like an upstream oversight and is the
+safer behaviour, so it is matched deliberately. The ground-truth cases from
+their `tests/test_context.py` all pass against our implementation.
+
+A pull request from a fork is skipped rather than run, since GitHub withholds
+secrets there and the build would burn its full runtime only to fail at the
+upload. `.github/workflows/teardown-previews.yaml` deletes a PR's previews when
+it closes, guarded so that only a numeric PR number resolving to a path that
+still contains `/PRs/<n>/` is ever deleted.
+
+A published preview is also commented onto the pull request, so review looks at
+a rendered catalog rather than at a diff of Parquet, COG, and PMTiles. The
+comment is marked `<!-- portolan-publish:<stem> -->` and rewritten in place, one
+per catalog, so ten pushes leave one comment rather than ten. `review_urls` in
+`publish_catalogs.py` derives both links from the public URL the run actually
+uploaded to rather than reassembling them from the parts, so a link cannot point
+at a prefix this run did not write. The STAC Browser form drops the scheme,
+`https://browser.portolan-sdi.org/#/external/data.source.coop/...`, and the file
+browser serves the same path from the bare `source.coop` domain.
+
+`check_catalogs.py` reads the rashid requirement out of `build.py`'s PEP 723
+header with `tomllib`, so the validator that checks a catalog is the validator
+that built it and there is no second pin to drift. It is generic over every tree
+under `examples/catalog/`, so a new manifest is covered as soon as its output is
+committed. Its gate is errors and warnings, since rashid's own exit code fires
+on errors alone and a warning in a reference example is a real defect. The eight
+infos above are advisory and do not fail it.
+
+Two known gaps. `check_catalogs.py` validates against the profile schema bundled
+in the rashid wheel, while `validate.py` injects the working copy under `stac/`,
+so a change to `stac/json-schema/` is proven by the build rather than by CI. And
+`check_validate.py` is hardcoded to the `portolan-reference` tree, so a second catalog
+gets weekly coverage immediately but per-PR coverage only once that script is
+generalized.
 
 ## Conventions
 

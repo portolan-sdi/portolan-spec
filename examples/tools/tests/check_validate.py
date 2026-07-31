@@ -2,7 +2,7 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #   "jsonschema>=4.26.0",
-#   "rashid[data] @ git+https://github.com/portolan-sdi/rashid.git@4302f169374a17265f219824486e217591195aad",
+#   "rashid[data]>=0.1.3,<0.2.0",
 # ]
 # ///
 """Standalone checks for the rashid validation adapter.
@@ -20,7 +20,7 @@ from validate import _LocalOnlyReader  # noqa: E402
 
 REPO = Path(__file__).resolve().parent.parent.parent.parent
 SCHEMA = REPO / "stac/json-schema/v0.1.0/schema.json"
-REFERENCE = REPO / "examples/catalog/reference"
+REFERENCE = REPO / "examples/catalog/portolan-reference"
 
 import shutil  # noqa: E402
 import tempfile  # noqa: E402
@@ -35,7 +35,7 @@ def check_reference_catalog_passes() -> None:
 
 def check_self_link_fails() -> None:
     with tempfile.TemporaryDirectory() as tmp:
-        dst = Path(tmp) / "reference"
+        dst = Path(tmp) / "portolan-reference"
         shutil.copytree(REFERENCE, dst)
         # Inject a forbidden self link into one Collection.
         col = dst / "boundaries/us-counties/collection.json"
