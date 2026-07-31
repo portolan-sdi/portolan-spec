@@ -9,6 +9,21 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+### Changed
+
+- **Assets** (PORTO-CORE-028): `file:size` and `file:checksum` drop from MUST to
+  SHOULD. A catalog that describes data it does not host often cannot produce a
+  checksum, so the old MUST left it a choice between failing conformance and
+  publishing a fabricated value (#112).
+- **Assets** (PORTO-CORE-030): the publish-time regeneration rule is restated as
+  an outcome. Any `file:size` and `file:checksum` an asset carries MUST match the
+  bytes its `href` resolves to, whenever and however they were written. Its
+  enforcement moves from `process` to `validator`, since a data pass can check it.
+- **Assets** (PORTO-CORE-029): reworded to govern a `file:checksum` where one is
+  present. Multihash encoding is still required, unchanged in force.
+- **Requirements manifest**: still 115 requirements, now 83 MUST, 18 SHOULD, and
+  14 MAY.
+
 ## 0.1.0 - 2026-07-27
 
 First tagged release, consolidating the specification from a working draft into a

@@ -237,11 +237,19 @@ Styles](#visualization-styles)).
 Portolan reuses existing extensions rather than restating their fields: `file` for
 `file:values`, `table` for schema and columns, `raster` and `vector` for band and
 layer detail, `license` for per-asset license, and `scientific` for citation or
-DOI. Assets MUST carry `file:size` and `file:checksum` from the [file
-extension](https://github.com/stac-extensions/file). The checksum MUST use
-multihash encoding, not a raw sha256 string. These embedded values MUST be
-regenerated at publish time, in the same operation that uploads the files, so they
-always match what is in the bucket.
+DOI.
+
+Assets SHOULD carry `file:size` and `file:checksum` from the [file
+extension](https://github.com/stac-extensions/file). Both are cheap to compute for
+bytes the publisher uploads, and they let a client budget a download and verify
+what it received. Neither is required, because a catalog that describes data it
+does not host cannot always produce them, and a fabricated value is worse than an
+absent one.
+
+A `file:checksum` MUST use multihash encoding, not a raw sha256 string. Any
+`file:size` and `file:checksum` an asset carries MUST match the bytes its `href`
+resolves to. A stale value is a conformance failure, so a publisher that cannot
+keep one current should omit it.
 
 **Primary-vs-alternate.** A non-cloud-native representation MAY be included as an
 alternate asset as long as an equivalent cloud-native primary asset exists (e.g. a
