@@ -17,8 +17,8 @@ the toolchain catches that, rashid does not read style bodies and the STAC
 validators skip them for having no stac_version, so it is asserted here.
 
 core.md also requires the thumbnail to be generated from default styling, where
-the default style is the first variant, published under the style-default asset
-key. That is only true if the thumbnail and the first style variant derive their
+the default style is the first variant, the one whose asset carries the default
+role. That is only true if the thumbnail and the first style variant derive their
 paint from one source, so the wiring that guarantees it is asserted too.
 
 Run: uv run examples/tools/tests/check_styles.py

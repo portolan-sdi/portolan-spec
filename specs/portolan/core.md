@@ -449,15 +449,20 @@ needs no separate style file.
 
 When a collection provides a render path it MUST provide at least one style telling
 clients how to draw it, in a format appropriate to that render path. Style files are
-STAC assets: each style MUST be registered as a collection-level asset with `roles:
-["style"]`, alongside the data and thumbnail. A client or agent discovers a
+STAC assets: each style MUST be registered as a collection-level asset carrying the
+`style` role, alongside the data and thumbnail. A client or agent discovers a
 collection's styles by filtering assets on that role, so no separate manifest is
 needed and this specification defines none. Because STAC assets are an unordered
-JSON object, the default style is identified by a reserved asset key rather than by
-position: when a collection provides more than one style, exactly one style asset
-MUST use the key `style-default`. The remaining styles use descriptive
-`style-<variant>` keys such as `style-labeled`, and every style carries a
-human-readable name in its `title`.
+JSON object, and because STAC states that asset keys carry no meaning a client is
+expected to understand, the default style is identified by a second role rather
+than by position or key: when a collection provides more than one style, exactly
+one style asset MUST carry both `style` and `default` in its `roles`. STAC
+encourages multiple roles per asset, so this needs no extension. Asset keys stay
+free-form — `style-<variant>` keys such as `style-labeled` are the convention —
+and every style carries a human-readable name in its `title`. Where a collection
+provides exactly one style, that style is the default and needs no marker, though
+carrying the `default` role there too is encouraged so a client can find the
+default the same way everywhere.
 
 The concrete style format is defined per data format in [`formats.md`](formats.md):
 for vector (PMTiles) it is a MapLibre GL style file, while raster styling is still

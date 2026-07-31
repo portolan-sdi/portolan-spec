@@ -11,13 +11,16 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
-- **Default style is identified by a reserved asset key**
+- **Default style is identified by a `default` role**
   ([`specs/portolan/core.md`](specs/portolan/core.md)): a collection with more than
-  one style now MUST key its default style asset `style-default`, replacing the
-  previous guidance that the default SHOULD be "listed first". STAC `assets` is an
-  unordered JSON object, so order is not a reliable signal; the reserved key lets a
-  client find the default deterministically. `PORTO-CORE-070` moves from `SHOULD`
-  to `MUST`, and the reference catalog and generator are updated to match.
+  one style now MUST mark exactly one style asset with `roles: ["style", "default"]`,
+  replacing the previous guidance that the default SHOULD be "listed first". STAC
+  `assets` is an unordered JSON object and STAC states that asset keys carry no
+  meaning a client is expected to understand, so neither order nor key is a reliable
+  signal; STAC does encourage multiple roles per asset, so a second role lets a
+  client find the default deterministically with no extension. `PORTO-CORE-070`
+  moves from `SHOULD` to `MUST`, and the reference catalog and generator are
+  updated to match.
 
 ## 0.1.0 - 2026-07-27
 
