@@ -78,79 +78,98 @@
         },
         {
           "name": "SITE_NAME",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Best-known or official site name. Multi-parcel sites carry Roman numeral suffixes, Stony Brook Reservation I and II."
         },
         {
           "name": "OWNERSHIP",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Fee owner where known. City of Boston, Commonwealth of Massachusetts, private owners, and agency abbreviations like BRA and BNAN."
         },
         {
           "name": "PROTECTION",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Slash-separated legal protection instruments. A97 is Article 97 of the Massachusetts Constitution, the strongest. Free text, match with LIKE."
         },
         {
           "name": "TYPECODE",
-          "type": "integer"
+          "type": "integer",
+          "description": "Numeric open space type 1 through 7. Disagrees with TypeLong on about 13 rows, treat TypeLong as closer to intent."
         },
         {
           "name": "DISTRICT",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Planning district per the city's open space plan, not the official neighborhood boundaries. Includes the non-spatial value Multi-District."
         },
         {
           "name": "ACRES",
-          "type": "double"
+          "type": "double",
+          "description": "Official area in acres of the open-space portion, the figure to use instead of computing geometry area."
         },
         {
           "name": "ADDRESS",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Street address if known, null for 589 rows."
         },
         {
           "name": "ZonAgg",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Aggregated zoning district, for example Open Space District."
         },
         {
           "name": "TypeLong",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Open space type as text, with minor spelling variants worth normalizing before grouping."
         },
         {
           "name": "OS_Own_Jur",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "The entity holding the open-space rights. BPRD, DCR, the Boston Conservation Commission, or None."
         },
         {
           "name": "OS_Mngmnt",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Managing entity only when it differs from OS_Own_Jur. Null means the steward manages it, not missing data."
         },
         {
           "name": "POS",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Protected open space flag. X permanently protected, N not."
         },
         {
           "name": "PA",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Public access flag. X accessible, A by appointment, N no or unknown access."
         },
         {
           "name": "ALT_NAME",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Official, previous, or colloquial alternate names."
         },
         {
           "name": "AgncyJuris",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Agency of jurisdiction for government-owned unprotected sites. Sparsely populated by design."
         },
         {
           "name": "ShapeSTAre",
-          "type": "double"
+          "type": "double",
+          "description": "ArcGIS-computed area in square meters from the source State Plane geometry."
         },
         {
           "name": "ShapeSTLen",
-          "type": "double"
+          "type": "double",
+          "description": "ArcGIS-computed perimeter in meters."
         },
         {
           "name": "geom",
-          "type": "geometry"
+          "type": "geometry",
+          "description": "Site geometry, WGS84 longitude and latitude."
         },
         {
           "name": "bbox",
-          "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+          "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+          "description": "Per-feature bounding box struct, the GeoParquet covering."
         }
       ],
       "table:primary_geometry": "geom",

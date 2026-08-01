@@ -94,6 +94,41 @@ catalogs:
     description: >-
       Non-geospatial companion tables published as Parquet.
 
+# Root catalog documentation. Like the per-collection docs, markdown templates
+# with generated blocks, {{collections}}, {{sources}}, and {{agents_index}}.
+docs:
+  readme: |
+    Every Collection here is a mirror that cites its true upstream source
+    with a real checksum, and every README and AGENTS.md is written to the
+    standard in the spec's documentation best practices, so the catalog
+    doubles as the worked example of what good catalog documentation looks
+    like. The Netherlands provinces Collection also mirrors its upstream ISO
+    19115 record as a metadata-role asset, and every code block in these
+    docs is executed by the repository's checks before it publishes.
+
+    Agents, each Collection carries its own AGENTS.md with join keys, quirks,
+    and tested queries, and the catalog-level [AGENTS.md](./AGENTS.md) maps
+    the joins between Collections.
+
+    ## Collections
+
+    {{collections}}
+
+    ## Where the Data Comes From
+
+    {{sources}}
+  agents: |
+    Eight small Collections, each with its own AGENTS.md worth reading before
+    querying it. Two attribute joins connect them. The Eurostat electricity
+    prices table joins Natural Earth countries on ISO_A2_EH after remapping
+    Eurostat's EL to GR and UK to GB. Natural Earth populated places join
+    Natural Earth countries on ADM0_A3 after remapping SSD to SDS for South
+    Sudan. Everything else connects only spatially, and the boundary layers
+    differ hugely in scale, from 1:110m world polygons to Boston parcels, so
+    match scales before spatial joins.
+
+    {{agents_index}}
+
 collections:
   # ---------------------------------------------------------------- reference/
   - id: reference/natural-earth-countries
@@ -117,7 +152,9 @@ collections:
     provenance:
       via: https://www.naturalearthdata.com/downloads/110m-cultural-vectors/
       updated: "2026-07-16T00:00:00Z"
-    temporal: ["2025-01-01T00:00:00Z", null]
+    # Data vintage, the 5.1.1 release of May 12, 2022, per the upstream
+    # CHANGELOG. Attribute vintages inside are mostly 2019.
+    temporal: ["2022-05-12T00:00:00Z", null]
     # No PMTiles on purpose. At 281 KB this GeoParquet is small enough for a client
     # to draw directly, which is the render-from-source path core.md offers
     # alongside a visualization derivative. Keeping it derivative-free is what
@@ -126,6 +163,169 @@ collections:
     derivatives: {pmtiles: false, thumbnail: true}
     # Colour the world by continent so the preview reads as a map, not one blob.
     style: {color: "#4d7ea8", category_field: CONTINENT, variants: [categorical]}
+    blurb: >-
+      177 country polygons at world scale, the public domain basemap behind
+      most web choropleths.
+    columns:
+      ADM0_A3: Natural Earth's own three-letter country code. Never a sentinel value, and the join key to the populated places Collection.
+      ISO_A3: ISO 3166-1 alpha-3 code, with the sentinel -99 for France, Norway, Kosovo, Northern Cyprus, and Somaliland. Prefer ISO_A3_EH.
+      ISO_A3_EH: ISO alpha-3 with France and Norway repaired. The column to join external ISO-coded statistics on.
+      ISO_A2: ISO 3166-1 alpha-2 code, -99 for the same five countries as ISO_A3.
+      ISO_A2_EH: ISO alpha-2 with France, Norway, and Kosovo (XK) repaired.
+      NAME: Short map label, for example Dem. Rep. Congo.
+      NAME_LONG: Long-form name, for example Democratic Republic of the Congo. Differs from NAME on 21 rows.
+      SOVEREIGNT: The owning sovereign state, which differs from ADMIN for territories such as Greenland (Denmark).
+      TYPE: Unit type, Sovereign country, Country, Dependency, Disputed, Indeterminate, or Sovereignty.
+      CONTINENT: Continent rollup. Includes the value Seven seas (open ocean), so a GROUP BY returns eight groups.
+      REGION_UN: United Nations macro region.
+      SUBREGION: United Nations subregion.
+      POP_EST: Population estimate, mostly the 2019 vintage. See POP_YEAR.
+      POP_YEAR: Year the population estimate refers to.
+      GDP_MD: GDP in millions of US dollars, mostly the 2019 vintage. See GDP_YEAR.
+      GDP_YEAR: Year the GDP figure refers to.
+      LABEL_X: Longitude of the preferred label point.
+      LABEL_Y: Latitude of the preferred label point.
+      NE_ID: Stable Natural Earth feature id, unique in this file.
+      WIKIDATAID: Wikidata QID, present on all 177 rows.
+      geom: Country geometry, polygon or multipolygon, WGS84 longitude and latitude.
+      bbox: Per-feature bounding box struct, the GeoParquet covering used for spatial predicate pushdown.
+    docs:
+      readme: |
+        [Natural Earth](https://www.naturalearthdata.com) is the public domain
+        reference map dataset that Nathaniel Vaughn Kelso and Tom Patterson
+        started in 2009 and maintain with volunteer cartographers under
+        [NACIS](https://nacis.org). This collection carries its 1:110m countries
+        theme, version 5.1.1 from May 2022, and holds 177 country polygons with
+        171 attribute columns of names in 26 languages, ISO codes, population
+        and GDP estimates from 2019, and cartographic styling hints. It is the
+        geometry behind [world-atlas](https://github.com/topojson/world-atlas)
+        and with that most of the world choropleths on the web.
+
+        Boundaries follow Natural Earth's
+        [de facto policy](https://www.naturalearthdata.com/about/disputed-boundaries-policy/),
+        showing who controls territory rather than legal claims, so Somaliland
+        and Northern Cyprus appear as their own rows. The 34 FCLASS point-of-view
+        columns added in December 2021 let a map follow a specific national
+        worldview instead.
+
+        Agents, read [AGENTS.md](./AGENTS.md) first. It carries the join keys,
+        the sentinel-value traps, and tested queries.
+
+        ## Quick Start
+
+        {{quickstart}}
+
+        ## Schema, the Columns That Matter
+
+        Twenty-two of the 171 columns do most of the work.
+
+        {{schema}}
+
+        ## Join Statistics to Geometry
+
+        The reason this Collection is in the catalog. Any table keyed by ISO
+        country code joins here for mapping, like the Eurostat electricity
+        prices table two directories over. Join on `ISO_A2_EH` or `ISO_A3_EH`,
+        not the raw ISO columns, which hold -99 for France and Norway.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT n.NAME, e.OBS_VALUE AS eur_per_kwh, n.geom
+        FROM read_parquet('../../tabular/eurostat-electricity-prices/eurostat-electricity-prices.parquet') e
+        JOIN read_parquet('natural-earth-countries.parquet') n
+          ON (CASE e.geo WHEN 'EL' THEN 'GR' WHEN 'UK' THEN 'GB' ELSE e.geo END) = n.ISO_A2_EH
+        WHERE e.TIME_PERIOD = '2025-S2' AND e.nrg_cons = 'KWH2500-4999'
+          AND e.tax = 'I_TAX' AND e.currency = 'EUR';
+        ```
+
+        ## Suggested Uses
+
+        Choropleths of ISO-coded statistics, continent and region rollups, and
+        quick spatial-query demos. The `MAPCOLOR7` through `MAPCOLOR13` columns
+        assign map colors so neighboring countries differ, and `LABEL_X` and
+        `LABEL_Y` carry hand-placed label points, both there for basemap
+        rendering.
+
+        ## Limitations
+
+        Not authoritative for legal boundaries. Natural Earth draws de facto
+        control, so Crimea, Kashmir, and Western Sahara follow the situation on
+        the ground, not treaties. Not measurement geometry either. At 1:110m a
+        coastline is simplified by tens of kilometres, and 43 small countries
+        and territories, from Andorra and Malta to Singapore and the Vatican,
+        have no polygon at all. Population and GDP are 2019 estimates. Upstream
+        publishes no formal accuracy figures, and the last cultural release was
+        in May 2022.
+
+        {{provenance}}
+      agents: |
+        World country polygons for joins and rollups, not for legal boundaries
+        or precise areas. The stable key is `ADM0_A3`. External statistics join
+        on `ISO_A3_EH` or `ISO_A2_EH`. The raw `ISO_A3` and `ISO_A2` columns
+        hold the sentinel -99 for France, Norway, Kosovo, Northern Cyprus, and
+        Somaliland, so a filter like ISO_A3 = 'FRA' matches nothing.
+
+        {{access}}
+
+        ## Quirks
+
+        - -99 is the global no-data sentinel, in the ISO columns and in numeric
+          columns like TINY and MAPCOLOR13. Check for it before trusting a value.
+        - France includes French Guiana as one row, so its bbox spans from
+          South America to Europe and bbox filters on South America catch France.
+        - South Sudan is `SDS` here but `SSD` in the populated places file. An
+          `ADM0_A3` join between the two layers drops it unless you remap.
+        - Antarctica is a country row with population 4,490, and the continent
+          column also holds Seven seas (open ocean) for the French Southern and
+          Antarctic Lands.
+        - Russia and Fiji cross the antimeridian, so their bboxes span the full
+          longitude range and naive bbox-width logic breaks.
+
+        ## CRS, Degrees In, Degrees Out
+
+        EPSG:4326, longitude and latitude in degrees. `ST_Area(geom)` returns
+        square degrees, which makes Greenland read nearly as large as Brazil.
+        For real areas use the spheroid function, and flip coordinates first
+        because DuckDB's geodesic functions expect latitude first.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT NAME, round(ST_Area_Spheroid(ST_FlipCoordinates(geom)) / 1e6) AS km2
+        FROM read_parquet('natural-earth-countries.parquet')
+        ORDER BY km2 DESC LIMIT 5;
+        -- Russia 17,018,507 then Antarctica, Canada, United States, China.
+        -- Without the flip, Brazil returns 5.2M km2 instead of 8.5M and 33
+        -- countries return NaN.
+        ```
+
+        ## Tested Queries
+
+        Population by continent.
+
+        ```sql
+        SELECT CONTINENT, count(*) AS countries, sum(POP_EST)::BIGINT AS pop
+        FROM read_parquet('natural-earth-countries.parquet')
+        GROUP BY CONTINENT ORDER BY pop DESC;
+        -- Asia 4.55B across 47 rows, Africa 1.31B across 51, eight groups in all.
+        ```
+
+        Which country contains a point.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT NAME, ADM0_A3
+        FROM read_parquet('natural-earth-countries.parquet')
+        WHERE ST_Contains(geom, ST_Point(13.405, 52.52));
+        -- Germany, DEU. ST_Point takes longitude first.
+        ```
+
+        ## Related Collections
+
+        `reference/natural-earth-populated-places` joins on `ADM0_A3` with the
+        South Sudan remap above. `tabular/eurostat-electricity-prices` joins on
+        `ISO_A2_EH` after remapping Eurostat's EL and UK codes, the worked
+        example lives in that Collection's README. Converted from the upstream
+        zipped Shapefile with DuckDB spatial into web-optimized GeoParquet 2.0.
 
   - id: reference/natural-earth-populated-places
     kind: vector
@@ -148,11 +348,148 @@ collections:
     provenance:
       via: https://www.naturalearthdata.com/downloads/50m-cultural-vectors/
       updated: "2026-07-16T00:00:00Z"
-    temporal: ["2025-01-01T00:00:00Z", null]
+    # Data vintage, the 5.1.2 release of May 13, 2022, per the upstream
+    # CHANGELOG.
+    temporal: ["2022-05-13T00:00:00Z", null]
     # No PMTiles on purpose, same render-from-source reasoning as the countries
     # Collection above. 604 KB of points a client can draw itself.
     derivatives: {pmtiles: false, thumbnail: true}
     style: {color: "#c65b3c"}
+    blurb: >-
+      1,251 curated city and town points with population estimates, from Tokyo
+      to Antarctic research stations.
+    columns:
+      NAME: Display name with diacritics, for example Neuquén. Not unique, several city names repeat across countries.
+      NAMEASCII: ASCII fallback spelling of the name.
+      FEATURECLA: What kind of place this is. Admin-0 capital, Admin-1 capital, Populated place, Scientific station, and four rarer classes.
+      ADM0CAP: 1 marks a national capital, 200 rows in this file.
+      ADM0_A3: Natural Earth country code, the join key to the countries Collection.
+      ADM0NAME: Country name the point belongs to.
+      ADM1NAME: First-level admin region the point belongs to.
+      POP_MAX: Population of the metro area, LandScan derived. Tokyo carries 35,676,000.
+      POP_MIN: Population of the city proper. Tokyo carries 8,336,599.
+      SCALERANK: Importance rank 0 to 10, 0 most important. Filter on it to thin labels by zoom.
+      MIN_ZOOM: Suggested minimum web-map zoom for showing the place.
+      MEGACITY: 1 flags the 462 places Natural Earth treats as megacities.
+      WORLDCITY: 1 flags 70 globally prominent cities.
+      TIMEZONE: IANA time zone name, empty for 114 rows.
+      NE_ID: Stable Natural Earth feature id, unique in this file.
+      WIKIDATAID: Wikidata QID, missing for 7 rows.
+      GEONAMESID: GeoNames id, missing for 43 rows.
+      geom: Point geometry, WGS84 longitude and latitude. Use it instead of the legacy LATITUDE and LONGITUDE columns.
+      bbox: Per-feature bounding box struct, the GeoParquet covering.
+    docs:
+      readme: |
+        City and town points at 1:50m scale from
+        [Natural Earth](https://www.naturalearthdata.com), version 5.1.2 from
+        May 2022. The 1,251 points cover every national and most first-level
+        capitals, major cities, and, in Natural Earth's own words, a sampling
+        of smaller towns in sparsely inhabited regions, favoring regional
+        significance over population census. LandScan-derived population
+        estimates cover about 90 percent of the places.
+
+        Agents, read [AGENTS.md](./AGENTS.md) first, especially before joining
+        these points to country polygons.
+
+        ## What Counts as a Place
+
+        The `FEATURECLA` column answers it. 482 Admin-1 capitals, 414 plain
+        populated places, 202 national capitals, and some surprises, 40
+        Antarctic research stations including Amundsen-Scott at exactly 90
+        degrees south, 13 alternate capitals such as The Hague and Lagos, and
+        one historic place, the abandoned Siberian port of Ambarchik with
+        population zero. Filter on it before counting cities.
+
+        ## Quick Start
+
+        {{quickstart}}
+
+        ## Sizing and Filtering Labels
+
+        The cartographic columns are the point of this theme. Natural Earth's
+        guidance is to size labels from `POP_MAX` and thin them with the scale
+        rankings, and `MIN_ZOOM` maps that to web-map zoom levels directly.
+
+        ```sql
+        SELECT NAME, POP_MAX, SCALERANK
+        FROM read_parquet('natural-earth-populated-places.parquet')
+        WHERE SCALERANK = 0
+        ORDER BY POP_MAX DESC LIMIT 5;
+        ```
+
+        ## Schema, the Columns That Matter
+
+        Nineteen of the 140 columns cover most uses.
+
+        {{schema}}
+
+        ## Limitations
+
+        A curated cartographic layer, not a gazetteer and not a demographic
+        dataset. Absence means Natural Earth chose not to include a town, not
+        that it does not exist, and the population figures are 2019-era
+        estimates for label sizing, not census data. `POP_MAX` counts the
+        metro area and `POP_MIN` the city proper, so ranking cities without
+        picking one deliberately mixes definitions. Names repeat, Mérida,
+        Portland, and Valencia each appear twice, so use `NE_ID` as the key.
+
+        {{provenance}}
+      agents: |
+        Curated world city points that join to the countries Collection on
+        `ADM0_A3`. Join by attribute, never spatially. 113 of the 1,251 points,
+        Istanbul, Montevideo, and Geneva among them, fall outside their own
+        country's generalized 1:110m polygon because coastal simplification
+        pushes them offshore.
+
+        {{access}}
+
+        ## Quirks
+
+        - The United States capital is spelled with two spaces after the comma,
+          so NAME = 'Washington, D.C.' matches nothing. Use LIKE 'Washington%'
+          or ADM0CAP = 1 with ADM0_A3 = 'USA'.
+        - South Sudan is `SSD` here but `SDS` in the countries file. Remap one
+          side before joining, or Juba, Malakal, and Wau drop out.
+        - The legacy LATITUDE and LONGITUDE columns diverge from the geometry
+          by up to 0.22 degrees. They are old label anchors, read `geom`.
+        - The UN time series columns POP1950 through POP2050 are populated only
+          for the 463 UN-tracked agglomerations, zero elsewhere, and POP2050 is
+          a projection.
+        - 59 places carry POP_MAX below 1,000, mostly stations and outposts, so
+          population filters silently drop real capitals of small territories.
+
+        ## Tested Queries
+
+        Capitals per continent, with the country join done correctly.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT c.CONTINENT, count(*) AS capitals
+        FROM read_parquet('natural-earth-populated-places.parquet') p
+        JOIN read_parquet('../natural-earth-countries/natural-earth-countries.parquet') c
+          ON (CASE p.ADM0_A3 WHEN 'SSD' THEN 'SDS' ELSE p.ADM0_A3 END) = c.ADM0_A3
+        WHERE p.ADM0CAP = 1
+        GROUP BY c.CONTINENT ORDER BY capitals DESC;
+        -- Africa 52, Asia 45, Europe 39, then the Americas and Oceania.
+        ```
+
+        Nearest city to a point, distance in kilometres.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT NAME, ADM0NAME,
+               round(ST_Distance_Sphere(geom, ST_Point(-122.4783, 37.8199)) / 1000, 1) AS km
+        FROM read_parquet('natural-earth-populated-places.parquet')
+        ORDER BY km LIMIT 3;
+        -- San Francisco 9.0 km, San Jose 71.7 km, Sacramento 120.4 km.
+        ```
+
+        ## Related Collections
+
+        `reference/natural-earth-countries` is the polygon companion, same
+        producer and vintage family, joined on `ADM0_A3` with the South Sudan
+        remap. Converted from the upstream zipped Shapefile with DuckDB spatial
+        into web-optimized GeoParquet 2.0.
 
   # --------------------------------------------------------------- boundaries/
   - id: boundaries/us-counties
@@ -196,6 +533,176 @@ collections:
       category_field: STATE_NAME
       label_field: NAME
       variants: [categorical, labeled]
+    blurb: >-
+      All 3,235 county and equivalent boundaries as of January 1, 2023,
+      keyed by the FIPS codes that unlock US county statistics.
+    columns:
+      STATEFP: Two-digit state or territory FIPS code as a zero-padded string.
+      COUNTYFP: Three-digit county FIPS code, unique within its state.
+      COUNTYNS: Eight-digit ANSI (GNIS) code, the permanent identifier that survives FIPS reassignment.
+      GEOIDFQ: Fully qualified GEOID, 0500000US plus GEOID. Matches the GEO_ID column in data.census.gov downloads directly. Called AFFGEOID before the 2023 vintage.
+      GEOID: Five-digit STATEFP plus COUNTYFP concatenation, the standard join key for US county statistics. Keep it a string, integer casts strip the leading zero.
+      NAME: Base name only, for example Denver. 31 rows are named Washington, so never key on it.
+      NAMELSAD: Name with its legal or statistical description, for example St. Louis city. The display name.
+      STUSPS: Two-letter USPS state or territory abbreviation.
+      STATE_NAME: Full state or territory name.
+      LSAD: Legal or statistical area description code. Twelve kinds of county equivalent appear in this file.
+      ALAND: Land area in square meters, computed from the full-resolution legal boundary, not from this generalized geometry.
+      AWATER: Water area in square meters, including territorial water that lies outside the clipped shoreline geometry.
+      geom: County geometry clipped to the shoreline, NAD83 longitude and latitude.
+      bbox: Per-feature bounding box struct, the GeoParquet covering.
+    docs:
+      readme: |
+        Every county and county equivalent in the United States and its
+        territories, 3,235 polygons as of January 1, 2023, from the
+        [US Census Bureau's cartographic boundary files](https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html).
+        Cartographic boundary files are generalized from the authoritative
+        [TIGER/Line](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html)
+        database for thematic mapping, simplified to 1:500,000 and clipped to
+        the shoreline, so coastal counties look like the coastline rather than
+        extending into their legal water area. A new vintage ships every year.
+
+        The `GEOID` column is the five-digit county FIPS code that keys county
+        statistics across the US government, Census ACS and decennial tables,
+        BLS employment, CDC health data, USDA agriculture. That join is what
+        this Collection is for.
+
+        Agents, [AGENTS.md](./AGENTS.md) carries the FIPS join hazards, the
+        area-calculation trap, and tested queries.
+
+        ## Quick Start
+
+        {{quickstart}}
+
+        ## Not Every County Is a County
+
+        The file holds 3,144 county equivalents in the 50 states and DC plus 91
+        in the territories, and the `LSAD` column tells them apart, 2,999
+        counties, 78 Puerto Rico municipios, 64 Louisiana parishes, 40
+        independent cities, Alaska's boroughs and census areas, and more.
+        Connecticut is the one to know about. In June 2022 the Census Bureau
+        [replaced its eight legacy counties](https://www.federalregister.gov/documents/2022/06/06/2022-12063/change-to-county-equivalents-in-the-state-of-connecticut)
+        with nine planning regions, so this file carries GEOIDs 09110 through
+        09190 and any dataset still keyed to 09001 through 09015 will not join.
+
+        ## Schema
+
+        {{schema}}
+
+        ## Join Census Data
+
+        `GEOIDFQ` equals the GEO_ID column of every table downloaded from
+        [data.census.gov](https://data.census.gov), so American Community
+        Survey data joins with no string surgery. The pattern, with the ACS
+        table read from a downloaded CSV.
+
+        ```
+        SELECT c.NAMELSAD, acs.estimate
+        FROM 'us-counties.parquet' c
+        JOIN 'acs_table.csv' acs ON acs.GEO_ID = c.GEOIDFQ
+        ```
+
+        ## Suggested Uses
+
+        County choropleths of any FIPS-keyed statistic, the same role the
+        Census files play behind the D3 ecosystem's
+        [us-atlas](https://github.com/topojson/us-atlas), state-level rollups
+        via `STATEFP`, and point-in-county lookups at city scale and coarser.
+
+        ## Limitations
+
+        The Census Bureau's own guidance rules out geographic analysis
+        including area or perimeter calculation, geocoding, and legal boundary
+        determination. Use `ALAND` and `AWATER` for areas, they come from the
+        full-resolution geography. At neighborhood zoom the generalized lines
+        visibly cut corners, and small offshore islands may be missing
+        entirely. Boundaries are the January 1, 2023 vintage, so data keyed to
+        other years can mismatch, Connecticut above all.
+
+        {{provenance}}
+      agents: |
+        County polygons whose value is the `GEOID` column, the five-digit FIPS
+        key to US county statistics. Join ACS and decennial downloads on
+        `GEOIDFQ` instead, it matches their GEO_ID column verbatim. `COUNTYNS`
+        is the identifier that survives FIPS changes across years.
+
+        {{access}}
+
+        ## Quirks
+
+        - GEOID is a zero-padded string. Cast it to integer and Alabama's 01001
+          becomes 1001, silently unjoining every state below FIPS 10. CSV
+          round-trips are the usual culprit.
+        - NAME is wildly ambiguous, 31 Washingtons, and independent cities
+          collide with the counties that share their name. Baltimore city is
+          24510, Baltimore County is 24005. The lowercase word city in NAMELSAD
+          is what marks an independent city.
+        - Connecticut has nine planning regions, GEOIDs 09110 to 09190, LSAD
+          PL, since the 2022 change. Datasets keyed to the old 09001 to 09015
+          match nothing here.
+        - Aleutians West Census Area crosses the antimeridian, so its stored
+          bbox spans nearly all longitudes and it passes almost every naive
+          bbox filter. Handle it before bbox-windowing the world.
+        - Geometry is clipped to shoreline but AWATER is not, so San
+          Francisco's polygon covers 122 km2 while ALAND plus AWATER is 601
+          km2. Offshore points in legal county water fall in no polygon.
+
+        ## Areas, the Wrong Way and the Right Way
+
+        Coordinates are NAD83 degrees, EPSG:4269, so `ST_Area` returns square
+        degrees and DuckDB's `ST_Area_Spheroid` returns NaN or wrong values on
+        several of these multipolygons. Trust `ALAND` and `AWATER`, or
+        transform to an equal-area CRS.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT NAMELSAD,
+               round(ST_Area(ST_Transform(geom, 'EPSG:4269', 'EPSG:5070', always_xy := true)) / 1e6, 1) AS km2,
+               round(ALAND / 1e6, 1) AS aland_km2
+        FROM read_parquet('us-counties.parquet') WHERE GEOID = '08031';
+        -- Denver County, 400.7 km2 from geometry, 396.5 km2 of official land.
+        ```
+
+        For web mapping, treating the NAD83 coordinates as WGS84 shifts
+        nothing visible at this generalization level.
+
+        ## Tested Queries
+
+        Counties per state.
+
+        ```sql
+        SELECT STUSPS, count(*) AS n
+        FROM read_parquet('us-counties.parquet')
+        GROUP BY STUSPS ORDER BY n DESC LIMIT 5;
+        -- Texas 254, Georgia 159, Virginia 133, Kentucky 120, Missouri 115.
+        ```
+
+        Which county contains a point, longitude first.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT GEOID, NAMELSAD, STUSPS
+        FROM read_parquet('us-counties.parquet')
+        WHERE ST_Contains(geom, ST_Point(-104.9903, 39.7392));
+        -- 08031, Denver County, CO.
+        ```
+
+        Cheap spatial windows from the bbox covering column.
+
+        ```sql
+        SELECT count(*) FROM read_parquet('us-counties.parquet')
+        WHERE bbox.xmin > -109.06 AND bbox.xmax < -102.04
+          AND bbox.ymin > 36.99 AND bbox.ymax < 41.01;
+        -- 62 of Colorado's 64 counties, two generalized bboxes nick the state line.
+        ```
+
+        ## Related Collections
+
+        No attribute join inside this catalog, the FIPS ecosystem lives
+        outside it. Spatial joins against `boundaries/boston-open-space` or the
+        Natural Earth layers work at matching scales. Converted from the
+        upstream zipped Shapefile with DuckDB spatial into web-optimized
+        GeoParquet 2.0.
 
   - id: boundaries/boston-open-space
     kind: vector
@@ -228,6 +735,182 @@ collections:
       label_field: SITE_NAME
       graduated_field: ACRES
       variants: [categorical, labeled, graduated]
+    blurb: >-
+      1,012 open space polygons of conservation and recreation interest,
+      regardless of ownership, from Franklin Park to community gardens.
+    columns:
+      SITE_NAME: Best-known or official site name. Multi-parcel sites carry Roman numeral suffixes, Stony Brook Reservation I and II.
+      OWNERSHIP: Fee owner where known. City of Boston, Commonwealth of Massachusetts, private owners, and agency abbreviations like BRA and BNAN.
+      PROTECTION: Slash-separated legal protection instruments. A97 is Article 97 of the Massachusetts Constitution, the strongest. Free text, match with LIKE.
+      TYPECODE: Numeric open space type 1 through 7. Disagrees with TypeLong on about 13 rows, treat TypeLong as closer to intent.
+      DISTRICT: Planning district per the city's open space plan, not the official neighborhood boundaries. Includes the non-spatial value Multi-District.
+      ACRES: Official area in acres of the open-space portion, the figure to use instead of computing geometry area.
+      ADDRESS: Street address if known, null for 589 rows.
+      ZonAgg: Aggregated zoning district, for example Open Space District.
+      TypeLong: Open space type as text, with minor spelling variants worth normalizing before grouping.
+      OS_Own_Jur: The entity holding the open-space rights. BPRD, DCR, the Boston Conservation Commission, or None.
+      OS_Mngmnt: Managing entity only when it differs from OS_Own_Jur. Null means the steward manages it, not missing data.
+      POS: Protected open space flag. X permanently protected, N not.
+      PA: Public access flag. X accessible, A by appointment, N no or unknown access.
+      ALT_NAME: Official, previous, or colloquial alternate names.
+      AgncyJuris: Agency of jurisdiction for government-owned unprotected sites. Sparsely populated by design.
+      ShapeSTAre: ArcGIS-computed area in square meters from the source State Plane geometry.
+      ShapeSTLen: ArcGIS-computed perimeter in meters.
+      geom: Site geometry, WGS84 longitude and latitude.
+      bbox: Per-feature bounding box struct, the GeoParquet covering.
+    docs:
+      readme: |
+        Every open space of conservation and recreation interest in Boston,
+        1,012 polygons and 7,356 acres, from Franklin Park's 392 acres down to
+        pocket gardens, maintained by the
+        [Boston Parks and Recreation Department](https://www.boston.gov/departments/parks-and-recreation)
+        and published on [Analyze Boston](https://data.boston.gov/dataset/open-space).
+        The layer's defining trait is in its official description, regardless
+        of ownership. City parks sit beside 214 privately owned sites, state
+        reservations, cemeteries, and 124 community gardens.
+
+        This inventory is the basis of the city's
+        [Open Space and Recreation Plan 2023-2029](https://www.boston.gov/departments/parks-and-recreation/updating-seven-year-open-space-plan),
+        which reports 7.1 acres of protected open space per 1,000 residents,
+        and every site in it triggers design review within 100 feet under
+        Boston's Municipal Ordinance 7-4.11.
+
+        Agents, [AGENTS.md](./AGENTS.md) documents the free-text traps in this
+        very real municipal data, read it before aggregating.
+
+        ## What Is in It
+
+        Six site types by acreage. Parkways, reservations, and beaches, 82
+        sites and 2,622 acres. Parks, playgrounds, and athletic fields, 361
+        sites and 2,559 acres. Cemeteries and burying grounds, 38 and 1,013.
+        Urban wilds and natural areas, 144 and 929. Malls, squares, and
+        plazas, 261 and 199. Community gardens, 124 sites and 32 acres.
+
+        ## Quick Start
+
+        {{quickstart}}
+
+        ## Schema
+
+        {{schema}}
+
+        ## Protection and Access Are Columns, Not Assumptions
+
+        Being in this file does not mean a site is a public park. Cross the
+        two flag columns before any access or equity claim. `POS` says whether
+        a site is permanently protected, 450 sites and 5,015 acres are, mostly
+        under Article 97 of the Massachusetts Constitution, which requires a
+        two-thirds vote of the legislature to convert conservation land.
+        `PA` says whether the public can actually get in, 724 sites yes, 4 by
+        appointment only, and the rest unknown or no.
+
+        ```sql
+        SELECT SITE_NAME, ACRES, DISTRICT
+        FROM read_parquet('boston-open-space.parquet')
+        WHERE POS = 'X' AND PA = 'X'
+        ORDER BY ACRES DESC LIMIT 5;
+        ```
+
+        ## Limitations
+
+        A planning inventory, not a legal record. The city's own disclaimer
+        limits it to general planning, only deeds research and surveys settle
+        boundaries. It also is not a complete greenspace layer, street trees,
+        most schoolyards, and private yards are absent. This is a fixed
+        snapshot from July 2026 of a continuously edited layer, and it carries
+        no stable public identifier, so joins to later versions go through
+        `SITE_NAME` or space.
+
+        {{provenance}}
+      agents: |
+        Boston's official open space inventory, valuable and messy in the way
+        municipal GIS data actually is. No stable key, free-text code columns,
+        and sentinel strings. The quirks below are each verified against the
+        data and each prevents a silently wrong answer.
+
+        {{access}}
+
+        ## Quirks
+
+        - PROTECTION is a slash-separated free-text list with typos, Ch91 and
+          Ch 91, CATMit and CAT Mit. Match with LIKE '%A97%', never equality.
+          453 sites match A97, Article 97 constitutional protection.
+        - Null OS_Mngmnt means the steward in OS_Own_Jur manages the site
+          itself. It is a meaningful value, not missing data.
+        - Sentinel strings pollute several columns, None, NULL, n/a, and angle
+          bracket Null variants in OS_Own_Jur and AgncyJuris, plus one
+          lowercase South end in DISTRICT.
+        - TypeLong has spelling variants, an and for ampersand form and a
+          trailing-space form. Normalize with trim and replace before GROUP BY,
+          and expect TYPECODE to contradict it on about 13 rows.
+        - Nine real sites carry ACRES = 0, so WHERE ACRES > 0 drops them. Fall
+          back to geometry area for those.
+        - DISTRICT is the open space plan's districting, not official Boston
+          neighborhoods, and four large linear parks are assigned the literal
+          value Multi-District rather than a place.
+
+        ## Area, Use the ACRES Column
+
+        Geometry is WGS84 degrees, so `ST_Area` returns square degrees. The
+        official `ACRES` column matches geodesic geometry area to a median of
+        0.003 acres, use it. If you must compute, DuckDB's spheroid function
+        wants latitude first, and skipping the flip shrinks Boston by more
+        than half.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT round(sum(ST_Area_Spheroid(ST_FlipCoordinates(geom))) / 4046.8564) AS acres_flipped,
+               round(sum(ACRES)) AS acres_official
+        FROM read_parquet('boston-open-space.parquet');
+        -- 7374 from geometry against 7356 official. Without the flip, 3250.
+        ```
+
+        Eighteen sites disagree with their geometry by more than 10 percent,
+        documented cases like Condor Street Overlook where ACRES excludes
+        mudflats the polygon includes.
+
+        ## Tested Queries
+
+        Acreage by normalized type.
+
+        ```sql
+        SELECT trim(replace(TypeLong, ' and ', ' & ')) AS site_type,
+               count(*) AS sites, round(sum(ACRES), 1) AS acres
+        FROM read_parquet('boston-open-space.parquet')
+        WHERE TypeLong IS NOT NULL
+        GROUP BY site_type ORDER BY acres DESC;
+        -- Six types, led by Parkways, Reservations & Beaches at 2,621.6 acres.
+        ```
+
+        Which open space contains a point. Boston Common from its center.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT SITE_NAME, DISTRICT, ACRES
+        FROM read_parquet('boston-open-space.parquet')
+        WHERE ST_Contains(geom, ST_Point(-71.0656, 42.3550));
+        -- Boston Common, Back Bay/Beacon Hill, 45.7 acres.
+        ```
+
+        Protected share by district.
+
+        ```sql
+        SELECT DISTRICT, round(sum(ACRES), 1) AS total_acres,
+               round(sum(ACRES) FILTER (WHERE POS = 'X'), 1) AS protected_acres
+        FROM read_parquet('boston-open-space.parquet')
+        GROUP BY DISTRICT ORDER BY total_acres DESC LIMIT 3;
+        -- West Roxbury 1,215 total and 637 protected, then the Harbor Islands
+        -- and Roslindale.
+        ```
+
+        ## Related Collections
+
+        `boundaries/us-counties` contains Boston at a far coarser scale, and a
+        spatial join is the only bridge. The upstream layer on Analyze Boston
+        is continuously maintained and now carries columns this July 2026
+        snapshot predates, OS_ID, ZipCode, ParcelNumber, YearAcquired.
+        Converted from the city's Shapefile export with DuckDB spatial into
+        web-optimized GeoParquet 2.0.
 
   - id: boundaries/netherlands-provinces
     kind: vector
@@ -263,6 +946,171 @@ collections:
       category_field: naam
       label_field: naam
       variants: [categorical, labeled]
+    # The upstream ISO 19115 dataset record from the Nationaal Georegister,
+    # mirrored beside the data as a metadata-role asset. Mirrored rather than
+    # linked because GeoNetwork regenerates its XML, and a checksum pinned to
+    # bytes the catalog does not control rots, the live-endpoint rule again.
+    metadata:
+      url: https://www.nationaalgeoregister.nl/geonetwork/srv/api/records/208bc283-7c66-4ce7-8ad3-1cf3e8933fb5/formatters/xml
+      media_type: application/vnd.iso.19139+xml
+      title: ISO 19115 metadata record, BRK Bestuurlijke Gebieden (Nationaal Georegister)
+      standard: iso-19115
+    blurb: >-
+      The 12 provinces from the cadastral registry, boundaries that reproduce
+      the national statistics office's official areas to one decimal.
+    columns:
+      identificatie: Province identifier PV20 through PV31, PV plus the CBS province code. The join key to CBS StatLine regional tables.
+      naam: Official province name. Fryslân carries its official Frisian spelling, a filter on Friesland returns nothing.
+      code: Two-digit CBS province code as a string, 20 through 31. Joins to ligt_in_provincie_code in the source's municipality layer.
+      ligt_in_land_code: Country code, the constant 6030 for Nederland.
+      ligt_in_land_naam: Country name, the constant Nederland.
+      geom: Province geometry, multipolygon, in the Dutch national grid EPSG:28992 in meters.
+      bbox: Per-feature bounding box struct in RD New meters, the GeoParquet covering.
+    docs:
+      readme: |
+        [Kadaster](https://www.kadaster.nl), the Dutch cadastral agency,
+        derives the country's administrative division from the cadastral
+        registration and publishes it through
+        [PDOK](https://www.pdok.nl/introductie/-/article/bestuurlijke-gebieden),
+        the national open geodata platform, in an edition established every
+        January when municipal reorganizations take effect. This Collection
+        carries the 12 provinces of the 2026 edition, valid from January 1,
+        2026. PDOK names the layer as the base of public applications from
+        [atlasleefomgeving.nl](https://www.atlasleefomgeving.nl) to the
+        official bathing water site [zwemwater.nl](https://www.zwemwater.nl).
+
+        The geometry checks out against the national statistics office.
+        Computing `ST_Area` per province reproduces the official CBS surface
+        figures to one decimal, Utrecht 1,560.1 square kilometres against the
+        published 1,560.05.
+
+        Agents, [AGENTS.md](./AGENTS.md) has the CBS join recipe, the Baarle
+        enclave surprise, and the metric CRS consequences.
+
+        ## Quick Start
+
+        {{quickstart}}
+
+        ## Machine-Readable Metadata
+
+        Beside the data sits `iso19115.xml`, the upstream ISO 19115 metadata
+        record for BRK Bestuurlijke Gebieden, mirrored on July 31, 2026 from
+        the [Nationaal Georegister](https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/208bc283-7c66-4ce7-8ad3-1cf3e8933fb5)
+        and carried as a metadata-role asset. Catalogs that already maintain
+        ISO metadata can ship it alongside the STAC this way instead of
+        abandoning it.
+
+        ## Schema
+
+        {{schema}}
+
+        ## Join the National Statistics
+
+        `identificatie` holds the CBS region codes PV20 through PV31, the same
+        keys every provincial table on
+        [CBS StatLine](https://opendata.cbs.nl) uses, which connects these 12
+        polygons to Dutch official statistics on population, income, land use,
+        and more. Trim the CBS side first, the classic OData API pads its keys
+        with trailing spaces.
+
+        ## Water Is Inside the Boundaries
+
+        The provinces sum to 41,543 square kilometres while the land surface
+        of the Netherlands is about 33,500. Administrative boundaries divide
+        the Wadden Sea, the IJsselmeer, and the delta waters among provinces,
+        so Fryslân is the largest province by total area and roughly 42
+        percent water. Rankings and densities computed from these polygons
+        answer the water-inclusive question unless you subtract water first,
+        CBS publishes the land-only figures.
+
+        ## Limitations
+
+        One annual snapshot, valid for January 1, 2026 only, and boundary
+        history needs the matching year's edition, PDOK keeps five. Derived
+        from the cadastre but not a substitute for it, parcel-level legal
+        questions belong to the BRK itself. The Caribbean Netherlands,
+        Bonaire, Sint Eustatius, and Saba, belongs to no province and is not
+        here.
+
+        {{provenance}}
+      agents: |
+        Dutch province polygons whose `identificatie` codes PV20 to PV31 join
+        CBS StatLine, the same code system all Dutch government data uses at
+        province level. The `code` column, bare 20 to 31, joins the
+        municipality layer of the same upstream GeoPackage on
+        ligt_in_provincie_code.
+
+        {{access}}
+
+        ## CRS, a Metric National Grid
+
+        EPSG:28992, Amersfoort / RD New, the Dutch national grid in meters,
+        valid only for the European Netherlands. `ST_Area(geom)` returns
+        square meters directly, divide by 1e6 for square kilometres, and the
+        results match CBS official figures to one decimal. Web maps need
+        `ST_Transform(geom, 'EPSG:28992', 'EPSG:4326', always_xy := true)`,
+        and without always_xy the axes come back flipped. Points must be
+        transformed into RD before ST_Contains. The bbox covering column is
+        also in RD meters, while the STAC extent in collection.json is WGS84.
+
+        ## Quirks
+
+        - Fryslân, not Friesland. The naam column uses official spellings with
+          diacritics.
+        - Noord-Brabant is a 9-part multipolygon with 22 holes, the Baarle
+          enclave complex on the Belgian border. Belgian exclaves are punched
+          out and 8 tiny Dutch counter-enclaves float inside them, so
+          one-province-one-polygon assumptions and small-area filters both
+          break.
+        - Provinces include their water. Fryslân is the largest by total area
+          and third by land.
+        - CBS OData v3 keys carry trailing spaces, PV20 with two spaces. Trim
+          before joining.
+        - fid order is arbitrary, Flevoland is 1 and Groningen is 11. Key on
+          code or identificatie.
+
+        ## Tested Queries
+
+        Areas that reproduce official statistics.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT naam, code, round(ST_Area(geom) / 1e6, 1) AS area_km2
+        FROM read_parquet('netherlands-provinces.parquet')
+        ORDER BY area_km2 DESC LIMIT 3;
+        -- Fryslân 5753.3, Gelderland 5136.3, Noord-Brabant 5082.1.
+        ```
+
+        Which province contains a point, in RD meters. Amsterdam.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT naam FROM read_parquet('netherlands-provinces.parquet')
+        WHERE ST_Contains(geom, ST_Point(121687, 487484));
+        -- Noord-Holland.
+        ```
+
+        The Baarle enclave forensic, parts of Noord-Brabant.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        WITH parts AS (
+          SELECT unnest(ST_Dump(geom)) AS d
+          FROM read_parquet('netherlands-provinces.parquet')
+          WHERE naam = 'Noord-Brabant')
+        SELECT count(*) AS parts, round(min(ST_Area(d.geom)) / 1e6, 4) AS smallest_km2
+        FROM parts;
+        -- 9 parts, the smallest 0.0029 km2. DuckDB has no ST_GeometryN, use unnest.
+        ```
+
+        ## Related Collections
+
+        The upstream GeoPackage also carries the 342 municipalities
+        (gemeentegebied) and the national outline (landgebied), joined on the
+        code columns above. Within this catalog the other boundary Collections
+        connect only spatially. Converted from PDOK's GeoPackage with DuckDB
+        spatial into web-optimized GeoParquet 2.0, preserving the source CRS.
+        The mirrored ISO 19115 record is the metadata asset beside the data.
 
   # ------------------------------------------------------------------- mirror/
   - id: mirror/san-francisco-addresses
@@ -291,6 +1139,176 @@ collections:
     temporal: ["2018-10-12T00:00:00Z", null]
     derivatives: {pmtiles: true, thumbnail: true}
     style: {color: "#6a1b9a"}
+    blurb: >-
+      A fixed 5,000-record extract of San Francisco's 388,550-record master
+      address database, kept small on purpose for spec demonstration.
+    columns:
+      eas_fullid: Unique row identifier, base id, sub id, and parcel link id joined with dashes. The only column unique per row.
+      eas_baseid: Identifier of the base address, the building. Units share it, so count distinct eas_baseid for buildings.
+      eas_subid: Identifier of the sub-address, a unit or apartment, within its base.
+      address: Full address string, with the unit as a hash suffix when present.
+      address_number: Street number.
+      address_number_suffix: Street number suffix such as A, null for nearly all rows.
+      street_name: Parsed street name.
+      street_type: Parsed street type, ST or AVE. Null for streets like BROADWAY that have no type.
+      street_full_street_name: Street name and type together.
+      unit_number: Unit designator, null on base-address rows.
+      zip_code: Five-digit ZIP code as a string.
+      block: Assessor block number as a string.
+      lot: Assessor lot number as a string.
+      parcel_number: Assessor parcel number, block plus lot. Null on 32 percent of rows, a parcel join drops them silently.
+      cnn: Centerline Network Number, the street-segment key of the city basemap, joins to the DataSF street centerlines.
+      longitude: Longitude as text. Prefer the geometry column.
+      latitude: Latitude as text. Prefer the geometry column.
+      supervisor: Supervisor district number as a string.
+      nhood: DataSF analysis neighborhood name, joins to the Analysis Neighborhoods dataset by name.
+      complete_landmark_name: Landmark name for the few rows that carry one, Millennium Tower.
+      direct_source: Where the record entered the EAS, SF DBI, State of CA, or The Presidio Trust.
+      data_as_of: Snapshot timestamp of the upstream export, July 24, 2026 for every row here.
+      data_updated_at: Record update timestamp, with a 1970 epoch sentinel on never-updated rows.
+      data_loaded_at: When the portal loaded the record.
+      geom: Address point, WGS84 longitude and latitude. Units stack on their building's single point.
+      bbox: Per-feature bounding box struct, the GeoParquet covering.
+    docs:
+      readme: |
+        Five thousand records from the
+        [Enterprise Addressing System](https://data.sfgov.org/Geographic-Locations-and-Boundaries/Addresses-with-Units-Enterprise-Addressing-System/ramy-di5m),
+        San Francisco's master address database. Read this first, the full
+        layer holds 388,550 records and refreshes nightly, and this Collection
+        is deliberately a fixed 1.3 percent extract, the first 5,000 records
+        in the portal's internal order from the July 24, 2026 snapshot. It
+        exists to demonstrate the Portolan mirror pattern against a live
+        upstream at a size that keeps this reference catalog small. Query it
+        to learn the data's shape, then take real questions to the full layer.
+
+        The EAS is the city's operational address registry, aggregated from
+        the Department of Building Inspection, Planning, the Assessor's
+        Office, and the Department of Technology, and only DBI-approved
+        addresses enter it. Its rows have a grain worth understanding before
+        counting anything. One row is a base address, a unit, and a parcel
+        link, so a building appears once per unit and once per linked condo
+        parcel. The extract holds 4,488 distinct buildings under its 5,000
+        rows.
+
+        Agents, [AGENTS.md](./AGENTS.md) carries the row-grain rules and the
+        sentinel-value traps.
+
+        ## Quick Start
+
+        {{quickstart}}
+
+        ## Getting the Real Thing
+
+        The full live layer is one request away, the Socrata API serves it as
+        GeoJSON, CSV, or JSON pages.
+
+        ```bash
+        curl 'https://data.sfgov.org/resource/ramy-di5m.json?$select=count(*)'
+        # 388550 as of July 2026
+        ```
+
+        ## Schema
+
+        {{schema}}
+
+        ## Suggested Uses
+
+        Demonstrating and testing address-data patterns, base-versus-unit
+        modeling, parcel joins on `parcel_number` to DataSF's parcels layer,
+        neighborhood rollups on `nhood`, at a size where every query is
+        instant. The upstream EAS itself feeds DBI permitting and the
+        Planning Department's Property Information Map.
+
+        ## Limitations
+
+        Wrong for any question about San Francisco itself. Geocoding against
+        it misses about 98.7 percent of the city's addresses, per-area counts
+        reflect sample order rather than density, and the snapshot ages while
+        upstream changes nightly. Points sit at building entrances, not
+        parcel centroids, and a third of rows carry no parcel link at all.
+        Presence of a unit record says nothing about occupancy or mail
+        deliverability.
+
+        {{provenance}}
+      agents: |
+        A fixed 5,000-row extract of a 388,550-row live address layer. Two
+        rules prevent most wrong answers. Never extrapolate counts or
+        densities from this sample to San Francisco. Never count rows when
+        you mean addresses, one row is a base address, a unit, and a parcel
+        link, so `count(*)` is 5,000 while distinct buildings are 4,488.
+
+        {{access}}
+
+        ## Quirks
+
+        - 327 Fulton St appears 18 times, identical address, 18 condo parcel
+          links. Count buildings with count(DISTINCT eas_baseid) and
+          addresses with count(DISTINCT eas_subid).
+        - Units carry their building's single point, every eas_baseid has
+          exactly one distinct geometry. Deduplicate by base before density
+          maps or clustering.
+        - parcel_number is null on 1,596 rows, mostly records sourced from
+          the State of CA, so a parcel join silently drops a third of the
+          extract.
+        - data_updated_at holds the epoch sentinel 1970-01-01 on 2,378 rows,
+          meaning never updated, not 1970. Filter before temporal analysis.
+        - Nearly every column is text, including latitude, longitude,
+          supervisor, and zip_code. Cast before arithmetic, and read
+          coordinates from geom instead.
+        - numbertext spells out the supervisor district, not the address
+          number, and supname holds the 2026 incumbents, which dates the
+          snapshot.
+
+        ## CRS
+
+        EPSG:4326 degrees, so ST_Distance returns degrees. Use
+        ST_Distance_Sphere for meters, or transform to EPSG:26910 for planar
+        work.
+
+        ## Tested Queries
+
+        The grain, records against buildings against units.
+
+        ```sql
+        SELECT count(*) AS record_count,
+               count(DISTINCT eas_baseid) AS buildings,
+               count(*) FILTER (unit_number IS NOT NULL) AS unit_records
+        FROM read_parquet('san-francisco-addresses.parquet');
+        -- 5000, 4488, 2060.
+        ```
+
+        Addresses within 250 meters of a point, metric distance done right.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT address,
+               round(ST_Distance_Sphere(geom, ST_Point(-122.419331, 37.779237))) AS meters
+        FROM read_parquet('san-francisco-addresses.parquet')
+        WHERE ST_Distance_Sphere(geom, ST_Point(-122.419331, 37.779237)) < 250
+        ORDER BY meters LIMIT 5;
+        -- 512 Van Ness Ave #415 at 104 meters leads.
+        ```
+
+        Buildings with the most sampled units.
+
+        ```sql
+        SELECT any_value(address_number) AS num,
+               any_value(street_full_street_name) AS street,
+               count(DISTINCT unit_number) AS units
+        FROM read_parquet('san-francisco-addresses.parquet')
+        WHERE unit_number IS NOT NULL
+        GROUP BY eas_baseid ORDER BY units DESC LIMIT 3;
+        -- 1000 Pine St with 17 sampled units, 601 Van Ness Ave with 11.
+        ```
+
+        ## Related Collections
+
+        Nothing joins inside this catalog, the EAS keys point outward.
+        parcel_number joins DataSF's Parcels layer on blklot, cnn joins the
+        street centerlines, nhood joins Analysis Neighborhoods by name. The
+        upstream is a live Socrata endpoint, referenced by URL only. This
+        extract was converted to GeoParquet 2.0 with DuckDB spatial and dates
+        itself, every row carries data_as_of July 24, 2026.
 
   # ------------------------------------------------------------------- raster/
   - id: raster/sample-cog
@@ -298,11 +1316,15 @@ collections:
     title: Sample Raster COG
     description: >-
       A small 3-band Cloud Optimized GeoTIFF used to exercise the raster path
-      end to end. Optimized to a COG with per-band statistics, minimum, maximum,
-      mean, and standard deviation, embedded in the header. From the rasterio
-      test fixtures, a 3-band raster in UTM zone 18N (EPSG:32618).
+      end to end, rasterio's RGB.byte.tif test fixture, derived from USGS
+      Landsat 7 imagery over Andros Island in the Bahamas. Optimized to a COG
+      with per-band statistics, minimum, maximum, mean, and standard deviation,
+      embedded in the header, in UTM zone 18N (EPSG:32618).
     keywords: [raster, cog, sample, rgb, geotiff]
-    license: BSD-3-Clause
+    # rasterio's tests/data README dedicates the test images themselves to CC0
+    # 1.0, distinct from the repo's BSD-3-Clause code license, and the
+    # underlying Landsat imagery is US public domain.
+    license: CC0-1.0
     source:
       url: https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif
       media_type: image/tiff
@@ -313,8 +1335,125 @@ collections:
     provenance:
       via: https://github.com/rasterio/rasterio/blob/main/tests/data/RGB.byte.tif
       updated: "2026-07-21T00:00:00Z"
-    temporal: ["2020-01-01T00:00:00Z", null]
+    # The acquisition date is unrecorded upstream. Landsat 7 launched on April
+    # 15, 1999, so that is the honest lower bound, stated in the docs too.
+    temporal: ["1999-04-15T00:00:00Z", null]
     derivatives: {thumbnail: true}
+    blurb: >-
+      A 1 MB Landsat-derived reference COG for learning and testing
+      cloud-optimized raster access, not for analysis.
+    docs:
+      readme: |
+        A 791 by 718 pixel, 3-band, 8-bit image at roughly 300 meter
+        resolution whose georeferencing places it over Andros Island in the
+        Bahamas, the shallow Great Bahama Bank to its west and the deep Tongue
+        of the Ocean along its east coast. It is
+        [rasterio's](https://github.com/rasterio/rasterio) RGB.byte.tif test
+        fixture, derived from USGS Landsat 7 imagery per the project's
+        [test data notes](https://github.com/rasterio/rasterio/blob/main/tests/data/README.rst),
+        in the repository since rasterio's first tests in November 2013 and
+        the workhorse image of its README and topic guides ever since. Anyone
+        who has learned rasterio has seen this picture.
+
+        Here it exercises the Portolan raster path end to end, a Cloud
+        Optimized GeoTIFF with internal tiling, an overview level, and
+        per-band statistics embedded in both the STAC metadata and the GeoTIFF
+        header.
+
+        Agents, [AGENTS.md](./AGENTS.md) covers the nodata trap and windowed
+        reads.
+
+        ## Quick Start
+
+        {{quickstart}}
+
+        ## Why a COG, Watching the Range Reads
+
+        A Cloud Optimized GeoTIFF serves partial reads over HTTP. Opening the
+        published copy with GDAL's debug output on shows it, a 64 pixel window
+        costs two range requests of roughly 0.4 MB, not the whole file.
+
+        ```bash
+        CPL_DEBUG=ON gdal_translate -srcwin 0 0 64 64 \
+          /vsicurl/https://data.source.coop/portolan/portolan-pipeline/portolan-reference/main/raster/sample-cog/sample-cog.tif \
+          /tmp/window.tif
+        # VSICURL: Downloading 0-16383 ... 229376-655359
+        ```
+
+        ## Suggested Uses
+
+        Learning and testing COG access patterns, windowed reads, overview
+        reads, HTTP range requests, at a size where experiments cost nothing.
+        Its familiarity is the feature, tutorials and bug reports written
+        against rasterio's docs transfer directly.
+
+        ## Limitations
+
+        Not an analytically useful dataset, and the documentation should be
+        the last place you learn that. The acquisition date and Landsat scene
+        id are unrecorded, the temporal extent here starts at the Landsat 7
+        launch in April 1999 only as an honest lower bound. Bands are
+        display-stretched 8-bit RGB, not calibrated reflectance, so no
+        conclusion about the Bahamas should be drawn from these pixels. About
+        a third of the image is a nodata collar from the rotated scene
+        footprint.
+
+        {{provenance}}
+      agents: |
+        A reference COG for exercising raster tooling, Landsat-derived RGB
+        over Andros Island in the Bahamas. Nothing here supports analysis, the
+        value is mechanical, a small well-formed COG with verified statistics.
+
+        {{access}}
+
+        ## Quirks
+
+        - Nodata is 0 and about 33 percent of pixels are the rotated-scene
+          collar. Valid data starts at 1, so always read with masking on,
+          treating 0 as a measurement skews every statistic.
+        - There is no acquisition timestamp anywhere. The collection temporal
+          start is the Landsat 7 launch date, a bound, not a date.
+        - Eastings run 101,985 to 339,315 meters, far west of the UTM zone 18
+          central meridian. Legal values, they just look odd.
+
+        ## CRS and Pixel Math
+
+        EPSG:32618, WGS84 UTM zone 18N, in meters. Pixels are 300.04 meters
+        square, so one pixel is about 9 hectares and pixel counts convert to
+        area by multiplying by 300.04 squared. Reproject bounds to EPSG:4326
+        before overlaying anything in longitude and latitude.
+
+        ## Tested Reads
+
+        Windowed read and an overview read with rasterio.
+
+        ```python
+        import rasterio
+        from rasterio.windows import Window
+
+        with rasterio.open("sample-cog.tif") as src:
+            window = src.read(window=Window(256, 256, 128, 128))
+            overview = src.read(1, out_shape=(src.height // 2, src.width // 2))
+            print(window.shape, overview.shape)
+        # (3, 128, 128) (359, 395), the second served from the embedded overview.
+        ```
+
+        Masked statistics with rioxarray.
+
+        ```python
+        import rioxarray
+
+        da = rioxarray.open_rasterio("sample-cog.tif", masked=True)
+        print(float(da.sel(band=3).mean()))
+        # 71.3, and blue > green > red across the scene, bright shallow water.
+        ```
+
+        ## Related Collections
+
+        None. This is the catalog's only raster and joins to nothing. The
+        upstream fixture is tagged on the source asset with its checksum, and
+        band statistics live in the STAC bands metadata and as GDAL
+        STATISTICS_* tags in the file header, written by the same build.
 
   # ------------------------------------------------------------------ tabular/
   - id: tabular/eurostat-electricity-prices
@@ -346,30 +1485,185 @@ collections:
     # Azores in the west to Georgia in the east, Crete in the south to Nordkapp.
     bbox: [-31.5, 34.0, 46.5, 71.5]
     # Geometry and attributes live in separate files, so the join is documented
-    # explicitly and a runnable example is emitted into the README.
+    # explicitly and a runnable example is emitted into the README. The target
+    # is ISO_A2_EH, not ISO_A2, which Natural Earth sets to -99 for France,
+    # Norway, and Kosovo. Proven by query, an ISO_A2 join silently drops them.
     join:
       column: geo
       target: reference/natural-earth-countries
-      target_column: ISO_A2
+      target_column: ISO_A2_EH
       target_file: ../../reference/natural-earth-countries/natural-earth-countries.parquet
       note: >-
         Eurostat uses NUTS-0 country codes, which match ISO 3166-1 alpha-2 for
         most countries but not all. Greece is EL rather than GR and the United
-        Kingdom is UK rather than GB, so remap those two before joining if you
-        need them.
+        Kingdom is UK rather than GB, so remap those two before joining. Malta
+        and Liechtenstein have no polygon in the 1:110m Natural Earth file, and
+        the EU27_2020 and EA aggregate rows never join.
     # SDMX dimension codes are unreadable without prose, and for a table the column
     # schema is the only semantic handle a consumer gets.
     columns:
-      DATAFLOW: Eurostat dataflow identifier, agency, table code, and version.
-      LAST UPDATE: Timestamp of the last update Eurostat published for this table.
-      freq: Observation frequency. S is semi-annual.
-      siec: Standard International Energy Product Classification code for the energy carrier, here electricity.
-      nrg_cons: Annual household electricity consumption band the price applies to.
-      unit: Unit of measure for the observed value, for example kilowatt hour.
-      tax: Tax and levy component, which taxes the quoted price includes or excludes.
-      currency: Currency of the observed value, euro, national currency, or purchasing power standard.
-      geo: Reporting country as a Eurostat NUTS-0 code. This is the join key to a geometry Collection.
-      TIME_PERIOD: Reference period, year and semester.
-      OBS_VALUE: The observed electricity price in the stated unit and currency.
-      OBS_FLAG: Observation status flag, for example p provisional, e estimated, d definition differs.
-      CONF_STATUS: Confidentiality status of the observation.
+      DATAFLOW: Eurostat dataflow identifier, the constant ESTAT nrg_pc_204 version 1.0.
+      LAST UPDATE: Frozen at one 2019 timestamp for every row of this snapshot while the data runs to 2025. Unreliable, do not derive freshness from it.
+      freq: Observation frequency, the constant S for semi-annual. S1 is January to June, S2 is July to December.
+      siec: Energy product code, the constant E7000 for electricity.
+      nrg_cons: Annual consumption band. KWH_LT1000, KWH1000-2499, KWH2500-4999 the headline household band, KWH5000-14999, KWH_GE15000, and TOT_KWH the weighted all-band average that exists only from 2017-S2.
+      unit: Unit of measure, the constant KWH. Prices are per kilowatt-hour.
+      tax: Tax level. X_TAX excludes all taxes and levies, X_VAT excludes VAT and recoverable taxes, I_TAX includes everything a household pays.
+      currency: EUR, NAC for national currency, or PPS purchasing power standard. NAC equals EUR in the euro area.
+      geo: Reporting country as a Eurostat NUTS-0 code, ISO 3166-1 alpha-2 except EL for Greece and UK for the United Kingdom, plus the aggregates EU27_2020 and EA. The join key to a geometry Collection.
+      TIME_PERIOD: Reference semester as a string, 2025-S2. Fixed format, so string ordering and MAX work.
+      OBS_VALUE: The observed electricity price in the stated currency per kilowatt-hour.
+      OBS_FLAG: Observation status, e estimated, p provisional, d definition differs, null for 98 percent of rows.
+      CONF_STATUS: Confidentiality status, entirely null in this snapshot.
+    blurb: >-
+      65,412 semi-annual household electricity prices for 41 European
+      countries from 2007 on, the official record of the 2022 energy crisis.
+    docs:
+      readme: |
+        What households pay for electricity across Europe, semester by
+        semester since 2007. This is Eurostat table
+        [nrg_pc_204](https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table),
+        65,412 observations covering 41 countries and territories plus the
+        EU27 and euro area aggregates, collected under
+        [Regulation (EU) 2016/1952](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32016R1952)
+        as consumption-weighted national average prices per six-month period.
+        New semesters land each April and October, and Eurostat's own
+        [price statistics article](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Electricity_price_statistics)
+        is written from this table. It is the official record of the 2022
+        energy crisis, Germany's all-tax price for a typical household rose
+        from 0.33 to a 0.41 euro per kilowatt-hour peak in the first half of
+        2023.
+
+        Agents, [AGENTS.md](./AGENTS.md) decodes every dimension and carries
+        the aggregate-row trap.
+
+        ## Quick Start
+
+        {{quickstart}}
+
+        ## Reading a Price Correctly
+
+        Every price is qualified by four dimensions, and comparisons only mean
+        something within a fixed combination. The band, how much the household
+        consumes per year, where KWH2500-4999 is the band Eurostat headlines.
+        The tax level, X_TAX before taxes, X_VAT before VAT, I_TAX what a
+        household actually pays. The currency, where EUR is nominal, NAC is
+        national currency, and PPS adjusts for price levels, Bulgaria's 2025-S2
+        price is 0.14 EUR but 0.22 PPS, and the gap is the point. And the
+        semester string, 2025-S2 meaning July to December 2025.
+
+        ## Schema
+
+        {{schema}}
+
+        ## Join to Geometry
+
+        This table carries no geometry. The `geo` codes join to the Natural
+        Earth countries Collection in this catalog on `ISO_A2_EH`, after
+        remapping Eurostat's two non-ISO codes. Greece is EL and the United
+        Kingdom is UK. The raw ISO_A2 column would silently drop France,
+        Norway, and Kosovo, Natural Earth stores -99 there.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT n.NAME, e.OBS_VALUE AS eur_per_kwh, n.geom
+        FROM read_parquet('eurostat-electricity-prices.parquet') e
+        JOIN read_parquet('../../reference/natural-earth-countries/natural-earth-countries.parquet') n
+          ON (CASE e.geo WHEN 'EL' THEN 'GR' WHEN 'UK' THEN 'GB' ELSE e.geo END) = n.ISO_A2_EH
+        WHERE e.TIME_PERIOD = '2025-S2' AND e.nrg_cons = 'KWH2500-4999'
+          AND e.tax = 'I_TAX' AND e.currency = 'EUR'
+        ORDER BY eur_per_kwh DESC;
+        ```
+
+        Malta and Liechtenstein stay unmatched, the 1:110m basemap has no
+        polygon for them, and the EU27_2020 and EA aggregates have no
+        geometry by nature.
+
+        ## Limitations
+
+        These are averages over suppliers and six months, not offers, Eurostat
+        itself notes there is no single price for electricity. One number per
+        country per semester, nothing sub-national. Values from the second
+        half of 2021 onward embed government subsidies and caps, so 2022 to
+        2024 understate underlying costs in heavily supported countries, and
+        Romania's 59 percent jump in late 2025 is a cap ending, not a market
+        shock. Data before 2007 lives in a separate, methodologically
+        incompatible table, never splice them.
+
+        {{provenance}}
+      agents: |
+        Semi-annual household electricity prices, one row per combination of
+        consumption band, tax level, currency, country, and semester, verified
+        unique on those five. Filter all five dimensions before comparing
+        anything. The headline combination is nrg_cons = 'KWH2500-4999',
+        tax = 'I_TAX', currency = 'EUR'.
+
+        {{access}}
+
+        ## Quirks
+
+        - EU27_2020 and EA sit in geo alongside countries, so unfiltered
+          rankings place the EU average mid-table as if it were a country.
+          Exclude them for country-level analysis.
+        - The LAST UPDATE column is frozen at one 2019 timestamp on all 65,412
+          rows of this snapshot while data runs to 2025-S2. It also has a space
+          in its name, quote it as "LAST UPDATE".
+        - The panel is ragged. The UK stops after 2020-S1, Ukraine after
+          2021-S1, Iceland lags a semester, and 2007-S1 has only 8 reporters.
+        - TOT_KWH is itself a weighted average of the five bands and exists
+          only from 2017-S2. Never mix it into a band aggregate.
+        - For euro-area countries NAC duplicates EUR, so counting rows across
+          currencies triple-counts observations.
+        - About 2 percent of rows carry flags, e estimated, p provisional, d
+          definition differs, and provisional values are revised in later
+          snapshots, so this fixed copy can disagree with the live API on
+          recent semesters.
+
+        ## Tested Queries
+
+        Latest prices ranked, aggregates excluded.
+
+        ```sql
+        SELECT geo, OBS_VALUE AS eur_per_kwh
+        FROM read_parquet('eurostat-electricity-prices.parquet')
+        WHERE nrg_cons = 'KWH2500-4999' AND tax = 'I_TAX' AND currency = 'EUR'
+          AND TIME_PERIOD = (SELECT max(TIME_PERIOD) FROM read_parquet('eurostat-electricity-prices.parquet'))
+          AND geo NOT IN ('EU27_2020', 'EA')
+        ORDER BY eur_per_kwh DESC;
+        -- Ireland 0.4042, Germany 0.3869, Belgium 0.3499, down to Turkey 0.0636.
+        ```
+
+        A time series with real dates from the semester strings.
+
+        ```sql
+        SELECT TIME_PERIOD,
+               make_date(CAST(TIME_PERIOD[1:4] AS INT),
+                         CASE WHEN TIME_PERIOD LIKE '%S1' THEN 1 ELSE 7 END, 1) AS period_start,
+               OBS_VALUE AS eur_per_kwh
+        FROM read_parquet('eurostat-electricity-prices.parquet')
+        WHERE geo = 'DE' AND nrg_cons = 'KWH2500-4999' AND tax = 'I_TAX'
+          AND currency = 'EUR'
+        ORDER BY TIME_PERIOD;
+        -- 38 semesters, 0.2025 in 2007-S1, peaking at 0.4125 in 2023-S1.
+        ```
+
+        The tax ladder, what levies add.
+
+        ```sql
+        SELECT tax, OBS_VALUE
+        FROM read_parquet('eurostat-electricity-prices.parquet')
+        WHERE geo = 'EU27_2020' AND TIME_PERIOD = '2025-S2'
+          AND nrg_cons = 'KWH2500-4999' AND currency = 'EUR'
+        ORDER BY OBS_VALUE;
+        -- X_TAX 0.2059, X_VAT 0.2456, I_TAX 0.2896, all matching Eurostat's
+        -- published article to four decimals.
+        ```
+
+        ## Related Collections
+
+        `reference/natural-earth-countries` is the geometry partner, join
+        recipe in the README of this Collection. Sibling Eurostat tables
+        outside this catalog, nrg_pc_205 for non-household prices and
+        nrg_pc_204_c for price components, share the same dimension scheme.
+        Converted from Eurostat's SDMX-CSV API output, a live endpoint, to
+        Parquet with DuckDB on July 21, 2026.
