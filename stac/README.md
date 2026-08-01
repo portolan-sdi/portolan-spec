@@ -106,7 +106,7 @@ Whether a catalog is official or a mirror is derived from its providers (produce
 | COG | `image/tiff; application=geotiff; profile=cloud-optimized` | `data` |
 | PMTiles | `application/vnd.pmtiles` | `visual` |
 | COPC | `application/vnd.laszip+copc` | `data` |
-| Thumbnail | `image/png` or `image/jpeg` | `thumbnail` |
+| Thumbnail | `image/png`, `image/jpeg`, or `image/webp` | `thumbnail` |
 | Sidecar metadata | (format-specific) | `metadata`, `iso-19115` |
 | MapLibre style | `application/vnd.mapbox.style+json` | `style` (Portolan-defined role) |
 
