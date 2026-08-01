@@ -11,6 +11,20 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- Reworked the golden-example styles into named multi-variant sets, three to
+  five per vector Collection (#81 follow-up, demonstrating the multiple
+  data-driven styles `specs/best-practices/styling.md` recommends). Each
+  manifest variant declares its own type, categorical, binned graduated,
+  heatmap, outline, labels, or a raw-expression escape hatch, with a title and
+  a description carried onto the asset. Graduated styles emit binned `step`
+  expressions rather than continuous interpolates so clients can derive
+  legends (#118). Collections that render from source, the two Natural Earth
+  layers, now carry styles too, sourcing the GeoParquet itself, which
+  portolan-browser binds onto the data it loads. `build.py --styles-only`
+  re-authors styles against the committed tree without refetching data.
+
+### Changed
+
 - **Default style is identified by a `default` role**
   ([`specs/portolan/core.md`](specs/portolan/core.md)): a collection with more than
   one style now MUST mark exactly one style asset with `roles: ["style", "default"]`,

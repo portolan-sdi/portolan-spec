@@ -1,0 +1,51 @@
+{
+  "version": 8,
+  "name": "Metro population, size and colour",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "../natural-earth-populated-places.parquet"
+    }
+  },
+  "layers": [
+    {
+      "id": "natural-earth-populated-places",
+      "type": "circle",
+      "source": "data",
+      "paint": {
+        "circle-radius": [
+          "step",
+          [
+            "get",
+            "POP_MAX"
+          ],
+          2.0,
+          100000,
+          5.3,
+          1000000,
+          8.7,
+          10000000,
+          12.0
+        ],
+        "circle-color": [
+          "step",
+          [
+            "get",
+            "POP_MAX"
+          ],
+          "#fee5d9",
+          100000,
+          "#fcae91",
+          1000000,
+          "#fb6a4a",
+          10000000,
+          "#a50f15"
+        ],
+        "circle-opacity": 0.85
+      }
+    }
+  ],
+  "metadata": {
+    "description": "POP_MAX binned at one hundred thousand, one million, and ten million drives both the colour ramp and the circle radius, Tokyo reads as the largest, darkest point."
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "version": 8,
+  "name": "The Randstad and the rest",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "pmtiles://../netherlands-provinces.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "netherlands-provinces",
+      "type": "fill",
+      "source": "data",
+      "paint": {
+        "fill-color": [
+          "match",
+          [
+            "get",
+            "naam"
+          ],
+          "Noord-Holland",
+          "#e65100",
+          "Zuid-Holland",
+          "#e65100",
+          "Utrecht",
+          "#e65100",
+          "#a5b8a5"
+        ],
+        "fill-outline-color": "#ffffff",
+        "fill-opacity": 0.6
+      },
+      "source-layer": "netherlands-provinces"
+    }
+  ],
+  "metadata": {
+    "description": "Noord-Holland, Zuid-Holland, and Utrecht, the provinces of the Randstad conurbation, highlighted orange against the rest in muted green."
+  }
+}

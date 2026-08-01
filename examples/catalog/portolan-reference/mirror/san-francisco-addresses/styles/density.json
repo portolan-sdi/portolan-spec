@@ -1,0 +1,25 @@
+{
+  "version": 8,
+  "name": "Address density heatmap",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "pmtiles://../san-francisco-addresses.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "san-francisco-addresses",
+      "type": "heatmap",
+      "source": "data",
+      "paint": {
+        "heatmap-radius": 18,
+        "heatmap-opacity": 0.8
+      },
+      "source-layer": "san-francisco-addresses"
+    }
+  ],
+  "metadata": {
+    "description": "A MapLibre heatmap over the sample. Density reflects the sample's internal ordering, not San Francisco, see the README caveat."
+  }
+}

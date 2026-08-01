@@ -218,17 +218,6 @@
       "file:size": 859881,
       "file:checksum": "12200dea0e9eb01a74f3b0fcc4b0e915e88cb19e85571351991828478cbe012ccc23"
     },
-    "style-default": {
-      "href": "./styles/default.json",
-      "type": "application/vnd.mapbox.style+json",
-      "title": "Default MapLibre style",
-      "roles": [
-        "style",
-        "default"
-      ],
-      "file:size": 474,
-      "file:checksum": "12204a4947ddba3cb084a779d7d0dca0d13f32d665a9da0b029e95a55152f61509ce"
-    },
     "thumbnail": {
       "href": "./thumbnail.png",
       "type": "image/png",
@@ -238,6 +227,62 @@
       ],
       "file:size": 394792,
       "file:checksum": "1220561ef9990b472b81af48d46c7e0450a9523ab919ab015c5d99f354fc241f9b9c"
+    },
+    "style-addresses": {
+      "href": "./styles/addresses.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Address points",
+      "roles": [
+        "style",
+        "default"
+      ],
+      "file:size": 552,
+      "file:checksum": "12208d45a18d45323c29a208824c770e5ff230871a2132ce57255395298fd0a513aa",
+      "description": "All 5,000 sampled address records as uniform points."
+    },
+    "style-sources": {
+      "href": "./styles/sources.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Where each record entered the EAS",
+      "roles": [
+        "style"
+      ],
+      "file:size": 888,
+      "file:checksum": "1220d70ecc51d61828ebe574013e0f98a00fd4edc93b0bc8c623b39610f8f113517f",
+      "description": "direct_source separates the DBI-approved records from the State of CA batch and the handful from the Presidio Trust."
+    },
+    "style-units": {
+      "href": "./styles/units.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Unit records against base addresses",
+      "roles": [
+        "style"
+      ],
+      "file:size": 930,
+      "file:checksum": "12209edf3bdc9344bccb0e3c68a1272d9f1bcaac1ec5c29d93afedb3801fa002bc64",
+      "description": "Orange where the record carries a unit_number, teal for base addresses, the coalesce guards against both null and absent attributes."
+    },
+    "style-neighborhoods": {
+      "href": "./styles/neighborhoods.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Analysis neighborhoods",
+      "roles": [
+        "style"
+      ],
+      "file:size": 2645,
+      "file:checksum": "1220cb8b03ffc514ba45d29971c08104851c3009fbf6fb580bd06955ea76be3ccc46",
+      "description": "nhood from the cycling catalog palette, forty neighborhoods, so colours repeat, adjacency keeps them readable."
+    },
+    "style-density": {
+      "href": "./styles/density.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Address density heatmap",
+      "roles": [
+        "style"
+      ],
+      "file:size": 603,
+      "file:checksum": "1220cb54b18d67e77ec5a630db226a0ff36cca1fd4516d1356a7c1ae925ee71d8eec",
+      "description": "A MapLibre heatmap over the sample. Density reflects the sample's internal ordering, not San Francisco, see the README caveat."
     }
   },
   "links": [

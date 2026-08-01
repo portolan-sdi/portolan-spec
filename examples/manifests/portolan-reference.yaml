@@ -124,8 +124,55 @@ collections:
     # exercises that branch, every other vector Collection here takes the PMTiles
     # branch. Self-rendering also means no style asset is owed.
     derivatives: {pmtiles: false, thumbnail: true}
-    # Colour the world by continent so the preview reads as a map, not one blob.
-    style: {color: "#4d7ea8", category_field: CONTINENT, variants: [categorical]}
+    # No PMTiles, so these styles name the GeoParquet itself as their source.
+    # A Portolan client that renders GeoParquet directly, portolan-browser
+    # does from its PR #28, binds them onto the data it loaded. The first
+    # variant is the default, and the thumbnail paints from it.
+    style:
+      color: "#4d7ea8"
+      variants:
+        - name: continents
+          title: Countries by continent
+          description: >-
+            Each continent shares one colour from the catalog palette,
+            including the Seven seas (open ocean) group Natural Earth assigns
+            the French Southern and Antarctic Lands.
+          type: categorical
+          field: CONTINENT
+        - name: map-colors
+          title: Classic seven-colour map
+          description: >-
+            Natural Earth's MAPCOLOR7 index, precomputed so neighbouring
+            countries never share a colour, the classic political-map look.
+          type: categorical
+          field: MAPCOLOR7
+          sort: value
+        - name: income-groups
+          title: World Bank income groups
+          description: >-
+            The INCOME_GRP ordinal, deep green for high-income OECD economies
+            through red for low-income, a five-step diverging palette in the
+            field's own order.
+          type: categorical
+          field: INCOME_GRP
+          sort: value
+          palette: ["#1a9850", "#91cf60", "#fee08b", "#fc8d59", "#d73027"]
+        - name: population
+          title: Population in four classes
+          description: >-
+            POP_EST binned at ten million, fifty million, and two hundred
+            million, light to dark blue, class breaks chosen so the map
+            separates small states from the giants despite the skew.
+          type: graduated
+          field: POP_EST
+          breaks: [10000000, 50000000, 200000000]
+        - name: labeled
+          title: Continents with country names
+          description: >-
+            The continent colouring with a NAME label per country.
+          type: categorical
+          field: CONTINENT
+          labels: {field: NAME, size: 10}
 
   - id: reference/natural-earth-populated-places
     kind: vector
@@ -152,7 +199,49 @@ collections:
     # No PMTiles on purpose, same render-from-source reasoning as the countries
     # Collection above. 604 KB of points a client can draw itself.
     derivatives: {pmtiles: false, thumbnail: true}
-    style: {color: "#c65b3c"}
+    # GeoParquet-sourced styles, same reasoning as the countries Collection.
+    # The flat default keeps the existing thumbnail, the other variants show a
+    # graduated symbol, a categorical, a highlight expression, and a heatmap.
+    style:
+      color: "#c65b3c"
+      variants:
+        - name: places
+          title: Populated places
+          description: All 1,251 places as uniform warm-red points.
+          type: flat
+        - name: population
+          title: Metro population, size and colour
+          description: >-
+            POP_MAX binned at one hundred thousand, one million, and ten
+            million drives both the colour ramp and the circle radius, Tokyo
+            reads as the largest, darkest point.
+          type: graduated
+          field: POP_MAX
+          breaks: [100000, 1000000, 10000000]
+          ramp: ["#fee5d9", "#fcae91", "#fb6a4a", "#a50f15"]
+          radius_range: [2, 12]
+        - name: feature-class
+          title: Places by feature class
+          description: >-
+            FEATURECLA separates national and regional capitals, plain
+            populated places, and the 40 Antarctic scientific stations.
+          type: categorical
+          field: FEATURECLA
+        - name: capitals
+          title: National capitals highlighted
+          description: >-
+            The 200 rows flagged ADM0CAP render large and red over the rest in
+            muted gray.
+          type: expression
+          paint:
+            circle-color: ["case", ["==", ["get", "ADM0CAP"], 1], "#d32f2f", "#b0bec5"]
+            circle-radius: ["case", ["==", ["get", "ADM0CAP"], 1], 5, 2.5]
+        - name: density
+          title: Place density heatmap
+          description: >-
+            A MapLibre heatmap layer over the points, showing where the curated
+            selection concentrates.
+          type: heatmap
 
   # --------------------------------------------------------------- boundaries/
   - id: boundaries/us-counties
@@ -193,9 +282,50 @@ collections:
     # A flat `default` variant here would force a single-colour preview.
     style:
       color: "#6b8e5a"
-      category_field: STATE_NAME
-      label_field: NAME
-      variants: [categorical, labeled]
+      variants:
+        - name: states
+          title: Counties by state
+          description: >-
+            Every county coloured by STATE_NAME from the catalog palette, the
+            classic mosaic that makes state boundaries emerge from county
+            fills.
+          type: categorical
+          field: STATE_NAME
+        - name: labeled
+          title: State colours with county names
+          description: The state mosaic with a NAME label per county.
+          type: categorical
+          field: STATE_NAME
+          labels: {field: NAME, size: 9}
+        - name: land-area
+          title: Land area in four classes
+          description: >-
+            ALAND binned at one, two and a half, and ten billion square
+            metres, light to dark blue, Alaska's census areas anchor the dark
+            end.
+          type: graduated
+          field: ALAND
+          breaks: [1000000000, 2500000000, 10000000000]
+        - name: water-share
+          title: Share of water
+          description: >-
+            AWATER divided by total area, binned in the style expression
+            itself, near-white for dry counties through deep blue where
+            territorial water dominates.
+          type: expression
+          paint:
+            fill-color: ["step",
+                         ["/", ["get", "AWATER"],
+                          ["max", ["+", ["get", "ALAND"], ["get", "AWATER"]], 1]],
+                         "#f7fbff", 0.05, "#bdd7e7", 0.2, "#6baed6", 0.5, "#08306b"]
+        - name: county-types
+          title: Kinds of county equivalent
+          description: >-
+            The LSAD code, separating counties from Louisiana parishes, Alaska
+            boroughs and census areas, Puerto Rico municipios, independent
+            cities, and Connecticut's planning regions.
+          type: categorical
+          field: LSAD
 
   - id: boundaries/boston-open-space
     kind: vector
@@ -224,10 +354,52 @@ collections:
     derivatives: {pmtiles: true, thumbnail: true}
     style:
       color: "#2e7d32"
-      category_field: TypeLong
-      label_field: SITE_NAME
-      graduated_field: ACRES
-      variants: [categorical, labeled, graduated]
+      variants:
+        - name: types
+          title: Open space by type
+          description: >-
+            TypeLong separates parks, parkways and reservations, cemeteries,
+            urban wilds, malls and plazas, and community gardens.
+          type: categorical
+          field: TypeLong
+        - name: labeled
+          title: Types with site names
+          description: The type colouring with a SITE_NAME label per site.
+          type: categorical
+          field: TypeLong
+          labels: {field: SITE_NAME, size: 9}
+        - name: acreage
+          title: Acreage in four classes
+          description: >-
+            ACRES binned at one, ten, and one hundred acres, light to dark
+            green, from pocket parks through Franklin Park's 392 acres.
+          type: graduated
+          field: ACRES
+          breaks: [1, 10, 100]
+          ramp: ["#e8f5e9", "#a5d6a7", "#66bb6a", "#1b5e20"]
+        - name: ownership
+          title: Who owns it
+          description: >-
+            OWNERSHIP from the catalog palette, city, Commonwealth, federal,
+            and the 214 privately owned sites side by side.
+          type: categorical
+          field: OWNERSHIP
+        - name: protection
+          title: Permanently protected or not
+          description: >-
+            The POS flag, deep green where protection is permanent under
+            Article 97 or a conservation restriction, gray where it is not.
+            The inner match relabels the raw X and N codes so the legend a
+            client derives from the outer match reads in plain words.
+          type: expression
+          paint:
+            fill-color: ["match",
+                         ["match", ["get", "POS"],
+                          "X", "Protected forever", "N", "Not protected",
+                          "Unclear"],
+                         "Protected forever", "#1b5e20",
+                         "Not protected", "#bdbdbd",
+                         "#fdd835"]
 
   - id: boundaries/netherlands-provinces
     kind: vector
@@ -260,9 +432,39 @@ collections:
     derivatives: {pmtiles: true, thumbnail: true}
     style:
       color: "#e65100"
-      category_field: naam
-      label_field: naam
-      variants: [categorical, labeled]
+      variants:
+        - name: provinces
+          title: Provinces by name
+          description: Twelve provinces, one palette colour each.
+          type: categorical
+          field: naam
+        - name: labeled
+          title: Provinces with names
+          description: The province colouring with a naam label on each.
+          type: categorical
+          field: naam
+          labels: {field: naam, size: 12}
+        - name: randstad
+          title: The Randstad and the rest
+          description: >-
+            Noord-Holland, Zuid-Holland, and Utrecht, the provinces of the
+            Randstad conurbation, highlighted orange against the rest in muted
+            green.
+          type: expression
+          paint:
+            fill-color: ["match", ["get", "naam"],
+                         "Noord-Holland", "#e65100",
+                         "Zuid-Holland", "#e65100",
+                         "Utrecht", "#e65100",
+                         "#a5b8a5"]
+        - name: boundaries
+          title: Boundary lines only
+          description: >-
+            Province borders as bare lines with no fill, for use over other
+            layers.
+          type: outline
+          color: "#5d4037"
+          width: 1.8
 
   # ------------------------------------------------------------------- mirror/
   - id: mirror/san-francisco-addresses
@@ -290,7 +492,44 @@ collections:
       updated: "2026-07-21T00:00:00Z"
     temporal: ["2018-10-12T00:00:00Z", null]
     derivatives: {pmtiles: true, thumbnail: true}
-    style: {color: "#6a1b9a"}
+    style:
+      color: "#6a1b9a"
+      variants:
+        - name: addresses
+          title: Address points
+          description: All 5,000 sampled address records as uniform points.
+          type: flat
+        - name: sources
+          title: Where each record entered the EAS
+          description: >-
+            direct_source separates the DBI-approved records from the State of
+            CA batch and the handful from the Presidio Trust.
+          type: categorical
+          field: direct_source
+        - name: units
+          title: Unit records against base addresses
+          description: >-
+            Orange where the record carries a unit_number, teal for base
+            addresses, the coalesce guards against both null and absent
+            attributes.
+          type: expression
+          paint:
+            circle-color: ["case",
+                           ["==", ["coalesce", ["get", "unit_number"], ""], ""],
+                           "#00796b", "#e8710a"]
+        - name: neighborhoods
+          title: Analysis neighborhoods
+          description: >-
+            nhood from the cycling catalog palette, forty neighborhoods, so
+            colours repeat, adjacency keeps them readable.
+          type: categorical
+          field: nhood
+        - name: density
+          title: Address density heatmap
+          description: >-
+            A MapLibre heatmap over the sample. Density reflects the sample's
+            internal ordering, not San Francisco, see the README caveat.
+          type: heatmap
 
   # ------------------------------------------------------------------- raster/
   - id: raster/sample-cog

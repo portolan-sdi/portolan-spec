@@ -1,0 +1,25 @@
+{
+  "version": 8,
+  "name": "Boundary lines only",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "pmtiles://../netherlands-provinces.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "netherlands-provinces",
+      "type": "line",
+      "source": "data",
+      "paint": {
+        "line-color": "#5d4037",
+        "line-width": 1.8
+      },
+      "source-layer": "netherlands-provinces"
+    }
+  ],
+  "metadata": {
+    "description": "Province borders as bare lines with no fill, for use over other layers."
+  }
+}

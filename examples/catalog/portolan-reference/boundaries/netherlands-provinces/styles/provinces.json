@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "Provinces with names",
+  "name": "Provinces by name",
   "sources": {
     "data": {
       "type": "vector",
@@ -49,28 +49,9 @@
         "fill-opacity": 0.6
       },
       "source-layer": "netherlands-provinces"
-    },
-    {
-      "id": "netherlands-provinces-labels",
-      "type": "symbol",
-      "source": "data",
-      "paint": {
-        "text-color": "#222222",
-        "text-halo-color": "#ffffff",
-        "text-halo-width": 1
-      },
-      "source-layer": "netherlands-provinces",
-      "layout": {
-        "text-field": [
-          "get",
-          "naam"
-        ],
-        "text-size": 12,
-        "text-anchor": "center"
-      }
     }
   ],
   "metadata": {
-    "description": "The province colouring with a naam label on each."
+    "description": "Twelve provinces, one palette colour each."
   }
 }

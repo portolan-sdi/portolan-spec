@@ -1,54 +1,57 @@
 {
   "version": 8,
-  "name": "netherlands-provinces categorical",
+  "name": "Kinds of county equivalent",
   "sources": {
     "data": {
       "type": "vector",
-      "url": "pmtiles://../netherlands-provinces.pmtiles"
+      "url": "pmtiles://../us-counties.pmtiles"
     }
   },
   "layers": [
     {
-      "id": "netherlands-provinces",
+      "id": "us-counties",
       "type": "fill",
       "source": "data",
-      "source-layer": "netherlands-provinces",
       "paint": {
         "fill-color": [
           "match",
           [
             "get",
-            "naam"
+            "LSAD"
           ],
-          "Drenthe",
+          "06",
           "#4e79a7",
-          "Flevoland",
+          "13",
           "#f28e2b",
-          "Frysl\u00e2n",
+          "15",
           "#59a14f",
-          "Gelderland",
+          "25",
           "#e15759",
-          "Groningen",
+          "04",
           "#b07aa1",
-          "Limburg",
+          "05",
           "#76b7b2",
-          "Noord-Brabant",
+          "PL",
           "#edc948",
-          "Noord-Holland",
+          "12",
           "#ff9da7",
-          "Overijssel",
+          "00",
           "#4e79a7",
-          "Utrecht",
+          "03",
           "#f28e2b",
-          "Zeeland",
+          "07",
           "#59a14f",
-          "Zuid-Holland",
+          "10",
           "#e15759",
           "#cccccc"
         ],
         "fill-outline-color": "#ffffff",
         "fill-opacity": 0.6
-      }
+      },
+      "source-layer": "us-counties"
     }
-  ]
+  ],
+  "metadata": {
+    "description": "The LSAD code, separating counties from Louisiana parishes, Alaska boroughs and census areas, Puerto Rico municipios, independent cities, and Connecticut's planning regions."
+  }
 }

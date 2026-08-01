@@ -1,0 +1,46 @@
+{
+  "version": 8,
+  "name": "Classic seven-colour map",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "../natural-earth-countries.parquet"
+    }
+  },
+  "layers": [
+    {
+      "id": "natural-earth-countries",
+      "type": "fill",
+      "source": "data",
+      "paint": {
+        "fill-color": [
+          "match",
+          [
+            "get",
+            "MAPCOLOR7"
+          ],
+          1,
+          "#4e79a7",
+          2,
+          "#f28e2b",
+          3,
+          "#59a14f",
+          4,
+          "#e15759",
+          5,
+          "#b07aa1",
+          6,
+          "#76b7b2",
+          7,
+          "#edc948",
+          "#cccccc"
+        ],
+        "fill-outline-color": "#ffffff",
+        "fill-opacity": 0.6
+      }
+    }
+  ],
+  "metadata": {
+    "description": "Natural Earth's MAPCOLOR7 index, precomputed so neighbouring countries never share a colour, the classic political-map look."
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "version": 8,
+  "name": "National capitals highlighted",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "../natural-earth-populated-places.parquet"
+    }
+  },
+  "layers": [
+    {
+      "id": "natural-earth-populated-places",
+      "type": "circle",
+      "source": "data",
+      "paint": {
+        "circle-radius": [
+          "case",
+          [
+            "==",
+            [
+              "get",
+              "ADM0CAP"
+            ],
+            1
+          ],
+          5,
+          2.5
+        ],
+        "circle-color": [
+          "case",
+          [
+            "==",
+            [
+              "get",
+              "ADM0CAP"
+            ],
+            1
+          ],
+          "#d32f2f",
+          "#b0bec5"
+        ],
+        "circle-opacity": 0.85
+      }
+    }
+  ],
+  "metadata": {
+    "description": "The 200 rows flagged ADM0CAP render large and red over the rest in muted gray."
+  }
+}

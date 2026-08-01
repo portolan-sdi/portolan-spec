@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "boston-open-space categorical",
+  "name": "Open space by type",
   "sources": {
     "data": {
       "type": "vector",
@@ -12,7 +12,6 @@
       "id": "boston-open-space",
       "type": "fill",
       "source": "data",
-      "source-layer": "boston-open-space",
       "paint": {
         "fill-color": [
           "match",
@@ -40,7 +39,11 @@
         ],
         "fill-outline-color": "#ffffff",
         "fill-opacity": 0.6
-      }
+      },
+      "source-layer": "boston-open-space"
     }
-  ]
+  ],
+  "metadata": {
+    "description": "TypeLong separates parks, parkways and reservations, cemeteries, urban wilds, malls and plazas, and community gardens."
+  }
 }

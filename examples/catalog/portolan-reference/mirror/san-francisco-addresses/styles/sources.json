@@ -1,0 +1,39 @@
+{
+  "version": 8,
+  "name": "Where each record entered the EAS",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "pmtiles://../san-francisco-addresses.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "san-francisco-addresses",
+      "type": "circle",
+      "source": "data",
+      "paint": {
+        "circle-radius": 3,
+        "circle-color": [
+          "match",
+          [
+            "get",
+            "direct_source"
+          ],
+          "SF DBI",
+          "#4e79a7",
+          "State of CA",
+          "#f28e2b",
+          "The Presidio Trust",
+          "#59a14f",
+          "#cccccc"
+        ],
+        "circle-opacity": 0.85
+      },
+      "source-layer": "san-francisco-addresses"
+    }
+  ],
+  "metadata": {
+    "description": "direct_source separates the DBI-approved records from the State of CA batch and the handful from the Presidio Trust."
+  }
+}

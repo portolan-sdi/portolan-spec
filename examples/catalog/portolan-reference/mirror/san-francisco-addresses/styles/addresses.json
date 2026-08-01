@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "san-francisco-addresses default",
+  "name": "Address points",
   "sources": {
     "data": {
       "type": "vector",
@@ -12,12 +12,15 @@
       "id": "san-francisco-addresses",
       "type": "circle",
       "source": "data",
-      "source-layer": "san-francisco-addresses",
       "paint": {
         "circle-radius": 3,
         "circle-color": "#6a1b9a",
         "circle-opacity": 0.85
-      }
+      },
+      "source-layer": "san-francisco-addresses"
     }
-  ]
+  ],
+  "metadata": {
+    "description": "All 5,000 sampled address records as uniform points."
+  }
 }

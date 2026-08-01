@@ -1,0 +1,25 @@
+{
+  "version": 8,
+  "name": "Populated places",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "../natural-earth-populated-places.parquet"
+    }
+  },
+  "layers": [
+    {
+      "id": "natural-earth-populated-places",
+      "type": "circle",
+      "source": "data",
+      "paint": {
+        "circle-radius": 3,
+        "circle-color": "#c65b3c",
+        "circle-opacity": 0.85
+      }
+    }
+  ],
+  "metadata": {
+    "description": "All 1,251 places as uniform warm-red points."
+  }
+}

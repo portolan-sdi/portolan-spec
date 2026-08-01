@@ -1,0 +1,42 @@
+{
+  "version": 8,
+  "name": "World Bank income groups",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "../natural-earth-countries.parquet"
+    }
+  },
+  "layers": [
+    {
+      "id": "natural-earth-countries",
+      "type": "fill",
+      "source": "data",
+      "paint": {
+        "fill-color": [
+          "match",
+          [
+            "get",
+            "INCOME_GRP"
+          ],
+          "1. High income: OECD",
+          "#1a9850",
+          "2. High income: nonOECD",
+          "#91cf60",
+          "3. Upper middle income",
+          "#fee08b",
+          "4. Lower middle income",
+          "#fc8d59",
+          "5. Low income",
+          "#d73027",
+          "#cccccc"
+        ],
+        "fill-outline-color": "#ffffff",
+        "fill-opacity": 0.6
+      }
+    }
+  ],
+  "metadata": {
+    "description": "The INCOME_GRP ordinal, deep green for high-income OECD economies through red for low-income, a five-step diverging palette in the field's own order."
+  }
+}

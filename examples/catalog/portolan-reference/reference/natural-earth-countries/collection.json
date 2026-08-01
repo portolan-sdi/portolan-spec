@@ -775,6 +775,62 @@
       ],
       "file:size": 71048,
       "file:checksum": "12205fda9e12c86f1dbc13fcf9778afd2f0895fcf2ea0826b522af2a004874ce2de2"
+    },
+    "style-continents": {
+      "href": "./styles/continents.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Countries by continent",
+      "roles": [
+        "style",
+        "default"
+      ],
+      "file:size": 1091,
+      "file:checksum": "1220c9c376ba88d683ee22bfc8e93ad061cf82e600bccb7f7e16633564dbb6f5991b",
+      "description": "Each continent shares one colour from the catalog palette, including the Seven seas (open ocean) group Natural Earth assigns the French Southern and Antarctic Lands."
+    },
+    "style-map-colors": {
+      "href": "./styles/map-colors.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Classic seven-colour map",
+      "roles": [
+        "style"
+      ],
+      "file:size": 928,
+      "file:checksum": "1220fded282fcd2b3977036d5fd76a4b173ec6d9187ab201b6fe9a1eba3c524f23a3",
+      "description": "Natural Earth's MAPCOLOR7 index, precomputed so neighbouring countries never share a colour, the classic political-map look."
+    },
+    "style-income-groups": {
+      "href": "./styles/income-groups.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "World Bank income groups",
+      "roles": [
+        "style"
+      ],
+      "file:size": 991,
+      "file:checksum": "1220eece4c18adf53bcf1aa147f4621474b9d316dc02781254e10da9be4d4a1fde88",
+      "description": "The INCOME_GRP ordinal, deep green for high-income OECD economies through red for low-income, a five-step diverging palette in the field's own order."
+    },
+    "style-population": {
+      "href": "./styles/population.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Population in four classes",
+      "roles": [
+        "style"
+      ],
+      "file:size": 867,
+      "file:checksum": "1220691258bd2fc61f19a4cd634109ad52190c2d3584ccb4a7c2c369abfb547173f3",
+      "description": "POP_EST binned at ten million, fifty million, and two hundred million, light to dark blue, class breaks chosen so the map separates small states from the giants despite the skew."
+    },
+    "style-labeled": {
+      "href": "./styles/labeled.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Continents with country names",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1372,
+      "file:checksum": "1220b85d724abb9212c6f2a2049ec4c30cf111fbc7345dc83c3b77648d0348185866",
+      "description": "The continent colouring with a NAME label per country."
     }
   },
   "links": [
