@@ -70,67 +70,67 @@
         {
           "name": "DATAFLOW",
           "type": "varchar",
-          "description": "Eurostat dataflow identifier, agency, table code, and version."
+          "description": "Eurostat dataflow identifier, the constant ESTAT nrg_pc_204 version 1.0."
         },
         {
           "name": "LAST UPDATE",
           "type": "timestamp",
-          "description": "Timestamp of the last update Eurostat published for this table."
+          "description": "Frozen at one 2019 timestamp for every row of this snapshot while the data runs to 2025. Unreliable, do not derive freshness from it."
         },
         {
           "name": "freq",
           "type": "varchar",
-          "description": "Observation frequency. S is semi-annual."
+          "description": "Observation frequency, the constant S for semi-annual. S1 is January to June, S2 is July to December."
         },
         {
           "name": "siec",
           "type": "varchar",
-          "description": "Standard International Energy Product Classification code for the energy carrier, here electricity."
+          "description": "Energy product code, the constant E7000 for electricity."
         },
         {
           "name": "nrg_cons",
           "type": "varchar",
-          "description": "Annual household electricity consumption band the price applies to."
+          "description": "Annual consumption band. KWH_LT1000, KWH1000-2499, KWH2500-4999 the headline household band, KWH5000-14999, KWH_GE15000, and TOT_KWH the weighted all-band average that exists only from 2017-S2."
         },
         {
           "name": "unit",
           "type": "varchar",
-          "description": "Unit of measure for the observed value, for example kilowatt hour."
+          "description": "Unit of measure, the constant KWH. Prices are per kilowatt-hour."
         },
         {
           "name": "tax",
           "type": "varchar",
-          "description": "Tax and levy component, which taxes the quoted price includes or excludes."
+          "description": "Tax level. X_TAX excludes all taxes and levies, X_VAT excludes VAT and recoverable taxes, I_TAX includes everything a household pays."
         },
         {
           "name": "currency",
           "type": "varchar",
-          "description": "Currency of the observed value, euro, national currency, or purchasing power standard."
+          "description": "EUR, NAC for national currency, or PPS purchasing power standard. NAC equals EUR in the euro area."
         },
         {
           "name": "geo",
           "type": "varchar",
-          "description": "Reporting country as a Eurostat NUTS-0 code. This is the join key to a geometry Collection."
+          "description": "Reporting country as a Eurostat NUTS-0 code, ISO 3166-1 alpha-2 except EL for Greece and UK for the United Kingdom, plus the aggregates EU27_2020 and EA. The join key to a geometry Collection."
         },
         {
           "name": "TIME_PERIOD",
           "type": "varchar",
-          "description": "Reference period, year and semester."
+          "description": "Reference semester as a string, 2025-S2. Fixed format, so string ordering and MAX work."
         },
         {
           "name": "OBS_VALUE",
           "type": "double",
-          "description": "The observed electricity price in the stated unit and currency."
+          "description": "The observed electricity price in the stated currency per kilowatt-hour."
         },
         {
           "name": "OBS_FLAG",
           "type": "varchar",
-          "description": "Observation status flag, for example p provisional, e estimated, d definition differs."
+          "description": "Observation status, e estimated, p provisional, d definition differs, null for 98 percent of rows."
         },
         {
           "name": "CONF_STATUS",
           "type": "varchar",
-          "description": "Confidentiality status of the observation."
+          "description": "Confidentiality status, entirely null in this snapshot."
         }
       ],
       "table:row_count": 65412

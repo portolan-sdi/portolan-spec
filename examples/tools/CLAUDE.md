@@ -29,7 +29,7 @@ from the modules beside them, so they stay runnable on their own.
 | `validate.py` | Thin adapter over rashid, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
 | `check_catalogs.py` | Entrypoint. Runs rashid over every committed catalog with the data pass on, reading the rashid pin out of `build.py`'s PEP 723 header |
 | `publish_catalogs.py` | Entrypoint. Uploads a built catalog to Source Cooperative, and tears a pull request's preview down |
-| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_fetch.py`, and `check_styles.py`, plus `run_all.py` which runs the lot |
+| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_docs.py`, `check_fetch.py`, and `check_styles.py`, plus `run_all.py` which runs the lot |
 
 Inputs and outputs live under `examples/`, not here.
 
@@ -45,7 +45,15 @@ Inputs and outputs live under `examples/`, not here.
 uv run examples/tools/build.py                                # build every manifest
 uv run examples/tools/build.py --catalog portolan-reference   # one manifest by stem
 uv run examples/tools/build.py --only boundaries/us-counties  # one Collection, skips validation
+uv run examples/tools/build.py --docs-only                    # regenerate README/AGENTS only
 ```
+
+`--docs-only` rewrites every README.md and AGENTS.md from the manifest against
+the committed tree, refreshes the manifest-owned collection.json fields (title,
+description, license, keywords, temporal, `table:columns` descriptions, and the
+mirrored metadata asset), and fetches nothing else. Documentation iterates far
+more often than data, and a full rebuild refetches the live upstream endpoints,
+churning binary assets under a prose change.
 
 `uv` reads the PEP 723 header at the top of `build.py` and resolves the Python
 deps (pyyaml, duckdb, jsonschema, pyarrow, rasterio, rio-cogeo, and the pinned
@@ -65,9 +73,20 @@ uv run examples/tools/tests/check_tiles.py
 uv run examples/tools/tests/check_thumb_geoms.py
 uv run examples/tools/tests/check_thumbnails.py
 uv run examples/tools/tests/check_cog.py
+uv run examples/tools/tests/check_docs.py
 uv run examples/tools/tests/check_fetch.py
 uv run examples/tools/tests/check_styles.py
 ```
+
+`check_docs.py` executes every ```sql and ```python fence in the committed
+README.md and AGENTS.md files with the doc's own directory as the working
+directory, which makes the best-practices rule that every example be run
+before publishing mechanical. Blocks that reference a URL are skipped so the
+suite stays offline, and fences in other languages are illustration. When
+authoring a recipe in the manifest, include `INSTALL spatial; LOAD spatial;`
+in every spatial SQL block, each block runs in a fresh connection, and never
+state an output in a comment without having run the query, the check proves
+blocks execute, not that quoted numbers are true.
 
 Publishing a built catalog to Source Cooperative needs `s5cmd` on PATH as well,
 and credentials for the Portolan repository in the environment or an AWS
@@ -94,7 +113,8 @@ Top level of each file in `manifests/`.
 - `id`, `title`, `description`. Root Catalog identity.
 - `schema_uri`. Must equal the pinned v0.1.0 URI. `load_manifest` asserts this.
 - `host`. `{name, url, email}`. Appended as the `host`-role provider on mirror Collections.
-- `catalogs`. Map from the first id segment to `{title, description}` for each nested Catalog.
+- `catalogs`. Map from the first id segment to `{title, description, readme?, agents?}` for each nested Catalog. The optional `readme` and `agents` are markdown templates like the per-collection `docs` below.
+- `docs?`. `{readme?, agents?}` markdown templates for the root Catalog sidecars. Catalog-level templates may use `{{collections}}` (the table of contents the best-practices page asks for), `{{sources}}` (licenses, provenance, upstream list), and `{{agents_index}}` (per-child pointers to each AGENTS.md). Without a template a default skeleton with those blocks is emitted.
 - `thumbnails`. `{size, ocean_color, pad_vector?, pad_raster?, basemap: {url, attribution?}}`. The basemap is an XYZ raster tile URL template with `{z}/{x}/{y}` placeholders, CARTO light by default.
 - `output_crs?`. Optional output CRS for the canonical assets, for example `EPSG:4326`. Source-preserving by default, set at the top level for the whole catalog, or per collection to override just that one.
 - `collections`. The list below.
@@ -113,9 +133,12 @@ Each entry in `collections`.
 - `thumbnail_bbox?`. `[minx, miny, maxx, maxy]`. Frames the preview only, not the data. Use it for antimeridian-spanning data.
 - `derivatives`. `{pmtiles, thumbnail}`. Booleans that toggle the PMTiles and thumbnail outputs.
 - `style?`. Per-Collection paint, `{color, outline, opacity, palette?, category_field?, label_field?, graduated_field?, variants?}`. Drives both the MapLibre styles and the thumbnail paint. `category_field` colours by category from the shared palette, `graduated_field` interpolates a numeric ramp, `label_field` adds labels, and `variants` lists which style files to author. The FIRST variant is the default style and is what the thumbnail renders.
-- `columns?`. `{column_name: description}`. Merged into `table:columns` by `describe_columns`. A Parquet footer carries names and types but no semantics, so the prose has to come from the manifest. Required in spirit for `tabular`, where the column schema is the only semantic handle a consumer gets.
+- `columns?`. `{column_name: description}`. Merged into `table:columns` by `describe_columns`. A Parquet footer carries names and types but no semantics, so the prose has to come from the manifest. Required in spirit for `tabular`, where the column schema is the only semantic handle a consumer gets. Also feeds the `{{schema}}` table in the README, one authored description generates both surfaces.
 - `bbox?`. Tabular only. The area of interest the table pertains to, which core.md asks for in place of a geometric footprint. Absent, the fallback is the whole world, correct only for a genuinely global table.
 - `join?`. Tabular only. `{column, target, target_column, target_file, note?}`. Emits the README join section and a runnable DuckDB example, which formats.md requires whenever geometry and attributes live in separate files. `target_file` is relative to the Collection directory.
+- `blurb?`. One line for the catalog-level collections tables. Falls back to the first sentence of `description`.
+- `metadata?`. `{url, media_type, title, standard?, filename?}`. Mirrors an upstream machine-readable metadata record, for example an ISO 19115 record from a GeoNetwork registry, into the Collection directory and attaches it as a `metadata`-role asset with real `file:size` and `file:checksum`. Mirrored rather than linked because a registry regenerates its XML and a checksum pinned to bytes the catalog does not control rots, the live-endpoint rule again. The fetch happens once, an existing local copy is reused.
+- `docs?`. `{readme?, agents?}`. Markdown templates for the Collection sidecars, the heart of the golden-example documentation. Each is near-final markdown whose structure and voice the manifest author controls per collection, with `{{placeholder}}` lines expanding to generated blocks that cannot drift from the built assets. README templates may use `{{quickstart}}` (the one tested open-it snippet, chosen by kind), `{{schema}}` (a table of the described columns from `table:columns`), `{{join}}` (the tabular join section), and `{{provenance}}` (the license and provenance block core.md requires, appended automatically when the template omits it). AGENTS templates may use `{{access}}` (the one-line access guidance). An unknown placeholder fails the build, a typo would otherwise publish literally. Without templates a minimal default skeleton is emitted, so a bare manifest still builds a conformant catalog.
 
 ## Provenance is derived, not declared
 
