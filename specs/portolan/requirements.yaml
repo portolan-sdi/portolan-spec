@@ -1055,6 +1055,16 @@ requirements:
       data: rows MUST be spatially ordered, the file MUST carry per-row-group
       spatial statistics, and row groups MUST hold no more than 150,000 rows.
 
+  - id: PORTO-FMT-044
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A vector collection SHOULD document its columns with the STAC
+      [table](https://github.com/stac-extensions/table) extension, carrying
+      `table:columns` with names, types, and descriptions on the collection or
+      on the GeoParquet asset.
+
 exclusions:
   # RFC 2119 preamble: keyword mentions, not requirements.
   - file: specs/portolan/core.md

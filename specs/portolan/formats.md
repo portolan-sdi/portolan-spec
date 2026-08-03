@@ -49,6 +49,15 @@ since it adds page-level min/max stats that enable finer-grained pruning.
 
 Row groups MUST hold no more than 150,000 rows.
 
+A vector collection SHOULD document its columns with the STAC
+[table](https://github.com/stac-extensions/table) extension, carrying
+`table:columns` with names, types, and descriptions on the collection or on the
+GeoParquet asset. Without it the attribute names and types live only in the
+Parquet footer, so a client has to read the file to learn what the collection
+holds. Names and types can be generated from the Parquet schema. The
+descriptions are written once and belong in both the metadata and the README
+schema table.
+
 ### PMTiles
 
 A PMTiles file SHOULD be provided as the visualization derivative,

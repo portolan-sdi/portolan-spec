@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- The extension registry now records the table extension as SHOULD for vector
+  collections as well as tabular ones, matching `PORTO-FMT-044`. The schema is
+  unchanged; the registry entry is what moved.
+
 ## 0.1.0 - 2026-07-27
 
 First tagged release. The schema is published at

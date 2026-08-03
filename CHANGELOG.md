@@ -9,6 +9,15 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+### Added
+
+- `PORTO-FMT-044`: a vector collection SHOULD document its columns with the
+  STAC [table](https://github.com/stac-extensions/table) extension, carrying
+  `table:columns` on the collection or on the GeoParquet asset. The same SHOULD
+  already covered tabular collections (`PORTO-FMT-037`); nothing asked a vector
+  collection for its schema, so a catalog could publish a hundred attribute
+  columns that a client could only discover by reading the Parquet footer.
+
 ### Changed
 
 - Rewrote the golden-example documentation to the standard in
