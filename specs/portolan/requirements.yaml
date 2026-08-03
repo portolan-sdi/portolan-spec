@@ -1062,8 +1062,24 @@ requirements:
     quote: >-
       A vector collection SHOULD document its columns with the STAC
       [table](https://github.com/stac-extensions/table) extension, carrying
-      `table:columns` with names, types, and descriptions on the collection or
-      on the GeoParquet asset.
+      `table:columns` with names, types, and descriptions on the collection
+      itself.
+
+  - id: PORTO-FMT-045
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      An item that carries a GeoParquet data asset, as when partition files
+      are modeled as items, SHOULD carry the same field in its `properties`.
+
+  - id: PORTO-FMT-046
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A collection whose data assets describe differing schemas MAY declare
+      `table:columns` per asset instead.
 
 exclusions:
   # RFC 2119 preamble: keyword mentions, not requirements.

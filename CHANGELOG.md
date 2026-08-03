@@ -11,12 +11,20 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Added
 
-- `PORTO-FMT-044`: a vector collection SHOULD document its columns with the
-  STAC [table](https://github.com/stac-extensions/table) extension, carrying
-  `table:columns` on the collection or on the GeoParquet asset. The same SHOULD
+- `PORTO-FMT-044` and `PORTO-FMT-045`: a vector collection SHOULD document its
+  columns with the STAC [table](https://github.com/stac-extensions/table)
+  extension, carrying `table:columns` on the collection, and an item holding a
+  GeoParquet data asset SHOULD carry the field in its `properties`. Those are
+  the two placements the extension defines, and the collection is the only one
+  a partitioned collection has, since its data sits behind `partition:glob`
+  rather than in an asset. `PORTO-FMT-046` permits per-asset declaration where
+  a collection's data assets describe differing schemas. The same SHOULD
   already covered tabular collections (`PORTO-FMT-037`); nothing asked a vector
   collection for its schema, so a catalog could publish a hundred attribute
   columns that a client could only discover by reading the Parquet footer.
+  The reference catalog moves `table:columns`, `table:primary_geometry`, and
+  `table:row_count` from the `data` asset to the collection to match, and
+  `examples/tools/stacio.py` writes them there from now on.
 
 ### Changed
 

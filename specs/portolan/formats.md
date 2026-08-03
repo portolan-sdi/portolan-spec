@@ -51,12 +51,18 @@ Row groups MUST hold no more than 150,000 rows.
 
 A vector collection SHOULD document its columns with the STAC
 [table](https://github.com/stac-extensions/table) extension, carrying
-`table:columns` with names, types, and descriptions on the collection or on the
-GeoParquet asset. Without it the attribute names and types live only in the
-Parquet footer, so a client has to read the file to learn what the collection
-holds. Names and types can be generated from the Parquet schema. The
-descriptions are written once and belong in both the metadata and the README
-schema table.
+`table:columns` with names, types, and descriptions on the collection itself.
+An item that carries a GeoParquet data asset, as when partition files are
+modeled as items, SHOULD carry the same field in its `properties`. Those are
+the two places the extension scopes the field to, and the collection is the
+only one available to a partitioned collection, whose data sits behind
+`partition:glob` rather than in an asset. A collection whose data assets
+describe differing schemas MAY declare `table:columns` per asset instead.
+
+Without it the attribute names and types live only in the Parquet footer, so a
+client has to read the file to learn what the collection holds. Names and types
+can be generated from the Parquet schema. The descriptions are written once and
+belong in both the metadata and the README schema table.
 
 ### PMTiles
 

@@ -2,7 +2,8 @@
   "type": "Feature",
   "stac_version": "1.1.0",
   "stac_extensions": [
-    "https://stac-extensions.github.io/file/v2.1.0/schema.json"
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json"
   ],
   "id": "buildings-sevilla",
   "collection": "buildings",
@@ -40,7 +41,29 @@
     38.211
   ],
   "properties": {
-    "datetime": "2025-06-01T00:00:00Z"
+    "datetime": "2025-06-01T00:00:00Z",
+    "table:columns": [
+      {
+        "name": "building_id",
+        "type": "string",
+        "description": "Cadastral reference of the building, unique across all partitions."
+      },
+      {
+        "name": "provincia",
+        "type": "string",
+        "description": "Province name, the partition key; every file holds one province."
+      },
+      {
+        "name": "height_m",
+        "type": "float",
+        "description": "Building height in metres, null where the cadastre records none."
+      },
+      {
+        "name": "geometry",
+        "type": "binary",
+        "description": "Building footprint as WKB, EPSG:4326."
+      }
+    ]
   },
   "assets": {
     "data": {

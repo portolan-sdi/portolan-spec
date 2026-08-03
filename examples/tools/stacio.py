@@ -277,7 +277,7 @@ def access_line(kind: str, data_name: str, has_visual: bool, has_thumb: bool) ->
 
 def schema_block(cols: list[dict]) -> list[str]:
     """A schema table of the described columns, generated from the same
-    `table:columns` the data asset carries, so prose and metadata cannot drift."""
+    `table:columns` the collection carries, so prose and metadata cannot drift."""
     described = [c for c in cols if c.get("description")]
     if not described:
         return []
@@ -287,10 +287,10 @@ def schema_block(cols: list[dict]) -> list[str]:
     lines.append("")
     if len(described) < len(cols):
         lines.append(f"The table has {len(cols)} columns in all. The full list "
-                     "with types lives in `table:columns` on the `data` asset.")
+                     "with types lives in `table:columns` on the collection.")
     else:
         lines.append("The same descriptions live in `table:columns` on the "
-                     "`data` asset, so tools that read STAC see them too.")
+                     "collection, so tools that read STAC see them too.")
     return lines
 
 
@@ -472,6 +472,10 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
     layer_name = stem
     deriv = spec.get("derivatives", {}) or {}
     data_name = ""
+    # The table extension scopes `table:*` to Collection fields and Item
+    # Properties, and PORTO-FMT-044 asks a vector collection for them there, so
+    # these are merged into the collection rather than onto the data asset.
+    table_fields: dict[str, Any] = {}
 
     if kind in ("vector",):
         data_pq = coll_dir / f"{stem}.parquet"
@@ -481,8 +485,9 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         geom_col = next((c["name"] for c in cols if c["type"] == "geometry"), "geom")
         assets["data"] = asset(data_pq, MEDIA["geoparquet"], ["data"],
                                f"{spec['title']} (GeoParquet)",
-                               {"table:columns": cols, "table:primary_geometry": geom_col,
-                                "table:row_count": n, "proj:code": canon_crs})
+                               {"proj:code": canon_crs})
+        table_fields = {"table:columns": cols, "table:primary_geometry": geom_col,
+                        "table:row_count": n}
         exts += [TABLE_EXT, PROJ_EXT]
         add_source_asset(assets, local, src)
         if deriv.get("pmtiles"):
@@ -538,8 +543,8 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         n = feature_count(data_pq)
         bbox = None
         assets["data"] = asset(data_pq, MEDIA["parquet"], ["data"],
-                               f"{spec['title']} (Parquet)",
-                               {"table:columns": cols, "table:row_count": n})
+                               f"{spec['title']} (Parquet)")
+        table_fields = {"table:columns": cols, "table:row_count": n}
         add_source_asset(assets, local, src)
         exts.append(TABLE_EXT)
         bands, code = [], None
@@ -592,6 +597,7 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         "keywords": spec.get("keywords", []),
         "providers": providers,
         "extent": extent,
+        **table_fields,
         "assets": assets,
         "links": links,
     }
@@ -844,13 +850,13 @@ def _facts_from_collection(spec: dict, coll: dict) -> dict:
     assets = coll["assets"]
     data = assets["data"]
     data_name = data["href"].removeprefix("./")
-    cols = describe_columns(data.get("table:columns", []), spec.get("columns") or {})
+    cols = describe_columns(coll.get("table:columns", []), spec.get("columns") or {})
     join = dict(spec.get("join") or {})
     if join:
         join["this_file"] = data_name
     return {
         "kind": spec["kind"], "data_name": data_name,
-        "n": data.get("table:row_count", 0), "cols": cols,
+        "n": coll.get("table:row_count", 0), "cols": cols,
         "bands": data.get("bands", []), "crs": data.get("proj:code"),
         "aoi": spec.get("bbox"),
         "has_visual": "visual" in assets, "has_thumb": "thumbnail" in assets,
@@ -875,10 +881,9 @@ def regen_docs(manifest: dict, out: Path, cache: Path) -> None:
         coll_dir = out.joinpath(*seg)
         coll_path = coll_dir / "collection.json"
         coll = json.loads(coll_path.read_text())
-        data = coll["assets"]["data"]
-        if data.get("table:columns"):
-            data["table:columns"] = describe_columns(
-                data["table:columns"], spec.get("columns") or {})
+        if coll.get("table:columns"):
+            coll["table:columns"] = describe_columns(
+                coll["table:columns"], spec.get("columns") or {})
         coll["title"] = spec["title"]
         coll["description"] = spec["description"].strip()
         coll["license"] = spec["license"]

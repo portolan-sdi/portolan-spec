@@ -59,7 +59,7 @@ semester string, 2025-S2 meaning July to December 2025.
 | `OBS_FLAG` | varchar | Observation status, e estimated, p provisional, d definition differs, null for 98 percent of rows. |
 | `CONF_STATUS` | varchar | Confidentiality status, entirely null in this snapshot. |
 
-The same descriptions live in `table:columns` on the `data` asset, so tools that read STAC see them too.
+The same descriptions live in `table:columns` on the collection, so tools that read STAC see them too.
 
 ## Join to Geometry
 
