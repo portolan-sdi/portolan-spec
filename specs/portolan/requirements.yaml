@@ -648,15 +648,16 @@ requirements:
     file: specs/portolan/core.md
     quote: >-
       Style files are STAC assets: each style MUST be registered as a
-      collection-level asset with `roles: ["style"]`, alongside the data and
+      collection-level asset carrying the `style` role, alongside the data and
       thumbnail.
 
   - id: PORTO-CORE-070
-    severity: SHOULD
-    enforcement: process
+    severity: MUST
+    enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Where multiple styles exist, the default SHOULD be listed first.
+      when a collection provides more than one style, exactly one style asset
+      MUST carry both `style` and `default` in its `roles`.
 
   # ------------------------------------------------------------- formats.md
   - id: PORTO-FMT-001

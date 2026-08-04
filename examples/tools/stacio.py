@@ -97,9 +97,13 @@ def asset(path: Path, media: str, roles: list[str], title: str, extra: dict | No
     return a
 
 
-def style_asset(path: Path, variant: str) -> dict:
+def style_asset(path: Path, variant: str, default: bool = False) -> dict:
+    # core.md marks the default style with a second role, not by key or position,
+    # because STAC assets are an unordered object whose keys carry no meaning a
+    # client is expected to understand. Multiple roles per asset are standard STAC.
+    roles = ["style", "default"] if default else ["style"]
     return {"href": f"./styles/{path.name}", "type": MEDIA["style"],
-            "title": f"{variant.capitalize()} MapLibre style", "roles": ["style"],
+            "title": f"{variant.capitalize()} MapLibre style", "roles": roles,
             "file:size": filesize(path), "file:checksum": multihash(path)}
 
 
@@ -492,15 +496,22 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
             exts.append(WEBMAP_EXT)
             links.append(link("pmtiles", f"./{pm.name}", MEDIA["pmtiles"], "Web map tiles",
                               {"pmtiles:layers": [layer_name]}))
-            # styles read the PMTiles, so only author them where a visual exists
+            # styles read the PMTiles, so only author them where a visual exists.
+            # The default variant (first in style.variants) also carries the
+            # default role, so the default is discoverable without relying on
+            # asset order, which a JSON object does not guarantee. core.md
+            # requires exactly that once a Collection has more than one style.
+            default_variant = (spec.get("style", {}).get("variants") or ["default"])[0]
             for sp in author_styles(coll_dir / "styles", layer_name, pm.name, norm, spec):
-                assets[f"style-{sp.stem}"] = style_asset(sp, sp.stem)
+                assets[f"style-{sp.stem}"] = style_asset(sp, sp.stem,
+                                                         default=sp.stem == default_variant)
         if deriv.get("thumbnail", True):
             th = coll_dir / "thumbnail.png"
             tbbox = spec.get("thumbnail_bbox") or bbox
             # core.md, the thumbnail is "generated from default styling", and the
-            # default style is the one listed first. Pass that variant through so
-            # the preview and styles/<first>.json cannot drift apart.
+            # default style is the first variant, the one published with the
+            # default role. Pass that variant through so the preview and
+            # styles/<first>.json cannot drift apart.
             st = spec.get("style") or {}
             style = {**st, "geometry": spec.get("geometry", "polygon"),
                      "default_variant": (st.get("variants") or ["default"])[0]}
