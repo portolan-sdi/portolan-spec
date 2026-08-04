@@ -74,59 +74,73 @@
         },
         {
           "name": "STATEFP",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Two-digit state or territory FIPS code as a zero-padded string."
         },
         {
           "name": "COUNTYFP",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Three-digit county FIPS code, unique within its state."
         },
         {
           "name": "COUNTYNS",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Eight-digit ANSI (GNIS) code, the permanent identifier that survives FIPS reassignment."
         },
         {
           "name": "GEOIDFQ",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Fully qualified GEOID, 0500000US plus GEOID. Matches the GEO_ID column in data.census.gov downloads directly. Called AFFGEOID before the 2023 vintage."
         },
         {
           "name": "GEOID",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Five-digit STATEFP plus COUNTYFP concatenation, the standard join key for US county statistics. Keep it a string, integer casts strip the leading zero."
         },
         {
           "name": "NAME",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Base name only, for example Denver. 31 rows are named Washington, so never key on it."
         },
         {
           "name": "NAMELSAD",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Name with its legal or statistical description, for example St. Louis city. The display name."
         },
         {
           "name": "STUSPS",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Two-letter USPS state or territory abbreviation."
         },
         {
           "name": "STATE_NAME",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Full state or territory name."
         },
         {
           "name": "LSAD",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Legal or statistical area description code. Twelve kinds of county equivalent appear in this file."
         },
         {
           "name": "ALAND",
-          "type": "bigint"
+          "type": "bigint",
+          "description": "Land area in square meters, computed from the full-resolution legal boundary, not from this generalized geometry."
         },
         {
           "name": "AWATER",
-          "type": "bigint"
+          "type": "bigint",
+          "description": "Water area in square meters, including territorial water that lies outside the clipped shoreline geometry."
         },
         {
           "name": "geom",
-          "type": "geometry('epsg:4269')"
+          "type": "geometry('epsg:4269')",
+          "description": "County geometry clipped to the shoreline, NAD83 longitude and latitude."
         },
         {
           "name": "bbox",
-          "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+          "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+          "description": "Per-feature bounding box struct, the GeoParquet covering."
         }
       ],
       "table:primary_geometry": "geom",
