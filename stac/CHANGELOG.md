@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- `PORTO-CORE-026`: `image/webp` is now a valid thumbnail media type alongside
+  `image/png` and `image/jpeg`. No existing catalog breaks.
+
 ## 0.1.0 - 2026-07-27
 
 First tagged release. The schema is published at

@@ -223,7 +223,7 @@ The required media type for each core format is:
 | COG | `image/tiff; application=geotiff; profile=cloud-optimized` |
 | PMTiles | `application/vnd.pmtiles` |
 | COPC | `application/vnd.laszip+copc` |
-| Thumbnail | `image/png` or `image/jpeg` |
+| Thumbnail | `image/png`, `image/jpeg`, or `image/webp` |
 
 Roles describe what each asset is for. Portolan uses the standard STAC role names
 wherever they fit and requires at least one per asset: `data` for the primary

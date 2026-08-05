@@ -258,7 +258,7 @@ requirements:
       | COG | `image/tiff; application=geotiff; profile=cloud-optimized` |
       | PMTiles | `application/vnd.pmtiles` |
       | COPC | `application/vnd.laszip+copc` |
-      | Thumbnail | `image/png` or `image/jpeg` |
+      | Thumbnail | `image/png`, `image/jpeg`, or `image/webp` |
 
   - id: PORTO-CORE-027
     severity: MUST
