@@ -50,7 +50,7 @@
     "temporal": {
       "interval": [
         [
-          "2025-01-01T00:00:00Z",
+          "2022-05-12T00:00:00Z",
           null
         ]
       ]
@@ -85,7 +85,8 @@
         },
         {
           "name": "SOVEREIGNT",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "The owning sovereign state, which differs from ADMIN for territories such as Greenland (Denmark)."
         },
         {
           "name": "SOV_A3",
@@ -101,7 +102,8 @@
         },
         {
           "name": "TYPE",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Unit type, Sovereign country, Country, Dependency, Disputed, Indeterminate, or Sovereignty."
         },
         {
           "name": "TLC",
@@ -113,7 +115,8 @@
         },
         {
           "name": "ADM0_A3",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Natural Earth's own three-letter country code. Never a sentinel value, and the join key to the populated places Collection."
         },
         {
           "name": "GEOU_DIF",
@@ -145,11 +148,13 @@
         },
         {
           "name": "NAME",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Short map label, for example Dem. Rep. Congo."
         },
         {
           "name": "NAME_LONG",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Long-form name, for example Democratic Republic of the Congo. Differs from NAME on 21 rows."
         },
         {
           "name": "BRK_A3",
@@ -217,7 +222,8 @@
         },
         {
           "name": "POP_EST",
-          "type": "double"
+          "type": "double",
+          "description": "Population estimate, mostly the 2019 vintage. See POP_YEAR."
         },
         {
           "name": "POP_RANK",
@@ -225,15 +231,18 @@
         },
         {
           "name": "POP_YEAR",
-          "type": "integer"
+          "type": "integer",
+          "description": "Year the population estimate refers to."
         },
         {
           "name": "GDP_MD",
-          "type": "integer"
+          "type": "integer",
+          "description": "GDP in millions of US dollars, mostly the 2019 vintage. See GDP_YEAR."
         },
         {
           "name": "GDP_YEAR",
-          "type": "integer"
+          "type": "integer",
+          "description": "Year the GDP figure refers to."
         },
         {
           "name": "ECONOMY",
@@ -249,19 +258,23 @@
         },
         {
           "name": "ISO_A2",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "ISO 3166-1 alpha-2 code, -99 for the same five countries as ISO_A3."
         },
         {
           "name": "ISO_A2_EH",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "ISO alpha-2 with France, Norway, and Kosovo (XK) repaired."
         },
         {
           "name": "ISO_A3",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "ISO 3166-1 alpha-3 code, with the sentinel -99 for France, Norway, Kosovo, Northern Cyprus, and Somaliland. Prefer ISO_A3_EH."
         },
         {
           "name": "ISO_A3_EH",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "ISO alpha-3 with France and Norway repaired. The column to join external ISO-coded statistics on."
         },
         {
           "name": "ISO_N3",
@@ -441,15 +454,18 @@
         },
         {
           "name": "CONTINENT",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Continent rollup. Includes the value Seven seas (open ocean), so a GROUP BY returns eight groups."
         },
         {
           "name": "REGION_UN",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "United Nations macro region."
         },
         {
           "name": "SUBREGION",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "United Nations subregion."
         },
         {
           "name": "REGION_WB",
@@ -489,19 +505,23 @@
         },
         {
           "name": "LABEL_X",
-          "type": "double"
+          "type": "double",
+          "description": "Longitude of the preferred label point."
         },
         {
           "name": "LABEL_Y",
-          "type": "double"
+          "type": "double",
+          "description": "Latitude of the preferred label point."
         },
         {
           "name": "NE_ID",
-          "type": "bigint"
+          "type": "bigint",
+          "description": "Stable Natural Earth feature id, unique in this file."
         },
         {
           "name": "WIKIDATAID",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Wikidata QID, present on all 177 rows."
         },
         {
           "name": "NAME_AR",
@@ -745,11 +765,13 @@
         },
         {
           "name": "geom",
-          "type": "geometry"
+          "type": "geometry",
+          "description": "Country geometry, polygon or multipolygon, WGS84 longitude and latitude."
         },
         {
           "name": "bbox",
-          "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+          "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+          "description": "Per-feature bounding box struct, the GeoParquet covering used for spatial predicate pushdown."
         }
       ],
       "table:primary_geometry": "geom",

@@ -8,8 +8,8 @@
   ],
   "id": "raster/sample-cog",
   "title": "Sample Raster COG",
-  "description": "A small 3-band Cloud Optimized GeoTIFF used to exercise the raster path end to end. Optimized to a COG with per-band statistics, minimum, maximum, mean, and standard deviation, embedded in the header. From the rasterio test fixtures, a 3-band raster in UTM zone 18N (EPSG:32618).",
-  "license": "BSD-3-Clause",
+  "description": "A small 3-band Cloud Optimized GeoTIFF used to exercise the raster path end to end, rasterio's RGB.byte.tif test fixture, derived from USGS Landsat 7 imagery over Andros Island in the Bahamas. Optimized to a COG with per-band statistics, minimum, maximum, mean, and standard deviation, embedded in the header, in UTM zone 18N (EPSG:32618).",
+  "license": "CC0-1.0",
   "keywords": [
     "raster",
     "cog",
@@ -49,7 +49,7 @@
     "temporal": {
       "interval": [
         [
-          "2020-01-01T00:00:00Z",
+          "1999-04-15T00:00:00Z",
           null
         ]
       ]

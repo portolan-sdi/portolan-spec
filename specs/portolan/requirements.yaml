@@ -258,7 +258,7 @@ requirements:
       | COG | `image/tiff; application=geotiff; profile=cloud-optimized` |
       | PMTiles | `application/vnd.pmtiles` |
       | COPC | `application/vnd.laszip+copc` |
-      | Thumbnail | `image/png` or `image/jpeg` |
+      | Thumbnail | `image/png`, `image/jpeg`, or `image/webp` |
 
   - id: PORTO-CORE-027
     severity: MUST
@@ -272,11 +272,11 @@ requirements:
       with `iso-19115` used specifically for an ISO 19115 file.
 
   - id: PORTO-CORE-028
-    severity: MUST
+    severity: SHOULD
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Assets MUST carry `file:size` and `file:checksum` from the [file
+      Assets SHOULD carry `file:size` and `file:checksum` from the [file
       extension](https://github.com/stac-extensions/file).
 
   - id: PORTO-CORE-029
@@ -284,16 +284,15 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      The checksum MUST use multihash encoding, not a raw sha256 string.
+      A `file:checksum` MUST use multihash encoding, not a raw sha256 string.
 
   - id: PORTO-CORE-030
     severity: MUST
-    enforcement: process
+    enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      These embedded values MUST be regenerated at publish time, in the same
-      operation that uploads the files, so they always match what is in the
-      bucket.
+      Any `file:size` and `file:checksum` an asset carries MUST match the bytes
+      its `href` resolves to.
 
   - id: PORTO-CORE-031
     severity: MAY

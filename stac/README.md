@@ -26,7 +26,7 @@ The schema encodes the specification's structural requirements that STAC core le
 
 - Every Catalog and Collection has a non-empty `title` and `description`; every `child` and `item` link carries a `title` (spec: Human-Readable Titles).
 - No object carries a `self` link, and structural links (`root`, `parent`, `child`, `item`, `collection`) are relative and carry `type: "application/json"` (`application/geo+json` for links to items), keeping a catalog fully portable (spec: Links).
-- Every asset has `href`, a media `type`, at least one `role`, and `file:size` + `file:checksum` (spec: Assets). The checksum's multihash encoding is verified by tooling, not schema.
+- Every asset has `href`, a media `type`, and at least one `role` (spec: Assets). `file:size` and `file:checksum` are SHOULD-level, so the schema checks their shape where present without requiring them; the checksum's multihash encoding, and whether either value matches the bytes, are verified by tooling rather than schema.
 - Absolute asset hrefs use `https` — `s3://` and other bucket schemes are rejected; relative hrefs are allowed (spec: Assets).
 - Every Collection declares `providers` with at least one `producer` and a `host` reachable through `url` or `email`; that the host is exactly one and listed last is checked by tooling (spec: Providers).
 - Collection `license` is never the deprecated `proprietary`; SPDX validity and the `rel: "license"` link required with `other` are checked by tooling (spec: License).
@@ -43,7 +43,7 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 | Name                | Schema URI for `stac_extensions`                                            | Requirement | When / Usage |
 | ------------------- | --------------------------------------------------------------------------- | ----------- | ------------ |
 | [Portolan][] | `https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json` | **MUST**    | Always — every catalog and collection; items inherit conformance |
-| [File Info][] | `https://stac-extensions.github.io/file/v2.1.0/schema.json`                 | **MUST**    | Every object with assets: `file:size` + `file:checksum` (multihash) on each asset |
+| [File Info][] | `https://stac-extensions.github.io/file/v2.1.0/schema.json`                 | **MUST**    | When an asset carries `file:size` or `file:checksum`, both of which are SHOULD-level per asset (checksum as multihash) |
 | [Web Map Links][] | `https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json`        | **MUST**    | When PMTiles are provided: the `rel: "pmtiles"` link |
 | [Version][] | `https://stac-extensions.github.io/version/v1.2.0/schema.json`              | **MUST**    | When dataset versioning is used (never `portolan:` fields) |
 | [Raster][] | `https://stac-extensions.github.io/raster/v2.0.0/schema.json`               | **MUST**    | When band-level detail is provided |
@@ -106,7 +106,7 @@ Whether a catalog is official or a mirror is derived from its providers (produce
 | COG | `image/tiff; application=geotiff; profile=cloud-optimized` | `data` |
 | PMTiles | `application/vnd.pmtiles` | `visual` |
 | COPC | `application/vnd.laszip+copc` | `data` |
-| Thumbnail | `image/png` or `image/jpeg` | `thumbnail` |
+| Thumbnail | `image/png`, `image/jpeg`, or `image/webp` | `thumbnail` |
 | Sidecar metadata | (format-specific) | `metadata`, `iso-19115` |
 | MapLibre style | `application/vnd.mapbox.style+json` | `style` (Portolan-defined role) |
 

@@ -47,7 +47,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from stacio import load_manifest, build_catalog, regen_styles
+from stacio import load_manifest, build_catalog, regen_styles, regen_docs
 from validate import validate
 
 
@@ -72,6 +72,10 @@ def main() -> int:
     ap.add_argument("--styles-only", action="store_true",
                     help="re-author MapLibre styles and their assets against "
                          "the committed catalog, no fetch, no conversion")
+    ap.add_argument("--docs-only", action="store_true",
+                    help="regenerate README/AGENTS sidecars and table:columns "
+                         "descriptions from the manifest against the committed "
+                         "catalog, no fetch, no conversion")
     args = ap.parse_args()
 
     files = sorted(p for p in args.manifests.glob("*.yaml"))
@@ -87,6 +91,9 @@ def main() -> int:
         cat_out = args.out / mf.stem
         if args.styles_only:
             regen_styles(manifest, cat_out)
+            continue
+        if args.docs_only:
+            regen_docs(manifest, cat_out, args.cache)
             continue
         build_catalog(manifest, cat_out, args.cache, args.only)
         if not args.no_validate and not args.only:

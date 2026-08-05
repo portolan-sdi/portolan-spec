@@ -2,7 +2,16 @@
 
 Administrative and open-space boundary Collections from official sources.
 
-Collections, 3.
+## Collections
+
+| Collection | Contents | Description |
+|---|---|---|
+| [United States Counties (2023, 1:500k)](./us-counties/README.md) | 3,235 polygons | All 3,235 county and equivalent boundaries as of January 1, 2023, keyed by the FIPS codes that unlock US county statistics. |
+| [Boston Open Space](./boston-open-space/README.md) | 1,012 polygons | 1,012 open space polygons of conservation and recreation interest, regardless of ownership, from Franklin Park to community gardens. |
+| [Netherlands Provinces](./netherlands-provinces/README.md) | 12 polygons | The 12 provinces from the cadastral registry, boundaries that reproduce the national statistics office's official areas to one decimal. |
+
+## Where the Data Comes From
+
 Licenses, CC-BY-4.0, CC0-1.0, PDDL-1.0.
 Provenance, 3 mirror Collections.
 

@@ -50,7 +50,7 @@
     "temporal": {
       "interval": [
         [
-          "2025-01-01T00:00:00Z",
+          "2022-05-13T00:00:00Z",
           null
         ]
       ]
@@ -73,7 +73,8 @@
         },
         {
           "name": "SCALERANK",
-          "type": "integer"
+          "type": "integer",
+          "description": "Importance rank 0 to 10, 0 most important. Filter on it to thin labels by zoom."
         },
         {
           "name": "NATSCALE",
@@ -85,11 +86,13 @@
         },
         {
           "name": "FEATURECLA",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "What kind of place this is. Admin-0 capital, Admin-1 capital, Populated place, Scientific station, and four rarer classes."
         },
         {
           "name": "NAME",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Display name with diacritics, for example Neuqu\u00e9n. Not unique, several city names repeat across countries."
         },
         {
           "name": "NAMEPAR",
@@ -101,11 +104,13 @@
         },
         {
           "name": "NAMEASCII",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "ASCII fallback spelling of the name."
         },
         {
           "name": "ADM0CAP",
-          "type": "integer"
+          "type": "integer",
+          "description": "1 marks a national capital, 200 rows in this file."
         },
         {
           "name": "CAPIN",
@@ -113,11 +118,13 @@
         },
         {
           "name": "WORLDCITY",
-          "type": "integer"
+          "type": "integer",
+          "description": "1 flags 70 globally prominent cities."
         },
         {
           "name": "MEGACITY",
-          "type": "integer"
+          "type": "integer",
+          "description": "1 flags the 462 places Natural Earth treats as megacities."
         },
         {
           "name": "SOV0NAME",
@@ -129,15 +136,18 @@
         },
         {
           "name": "ADM0NAME",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Country name the point belongs to."
         },
         {
           "name": "ADM0_A3",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Natural Earth country code, the join key to the countries Collection."
         },
         {
           "name": "ADM1NAME",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "First-level admin region the point belongs to."
         },
         {
           "name": "ISO_A2",
@@ -157,11 +167,13 @@
         },
         {
           "name": "POP_MAX",
-          "type": "bigint"
+          "type": "bigint",
+          "description": "Population of the metro area, LandScan derived. Tokyo carries 35,676,000."
         },
         {
           "name": "POP_MIN",
-          "type": "bigint"
+          "type": "bigint",
+          "description": "Population of the city proper. Tokyo carries 8,336,599."
         },
         {
           "name": "POP_OTHER",
@@ -281,7 +293,8 @@
         },
         {
           "name": "TIMEZONE",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "IANA time zone name, empty for 114 rows."
         },
         {
           "name": "UN_FID",
@@ -357,11 +370,13 @@
         },
         {
           "name": "MIN_ZOOM",
-          "type": "double"
+          "type": "double",
+          "description": "Suggested minimum web-map zoom for showing the place."
         },
         {
           "name": "WIKIDATAID",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Wikidata QID, missing for 7 rows."
         },
         {
           "name": "WOF_ID",
@@ -461,7 +476,8 @@
         },
         {
           "name": "NE_ID",
-          "type": "bigint"
+          "type": "bigint",
+          "description": "Stable Natural Earth feature id, unique in this file."
         },
         {
           "name": "NAME_FA",
@@ -485,7 +501,8 @@
         },
         {
           "name": "GEONAMESID",
-          "type": "bigint"
+          "type": "bigint",
+          "description": "GeoNames id, missing for 43 rows."
         },
         {
           "name": "FCLASS_ISO",
@@ -621,11 +638,13 @@
         },
         {
           "name": "geom",
-          "type": "geometry"
+          "type": "geometry",
+          "description": "Point geometry, WGS84 longitude and latitude. Use it instead of the legacy LATITUDE and LONGITUDE columns."
         },
         {
           "name": "bbox",
-          "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+          "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+          "description": "Per-feature bounding box struct, the GeoParquet covering."
         }
       ],
       "table:primary_geometry": "geom",
