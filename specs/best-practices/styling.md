@@ -5,7 +5,8 @@ requires. These are recommendations, not requirements.
 
 - **Create multiple data-driven styles for rich collections.** If a collection has
   interesting categorical or numeric attributes, offer a style for each, e.g.
-  buildings by age, by use, or by height. List the default first.
+  buildings by age, by use, or by height. Mark the default one by giving its asset
+  a `default` role alongside `style`.
 
 - **Vary default colors across a catalog** so it is not monotone. Use the subject
   matter as a guide: water in blues, vegetation in greens, the built environment in

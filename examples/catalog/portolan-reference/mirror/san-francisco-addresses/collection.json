@@ -81,19 +81,23 @@
         },
         {
           "name": "street_full_street_name",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Street name and type together."
         },
         {
           "name": "zip_code",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Five-digit ZIP code as a string."
         },
         {
           "name": "latitude",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Latitude as text. Prefer the geometry column."
         },
         {
           "name": "address_number_suffix",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Street number suffix such as A, null for nearly all rows."
         },
         {
           "name": "supdistpad",
@@ -101,31 +105,38 @@
         },
         {
           "name": "complete_landmark_name",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Landmark name for the few rows that carry one, Millennium Tower."
         },
         {
           "name": "eas_fullid",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Unique row identifier, base id, sub id, and parcel link id joined with dashes. The only column unique per row."
         },
         {
           "name": "direct_source",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Where the record entered the EAS, SF DBI, State of CA, or The Presidio Trust."
         },
         {
           "name": "cnn",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Centerline Network Number, the street-segment key of the city basemap, joins to the DataSF street centerlines."
         },
         {
           "name": "data_loaded_at",
-          "type": "timestamp with time zone"
+          "type": "timestamp with time zone",
+          "description": "When the portal loaded the record."
         },
         {
           "name": "longitude",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Longitude as text. Prefer the geometry column."
         },
         {
           "name": "street_name",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Parsed street name."
         },
         {
           "name": "supdist",
@@ -133,15 +144,18 @@
         },
         {
           "name": "eas_baseid",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Identifier of the base address, the building. Units share it, so count distinct eas_baseid for buildings."
         },
         {
           "name": "nhood",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "DataSF analysis neighborhood name, joins to the Analysis Neighborhoods dataset by name."
         },
         {
           "name": "block",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Assessor block number as a string."
         },
         {
           "name": "supname",
@@ -149,39 +163,48 @@
         },
         {
           "name": "street_type",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Parsed street type, ST or AVE. Null for streets like BROADWAY that have no type."
         },
         {
           "name": "eas_subid",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Identifier of the sub-address, a unit or apartment, within its base."
         },
         {
           "name": "lot",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Assessor lot number as a string."
         },
         {
           "name": "address",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Full address string, with the unit as a hash suffix when present."
         },
         {
           "name": "unit_number",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Unit designator, null on base-address rows."
         },
         {
           "name": "supervisor",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Supervisor district number as a string."
         },
         {
           "name": "data_updated_at",
-          "type": "timestamp with time zone"
+          "type": "timestamp with time zone",
+          "description": "Record update timestamp, with a 1970 epoch sentinel on never-updated rows."
         },
         {
           "name": "address_number",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Street number."
         },
         {
           "name": "parcel_number",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Assessor parcel number, block plus lot. Null on 32 percent of rows, a parcel join drops them silently."
         },
         {
           "name": "numbertext",
@@ -189,7 +212,8 @@
         },
         {
           "name": "data_as_of",
-          "type": "timestamp with time zone"
+          "type": "timestamp with time zone",
+          "description": "Snapshot timestamp of the upstream export, July 24, 2026 for every row here."
         },
         {
           "name": "landmark_aliases",
@@ -197,11 +221,13 @@
         },
         {
           "name": "geom",
-          "type": "geometry"
+          "type": "geometry",
+          "description": "Address point, WGS84 longitude and latitude. Units stack on their building's single point."
         },
         {
           "name": "bbox",
-          "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+          "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+          "description": "Per-feature bounding box struct, the GeoParquet covering."
         }
       ],
       "table:primary_geometry": "geom",
@@ -223,7 +249,8 @@
       "type": "application/vnd.mapbox.style+json",
       "title": "Default MapLibre style",
       "roles": [
-        "style"
+        "style",
+        "default"
       ],
       "file:size": 474,
       "file:checksum": "12204a4947ddba3cb084a779d7d0dca0d13f32d665a9da0b029e95a55152f61509ce"

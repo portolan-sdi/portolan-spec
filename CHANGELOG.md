@@ -21,8 +21,39 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   enforcement moves from `process` to `validator`, since a data pass can check it.
 - **Assets** (PORTO-CORE-029): reworded to govern a `file:checksum` where one is
   present. Multihash encoding is still required, unchanged in force.
-- **Requirements manifest**: still 115 requirements, now 83 MUST, 18 SHOULD, and
+- **Requirements manifest**: still 115 requirements, now 84 MUST, 17 SHOULD, and
   14 MAY.
+- **Default style is identified by a `default` role**
+  ([`specs/portolan/core.md`](specs/portolan/core.md)): a collection with more than
+  one style now MUST mark exactly one style asset with `roles: ["style", "default"]`,
+  replacing the previous guidance that the default SHOULD be "listed first". STAC
+  `assets` is an unordered JSON object and STAC states that asset keys carry no
+  meaning a client is expected to understand, so neither order nor key is a reliable
+  signal; STAC does encourage multiple roles per asset, so a second role lets a
+  client find the default deterministically with no extension. `PORTO-CORE-070`
+  moves from `SHOULD` to `MUST`, and the reference catalog and generator are
+  updated to match.
+- Rewrote the golden-example documentation to the standard in
+  [`specs/best-practices/documentation.md`](specs/best-practices/documentation.md)
+  (#81). Every Collection README now opens with a researched narrative and
+  numbers, carries a tested Quick Start, a described schema table, suggested
+  uses, and candid limitations, and every AGENTS.md is dataset-specific with
+  join keys, quirks, CRS consequences, and tested query recipes. The prose
+  lives in the manifest as per-collection markdown templates with generated
+  `{{placeholder}}` blocks, so structure varies by Collection while counts,
+  schemas, and code cannot drift from the built assets. Catalog-level READMEs
+  became collections tables. A new `check_docs.py` executes every code block
+  in the committed docs, and `build.py --docs-only` regenerates documentation
+  without refetching data.
+- The `boundaries/netherlands-provinces` example now mirrors its upstream ISO
+  19115 record from the Nationaal Georegister as a `metadata`-role asset.
+- Corrected example metadata found during research for #81. The
+  `raster/sample-cog` license is CC0-1.0, matching rasterio's dedication of
+  its test images, its temporal extent starts at the Landsat 7 launch instead
+  of a placeholder, the Natural Earth temporal extents match the May 2022
+  5.1.x releases, and the Eurostat join documentation targets `ISO_A2_EH`
+  with the EL and UK remaps, the raw `ISO_A2` join silently dropped France,
+  Norway, and Kosovo.
 
 ## 0.1.0 - 2026-07-27
 
