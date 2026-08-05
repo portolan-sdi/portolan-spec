@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The schema no longer requires `file:size` and `file:checksum` on every asset,
+  following the specification's move of both to SHOULD. Where either is present
+  the schema still checks its shape, and tooling still checks the checksum's
+  multihash encoding and its agreement with the bytes. A catalog that conformed
+  before still conforms, so this is a non-breaking relaxation under the pre-1.0
+  bump policy.
+- The extension registry lists File Info as a conditional MUST, owed when an
+  asset carries either field rather than on every object with assets.
 - `PORTO-CORE-026`: `image/webp` is now a valid thumbnail media type alongside
   `image/png` and `image/jpeg`. No existing catalog breaks.
 
