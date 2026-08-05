@@ -337,14 +337,14 @@
       }
     },
     "assets_typed_and_roled": {
-      "$comment": "STAC leaves media type and roles optional on assets; Portolan requires both so validators and browsers can dispatch on them. Every asset also carries file:size and file:checksum (spec: Assets); the checksum's multihash encoding is verified by Portolan tooling, not by schema. Absolute hrefs MUST use https, never s3 or other bucket schemes; relative hrefs are allowed.",
+      "$comment": "STAC leaves media type and roles optional on assets; Portolan requires both so validators and browsers can dispatch on them. file:size and file:checksum are SHOULD-level (spec: Assets), so the schema constrains their shape where present but does not require them; the checksum's multihash encoding and its agreement with the bytes are verified by Portolan tooling, not by schema. Absolute hrefs MUST use https, never s3 or other bucket schemes; relative hrefs are allowed.",
       "type": "object",
       "properties": {
         "assets": {
           "type": "object",
           "additionalProperties": {
             "type": "object",
-            "required": ["href", "type", "roles", "file:size", "file:checksum"],
+            "required": ["href", "type", "roles"],
             "properties": {
               "href": {
                 "type": "string",

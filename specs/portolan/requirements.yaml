@@ -258,7 +258,7 @@ requirements:
       | COG | `image/tiff; application=geotiff; profile=cloud-optimized` |
       | PMTiles | `application/vnd.pmtiles` |
       | COPC | `application/vnd.laszip+copc` |
-      | Thumbnail | `image/png` or `image/jpeg` |
+      | Thumbnail | `image/png`, `image/jpeg`, or `image/webp` |
 
   - id: PORTO-CORE-027
     severity: MUST
@@ -272,11 +272,11 @@ requirements:
       with `iso-19115` used specifically for an ISO 19115 file.
 
   - id: PORTO-CORE-028
-    severity: MUST
+    severity: SHOULD
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Assets MUST carry `file:size` and `file:checksum` from the [file
+      Assets SHOULD carry `file:size` and `file:checksum` from the [file
       extension](https://github.com/stac-extensions/file).
 
   - id: PORTO-CORE-029
@@ -284,16 +284,15 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      The checksum MUST use multihash encoding, not a raw sha256 string.
+      A `file:checksum` MUST use multihash encoding, not a raw sha256 string.
 
   - id: PORTO-CORE-030
     severity: MUST
-    enforcement: process
+    enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      These embedded values MUST be regenerated at publish time, in the same
-      operation that uploads the files, so they always match what is in the
-      bucket.
+      Any `file:size` and `file:checksum` an asset carries MUST match the bytes
+      its `href` resolves to.
 
   - id: PORTO-CORE-031
     severity: MAY
@@ -648,15 +647,16 @@ requirements:
     file: specs/portolan/core.md
     quote: >-
       Style files are STAC assets: each style MUST be registered as a
-      collection-level asset with `roles: ["style"]`, alongside the data and
+      collection-level asset carrying the `style` role, alongside the data and
       thumbnail.
 
   - id: PORTO-CORE-070
-    severity: SHOULD
-    enforcement: process
+    severity: MUST
+    enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Where multiple styles exist, the default SHOULD be listed first.
+      when a collection provides more than one style, exactly one style asset
+      MUST carry both `style` and `default` in its `roles`.
 
   # ------------------------------------------------------------- formats.md
   - id: PORTO-FMT-001

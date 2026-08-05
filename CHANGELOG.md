@@ -28,6 +28,28 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **Assets** (PORTO-CORE-028): `file:size` and `file:checksum` drop from MUST to
+  SHOULD. A catalog that describes data it does not host often cannot produce a
+  checksum, so the old MUST left it a choice between failing conformance and
+  publishing a fabricated value (#112).
+- **Assets** (PORTO-CORE-030): the publish-time regeneration rule is restated as
+  an outcome. Any `file:size` and `file:checksum` an asset carries MUST match the
+  bytes its `href` resolves to, whenever and however they were written. Its
+  enforcement moves from `process` to `validator`, since a data pass can check it.
+- **Assets** (PORTO-CORE-029): reworded to govern a `file:checksum` where one is
+  present. Multihash encoding is still required, unchanged in force.
+- **Requirements manifest**: still 115 requirements, now 84 MUST, 17 SHOULD, and
+  14 MAY.
+- **Default style is identified by a `default` role**
+  ([`specs/portolan/core.md`](specs/portolan/core.md)): a collection with more than
+  one style now MUST mark exactly one style asset with `roles: ["style", "default"]`,
+  replacing the previous guidance that the default SHOULD be "listed first". STAC
+  `assets` is an unordered JSON object and STAC states that asset keys carry no
+  meaning a client is expected to understand, so neither order nor key is a reliable
+  signal; STAC does encourage multiple roles per asset, so a second role lets a
+  client find the default deterministically with no extension. `PORTO-CORE-070`
+  moves from `SHOULD` to `MUST`, and the reference catalog and generator are
+  updated to match.
 - Rewrote the golden-example documentation to the standard in
   [`specs/best-practices/documentation.md`](specs/best-practices/documentation.md)
   (#81). Every Collection README now opens with a researched narrative and

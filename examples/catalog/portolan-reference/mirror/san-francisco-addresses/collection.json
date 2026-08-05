@@ -249,7 +249,8 @@
       "type": "application/vnd.mapbox.style+json",
       "title": "Default MapLibre style",
       "roles": [
-        "style"
+        "style",
+        "default"
       ],
       "file:size": 474,
       "file:checksum": "12204a4947ddba3cb084a779d7d0dca0d13f32d665a9da0b029e95a55152f61509ce"

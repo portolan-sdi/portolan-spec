@@ -191,7 +191,8 @@
       "type": "application/vnd.mapbox.style+json",
       "title": "Categorical MapLibre style",
       "roles": [
-        "style"
+        "style",
+        "default"
       ],
       "file:size": 1074,
       "file:checksum": "12206a77ee90951b2b7304d004d15e55dcec1eabfb6b51e12c14fa2fe7733ac5520e"
