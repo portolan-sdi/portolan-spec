@@ -112,8 +112,9 @@ header ordered so a reader can find the data it needs in an early range request.
 This is the baseline that
 [`rio cogeo validate`](https://cogeotiff.github.io/rio-cogeo/CLI/#validate) and
 rasterio treat as a COG.
-(Formats such as GeoZarr are candidates for future support once default tooling can
-render and consume them.)
+COG covers imagery and single-timestep rasters. Multidimensional cubes indexed by
+time, band, or depth are not expressible as a COG; Zarr is the candidate for those
+and is not yet supported — see [`specs/incubating/zarr.md`](../incubating/zarr.md).
 How a raster collection is structured — one item per scene, with a single-COG
 collection handled as a single-file collection — is defined under [Raster
 Collections](core.md#raster-collections).
