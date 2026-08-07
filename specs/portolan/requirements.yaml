@@ -1026,15 +1026,15 @@ requirements:
     file: specs/portolan/formats.md
     quote: >-
       A raster collection that models scenes as items SHOULD also publish a
-      [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) mirror
-      of those items at `items.parquet` in the collection root.
+      [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) item
+      mirror at `items.parquet` in the collection root.
 
   - id: PORTO-FMT-041
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A published mirror MUST be registered as a collection-level asset
+      A published item mirror MUST be registered as a collection-level asset
       carrying media type `application/vnd.apache.parquet` and the role
       `collection-mirror`
 
@@ -1043,17 +1043,19 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      the file MUST reproduce the collection's items exactly at publish time —
-      one row per item, each row carrying that item's fields.
+      An item mirror is a derived Parquet copy and MUST exactly reproduce the
+      collection's items at publication time: one row per item, with every row
+      containing that item's fields.
 
   - id: PORTO-FMT-043
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      The GeoParquet requirements above bind the mirror as they bind vector
-      data: rows MUST be spatially ordered, the file MUST carry per-row-group
-      spatial statistics, and row groups MUST hold no more than 150,000 rows.
+      The GeoParquet requirements above apply to item mirrors exactly as they
+      apply to vector datasets. Rows MUST be spatially ordered, the file MUST
+      include per-row-group spatial statistics, and row groups MUST contain no
+      more than 150,000 rows.
 
 exclusions:
   # RFC 2119 preamble: keyword mentions, not requirements.

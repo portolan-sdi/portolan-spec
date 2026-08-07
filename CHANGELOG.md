@@ -11,6 +11,13 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **"Item mirror" is now used consistently** (PORTO-FMT-040, PORTO-FMT-041,
+  PORTO-FMT-043). The STAC-GeoParquet copy of a collection's items is now always
+  referred to as an **item mirror** or **STAC-GeoParquet mirror**, leaving the
+  unqualified term **mirror** to its longstanding provenance meaning: a catalog
+  republishing data it did not produce. This is a wording-only change. The
+  requirements are unchanged, and the upstream role value `collection-mirror` is
+  unaffected (#99).
 - **Assets** (PORTO-CORE-028): `file:size` and `file:checksum` drop from MUST to
   SHOULD. A catalog that describes data it does not host often cannot produce a
   checksum, so the old MUST left it a choice between failing conformance and
