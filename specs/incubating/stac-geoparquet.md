@@ -1,35 +1,39 @@
 # Incubating — STAC-GeoParquet Beyond Raster Items
 
-**Status: maturing convention, may become required.**
+**Status: Maturing convention; may become required.**
 
-The item mirror for raster collections is ratified. See [Raster § Item
-mirror](../portolan/formats.md#raster). It graduated first because
-[stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) tooling already
-writes and reads `items.parquet`, and because scene collections are where
-per-item JSON fetches hurt most.
+The **item mirror** for raster collections is now ratified. See [Raster § Item
+mirror](../portolan/formats.md#raster).
 
-Both senses of *mirror* on this page are STAC-GeoParquet mirrors: Parquet copies
-of STAC metadata. Neither is the provenance mirror of [Source
-Provenance](../portolan/core.md#source-provenance), where a mirror is a catalog
-republishing data it did not produce.
+An item mirror is a STAC-GeoParquet file containing a collection's items. It is
+**not** the provenance meaning of *mirror* used elsewhere in Portolan, where a
+mirror is a catalog republishing data it did not produce. See [Source
+Provenance](../portolan/core.md#source-provenance).
 
-Two extensions of the idea are still open.
+Raster item mirrors graduated first because existing `stac-geoparquet` tooling
+already reads and writes `items.parquet`, and because raster scene collections
+benefit most from avoiding large numbers of per-item JSON requests.
 
-## A STAC-GeoParquet mirror of collections themselves
+Two extensions remain incubating.
 
-One construct should cover every collection a catalog holds, whatever the data
-underneath — COGs, vector, point clouds. A Parquet mirror of the collections
-would let a client search across a catalog in one read, as `items.parquet` does
-within one collection, and would carry the same terms to collection types that
-today publish no item mirror at all.
+## STAC-GeoParquet Mirrors of Collections
 
-The encoding is unsettled. Collection extents are ranges rather than footprints,
-summaries vary in shape, and no tooling reads such a file today.
+An item mirror indexes the items in a single collection. A complementary
+construct could index the collections in an entire catalog, regardless of
+whether they contain COGs, vector data, or point clouds. Like `items.parquet`
+within a collection, such a file would let clients search every collection in a
+catalog with a single read. It would also provide the same capability for
+collection types that do not currently publish item mirrors.
 
-## A whole STAC catalog in Parquet
+The encoding is still unsettled. Collection extents are ranges rather than
+footprints, summaries have no standard representation, and no existing tooling
+reads such a file.
 
-Beyond an item mirror or a collection mirror, the longer-term goal is a Parquet
-representation complete enough to reconstruct a catalog: catalogs, collections,
-items, and links in one queryable set of files. That work belongs upstream in
-`stac-geoparquet` first. Portolan should adopt the convention once it exists
-there, rather than invent a parallel one.
+## Complete STAC Catalogs in GeoParquet
+
+The longer-term goal is a STAC-GeoParquet representation that can reconstruct an
+entire catalog: catalogs, collections, items, and links stored in a queryable
+set of Parquet files.
+
+That work belongs upstream in `stac-geoparquet`. Portolan should adopt the
+upstream convention once it exists rather than defining its own.
