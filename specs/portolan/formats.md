@@ -163,15 +163,20 @@ The exact on-disk encoding (the TIFF `GDAL_METADATA` tag and its XML layout, and
 Compliance is defined by the tag contents, not by use of GDAL.
 
 **Item mirror.** A raster collection that models scenes as items SHOULD also publish a
-[stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) mirror of those items at
+[stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) item mirror at
 `items.parquet` in the collection root. One range request then returns the whole
 collection's item metadata, in place of one HTTP fetch per scene. Clients can search a large
 scene collection, or assemble it into a data cube, without a STAC API server.
 
-No item-count threshold applies. Tooling generates the mirror from the item JSON, and the
-saved fetches add up at any size.
+An item mirror is a Parquet copy of one collection's items. It is a different thing from the
+provenance sense of *mirror* used elsewhere in Portolan, where a mirror is a catalog
+republishing data it did not produce. See [Source Provenance](core.md#source-provenance).
+Always name this one in full.
 
-A published mirror MUST be registered as a collection-level asset carrying media type
+No item-count threshold applies. Tooling generates the item mirror from the item JSON, and
+the saved fetches add up at any size.
+
+A published item mirror MUST be registered as a collection-level asset carrying media type
 `application/vnd.apache.parquet` and the role `collection-mirror`, per [Referencing STAC
 Geoparquet Collections in STAC Collection
 JSON](https://radiantearth.github.io/stac-geoparquet-spec/latest/#referencing-a-stac-geoparquet-collections-in-a-stac-collection-json).
@@ -179,16 +184,17 @@ That single registration is the whole requirement; no `rel: "items"` link is nee
 
 The item JSON stays normative and the Parquet mirrors it, so the file MUST reproduce the
 collection's items exactly at publish time — one row per item, each row carrying that
-item's fields. A mirror that lags its items answers queries wrongly, and the client reading
-it cannot tell.
+item's fields. An item mirror that lags its items answers queries wrongly, and the client
+reading it cannot tell.
 
-The GeoParquet requirements above bind the mirror as they bind vector data: rows MUST be
-spatially ordered, the file MUST carry per-row-group spatial statistics, and row groups
+The GeoParquet requirements above bind the item mirror as they bind vector data: rows MUST
+be spatially ordered, the file MUST carry per-row-group spatial statistics, and row groups
 MUST hold no more than 150,000 rows. An item index is queried by extent like any other
 spatial table, and readers prune it the same way.
 
-A collection holding a single COG has no items and publishes no mirror. Mirroring other
-collection types, and mirroring a whole catalog's collections, remain incubating. See
+A collection holding a single COG has no items and publishes no item mirror. Item mirrors
+for other collection types, and a STAC-GeoParquet mirror of a whole catalog's collections,
+remain incubating. See
 [`specs/incubating/stac-geoparquet.md`](../incubating/stac-geoparquet.md).
 
 Raster styling (colormaps, legends, continuous vs. categorical vs. multiband) is
