@@ -9,6 +9,18 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+### Added
+
+- **Legend metadata for MapLibre styles**
+  ([`specs/incubating/maplibre-legend.md`](specs/incubating/maplibre-legend.md)): a
+  new incubating document specifying `layers[].metadata.legend`, the object that
+  carries a legend's block title and its display labels. It adopts the shape read by
+  [maplibre-legend](https://github.com/mvt-proj/maplibre-legend) 0.5.1 rather than
+  defining a `portolan:` variant, and is written to stand alone outside Portolan.
+  Nothing is normative. `core.md`, `formats.md`, `specs/best-practices/styling.md`,
+  `specs/incubating/raster-styling.md`, and `stac/README.md` gain pointers to it
+  (#118).
+
 ### Changed
 
 - **"Item mirror" is now used consistently** (PORTO-FMT-040, PORTO-FMT-041,

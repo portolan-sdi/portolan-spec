@@ -475,4 +475,6 @@ default the same way everywhere.
 The concrete style format is defined per data format in [`formats.md`](formats.md):
 for vector (PMTiles) it is a MapLibre GL style file, while raster styling is still
 under discussion (see
-[`specs/incubating/raster-styling.md`](../incubating/raster-styling.md)).
+[`specs/incubating/raster-styling.md`](../incubating/raster-styling.md)). Legend
+titles and labels for a MapLibre style are a separate open convention, in
+[`specs/incubating/maplibre-legend.md`](../incubating/maplibre-legend.md).
