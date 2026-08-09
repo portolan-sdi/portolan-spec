@@ -1,109 +1,109 @@
 # Incubating — Zarr
 
-**Status: open, awaiting convention stability and a reference implementation.**
+**Status: Open. Waiting for the Zarr conventions and a reference implementation to stabilize.**
 
-Portolan requires raster data as COG. That requirement holds for imagery and
-single-timestep rasters, and it will keep holding. Zarr addresses what COG cannot
-express: a multidimensional cube indexed by time, band, or depth as well as by x
-and y. Several large public datasets are already published this way, so Portolan
-needs a defined path for cataloging them.
+Portolan currently requires raster data to be published as COG. That remains the right format for imagery and single-timestep rasters.
 
-Two things must settle before that path becomes normative. The conventions Portolan
-would cite are pre-stable, and no validator can check them yet.
+Zarr is needed for a different use case: multidimensional raster data, such as data indexed by time, depth, or multiple bands as well as x/y. Several major public datasets already use Zarr, so Portolan needs a way to catalog these datasets eventually.
 
-## "GeoZarr" Does Not Name a Document
+We are not ready to make Zarr normative yet. The conventions Portolan would need to rely on are still experimental, and there is no validator that can check a complete Zarr dataset against them.
 
-The [geozarr-spec](https://github.com/zarr-developers/geozarr-spec) repository has
-never released a version. Its README states the specification "will be produced once
-a set of mature conventions forms a coherent and recommended suite." Work moved to
-individual conventions published under the
-[zarr-conventions](https://github.com/zarr-conventions) organization.
+## There is no stable "GeoZarr" specification yet
 
-Three are under active development:
+The [geozarr-spec](https://github.com/zarr-developers/geozarr-spec) repository has never released a specification. Its README says that a specification will be produced once the underlying conventions are mature enough to form a coherent suite.
 
-| Convention | Purpose | UUID |
-|------------|---------|------|
-| [multiscales](https://github.com/zarr-conventions/multiscales) | Resolution pyramids | `d35379db-88df-4056-af3a-620245f8e347` |
-| [proj](https://github.com/zarr-conventions/proj) | Coordinate reference system | `f17cb550-5864-4468-aeb7-f3180cfb622f` |
-| [spatial](https://github.com/zarr-conventions/spatial) | Array index to x/y coordinate mapping | `689b58e2-cf7b-45e0-9fff-9cfc0883d6b4` |
+The work has instead moved into separate conventions maintained by the [zarr-conventions](https://github.com/zarr-conventions) organization.
 
-CF in Zarr, DGGS in Zarr, and TileMatrixSet are under consideration and have no
-stable repository.
+The three relevant conventions currently under active development are:
 
-All three active conventions are at v0.1 with maturity "Pilot." Each warns that
-breaking changes should be expected before v1, anticipated before the end of 2026.
+| Convention                                                     | Purpose                                  | UUID                                   |
+| -------------------------------------------------------------- | ---------------------------------------- | -------------------------------------- |
+| [multiscales](https://github.com/zarr-conventions/multiscales) | Resolution pyramids                      | `d35379db-88df-4056-af3a-620245f8e347` |
+| [proj](https://github.com/zarr-conventions/proj)               | Coordinate reference system              | `f17cb550-5864-4468-aeb7-f3180cfb622f` |
+| [spatial](https://github.com/zarr-conventions/spatial)         | Mapping array indices to x/y coordinates | `689b58e2-cf7b-45e0-9fff-9cfc0883d6b4` |
 
-A convention declares itself through an entry in the `zarr_conventions` array in the
-store's attributes, carrying its UUID and a `schema_url` whose tag conveys the
-version. There is no separate version field. Portolan already treats a schema URI as
-the sole version signal, so the two models compose without translation.
+CF in Zarr, DGGS in Zarr, and TileMatrixSet are also being considered, but none currently has a stable repository.
 
-The practical consequence: a Portolan requirement must cite conventions and UUIDs,
-not "GeoZarr." A catalog claiming GeoZarr conformance today names no checkable
-document.
+All three active conventions are v0.1, with maturity marked as "Pilot." They explicitly warn that breaking changes are expected before v1.
 
-## Direction
+A Zarr store declares conventions through its `zarr_conventions` attribute. Each entry contains a convention UUID and a `schema_url` whose version tag identifies the version. There is no separate version field.
 
-Zarr raster data would be provided as a Zarr v3 store declaring all three
-conventions, with consolidated metadata at the store root so a reader retrieves the
-hierarchy in one request.
+This fits Portolan's existing model, where the schema URI is the version signal.
 
-Multiscales carries the weight. Without a resolution pyramid, a Zarr store performs
-in a browser the way a plain GeoTIFF does: usable only when the whole array fits in
-memory. With one, it approaches COG. This is the same requirement Portolan already
-imposes on COG, where internal overviews are raised from a validator warning to a
-conformance failure. The reasoning transfers directly.
+**For now, Portolan should therefore refer to specific Zarr conventions and UUIDs, not to "GeoZarr" as though it were a published specification.**
 
-Declaring the convention is weaker than satisfying it. The multiscales convention
-requires a `layout` array but sets no floor on how many levels it contains, so a
-single-level pyramid declares conformance while delivering nothing. Portolan's COG
-rule states the floor explicitly: overviews extend until the coarsest level spans one
-tile. Whether Portolan restates that floor for multiscales, or waits for the
-convention to define it, is open.
+## Proposed direction
 
-## Open Questions
+When Zarr support becomes normative, Portolan would require a Zarr v3 store declaring the relevant conventions and providing consolidated metadata at the store root.
 
-**Statistics.** Portolan requires every COG band to carry embedded minimum, maximum,
-mean, and standard deviation so a renderer can scale any data type without reading
-pixels. Zarr has no equivalent convention. Without one, a client cannot colorize a
-float array it has never opened. Nothing in the current suite fills this gap.
+The most important convention is `multiscales`.
 
-**Chunk sizing.** The COG rule caps internal tiles at roughly a screen viewport,
-512×512 by convention. Zarr chunks serve the same role, and v3 sharding lets many
-chunks share one object, which keeps stores from fragmenting into millions of keys.
-Neither has a stated target here.
+A Zarr array without a resolution pyramid has poor browser performance when the full-resolution array is too large to load into memory. A multiscale pyramid allows clients to request an appropriate resolution instead, which is the same basic reason Portolan requires overviews in COGs.
 
-**A store is not a file.** Portolan asset rules assume an href resolving to bytes.
-`file:size` and `file:checksum` MUST match the bytes the href resolves to, and a
-Zarr href points at a store root holding thousands of objects. Either these fields
-are undefined for Zarr assets, or Portolan defines what they cover.
+However, simply declaring `multiscales` is not enough. The current convention requires a `layout` array but does not specify a minimum number of pyramid levels. A one-level pyramid could therefore satisfy the convention without providing a useful overview.
 
-**STAC modeling.** The media type is `application/vnd.zarr`. Beyond that the ground
-is unsettled. The [xarray-assets](https://github.com/stac-extensions/xarray-assets)
-extension, which carried the reader hints most published Zarr assets use, was
-deprecated and archived in June 2025; its authors point to a `zarr` extension that
-does not yet exist. The [datacube](https://github.com/stac-extensions/datacube)
-extension (v2.3.0) describes dimensions and variables and is the likely vehicle for
-declaring cube structure, but whether Portolan requires it is undecided.
+Portolan's COG requirements already define an explicit minimum overview depth: the pyramid must continue until the coarsest level fits within one tile.
 
-**Styling.** Raster styling is unresolved for COG already
-([#41](https://github.com/portolan-sdi/portolan-spec/issues/41), see
-[`raster-styling.md`](raster-styling.md)). Zarr inherits that gap and widens it: a
-cube has no single band set to style.
+We need to decide whether Zarr conformance should impose an equivalent minimum, or whether Portolan should wait for the multiscales convention to define one.
 
-**Collection structure.** A COG scene collection models each scene as an item. One
-Zarr store often holds what would otherwise be thousands of scenes, so the item
-boundary has no obvious analogue. Whether a store is one collection-level asset, or
-items index slices of it, needs deciding.
+## Open questions
 
-**Transactional stores.** [Icechunk](https://icechunk.io/) adds versioning and
-transactions over Zarr and is in use for datasets that would otherwise be plain Zarr.
-Whether such a store can satisfy Portolan's browser-reachable access requirements is
-unexamined.
+### Statistics
 
-## Graduation
+Portolan requires COG bands to contain embedded minimum, maximum, mean, and standard deviation values. These let clients style data without first reading the pixels.
 
-This document graduates into `formats.md` when the three conventions reach v1, a
-statistics answer exists, and a validator can check convention declarations against
-store contents. Following the precedent set for point clouds, a reference
-implementation comes first.
+Zarr currently has no equivalent convention. We need to decide whether Portolan requires statistics for Zarr and, if so, where they come from.
+
+### Chunk sizing
+
+COG internal tiles are capped at roughly a screen-sized block, conventionally 512×512. Zarr chunks serve a similar purpose.
+
+Zarr v3 sharding can group many chunks into one object, avoiding a store containing millions of individual objects. Portolan does not yet have requirements for either chunk size or sharding.
+
+### A Zarr store is not a file
+
+Portolan's asset rules currently assume that an `href` resolves to a file. `file:size` and `file:checksum` describe the bytes at that location.
+
+A Zarr `href` instead points to a store containing many objects.
+
+We therefore need to decide whether these file properties are omitted for Zarr assets or whether Portolan defines what they mean for a store.
+
+### STAC modeling
+
+The media type for Zarr is `application/vnd.zarr`, but the STAC model is not settled.
+
+The [xarray-assets](https://github.com/stac-extensions/xarray-assets) extension was deprecated and archived in June 2025. Its authors pointed toward a future `zarr` extension that does not yet exist.
+
+The [datacube](https://github.com/stac-extensions/datacube) extension (v2.3.0) describes dimensions and variables and may provide the structure Portolan needs. Whether Portolan requires it remains open.
+
+### Styling
+
+Raster styling is already unresolved for COG ([#41](https://github.com/portolan-sdi/portolan-spec/issues/41), see `raster-styling.md`).
+
+Zarr makes this more complicated because a cube may contain many dimensions and variables rather than a single fixed set of bands.
+
+### Collection structure
+
+A COG collection can naturally represent each scene as a STAC Item.
+
+A single Zarr store may instead contain data that would correspond to thousands of scenes. There is no obvious equivalent item boundary.
+
+We need to decide whether the store is represented as one collection-level asset or whether STAC Items index subsets of the store.
+
+### Transactional stores
+
+[Icechunk](https://icechunk.io/) provides versioning and transactions on top of Zarr and is already used for datasets that might otherwise be published as ordinary Zarr.
+
+We have not yet determined whether an Icechunk-backed store can meet Portolan's requirements for browser-accessible data.
+
+## When this becomes normative
+
+This document should move into `formats.md` once:
+
+1. the relevant Zarr conventions reach v1;
+2. Portolan has an answer for statistics;
+3. the STAC and asset model is defined;
+4. the remaining storage requirements, such as chunking, are resolved; and
+5. a validator and reference implementation can verify the resulting requirements.
+
+As with the point-cloud format, the reference implementation should be established before the format becomes normative.
