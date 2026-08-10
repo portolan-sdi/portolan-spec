@@ -11,6 +11,11 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Added
 
+- **GeoParquet** (PORTO-FMT-044): a validator MUST NOT fault a file for missing
+  a spatial-ordering threshold its row-group count cannot express, and MAY
+  measure ordering another way when the row-group tests do not apply. This
+  covers the row-level measurement reis already performs on a single-row-group
+  file by partitioning its rows (#127).
 - **Data Storage** (PORTO-CORE-073): a validator MUST probe the servers hosting
   the catalog's own cloud-native assets and MUST NOT require upstream servers to
   satisfy the section's requirements. This writes down the carve-out reis
@@ -18,6 +23,15 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **GeoParquet** (PORTO-FMT-006): the low-overlap and high-locality tests now
+  apply only to files of five or more row groups. Both measure a fraction over
+  the row groups themselves, so below five the fraction has nowhere useful to
+  land: an average box under 25% of the extent is out of reach on two or three
+  row groups however well the rows are sorted, and a spatially ordered
+  four-row-group file was failing on that alone. The thresholds are unchanged,
+  as is the rule that rows MUST be spatially ordered. The 50% skip rate for a
+  10% query window now reads as the reason the threshold sits at 25% rather
+  than as a second test a validator runs (#127).
 - **"Item mirror" is now used consistently** (PORTO-FMT-040, PORTO-FMT-041,
   PORTO-FMT-043). The STAC-GeoParquet copy of a collection's items is now always
   referred to as an **item mirror** or **STAC-GeoParquet mirror**, leaving the
