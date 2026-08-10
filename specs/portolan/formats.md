@@ -27,14 +27,39 @@ Distributing GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so it can
 queried without a server. Files SHOULD be compressed to stay small, with `zstd`
 RECOMMENDED.
 
-Rows MUST be spatially ordered so nearby features are nearby in the file, tested
-either as:
+Rows MUST be spatially ordered so nearby features are nearby in the file. This rule
+applies to every file, no matter how many row groups it has. A validator checks it
+by looking at the rows themselves. It splits them into the groups a conforming
+writer would have produced, then checks that each of those groups covers a small
+part of the file.
 
-- **low overlap** — fewer than 30% of consecutive row-group pairs have
-  interior-intersecting bounding boxes; or
-- **high locality** — row-group boxes average under about 25% of the file extent,
-  letting a reader skip at least 50% of row groups for a query window of 10% of the
-  extent.
+A file with five or more row groups gets a second check, using the row groups it
+actually has. A reader can run this one from the file footer alone, without reading
+any data. The file passes if either of these is true:
+
+- **low overlap** — fewer than 30% of consecutive row-group pairs have bounding
+  boxes that overlap on their interiors; or
+- **high locality** — row-group bounding boxes cover, on average, less than about
+  30% of the file's total extent.
+
+Boxes that small let a reader skip about half the row groups when querying a window
+covering 10% of the extent. That is the benefit the 30% figure is meant to deliver,
+not a separate test to run.
+
+The 30% figure comes from measuring Hilbert-sorted data, which is how producers
+usually sort. With five row groups, Hilbert-sorted boxes cover about 27% of the
+extent, and that number drops as row groups are added. Five row groups divide the
+extent five ways, so each box covers about a fifth of it before any overlap is
+counted. A stricter limit would fail well-sorted files for having few row groups.
+
+Neither of these two checks applies to a file with fewer than five row groups. Both
+measure a percentage across the row groups, and with only a few groups the
+percentage cannot land on a useful value. Three row groups can only produce an
+overlap of 0%, 50%, or 100%. Two or three boxes cannot average less than 30% of the
+extent, however well the rows are sorted. A validator MUST NOT fail a file for
+missing a threshold that its row-group count puts out of reach. Row ordering is a
+separate rule and is not waived here, so a file with fewer than five row groups is
+still checked on its rows.
 
 Files MUST provide per-row-group spatial statistics so readers can skip row groups
 from metadata alone — either:

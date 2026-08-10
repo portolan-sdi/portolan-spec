@@ -11,6 +11,10 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Added
 
+- **GeoParquet** (PORTO-FMT-044): a validator MUST NOT fail a file for missing a
+  spatial-ordering threshold that its row-group count puts out of reach. Row
+  ordering is a separate rule and is not waived along with those thresholds, so
+  a file with fewer than five row groups is still checked on its rows (#127).
 - **Data Storage** (PORTO-CORE-073): a validator MUST probe the servers hosting
   the catalog's own cloud-native assets and MUST NOT require upstream servers to
   satisfy the section's requirements. This writes down the carve-out reis
@@ -18,6 +22,20 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **GeoParquet** (PORTO-FMT-006): the low-overlap and high-locality checks now
+  apply only to files with five or more row groups, and the high-locality limit
+  moves from about 25% of the file extent to about 30%. Both checks measure a
+  percentage across the row groups, so with fewer than five groups the
+  percentage cannot land on a useful value, and a well-ordered four-row-group
+  file was failing for that reason alone. The 30% limit comes from measuring
+  Hilbert-sorted data, which is how producers usually sort: boxes cover 0.263 to
+  0.274 of the extent at five row groups and 0.250 to 0.270 at six, so the old
+  25% failed those files for having few row groups rather than for their
+  ordering. Files with seven or more groups already passed at 25%. The
+  low-overlap limit is unchanged, as is the rule that rows MUST be spatially
+  ordered, which still applies to every file. The 50% skip rate for a 10% query
+  window now reads as the benefit the limit delivers, not as a second check
+  (#127).
 - **"Item mirror" is now used consistently** (PORTO-FMT-040, PORTO-FMT-041,
   PORTO-FMT-043). The STAC-GeoParquet copy of a collection's items is now always
   referred to as an **item mirror** or **STAC-GeoParquet mirror**, leaving the
