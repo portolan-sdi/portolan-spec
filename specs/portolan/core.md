@@ -234,6 +234,8 @@ are fine — use all that apply. The `style` role, used for MapLibre style files
 a Portolan-defined role rather than a standard STAC one (see [Visualization
 Styles](#visualization-styles)).
 
+The `source` role identifies an upstream original from which a cloud-native asset in this catalog was derived. For example, a publisher that converts an upstream Shapefile or GeoPackage to GeoParquet may include the original file as a `source` asset. PORTO-FMT-002 says that a mirror SHOULD include the original when it is directly downloadable rather than available only through an API. This means linking to the upstream file; the publisher does not need to retain, rehost, or redistribute it. A `source` asset is exempt from the format requirements because it represents the upstream original and may use a non-cloud-native format. A catalog that provides metadata for data that is already available upstream in a cloud-native format does not need a `source` asset; its `data` asset points directly to the upstream data. `collection-mirror` identifies the STAC-GeoParquet copy of a collection's items, as specified under Item mirror in formats.md.
+
 Portolan reuses existing extensions rather than restating their fields: `file` for
 `file:values`, `table` for schema and columns, `raster` and `vector` for band and
 layer detail, `license` for per-asset license, and `scientific` for citation or
