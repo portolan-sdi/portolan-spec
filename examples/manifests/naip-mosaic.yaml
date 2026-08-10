@@ -32,6 +32,47 @@ thumbnails:
   size: 768
   pad_raster: 0.1
 
+docs:
+  readme: |
+    Every Collection here describes imagery it does not host. The scene bytes
+    stay with the organization that publishes them and are referenced by URL,
+    while this catalog publishes the metadata, one STAC Item per scene, and a
+    stac-geoparquet item mirror so a client can read every footprint in one
+    request.
+
+    That is the difference from the `portolan-reference` catalog beside it,
+    where every Collection serves its own bytes. Most public imagery arrives
+    in this shape, far too large to copy, so Portolan has to describe it
+    without holding it. This catalog is the worked example of doing that.
+
+    Agents, each Collection carries its own AGENTS.md with the band order, the
+    read pattern, and the reason no scene carries a checksum.
+
+    ## Collections
+
+    {{collections}}
+
+    ## Where the Data Comes From
+
+    {{sources}}
+  agents: |
+    Mirror Collections of aerial imagery whose Cloud Optimized GeoTIFFs stay
+    on the host that publishes them. Nothing in this catalog is a scene. Every
+    data question starts at a Collection's `items.parquet` item mirror, which
+    carries one row per scene with its footprint, date and asset hrefs.
+
+    Read the mirror to find the scene you want, then read that single scene
+    from its upstream href over HTTP range requests. Do not download scenes,
+    they are around 2 GB each.
+
+    Scene assets carry `file:size` and no `file:checksum`, because this
+    catalog does not host those bytes. `PORTO-CORE-028` makes both fields
+    SHOULD, so that is conformant, and rashid reports the absence as a
+    `PTL-AST-003` warning which `examples/expected-findings/naip-mosaic.json`
+    records as expected.
+
+    {{agents_index}}
+
 catalogs:
   imagery:
     title: Aerial Imagery
@@ -43,13 +84,15 @@ collections:
     kind: raster-mosaic
     title: NAIP Colorado 2023
     description: >-
-      The 924 National Agriculture Imagery Program scenes covering a Colorado
-      study area flown between August and October 2023, at 0.3 m ground sample
-      distance in UTM zone 13N. Each scene is a four-band Cloud Optimized
-      GeoTIFF of red, green, blue and near infrared, hosted by the Microsoft
-      Planetary Computer and referenced here by URL. The Collection publishes a
-      stac-geoparquet item mirror and a compact bbox index so a client can load
-      every footprint in one request.
+      A metadata-only mirror of 924 National Agriculture Imagery Program scenes
+      over a Colorado study area, flown August to October 2023 at 0.3 m in red,
+      green, blue and near infrared. The Cloud Optimized GeoTIFFs stay on the
+      Microsoft Planetary Computer and are referenced by URL, so what this
+      Collection publishes is the STAC Items and a stac-geoparquet item mirror
+      of them.
+    blurb: >-
+      924 NAIP scenes described but not hosted, indexed by a stac-geoparquet
+      item mirror.
     keywords: [naip, imagery, aerial, colorado, cog, mosaic, usda]
     license: other
     # core.md asks the rel=license link to point at the license text, and public
@@ -101,3 +144,126 @@ collections:
       updated: "2026-07-30T00:00:00Z"
     temporal: ["2023-08-09T16:00:00Z", "2023-10-20T16:00:00Z"]
     derivatives: {thumbnail: true, minimal_json: true}
+    docs:
+      readme: |
+        The National Agriculture Imagery Program flies the continental United
+        States at least once every three years, during the growing season, and
+        releases the result into the public domain. It is administered by the
+        Aerial Field Photography Office within the USDA Farm Service Agency.
+        These scenes are from the 2023 Colorado flight,
+        reaching this catalog through the
+        [Microsoft Planetary Computer](https://planetarycomputer.microsoft.com/dataset/naip),
+        which holds NAIP from 2010 onward. Pixels are in UTM zone 13N,
+        EPSG:26913.
+
+        **The scene bytes are not here.** They total 1.86 TB, around 2 GB each,
+        and stay on the host that publishes them. Reading all 924 footprints
+        from the item mirror is one request. Doing the same by fetching the
+        Items would be 924.
+
+        That is the shape this example exists to demonstrate, a Portolan
+        Collection that describes data it does not host. Every other Collection
+        in these examples serves its own bytes.
+
+        Agents, [AGENTS.md](./AGENTS.md) covers the band order, the public
+        domain reading, and why no scene carries a checksum.
+
+        ## Quick Start
+
+        {{quickstart}}
+
+        ## What the Mirror Answers on Its Own
+
+        The point of the item mirror is that questions about the collection do
+        not cost a scene read. This one touches no imagery at all.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT count(*) AS scenes,
+               round(sum(assets.image."file:size") / 1e12, 2) AS terabytes,
+               min(datetime)::DATE AS first_flown,
+               max(datetime)::DATE AS last_flown
+        FROM read_parquet('items.parquet');
+        -- 924, 1.86, 2023-08-09, 2023-10-20
+        ```
+
+        Footprints are real geometries, so spatial predicates work directly.
+        Colorado Springs falls inside exactly one scene.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT id, datetime::DATE AS flown
+        FROM read_parquet('items.parquet')
+        WHERE ST_Contains(geometry, ST_Point(-104.8214, 38.8339));
+        -- co_m_3810410_nw_13_030_20231008_20240104, 2023-10-08
+        ```
+
+        A `minimal.json` sits beside the mirror carrying only bounding boxes
+        and hrefs, for a browser client that wants the mosaic index without a
+        Parquet reader.
+
+        ## Suggested Uses
+
+        Land cover and vegetation work at parcel scale, change detection
+        against earlier NAIP flights, and training data for segmentation, the
+        near infrared band making vegetation separable without an index. It is
+        also the worked example for reading a large raster collection you do
+        not host, which is the pattern most public imagery arrives in.
+
+        ## Limitations
+
+        Aerial imagery, not satellite, so acquisition is opportunistic rather
+        than on a repeat cycle and a scene's date is the day a plane flew it.
+        Colours are display-oriented 8-bit, not calibrated reflectance, so
+        cross-scene radiometric comparison is unsound even within one flight.
+        Band statistics published here are read from each scene's coarsest
+        overview and are flagged `approximate` in the metadata for that reason.
+        Coverage is one study area, not the state.
+
+        {{provenance}}
+      agents: |
+        A metadata-only mirror of 924 NAIP scenes over Colorado, flown August
+        to October 2023. The imagery stays on the Microsoft Planetary Computer
+        and is referenced by URL. Read the item mirror to find a scene, then
+        read that one scene over range requests.
+
+        {{access}}
+
+        ## Quirks
+
+        - Band order is red, green, blue, near infrared. The fourth band is the
+          reason to use NAIP, and a three-band read silently discards it.
+        - `gsd` is 0.3 m and `proj:code` is EPSG:26913 on every scene, so
+          footprints in the mirror are WGS84 while the pixels are UTM 13N.
+          Reproject before overlaying anything in longitude and latitude.
+        - No scene carries `file:checksum`, only `file:size`. This catalog does
+          not host those bytes and cannot hash what it never reads.
+          `PORTO-CORE-028` makes both fields SHOULD, so the omission conforms.
+        - Band statistics are computed from the coarsest internal overview, not
+          the full raster, and carry `"approximate": true`. Treat them as a
+          display hint, not as a measurement.
+        - Scenes are about 2 GB each, 1.51 to 2.25 GB. Never download one to
+          answer a question the mirror can answer.
+
+        ## Reading a Scene
+
+        The upstream blobs are publicly readable. The Planetary Computer
+        notebook for NAIP signs its requests with `planetary_computer`, which
+        many of its collections need, but this one does not, so an unsigned
+        ranged read works.
+
+        ```bash
+        curl -s -o /dev/null -w '%{http_code}\n' -r 0-99 \
+          "https://naipeuwest.blob.core.windows.net/naip/v002/co/2023/co_030cm_2023/38104/m_3810401_ne_13_030_20231010_20240104.tif"
+        # 206, a partial read served without a token
+        ```
+
+        Open one through `/vsicurl` and rasterio reads only the windows it
+        needs. Take the href from the mirror rather than assembling it.
+
+        ## Related Collections
+
+        None in this catalog. Upstream the scenes belong to the Planetary
+        Computer `naip` Collection, linked as `canonical`, whose STAC API
+        covers the whole United States from 2010 onward if this study area is
+        too narrow.

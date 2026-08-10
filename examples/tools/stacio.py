@@ -324,9 +324,12 @@ def access_line(kind: str, data_name: str, has_visual: bool, has_thumb: bool) ->
                 "over HTTP range requests, so read the window you need rather than "
                 "the whole file.")
     elif kind == "raster-mosaic":
+        # No scene size here. It is catalog-specific, so it belongs in the
+        # manifest's docs.agents template where it can be measured, not
+        # hardcoded in the generator where it silently goes stale.
         line = (f"Read the item index `{data_name}` with DuckDB, then open a "
-                "scene's image href through /vsicurl with rasterio. Do not "
-                "download a scene, they are about 1.8 GB each.")
+                "scene's image href through /vsicurl with rasterio. Read the "
+                "window you need, do not download whole scenes.")
     else:
         line = (f"Query the Parquet `data` asset in place with DuckDB, "
                 f"read_parquet('{data_name}'), or load it with pandas.")
