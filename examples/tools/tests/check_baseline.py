@@ -110,10 +110,10 @@ def check_glob_star_does_not_cross_a_slash() -> None:
 def check_a_different_message_is_not_accepted() -> None:
     """The same rule failing for a new reason is a new defect.
 
-    This is what covers the profile-schema collapse that an exact count cannot.
-    PTL-SCH-001 stays at one finding per file however many things are wrong
-    inside the object, so the count never moves, but jsonschema reports a
-    best-match error and a fresh defect often outranks the checksum one.
+    PTL-AST-003 covers an absent file:checksum and a malformed file:size both.
+    The baseline accepts the first and the count cannot tell them apart, since
+    an asset that swapped one defect for the other still reports once, so the
+    message is the only thing that separates them.
     """
     unexpected, _ = check_catalogs.apply_baseline(
         _report(["PTL-AST-003", "PTL-AST-003"],
@@ -139,7 +139,7 @@ def check_real_baseline_loads() -> None:
     assert base.get("data_scope") == "local", base
     assert base.get("data_scope_why", "").strip(), "a narrowed scope needs a reason"
     rules = {a["rule"] for a in base["accepted"]}
-    assert rules == {"PTL-AST-003", "PTL-SCH-001"}, rules
+    assert rules == {"PTL-AST-003"}, rules
     for entry in base["accepted"]:
         assert entry["why"].strip(), f"{entry['rule']} needs a justification"
         assert entry["issue"].strip(), f"{entry['rule']} needs an issue reference"
@@ -150,12 +150,19 @@ def check_real_baseline_loads() -> None:
     # and must checksum, which is the hole check_wrong_path_is_not_accepted
     # exists to prove closed. Update these together with the baseline, in a
     # commit that says why the catalog changed.
+    #
+    # The severity is pinned to warning, which is where rashid#90 put
+    # PTL-AST-003 once PORTO-CORE-028 became a SHOULD in spec PR #116. Pinning
+    # it means a return to error, which is what a spec change back to MUST would
+    # cause, fails here rather than passing as a match.
+    #
+    # PTL-SCH-001 used to be the second entry, at 924. The profile schema
+    # stopped requiring file:checksum in the same PR, so it no longer fires at
+    # all and an entry for it would be a false record of a gap that closed.
     assert {a["rule"]: (a["severity"], a["path_glob"], a["message_glob"], a["count"])
             for a in base["accepted"]} == {
-        "PTL-AST-003": ("error", "imagery/*/*/item.json",
+        "PTL-AST-003": ("warning", "imagery/*/*/item.json",
                         "asset '*' has no file:checksum", 1848),
-        "PTL-SCH-001": ("error", "imagery/*/*/item.json",
-                        "*'file:checksum' is a required property*", 924),
     }, base["accepted"]
     assert base.get("matching_why", "").strip(), "exact matching needs a reason"
     assert base.get("recount_how", "").strip(), "a reader needs the recount recipe"

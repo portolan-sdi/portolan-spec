@@ -354,29 +354,39 @@ A baseline is not a mute button, and `tests/check_baseline.py` asserts that.
 - Every entry carries a `why` and an `issue`, so a reader can tell an accepted gap
   from a silenced one without leaving the file.
 
-`naip-mosaic` accepts exactly two rules, `PTL-AST-003` at exactly 1848 and
-`PTL-SCH-001` at exactly 924, summing to the 2772 the gate reports, both scoped to
-`imagery/*/*/item.json` at severity error. Note the asymmetry, `PTL-AST-003` is
-reported per asset so it fires twice per Item, once for the scene COG and once for
-the referenced upstream thumbnail, while `PTL-SCH-001` is reported per file so it
-fires once per `item.json` however many of that Item's assets are short the
-property. Getting that backwards inflates the expected total to 3696.
+`naip-mosaic` accepts exactly one rule, `PTL-AST-003` at exactly 1848, scoped to
+`imagery/*/*/item.json` at severity **warning**. It is reported per asset, so it
+fires twice per Item, once for the scene COG and once for the referenced upstream
+thumbnail, across 924 Items.
 
-**Why exact counts and not ceilings.** A ceiling cannot control `PTL-SCH-001`. The
-profile schema's top level is a `oneOf`, so jsonschema collapses every violation in
-an object into exactly one error, and rashid reports one finding per file. Measured
-on a real built item, adding a `self` link, an `s3` href, a deleted `roles` array
-and a nonsense bbox all at once left the count at one. So 924 is saturated and
-stops responding to new defects, and any ceiling above it accepts them in silence.
-An exact count fails in both directions, which also closes the opposite hole, an
-upstream search returning fewer scenes than it should and `publish_catalogs.py`
-replacing a good published catalog with a gutted one through `s5cmd sync --delete`.
+**The gap this recorded is now closed, and the entry means something different.**
+This branch started with two entries totalling 2772 errors, and spec PR #116
+answered both. `PORTO-CORE-028` moved `file:size` and `file:checksum` to SHOULD,
+and `PORTO-CORE-030` stopped asking for regeneration at upload time, asking
+instead only that a value an asset does carry match the bytes its `href` resolves
+to. Two things followed. The profile schema stopped requiring `file:checksum`, so
+`PTL-SCH-001` went from 924 to zero and its entry was deleted rather than kept as
+a false record of a gap that closed. And portolan-sdi/rashid#90 dropped
+`PTL-AST-003` to a warning, so the remaining 1848 are warnings.
 
-Both counts move with the scene count, so an upstream change fails the gate until
-someone updates them. That is the intended review point. Rebuild, read the totals
-off the gate output, and change them in the commit that explains why the scene
-count moved. `tests/check_baseline.py` pins both numbers, because the baseline is
-the one input that can widen tolerance without touching any code.
+So this catalog is now conformant, and the entry records an expected warning
+rather than an accepted violation. It still has to be here, because
+`check_catalogs.py` gates on errors **and** warnings, and 1848 unlisted warnings
+would fail.
+
+**Why an exact count and not a ceiling.** It fails in both directions, and both
+directions matter. Upward, a second asset losing its checksum is a new defect.
+Downward, an upstream search returning fewer scenes than it should would let
+`publish_catalogs.py` replace a good published catalog with a gutted one through
+`s5cmd sync --delete`, and a ceiling would accept that in silence.
+
+The count moves with the scene count, so an upstream change fails the gate until
+someone updates it. That is the intended review point. Rebuild, read the total off
+the gate output, and change it in the commit that explains why the scene count
+moved. `tests/check_baseline.py` pins the number and the severity both, because
+the baseline is the one input that can widen tolerance without touching any code,
+and because a return of `PTL-AST-003` to error should read as a regression rather
+than pass as a match.
 
 **What still gets through, and it is worth knowing.** An exact count cannot see a
 second violation appearing inside an Item that already fails, since the count stays
@@ -415,13 +425,13 @@ the pass.
 **Narrowing the scope is not skipping the pass.** The Collection's own
 `items.parquet` is now fully checked, `PTL-DAT-001` checksum, `PTL-DAT-002` size,
 `PTL-DAT-006` spatial ordering, `PTL-DAT-016` row-per-item parity and the rest. On
-the built tree the result is identical to the old `--no-data` run, 2772 errors
-across 927 files, so adopting it cost nothing and gained the local rules. Verified
-by mutation, truncating `items.parquet` by 2000 bytes in a temp copy makes the gate
-fail on `PTL-DAT-001` and `PTL-DAT-002`, neither of which is in the baseline.
+the built tree the result was identical to the old `--no-data` run when this was
+adopted, so it cost nothing and gained the local rules. Verified by mutation,
+truncating `items.parquet` by 2000 bytes in a temp copy makes the gate fail on
+`PTL-DAT-001` and `PTL-DAT-002`, neither of which is in the baseline.
 
 What stays unchecked is the bytes of the 1848 remote assets. No gate here has ever
-read those, and `PTL-AST-003` in the baseline already records them as unverifiable.
+read those, and `PTL-AST-003` in the baseline already records them as unverified.
 
 `tests/check_items_parquet.py` predates the scope and its old docstring claimed to
 exist because the data pass was off. That is no longer true and the docstring is
@@ -527,12 +537,25 @@ Three known gaps.
 `check_catalogs.py` validates against the profile schema bundled in the rashid
 wheel and reaches local bytes with `--data-scope local`, while `validate.py`
 injects the working copy under `stac/` and uses `LocalOnlyReader`. So a change to
-`stac/json-schema/` is proven by the build rather than by CI. Exact counts made
-that gap load bearing rather than merely a coverage difference. The two paths now
-have to agree on the finding count, not just on pass or fail, so one extra or one
-missing `PTL-SCH-001` between the bundled schema and the working copy fails the
-build. They agree today, verified by hashing both and diffing their findings on a
-built item.
+`stac/json-schema/` is proven by the build rather than by CI. Exact counts make
+that gap load bearing rather than merely a coverage difference. The two paths have
+to agree on the finding count, not just on pass or fail, so one extra or one
+missing schema finding between the bundled schema and the working copy fails the
+build. They agree today. The sharpest single check is the asset `required` list,
+which both now put at `href`, `type`, `roles`, with `file:checksum` gone from it.
+Run this from a checkout with rashid's source beside it.
+
+```console
+$ python3 -c "
+import json
+for label, p in [('rashid bundled', '../rashid/src/rashid/_schemas/portolan/v0.1.0/schema.json'),
+                 ('spec working copy', 'stac/json-schema/v0.1.0/schema.json')]:
+    s = json.load(open(p))
+    a = s['definitions']['assets_typed_and_roled']['properties']['assets']['additionalProperties']
+    print(f'{label:20} asset required -> {a[\"required\"]}')"
+rashid bundled       asset required -> ['href', 'type', 'roles']
+spec working copy    asset required -> ['href', 'type', 'roles']
+```
 
 `check_validate.py` is hardcoded to the `portolan-reference` tree, so a second
 catalog gets per-PR coverage only once that script is generalized.

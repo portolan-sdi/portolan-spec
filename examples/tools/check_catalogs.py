@@ -142,25 +142,17 @@ def apply_baseline(data: dict, baseline: dict) -> tuple[list[dict], list[str]]:
     one the entry declares, so a rule promoted from warning to error reads as a
     regression rather than a match. And the message has to match `message_glob`.
 
-    The tally is an exact `count` rather than a ceiling. A ceiling cannot
-    control PTL-SCH-001, because the profile-schema pass emits exactly one
-    finding per object however many things are wrong inside it, so the count
-    saturates at one per file and stops responding to new defects entirely. An
-    exact count fails in both directions, which also makes a shrunken upstream
-    response visible instead of letting a gutted catalog through underneath the
-    old ceiling.
+    The tally is an exact `count` rather than a ceiling, and it fails in both
+    directions on purpose. Upward, a second asset losing its checksum is a new
+    defect a ceiling would swallow. Downward, an upstream search returning fewer
+    scenes than it should would let publish_catalogs.py replace a good published
+    catalog with a gutted one through `s5cmd sync --delete`, and a ceiling can
+    never see that at all.
 
-    `message_glob` is what covers the rest of that collapse, and it is worth
-    being precise about how far it reaches. An exact count cannot see a second
-    violation appearing inside an Item that already fails, because the count
-    stays at one per file either way. The message can, since jsonschema reports
-    a best-match error and a new defect often outranks the checksum one.
-    Measured on a real built item, adding a `self` link reports "False schema
-    does not allow ..." and deleting an asset's `roles` reports "'roles' is a
-    required property", both of which miss the glob and fail the gate. An `s3`
-    href still reports the checksum message and still slips through. So this
-    narrows the hole rather than closing it, and the residue is recorded in
-    ../CLAUDE.md rather than left for someone to rediscover.
+    `message_glob` separates what the count cannot. A rule usually covers more
+    than one defect, PTL-AST-003 covers an absent checksum and a malformed
+    file:size both, and an asset that swapped one for the other still reports
+    once. Only the message moves, so only the message can fail it.
     """
     accepted = {entry["rule"]: entry for entry in baseline.get("accepted", [])}
     counts: dict[str, int] = {rule: 0 for rule in accepted}

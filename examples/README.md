@@ -160,17 +160,23 @@ Done.
 ## NAIP Mosaic Mirror
 
 `catalog/naip-mosaic/`, built from
-[`manifests/naip-mosaic.yaml`](manifests/naip-mosaic.yaml), is the second
-catalog, and unlike the reference catalog it is **not** fully conformant. That is the point of it. One
-Collection publishes 924 National Agriculture Imagery Program scenes as per-scene
-Items whose Cloud Optimized GeoTIFFs stay on the Microsoft Planetary Computer.
+[`manifests/naip-mosaic.yaml`](manifests/naip-mosaic.yaml), is the second catalog.
+One Collection publishes 924 National Agriculture Imagery Program scenes as
+per-scene Items whose Cloud Optimized GeoTIFFs stay on the Microsoft Planetary
+Computer.
 
 The difference from the reference catalog is custody, not provenance. This
 Collection is a mirror by the same rule as the other eight, its producer and its
 host differ. What is new is that it does not host the bytes it describes. 1.86 TB
 of imagery lives upstream and is referenced by URL. `file:size` comes from a HEAD
 on each object. `file:checksum` is omitted, because obtaining it honestly means
-reading every scene and inventing it would be a false claim.
+reading every scene and inventing it would assert something about bytes never
+read.
+
+Writing this catalog is what found that gap, and the spec has since closed it, so
+the catalog now conforms and carries warnings rather than errors. It stays the
+example of a metadata-only mirror, which is a shape none of the other eight
+Collections has.
 
 **`catalog/naip-mosaic/` is not committed, unlike the reference catalog.** It is
 936 files of metadata the generator reproduces from that manifest in about
@@ -187,13 +193,20 @@ diff. What does not change, the publish workflow's path triggers still fire for
 this catalog through `examples/manifests/**` and `examples/**/*.py`, only the
 `examples/catalog/**` trigger has nothing left to match for it.
 
-That leaves 2772 errors the generator cannot fix, so this catalog is gated against
-an accepted-findings baseline in
+That leaves 1848 warnings, two per Item, so this catalog is gated against an
+accepted-findings baseline in
 [`expected-findings/naip-mosaic.json`](expected-findings/naip-mosaic.json) rather
-than against zero. The baseline names each rule, why it fires, and where the
-question is tracked. A rule it does not name still fails, and a named rule over its
-ceiling still fails, so a real regression cannot hide behind a known gap. The
-reference catalog has no baseline and stays at zero tolerance.
+than against zero. The baseline names the rule, why it fires, and where the
+question was settled. A rule it does not name still fails, and a named rule off its
+exact count in either direction still fails, so a real regression cannot hide
+behind a known one. The reference catalog has no baseline and stays at zero
+tolerance.
+
+Those 1848 used to be 2772 errors, and spec PR #116 is why they are not. It moved
+`file:size` and `file:checksum` to SHOULD and rewrote `PORTO-CORE-030` to ask only
+that a value an asset carries match its bytes. The profile schema stopped requiring
+the checksum, which removed 924 findings outright, and rashid dropped the rest to
+warnings.
 
 The baseline also narrows rashid's data scope to `local` for this catalog, since
 the default pass streams every asset in full and 924 remote scenes is not a CI job.
