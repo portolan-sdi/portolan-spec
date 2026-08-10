@@ -417,7 +417,7 @@ requirements:
     enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      The server MUST support HTTP/1.1 or later; HTTP/2 or HTTP/3 is
+      The server MUST support HTTP/1.1 or greater; HTTP/2 or /3 is
       RECOMMENDED.
 
   - id: PORTO-CORE-045

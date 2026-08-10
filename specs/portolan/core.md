@@ -316,29 +316,28 @@ Items SHOULD carry an explicit `datetime` (or a `start_datetime` /
 
 ## Data Storage
 
-Cloud-native formats depend on clients being able to retrieve only the bytes
-they need. Portolan catalogs therefore assume that cloud-native assets are
-available from object storage over HTTP range requests, whether or not the
-storage is S3-compatible.
+Cloud-native formats depend on clients fetching only the bytes they need, so
+Portolan catalogs assume data is hosted in cloud object storage reachable over
+HTTP range requests (S3-compatible or otherwise).
 
 The requirements in this section apply to servers hosting the catalog's own
 cloud-native assets: the copies of the data that the publisher has uploaded and
 controls. They do not apply to upstream sources hosted by third parties.
 
-A server hosting the catalog's cloud-native assets MUST support range requests:
-honor the `Range` header, return `206 Partial Content`, and advertise
+A server hosting the catalog's cloud-native assets MUST support range
+requests: honor the `Range` header, return `206 Partial Content`, and advertise
 `Accept-Ranges: bytes`; HEAD requests MUST return an accurate `Content-Length`.
-The server MUST support HTTP/1.1 or later; HTTP/2 or HTTP/3 is RECOMMENDED.
-Endpoints that compress or transform responses in ways that break range
-semantics are not conformant.
+The server MUST support HTTP/1.1 or greater; HTTP/2 or /3 is RECOMMENDED. Endpoints
+that compress or transform responses in ways that break range semantics are not
+conformant.
 
 To let browser clients read data directly, a server hosting the catalog's
-cloud-native assets MUST also enable CORS on all metadata and asset files:
-`Access-Control-Allow-Origin: *` (or an equivalent read-permitting policy),
-allowed methods including `GET` and `HEAD`, allowed request headers including
-`Range`, `If-Match`, `If-Modified-Since`, `If-None-Match`, and
-`If-Unmodified-Since` (via `Access-Control-Allow-Headers`), and exposed
-response headers including
+cloud-native assets MUST also enable CORS on all
+metadata and asset files: `Access-Control-Allow-Origin: *` (or an equivalent
+read-permitting policy), allowed methods including `GET` and `HEAD`, allowed
+request headers including `Range`, `If-Match`, `If-Modified-Since`,
+`If-None-Match`, and `If-Unmodified-Since` (via
+`Access-Control-Allow-Headers`), and exposed response headers including
 `Content-Type`, `Content-Length`, `Content-Range`, `Accept-Ranges`, and `ETag`
 (via `Access-Control-Expose-Headers`).
 
