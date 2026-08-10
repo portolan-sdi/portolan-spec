@@ -68,21 +68,27 @@ A store MUST provide consolidated metadata at its root so a client can discover 
 
 Portolan requires a multiscale pyramid for large raster datasets for the same reason it requires internal overviews in COGs: a client should be able to display the dataset at lower zoom levels without fetching full-resolution pixels.
 
-The multiscales convention establishes the pyramid structure but does not currently define how deep a pyramid must be for this purpose. The required minimum depth is therefore still an open Portolan question.
+Portolan sets no minimum pyramid depth. The multiscales convention requires a non-empty `layout` and prescribes neither a level count nor a downsampling factor, and renderers follow it. The GeoZarr layout schema in [`@developmentseed/deck.gl-zarr`](https://github.com/developmentseed/deck.gl-raster/blob/main/packages/geozarr/src/schemas.ts) validates `layout` with `min(1)`, its tileset derives the available zoom range from `levels.length`, and [`zarr-viewer`](https://github.com/source-cooperative/zarr-viewer/blob/main/src/zarr/multiscale.ts) accepts a one-level layout, rejecting only an empty one. Published datasets vary widely: the Fields of The World global predictions carry fourteen levels and Meta CHM v2 carries seven, while renderers also handle stores that declare no pyramid at all, such as the AlphaEarth Foundations mosaic. Any fixed Portolan level count would be arbitrary, so depth stays with the producer.
 
-### Statistics
+### Storage layout
 
-Portolan requires COGs to carry minimum, maximum, mean, and standard deviation statistics so a renderer can scale data without reading the pixels. The same client-facing requirement should apply to Zarr variables or bands.
-
-No stable Zarr convention currently defines where these statistics should live. STAC metadata is the leading candidate for the initial profile, using the Raster extension where it provides the appropriate fields. The final representation remains an open question.
+Portolan sets no normative chunk or shard requirements. Chunk shape governs how a client reads an array, and Zarr v3 sharding groups chunks into one stored object to keep a store's object count manageable. Both are workload-dependent, and the [Cloud-Native Geospatial Formats Guide](https://guide.cloudnativegeo.org/zarr/intro.html) describes them without prescribing dimensions or byte sizes. Portolan follows that guidance: chunk and shard sizing belongs in conversion defaults and best-practice material, not in the conformance surface.
 
 ### STAC representation and media types
 
-A Zarr asset MUST follow the STAC Zarr best practices. Its `href` identifies the relevant Zarr group rather than an individual array, variables are exposed through the asset's metadata and `bands` where applicable, and the root of the store is identified through a link with `rel: "store"`.
+A Zarr asset follows the [STAC Zarr best practices](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-zarr.md). Two points are requirements here: an asset `href` MUST identify a Zarr group rather than an individual array, and variables MUST be exposed through the asset's `bands` rather than as separate assets. The store root SHOULD carry a link with `rel: "store"`, which is the level the best practices set.
+
+That document is guidance rather than a specification, and it is still moving: it dates from the October 2025 STAC sprint, describes link templates rather than asset templates, and marks the media-type `profile` parameter as not yet official. Portolan states the requirements it depends on rather than deferring to the document wholesale.
 
 Zarr v3 assets use the media type `application/vnd.zarr; version=3`. A multiscale asset uses `application/vnd.zarr; version=3; profile=multiscales`.
 
-The Zarr STAC extension SHOULD be used to expose relevant store metadata, including `zarr:consolidated`, `zarr:node_type`, and `zarr:zarr_format`.
+Portolan requires individual STAC fields, not whole extensions. An extension is a container, and requiring all of one pulls in fields Portolan has no reason to demand.
+
+Which extensions are required, recommended, or optional is set by the [Portolan STAC Profile](../../stac/), not restated here. It lists Projection as MAY and Raster as MUST where band-level detail is provided. This profile adds no Zarr-specific override: the required `proj` convention already carries the CRS inside the store, so a STAC-side CRS requirement would be Portolan-wide policy rather than a Zarr one.
+
+`zarr:consolidated` and `zarr:node_type` SHOULD be present, because they tell a client whether the hierarchy is readable in one request and whether an href resolves to a group or an array. `zarr:zarr_format` is not required, since the media type already carries the format.
+
+Datacube fields describe dimensions and variables for stores that are datacubes. Neither Datacube nor the Zarr extension appears in the STAC Profile today, and listing them is a profile-level decision.
 
 Collection-versus-item modeling follows the STAC Zarr best practices. A store containing a dataset spanning multiple places or times may be represented at the collection level. A store representing a single scene or other logical unit may be represented at the item level.
 
@@ -100,11 +106,7 @@ The HTTP requirements for range requests, HEAD requests, and CORS therefore appl
 
 ## Open Questions
 
-* **Minimum pyramid depth.** Portolan's COG requirement requires internal overviews when a raster is larger than one internal tile. The analogous Zarr requirement is to provide enough multiscale levels for efficient zoomed-out access. The multiscales convention does not currently define that threshold, so Portolan needs to decide whether to define one or defer to the convention.
-
-* **Chunk and shard requirements.** Zarr chunks provide the basic unit of array access, while v3 sharding can group multiple chunks into a single stored object. Portolan needs to determine whether efficient browser access requires any normative limits on chunk dimensions, chunk size, or shard size, or whether these should remain implementation guidance.
-
-* **Required STAC extensions.** The Zarr, Datacube, Projection, and Raster extensions all provide useful metadata. Portolan needs to decide which are required for the initial profile and which remain recommendations. The statistics representation depends on this decision.
+* **Rendering metadata.** Portolan requires COGs to carry per-band statistics so a renderer can scale data without reading pixels. This profile states no equivalent Zarr requirement: no stable Zarr convention defines where such statistics live, and browser renderers already scale Zarr data without them. Whether any rendering metadata belongs in STAC for Zarr can be settled once a convention exists or a concrete rendering gap appears.
 
 * **Compression.** Compression is an implementation choice unless Portolan identifies a concrete interoperability or access requirement. If a default is useful, the CLI can recommend a codec in the Conversion Defaults guidance rather than making it a conformance requirement.
 
@@ -117,9 +119,8 @@ The HTTP requirements for range requests, HEAD requests, and CORS therefore appl
 This document moves into [`formats.md`](../portolan/formats.md) once:
 
 1. the `multiscales`, `spatial`, and `proj` conventions reach stable versions suitable for Portolan to depend on;
-2. the remaining Portolan-specific requirements are settled, in particular the minimum multiscale depth and required STAC extensions;
-3. a stable representation for the required statistics has been established; and
-4. a validator and reference implementation can verify the resulting requirements.
+2. the remaining open questions above are settled; and
+3. a validator and reference implementation can verify the resulting requirements.
 
 Implementation defaults such as chunking, sharding, compression, and multiscale construction parameters belong in the Portolan conversion and best-practices guidance unless they prove necessary for conformance.
 
