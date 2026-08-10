@@ -316,25 +316,29 @@ Items SHOULD carry an explicit `datetime` (or a `start_datetime` /
 
 ## Data Storage
 
-Cloud-native formats depend on clients fetching only the bytes they need, so
-Portolan catalogs assume data is hosted in cloud object storage reachable over
-HTTP range requests (S3-compatible or otherwise). The rules below govern the
-servers hosting the catalog's own cloud-native assets, the copies the publisher
-uploaded and controls.
+Cloud-native formats depend on clients being able to retrieve only the bytes
+they need. Portolan catalogs therefore assume that cloud-native assets are
+available from object storage over HTTP range requests, whether or not the
+storage is S3-compatible.
 
-A server hosting those assets MUST support range requests: honor the `Range`
-header, return `206 Partial Content`, and advertise `Accept-Ranges: bytes`; HEAD
-requests MUST return an accurate `Content-Length`. That server MUST support
-HTTP/1.1 or greater; HTTP/2 or /3 is RECOMMENDED. Endpoints that compress or
-transform responses in ways that break range semantics are not conformant.
+The requirements in this section apply to servers hosting the catalog's own
+cloud-native assets: the copies of the data that the publisher has uploaded and
+controls. They do not apply to upstream sources hosted by third parties.
 
-To let browser clients read data directly, a server hosting those assets MUST
-also enable CORS on all metadata and asset files:
+A server hosting the catalog's cloud-native assets MUST support range requests:
+honor the `Range` header, return `206 Partial Content`, and advertise
+`Accept-Ranges: bytes`; HEAD requests MUST return an accurate `Content-Length`.
+The server MUST support HTTP/1.1 or later; HTTP/2 or HTTP/3 is RECOMMENDED.
+Endpoints that compress or transform responses in ways that break range
+semantics are not conformant.
+
+To let browser clients read data directly, a server hosting the catalog's
+cloud-native assets MUST also enable CORS on all metadata and asset files:
 `Access-Control-Allow-Origin: *` (or an equivalent read-permitting policy),
-allowed methods including `GET` and `HEAD`, allowed
-request headers including `Range`, `If-Match`, `If-Modified-Since`,
-`If-None-Match`, and `If-Unmodified-Since` (via
-`Access-Control-Allow-Headers`), and exposed response headers including
+allowed methods including `GET` and `HEAD`, allowed request headers including
+`Range`, `If-Match`, `If-Modified-Since`, `If-None-Match`, and
+`If-Unmodified-Since` (via `Access-Control-Allow-Headers`), and exposed
+response headers including
 `Content-Type`, `Content-Length`, `Content-Range`, `Accept-Ranges`, and `ETag`
 (via `Access-Control-Expose-Headers`).
 
@@ -344,13 +348,16 @@ Provider-specific headers such as `x-amz-*` and `x-goog-*` fall outside this
 requirement, since reading a public catalog takes no signed request. Portolan
 leaves cloud-specific configuration to separate guidance.
 
-A catalog also points at bytes the publisher does not host: the upstream source
-a mirror complements, and any original file an asset carries over from it. Those
-servers answer to a third party who never agreed to serve Portolan, so the rules
-above do not reach them. A validator probes the assets the publisher hosts and
-leaves upstream hosts alone. An upstream server that ignores `Range` or omits
-CORS headers is a limit on what clients can do with that copy, not a conformance
-failure of the catalog pointing at it.
+Catalogs also reference bytes that the publisher does not host, including
+upstream sources that a mirror complements and original files carried over from
+an upstream source. Because those servers are operated by third parties and are
+outside the publisher's control, the requirements above do not apply to them.
+
+A validator MUST probe the servers hosting the catalog's own cloud-native assets
+and MUST NOT require upstream servers to satisfy these requirements. An upstream
+server that does not support range requests or provide the required CORS headers
+limits the capabilities available to clients using that upstream copy, but does
+not make the catalog non-conformant.
 
 ## Providers
 

@@ -407,9 +407,9 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      A server hosting those assets MUST support range requests: honor the
-      `Range` header, return `206 Partial Content`, and advertise
-      `Accept-Ranges: bytes`; HEAD requests MUST return an accurate
+      A server hosting the catalog's cloud-native assets MUST support range
+      requests: honor the `Range` header, return `206 Partial Content`, and
+      advertise `Accept-Ranges: bytes`; HEAD requests MUST return an accurate
       `Content-Length`.
 
   - id: PORTO-CORE-044
@@ -417,7 +417,7 @@ requirements:
     enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      That server MUST support HTTP/1.1 or greater; HTTP/2 or /3 is
+      The server MUST support HTTP/1.1 or later; HTTP/2 or HTTP/3 is
       RECOMMENDED.
 
   - id: PORTO-CORE-045
@@ -425,9 +425,9 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      To let browser clients read data directly, a server hosting those
-      assets MUST also enable CORS on all metadata and asset files:
-      `Access-Control-Allow-Origin: *`
+      To let browser clients read data directly, a server hosting the
+      catalog's cloud-native assets MUST also enable CORS on all metadata and
+      asset files: `Access-Control-Allow-Origin: *`
       (or an equivalent read-permitting policy), allowed methods including
       `GET` and `HEAD`, allowed request headers including `Range`,
       `If-Match`, `If-Modified-Since`, `If-None-Match`, and
@@ -435,6 +435,18 @@ requirements:
       response headers including `Content-Type`, `Content-Length`,
       `Content-Range`, `Accept-Ranges`, and `ETag` (via
       `Access-Control-Expose-Headers`).
+
+  # Numbered after the last core requirement because it was added to the Data
+  # Storage section once the section's scope was stated; kept here in document
+  # order, where the sentence it anchors lives.
+  - id: PORTO-CORE-073
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A validator MUST probe the servers hosting the catalog's own
+      cloud-native assets and MUST NOT require upstream servers to satisfy
+      these requirements.
 
   - id: PORTO-CORE-046
     severity: MUST

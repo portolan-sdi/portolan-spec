@@ -9,6 +9,13 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+### Added
+
+- **Data Storage** (PORTO-CORE-073): a validator MUST probe the servers hosting
+  the catalog's own cloud-native assets and MUST NOT require upstream servers to
+  satisfy the section's requirements. This writes down the carve-out reis
+  already applies to `source` and `alternate` assets (#89).
+
 ### Changed
 
 - **"Item mirror" is now used consistently** (PORTO-FMT-040, PORTO-FMT-041,
@@ -18,13 +25,13 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   republishing data it did not produce. This is a wording-only change. The
   requirements are unchanged, and the upstream role value `collection-mirror` is
   unaffected (#99).
-- **Data Storage** (PORTO-CORE-043, PORTO-CORE-044, PORTO-CORE-045): the HTTP
-  requirements now name whose servers they bind. Range support, `206 Partial
-  Content`, `Accept-Ranges`, `Content-Length`, and CORS apply to the servers
-  hosting the catalog's own cloud-native assets. Upstream originals hosted by a
-  third party are exempt, and a validator leaves those hosts unprobed. The
-  requirements are unchanged in force; only their scope is now stated, matching
-  what reis already does (#89).
+- **Data Storage** (PORTO-CORE-043, PORTO-CORE-044, PORTO-CORE-045): clarifies
+  that the HTTP requirements apply to servers hosting the catalog's own
+  cloud-native assets. This includes range support, `206 Partial Content`,
+  `Accept-Ranges`, `Content-Length`, and CORS. Upstream originals hosted by
+  third parties are out of scope, and validators do not probe those hosts. The
+  requirements themselves are unchanged; this change only makes their scope
+  explicit, matching the behavior already implemented in reis (#89).
 - **Data Storage** (PORTO-CORE-045): the CORS requirement now names the header
   set a browser actually needs. Allowed request headers add `If-Match`,
   `If-Modified-Since`, `If-None-Match`, and `If-Unmodified-Since` next to
@@ -42,7 +49,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   enforcement moves from `process` to `validator`, since a data pass can check it.
 - **Assets** (PORTO-CORE-029): reworded to govern a `file:checksum` where one is
   present. Multihash encoding is still required, unchanged in force.
-- **Requirements manifest**: still 115 requirements, now 84 MUST, 17 SHOULD, and
+- **Requirements manifest**: 116 requirements, now 85 MUST, 17 SHOULD, and
   14 MAY.
 - **Default style is identified by a `default` role**
   ([`specs/portolan/core.md`](specs/portolan/core.md)): a collection with more than
