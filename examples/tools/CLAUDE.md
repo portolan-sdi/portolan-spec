@@ -258,7 +258,7 @@ proven by running rashid directly, without the adapter. Do that before publishin
 rebuild.
 
 ```bash
-uv run --with "rashid[data] @ git+https://github.com/portolan-sdi/rashid@fed7c8f69dc2bf9de5954e53f1b01d8f2c785f6f" \
+uv run --with "rashid[data] @ git+https://github.com/portolan-sdi/rashid@56fd275a5286372f4483a4c85c60ec4ed3d745d8" \
   rashid check --schema examples/catalog/portolan-reference
 ```
 
@@ -284,14 +284,13 @@ source CRS validate cleanly from rashid
 rashid's live-hosting pass (`--live`, PTL-LIV) is deliberately not wired in. It
 probes the servers behind absolute `https` asset hrefs. The catalog does have
 eight of those, one `source` asset per Collection, so the pass would find
-targets. It skips them anyway, because `rashid/src/rashid/live.py` exempts any
-`source` or `alternate` asset on the grounds that the publisher does not run
-that server. So the pass has nothing left to probe until the catalog is
-published at a real base URL and its own relative hrefs become absolute.
-Revisit then.
+targets. It skips them anyway, because `rashid/src/rashid/live.py` builds its
+list of servers from the publish host and never probes a different one. So the
+pass has nothing left to probe until the catalog is published at a real base URL
+and its own relative hrefs become absolute. Revisit then.
 
-That exemption used to be rashid's own invention, and this branch is where the
-gap was measured. core.md said "Servers MUST support range requests" and required
+That scoping used to be rashid's own invention, keyed off the asset role, and
+this branch is where the gap was measured. core.md said "Servers MUST support range requests" and required
 CORS with `Access-Control-Expose-Headers`, unqualified, with no carve-out for
 upstream servers, while rashid exempted them anyway. Measured against the eight
 upstream sources, two ignore `Range` entirely, four send no CORS header, and none
@@ -302,13 +301,14 @@ The spec has since closed it. `PORTO-CORE-043` and `PORTO-CORE-045` now read "a
 server hosting the catalog's cloud-native assets", and `PORTO-CORE-073` states the
 rule directly, a validator "MUST probe the servers hosting the catalog's own
 cloud-native assets and MUST NOT require upstream servers to satisfy these
-requirements". rashid cites it from PR #106 onward, so the behaviour is unchanged
-and it is now grounded in the spec rather than in a local judgement call.
+requirements". rashid cites it from PR #106 onward, and PR #109 then rebuilt the
+pass around the publish host instead of the asset role, so the behaviour is
+grounded in the spec rather than in a local judgement call.
 
 rashid is pinned in `build.py`'s PEP 723 header. It currently points at the exact
-merge commit `fed7c8f69dc2bf9de5954e53f1b01d8f2c785f6f`, which is
-[PR #108](https://github.com/portolan-sdi/rashid/pull/108), rather than at a PyPI
-range, because four things this catalog depends on land after `v0.1.3` and no
+merge commit `56fd275a5286372f4483a4c85c60ec4ed3d745d8`, which is
+[PR #109](https://github.com/portolan-sdi/rashid/pull/109), rather than at a PyPI
+range, because five things this catalog depends on land after `v0.1.3` and no
 release carries any of them.
 
 | rashid PR | What it gives this catalog |
@@ -317,6 +317,7 @@ release carries any of them.
 | [#90](https://github.com/portolan-sdi/rashid/pull/90) | `PTL-AST-003` down to a warning, following `PORTO-CORE-028` to SHOULD |
 | [#106](https://github.com/portolan-sdi/rashid/pull/106) | The live pass scoped to the catalog's own hosts, `PORTO-CORE-073` |
 | [#108](https://github.com/portolan-sdi/rashid/pull/108) | `PORTO-FMT-006` judged at every row-group count, with the locality limit at 30% |
+| [#109](https://github.com/portolan-sdi/rashid/pull/109) | The format exemption narrowed to the `source` role, `PORTO-FMT-045`, and the live pass builds its server list from the publish host rather than from asset roles |
 
 A commit pin rather than `@main` keeps the build reproducible. **Return this to a
 version range once it ships.**

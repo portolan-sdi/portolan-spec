@@ -3,7 +3,7 @@
 # dependencies = [
 #   "jsonschema>=4.26.0",
 #   # Kept in step with build.py's pin by hand, this script runs standalone.
-#   "rashid[data] @ git+https://github.com/portolan-sdi/rashid@fed7c8f69dc2bf9de5954e53f1b01d8f2c785f6f",
+#   "rashid[data] @ git+https://github.com/portolan-sdi/rashid@56fd275a5286372f4483a4c85c60ec4ed3d745d8",
 # ]
 # ///
 """Standalone checks for the rashid validation adapter.

@@ -12,16 +12,17 @@
 #   "stac-geoparquet>=0.8.1",
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
 #   "rasterio>=1.5",
-#   # Pinned to the exact merge commit of portolan-sdi/rashid#108. Two things
-#   # this catalog depends on land after v0.1.3 and no release carries either.
+#   # Pinned to the exact merge commit of portolan-sdi/rashid#109. Five things
+#   # this catalog depends on land after v0.1.3 and no release carries any.
 #   # rashid#87 adds --data-scope local, so a metadata-only mirror runs every
-#   # local data rule without streaming a remote byte. rashid#90, #106 and #108
-#   # then track the spec changes this branch is built against, PTL-AST-003 down
-#   # to a warning under the SHOULD in PORTO-CORE-028, the live pass scoped to
-#   # the catalog's own hosts, and PORTO-FMT-006 ordering judged at every
-#   # row-group count. A commit pin rather than main keeps the build
+#   # local data rule without streaming a remote byte. rashid#90, #106, #108 and
+#   # #109 then track the spec changes this branch is built against, PTL-AST-003
+#   # down to a warning under the SHOULD in PORTO-CORE-028, the live pass scoped
+#   # to the catalog's own hosts, PORTO-FMT-006 ordering judged at every
+#   # row-group count, and the format exemption narrowed to the source role
+#   # under PORTO-FMT-045. A commit pin rather than main keeps the build
 #   # reproducible. Return this to a version range once it ships.
-#   "rashid[data] @ git+https://github.com/portolan-sdi/rashid@fed7c8f69dc2bf9de5954e53f1b01d8f2c785f6f",
+#   "rashid[data] @ git+https://github.com/portolan-sdi/rashid@56fd275a5286372f4483a4c85c60ec4ed3d745d8",
 #   "rio-cogeo>=5.3",
 #   "Pillow>=11",
 # ]
