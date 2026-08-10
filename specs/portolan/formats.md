@@ -12,6 +12,10 @@ SHOULD reference alternate formats of data and metadata — for example an exist
 ISO 19115 file referenced as an asset with the `metadata` role — though new
 catalogs need not pre-produce them, since tooling should make translation easy.
 
+The requirements in this document apply to the catalog's own cloud-native assets: copies that the publisher derives and publishes. They do not apply to `source` assets, which represent the upstream originals from which those copies were derived and may use a non-cloud-native format.
+
+A validator MUST apply the format requirements in this document to the catalog's own cloud-native assets and MUST NOT fail an asset for its format because it carries the `source` role. The `source` role identifies provenance, not hosting. The Data Storage requirements in core.md apply according to who hosts the bytes, as specified there, regardless of the roles an asset carries.
+
 ## Vector
 
 Vector has no single complete cloud-native format yet, so Portolan pairs two strong
