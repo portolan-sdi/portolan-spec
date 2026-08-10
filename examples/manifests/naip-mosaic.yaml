@@ -5,9 +5,12 @@
 # summed from the file:size of every built item rather than estimated, so the
 # Collection publishes metadata and points at the upstream host.
 # That is legal under core.md, which requires an absolute asset href to use https
-# and says nothing about who serves it, but it collides with the requirement that
-# every asset carry a file:checksum regenerated at publish time. The residual
-# non-conformance is recorded in examples/expected-findings/naip-mosaic.json.
+# and says nothing about who serves it. It used to collide with a MUST that every
+# asset carry a file:checksum, which this catalog cannot compute for bytes it
+# never reads. Spec #112 closed that in PR #116, PORTO-CORE-028 is now a SHOULD
+# for both file fields and PORTO-CORE-030 asks only that a value an asset does
+# carry match its bytes. So the omission is conformant and what remains is a
+# warning, recorded in examples/expected-findings/naip-mosaic.json.
 #
 # The tile list reproduces the query the deck.gl-raster naip-mosaic example
 # documents in its own README, so this catalog mirrors exactly what that example

@@ -120,11 +120,16 @@ def check_default_row_group_size_keeps_locality_margin() -> None:
 
     Every consecutive row-group pair in this file overlaps, so the low-overlap
     criterion fails and locality is the only thing carrying the rule. rashid
-    compares the mean row-group bbox area over the file extent against
-    `max(0.25, 2.0 / groups)`. The old default of 128 put the 924-scene build on
-    exactly 8 row groups, where that relaxation stops, and scored 0.2467 against
-    0.250. A few scenes either way would have flipped the gate for no change in
-    quality, so this pins the margin rather than only the pass.
+    compares the mean row-group bbox area over the file extent against a flat
+    0.30, and applies the row-group criteria only at five or more groups, both
+    from PORTO-FMT-006 and PORTO-FMT-044 as rewritten in spec #133.
+
+    The limit used to be `max(0.25, 2.0 / groups)`, a group-count relaxation
+    that stopped at eight groups. The old default row_group_size of 128 put the
+    924-scene build on exactly eight, scoring 0.2467 against 0.250, so a few
+    scenes either way flipped the gate for no change in quality. The flat limit
+    removes that cliff, and this still pins the margin rather than only the pass
+    so a writer regression cannot creep up on it.
     """
     with tempfile.TemporaryDirectory() as td:
         out = Path(td) / "items.parquet"
@@ -146,7 +151,10 @@ def check_default_row_group_size_keeps_locality_margin() -> None:
         extent = (min(b[0] for b in boxes), min(b[1] for b in boxes),
                   max(b[2] for b in boxes), max(b[3] for b in boxes))
         ratio = sum(area(b) for b in boxes) / len(boxes) / area(extent)
-        limit = max(0.25, 2.0 / len(boxes))
+        assert len(boxes) >= 5, (
+            f"{len(boxes)} row groups, under the five where PORTO-FMT-044 lets "
+            "rashid judge the row-group criteria at all, so this asserts nothing")
+        limit = 0.30
         assert ratio < limit, f"locality {ratio:.4f} is over the {limit:.3f} limit"
         assert limit - ratio > 0.05, (
             f"locality {ratio:.4f} clears {limit:.3f} by only {limit - ratio:.4f}, "

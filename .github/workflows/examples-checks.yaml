@@ -1,10 +1,11 @@
 name: Examples
 
-# The generator under examples/tools/ ships twelve checks and nothing ran them.
+# The generator under examples/tools/ ships thirteen checks and nothing ran them.
 # They cover catalog conformance, the committed COG and GeoParquet, the MapLibre
-# style URLs, the thumbnail geometry, the fetch cache, the raster-mosaic path,
-# the stac-geoparquet item mirror, and the expected-findings baseline. Several
-# catch defects nothing else does, see examples/tools/CLAUDE.md.
+# style URLs, the thumbnail geometry, the fetch cache, the runnable code blocks
+# in the committed docs, the raster-mosaic path, the stac-geoparquet item
+# mirror, and the expected-findings baseline. Several catch defects nothing else
+# does, see examples/tools/CLAUDE.md.
 #
 # Every check is offline and deterministic, and the whole suite runs in about
 # half a minute. So this runs on every pull request with no path filter, which

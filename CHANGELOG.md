@@ -9,6 +9,98 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+### Added
+
+- **GeoParquet** (PORTO-FMT-044): a validator MUST NOT fail a file for missing a
+  spatial-ordering threshold that its row-group count puts out of reach. Row
+  ordering is a separate rule and is not waived along with those thresholds, so
+  a file with fewer than five row groups is still checked on its rows (#127).
+- **Data Storage** (PORTO-CORE-073): a validator MUST probe the servers hosting
+  the catalog's own cloud-native assets and MUST NOT require upstream servers to
+  satisfy the section's requirements. This writes down the carve-out reis
+  already applies to `source` and `alternate` assets (#89).
+
+### Changed
+
+- **GeoParquet** (PORTO-FMT-006): the low-overlap and high-locality checks now
+  apply only to files with five or more row groups, and the high-locality limit
+  moves from about 25% of the file extent to about 30%. Both checks measure a
+  percentage across the row groups, so with fewer than five groups the
+  percentage cannot land on a useful value, and a well-ordered four-row-group
+  file was failing for that reason alone. The 30% limit comes from measuring
+  Hilbert-sorted data, which is how producers usually sort: boxes cover 0.263 to
+  0.274 of the extent at five row groups and 0.250 to 0.270 at six, so the old
+  25% failed those files for having few row groups rather than for their
+  ordering. Files with seven or more groups already passed at 25%. The
+  low-overlap limit is unchanged, as is the rule that rows MUST be spatially
+  ordered, which still applies to every file. The 50% skip rate for a 10% query
+  window now reads as the benefit the limit delivers, not as a second check
+  (#127).
+- **"Item mirror" is now used consistently** (PORTO-FMT-040, PORTO-FMT-041,
+  PORTO-FMT-043). The STAC-GeoParquet copy of a collection's items is now always
+  referred to as an **item mirror** or **STAC-GeoParquet mirror**, leaving the
+  unqualified term **mirror** to its longstanding provenance meaning: a catalog
+  republishing data it did not produce. This is a wording-only change. The
+  requirements are unchanged, and the upstream role value `collection-mirror` is
+  unaffected (#99).
+- **Data Storage** (PORTO-CORE-043, PORTO-CORE-044, PORTO-CORE-045): clarifies
+  that the HTTP requirements apply to servers hosting the catalog's own
+  cloud-native assets. This includes range support, `206 Partial Content`,
+  `Accept-Ranges`, `Content-Length`, and CORS. Upstream originals hosted by
+  third parties are out of scope, and validators do not probe those hosts. The
+  requirements themselves are unchanged; this change only makes their scope
+  explicit, matching the behavior already implemented in reis (#89).
+- **Data Storage** (PORTO-CORE-045): the CORS requirement now names the header
+  set a browser actually needs. Allowed request headers add `If-Match`,
+  `If-Modified-Since`, `If-None-Match`, and `If-Unmodified-Since` next to
+  `Range`, and exposed response headers add `Content-Type`. Conditional requests
+  let a client revalidate a cached range instead of refetching it.
+  Provider-specific headers such as `x-amz-*` and `x-goog-*` stay out of scope,
+  as does versioning, which the specification does not yet define (#56).
+- **Assets** (PORTO-CORE-028): `file:size` and `file:checksum` drop from MUST to
+  SHOULD. A catalog that describes data it does not host often cannot produce a
+  checksum, so the old MUST left it a choice between failing conformance and
+  publishing a fabricated value (#112).
+- **Assets** (PORTO-CORE-030): the publish-time regeneration rule is restated as
+  an outcome. Any `file:size` and `file:checksum` an asset carries MUST match the
+  bytes its `href` resolves to, whenever and however they were written. Its
+  enforcement moves from `process` to `validator`, since a data pass can check it.
+- **Assets** (PORTO-CORE-029): reworded to govern a `file:checksum` where one is
+  present. Multihash encoding is still required, unchanged in force.
+- **Requirements manifest**: 116 requirements, now 85 MUST, 17 SHOULD, and
+  14 MAY.
+- **Default style is identified by a `default` role**
+  ([`specs/portolan/core.md`](specs/portolan/core.md)): a collection with more than
+  one style now MUST mark exactly one style asset with `roles: ["style", "default"]`,
+  replacing the previous guidance that the default SHOULD be "listed first". STAC
+  `assets` is an unordered JSON object and STAC states that asset keys carry no
+  meaning a client is expected to understand, so neither order nor key is a reliable
+  signal; STAC does encourage multiple roles per asset, so a second role lets a
+  client find the default deterministically with no extension. `PORTO-CORE-070`
+  moves from `SHOULD` to `MUST`, and the reference catalog and generator are
+  updated to match.
+- Rewrote the golden-example documentation to the standard in
+  [`specs/best-practices/documentation.md`](specs/best-practices/documentation.md)
+  (#81). Every Collection README now opens with a researched narrative and
+  numbers, carries a tested Quick Start, a described schema table, suggested
+  uses, and candid limitations, and every AGENTS.md is dataset-specific with
+  join keys, quirks, CRS consequences, and tested query recipes. The prose
+  lives in the manifest as per-collection markdown templates with generated
+  `{{placeholder}}` blocks, so structure varies by Collection while counts,
+  schemas, and code cannot drift from the built assets. Catalog-level READMEs
+  became collections tables. A new `check_docs.py` executes every code block
+  in the committed docs, and `build.py --docs-only` regenerates documentation
+  without refetching data.
+- The `boundaries/netherlands-provinces` example now mirrors its upstream ISO
+  19115 record from the Nationaal Georegister as a `metadata`-role asset.
+- Corrected example metadata found during research for #81. The
+  `raster/sample-cog` license is CC0-1.0, matching rasterio's dedication of
+  its test images, its temporal extent starts at the Landsat 7 launch instead
+  of a placeholder, the Natural Earth temporal extents match the May 2022
+  5.1.x releases, and the Eurostat join documentation targets `ISO_A2_EH`
+  with the EL and UK remaps, the raw `ISO_A2` join silently dropped France,
+  Norway, and Kosovo.
+
 ## 0.1.0 - 2026-07-27
 
 First tagged release, consolidating the specification from a working draft into a

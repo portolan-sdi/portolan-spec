@@ -111,12 +111,19 @@ import stacio  # noqa: E402
 
 
 def check_open_snippet_covers_mosaic() -> None:
-    lines, agents = stacio.open_snippet("raster-mosaic", "items.parquet")
-    body = "\n".join(lines)
-    assert "## Open the data" in body, body[:200]
+    """The doc blocks must know the mosaic kind, on both surfaces.
+
+    `quickstart_block` and `access_line` both fall through to the tabular
+    default for a kind they do not name, which is silent and wrong. A mosaic
+    README would then tell a reader to pandas.read_parquet an item index, so
+    each surface is asserted to name the mirror and the way into a scene."""
+    body = "\n".join(stacio.quickstart_block("raster-mosaic", "items.parquet"))
     assert "items.parquet" in body, "the mirror must be named in the README"
     assert "rioxarray" in body or "rasterio" in body, "show how to read a scene COG"
+    assert "pandas" not in body, "the tabular fallback ran, the kind is unhandled"
+    agents = stacio.access_line("raster-mosaic", "items.parquet", False, True)
     assert "items.parquet" in agents, agents
+    assert "vsicurl" in agents, agents
 
 
 def _mosaic_spec(cid: str, source_extra: dict | None = None) -> dict:

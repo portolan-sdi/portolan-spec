@@ -38,7 +38,7 @@ would land on every importer.
 | `validate.py` | Thin adapter over rashid, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
 | `check_catalogs.py` | Entrypoint, and the shared module holding the baseline loader and matcher. Runs rashid over every built catalog tree, reading the rashid pin out of `build.py`'s PEP 723 header. Data pass full unless a baseline narrows it with `data_scope`, findings gated against `../expected-findings/<stem>.json` |
 | `publish_catalogs.py` | Entrypoint. Uploads a built catalog to Source Cooperative, and tears a pull request's preview down |
-| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_fetch.py`, `check_styles.py`, `check_mosaic.py`, `check_items_parquet.py`, and `check_baseline.py`, plus `run_all.py` which runs the lot |
+| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_docs.py`, `check_fetch.py`, `check_styles.py`, `check_mosaic.py`, `check_items_parquet.py`, and `check_baseline.py`, plus `run_all.py` which runs the lot |
 
 Inputs and outputs live under `examples/`, not here.
 
@@ -54,7 +54,15 @@ Inputs and outputs live under `examples/`, not here.
 uv run examples/tools/build.py                                # build every manifest
 uv run examples/tools/build.py --catalog portolan-reference   # one manifest by stem
 uv run examples/tools/build.py --only boundaries/us-counties  # one Collection, skips validation
+uv run examples/tools/build.py --docs-only                    # regenerate README/AGENTS only
 ```
+
+`--docs-only` rewrites every README.md and AGENTS.md from the manifest against
+the committed tree, refreshes the manifest-owned collection.json fields (title,
+description, license, keywords, temporal, `table:columns` descriptions, and the
+mirrored metadata asset), and fetches nothing else. Documentation iterates far
+more often than data, and a full rebuild refetches the live upstream endpoints,
+churning binary assets under a prose change.
 
 `uv` reads the PEP 723 header at the top of `build.py` and resolves the Python
 deps (pyyaml, duckdb, jsonschema, pyarrow, rasterio, rio-cogeo, and the pinned
@@ -74,6 +82,7 @@ uv run examples/tools/tests/check_tiles.py
 uv run examples/tools/tests/check_thumb_geoms.py
 uv run examples/tools/tests/check_thumbnails.py
 uv run examples/tools/tests/check_cog.py
+uv run examples/tools/tests/check_docs.py
 uv run examples/tools/tests/check_fetch.py
 uv run examples/tools/tests/check_styles.py
 uv run examples/tools/tests/check_mosaic.py
@@ -82,7 +91,17 @@ uv run examples/tools/tests/check_baseline.py
 ```
 
 `run_all.py` globs `check_*.py`, so a new check is picked up by adding the file.
-The list above is the twelve on disk today and exists for running one at a time.
+The list above is the thirteen on disk today and exists for running one at a time.
+
+`check_docs.py` executes every ```sql and ```python fence in the committed
+README.md and AGENTS.md files with the doc's own directory as the working
+directory, which makes the best-practices rule that every example be run
+before publishing mechanical. Blocks that reference a URL are skipped so the
+suite stays offline, and fences in other languages are illustration. When
+authoring a recipe in the manifest, include `INSTALL spatial; LOAD spatial;`
+in every spatial SQL block, each block runs in a fresh connection, and never
+state an output in a comment without having run the query, the check proves
+blocks execute, not that quoted numbers are true.
 
 Publishing a built catalog to Source Cooperative needs `s5cmd` on PATH as well,
 and credentials for the Portolan repository in the environment or an AWS
@@ -109,7 +128,8 @@ Top level of each file in `manifests/`.
 - `id`, `title`, `description`. Root Catalog identity.
 - `schema_uri`. Must equal the pinned v0.1.0 URI. `load_manifest` asserts this.
 - `host`. `{name, url, email}`. Appended as the `host`-role provider on mirror Collections.
-- `catalogs`. Map from the first id segment to `{title, description}` for each nested Catalog.
+- `catalogs`. Map from the first id segment to `{title, description, readme?, agents?}` for each nested Catalog. The optional `readme` and `agents` are markdown templates like the per-collection `docs` below.
+- `docs?`. `{readme?, agents?}` markdown templates for the root Catalog sidecars. Catalog-level templates may use `{{collections}}` (the table of contents the best-practices page asks for), `{{sources}}` (licenses, provenance, upstream list), and `{{agents_index}}` (per-child pointers to each AGENTS.md). Without a template a default skeleton with those blocks is emitted.
 - `thumbnails`. `{size, ocean_color, pad_vector?, pad_raster?, basemap: {url, attribution?}}`. The basemap is an XYZ raster tile URL template with `{z}/{x}/{y}` placeholders, CARTO light by default.
 - `output_crs?`. Optional output CRS for the canonical assets, for example `EPSG:4326`. Source-preserving by default, set at the top level for the whole catalog, or per collection to override just that one.
 - `collections`. The list below.
@@ -127,10 +147,13 @@ Each entry in `collections`.
 - `temporal`. `[start, end_or_null]`.
 - `thumbnail_bbox?`. `[minx, miny, maxx, maxy]`. Frames the preview only, not the data. Use it for antimeridian-spanning data.
 - `derivatives`. `{pmtiles, thumbnail, minimal_json}`. Booleans that toggle the PMTiles, the thumbnail, and the `minimal.json` bbox and href index. `minimal_json` is read on the `raster-mosaic` path only and defaults off.
-- `style?`. Per-Collection paint, `{color, outline, opacity, palette?, category_field?, label_field?, graduated_field?, variants?}`. Drives both the MapLibre styles and the thumbnail paint. `category_field` colours by category from the shared palette, `graduated_field` interpolates a numeric ramp, `label_field` adds labels, and `variants` lists which style files to author. The FIRST variant is the default style and is what the thumbnail renders.
-- `columns?`. `{column_name: description}`. Merged into `table:columns` by `describe_columns`. A Parquet footer carries names and types but no semantics, so the prose has to come from the manifest. Required in spirit for `tabular`, where the column schema is the only semantic handle a consumer gets.
+- `style?`. Per-Collection paint, `{color, outline, opacity, palette?, category_field?, label_field?, graduated_field?, variants?}`. Drives both the MapLibre styles and the thumbnail paint. `category_field` colours by category from the shared palette, `graduated_field` interpolates a numeric ramp, `label_field` adds labels, and `variants` lists which style files to author. The FIRST variant is the default style, is what the thumbnail renders, and is the one whose asset carries the `default` role alongside `style`.
+- `columns?`. `{column_name: description}`. Merged into `table:columns` by `describe_columns`. A Parquet footer carries names and types but no semantics, so the prose has to come from the manifest. Required in spirit for `tabular`, where the column schema is the only semantic handle a consumer gets. Also feeds the `{{schema}}` table in the README, one authored description generates both surfaces.
 - `bbox?`. Tabular only. The area of interest the table pertains to, which core.md asks for in place of a geometric footprint. Absent, the fallback is the whole world, correct only for a genuinely global table.
 - `join?`. Tabular only. `{column, target, target_column, target_file, note?}`. Emits the README join section and a runnable DuckDB example, which formats.md requires whenever geometry and attributes live in separate files. `target_file` is relative to the Collection directory.
+- `blurb?`. One line for the catalog-level collections tables. Falls back to the first sentence of `description`.
+- `metadata?`. `{url, media_type, title, standard?, filename?}`. Mirrors an upstream machine-readable metadata record, for example an ISO 19115 record from a GeoNetwork registry, into the Collection directory and attaches it as a `metadata`-role asset with real `file:size` and `file:checksum`. Mirrored rather than linked because a registry regenerates its XML and a checksum pinned to bytes the catalog does not control rots, the live-endpoint rule again. The fetch happens once, an existing local copy is reused.
+- `docs?`. `{readme?, agents?}`. Markdown templates for the Collection sidecars, the heart of the golden-example documentation. Each is near-final markdown whose structure and voice the manifest author controls per collection, with `{{placeholder}}` lines expanding to generated blocks that cannot drift from the built assets. README templates may use `{{quickstart}}` (the one tested open-it snippet, chosen by kind), `{{schema}}` (a table of the described columns from `table:columns`), `{{join}}` (the tabular join section), and `{{provenance}}` (the license and provenance block core.md requires, appended automatically when the template omits it). AGENTS templates may use `{{access}}` (the one-line access guidance). An unknown placeholder fails the build, a typo would otherwise publish literally. Without templates a minimal default skeleton is emitted, so a bare manifest still builds a conformant catalog.
 
 ## Provenance is derived, not declared
 
@@ -204,7 +227,7 @@ onto the canvas with `rasterio.features`. Rasters are warped on top with
 - The raster extension v2.0.0 is not declared, its schema conflicts with Collection-level assets (spec issues #52 and #41). Statistics still ship in core `bands`.
 - COG overview depth is never pinned. `to_cog` omits `overview_level` so rio-cogeo derives it from the raster size and the 512px output blocksize, halving until the coarsest level fits inside one tile. That is OGC 21-026's `/req/optimized_geotiff/number`, which formats.md raises to a MUST and rashid enforces as PTL-DAT-011. A fixed level, which this used to carry, under-builds overviews on a large raster and builds pointless ones on a raster smaller than a tile. Note the requirement reads "one tile across or down", so the bar is the shorter side, which is what rio-cogeo measures.
 - A MapLibre style's PMTiles url is relative to the `styles/` directory the file sits in, so it is `../name.pmtiles`, never `./name.pmtiles`. The `./` form resolves to `styles/name.pmtiles`, which does not exist, and the style then loads no tiles and renders an empty map. Nothing else catches this, rashid does not read style bodies and the STAC validators skip style files for having no `stac_version`, so `check_styles.py` asserts every url resolves to a real file. The source key and every `layers[].source` are `data` per formats.md, while `source-layer` stays the tippecanoe layer name.
-- The thumbnail is painted from the DEFAULT style, meaning the variant listed first in `style.variants`, because core.md requires exactly that and core.md also says the default is listed first. `stacio` passes `default_variant` into the thumbnail context and `thumbnails.py` only reaches for the category palette when that variant is in `CATEGORICAL_VARIANTS`. So a Collection that wants a category-coloured preview leads with `categorical`, it does not keep a flat `default` in front of it. Previously the thumbnail branched on `category_field` alone and three Collections shipped previews with zero pixels in common with their own default style.
+- The thumbnail is painted from the DEFAULT style, meaning the variant listed first in `style.variants`, which is also the variant `stacio` publishes with the `default` role that core.md requires. `stacio` passes `default_variant` into the thumbnail context and `thumbnails.py` only reaches for the category palette when that variant is in `CATEGORICAL_VARIANTS`. So a Collection that wants a category-coloured preview leads with `categorical`, it does not keep a flat `default` in front of it. Previously the thumbnail branched on `category_field` alone and three Collections shipped previews with zero pixels in common with their own default style.
 - tippecanoe records both `--name` and the verbatim command line in the archive metadata, so it runs with `cwd` set to the Collection directory and bare filenames. Passing absolute paths ships the builder's home directory inside every published `.pmtiles`.
 - A nested Collection's STAC `id` is its full POSIX path from the catalog root, `boundaries/us-counties`, not the leaf segment. Filenames still use the leaf, a slash cannot appear in one. Nothing validates this, rashid has no id rules and the profile schema has no id constraint, so it is easy to regress.
 - The `source` asset does not carry the `data` role. core.md scopes `data` to the primary GeoParquet, COG, or Parquet and says the cloud-native asset is primary while the rest are alternates, so rolling a zipped Shapefile `data` leaves a client filtering on that role unable to tell which asset is canonical.
@@ -235,7 +258,7 @@ proven by running rashid directly, without the adapter. Do that before publishin
 rebuild.
 
 ```bash
-uv run --with "rashid[data] @ git+https://github.com/portolan-sdi/rashid@8d9e11f2b742e2873a2f397a182c8e1aace07dcc" \
+uv run --with "rashid[data] @ git+https://github.com/portolan-sdi/rashid@fed7c8f69dc2bf9de5954e53f1b01d8f2c785f6f" \
   rashid check --schema examples/catalog/portolan-reference
 ```
 
@@ -267,21 +290,36 @@ that server. So the pass has nothing left to probe until the catalog is
 published at a real base URL and its own relative hrefs become absolute.
 Revisit then.
 
-Worth knowing that the exemption is rashid's own invention. core.md's Data Storage
-section says "Servers MUST support range requests" and requires CORS with
-`Access-Control-Expose-Headers`, unqualified, with no carve-out for upstream
-servers. Measured against the eight upstream sources, two ignore `Range`
-entirely, four send no CORS header, and none sends
-`Access-Control-Expose-Headers`. Nothing the generator can fix, those are third
-party servers. The spec should scope those MUSTs to assets the publisher hosts.
+That exemption used to be rashid's own invention, and this branch is where the
+gap was measured. core.md said "Servers MUST support range requests" and required
+CORS with `Access-Control-Expose-Headers`, unqualified, with no carve-out for
+upstream servers, while rashid exempted them anyway. Measured against the eight
+upstream sources, two ignore `Range` entirely, four send no CORS header, and none
+sends `Access-Control-Expose-Headers`. Nothing the generator can fix, those are
+third party servers.
+
+The spec has since closed it. `PORTO-CORE-043` and `PORTO-CORE-045` now read "a
+server hosting the catalog's cloud-native assets", and `PORTO-CORE-073` states the
+rule directly, a validator "MUST probe the servers hosting the catalog's own
+cloud-native assets and MUST NOT require upstream servers to satisfy these
+requirements". rashid cites it from PR #106 onward, so the behaviour is unchanged
+and it is now grounded in the spec rather than in a local judgement call.
 
 rashid is pinned in `build.py`'s PEP 723 header. It currently points at the exact
-merge commit `8d9e11f2b742e2873a2f397a182c8e1aace07dcc`, which is
-[PR #87](https://github.com/portolan-sdi/rashid/pull/87), rather than at a PyPI
-range, because the `--data-scope` support that catalog validation now depends on
-is not in any release. `v0.1.3` predates the merge. A commit pin rather than
-`@main` keeps the build reproducible. **Return this to a version range once it
-ships.**
+merge commit `fed7c8f69dc2bf9de5954e53f1b01d8f2c785f6f`, which is
+[PR #108](https://github.com/portolan-sdi/rashid/pull/108), rather than at a PyPI
+range, because four things this catalog depends on land after `v0.1.3` and no
+release carries any of them.
+
+| rashid PR | What it gives this catalog |
+| --- | --- |
+| [#87](https://github.com/portolan-sdi/rashid/pull/87) | `--data-scope local`, so a metadata-only mirror runs every local data rule without streaming a remote byte |
+| [#90](https://github.com/portolan-sdi/rashid/pull/90) | `PTL-AST-003` down to a warning, following `PORTO-CORE-028` to SHOULD |
+| [#106](https://github.com/portolan-sdi/rashid/pull/106) | The live pass scoped to the catalog's own hosts, `PORTO-CORE-073` |
+| [#108](https://github.com/portolan-sdi/rashid/pull/108) | `PORTO-FMT-006` judged at every row-group count, with the locality limit at 30% |
+
+A commit pin rather than `@main` keeps the build reproducible. **Return this to a
+version range once it ships.**
 
 There is a second pin, in `tests/check_validate.py`'s own PEP 723 header, because
 that script runs standalone rather than through `build.py`. Move both together.

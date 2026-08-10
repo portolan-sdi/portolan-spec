@@ -2,7 +2,8 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #   "jsonschema>=4.26.0",
-#   "rashid[data] @ git+https://github.com/portolan-sdi/rashid@8d9e11f2b742e2873a2f397a182c8e1aace07dcc",
+#   # Kept in step with build.py's pin by hand, this script runs standalone.
+#   "rashid[data] @ git+https://github.com/portolan-sdi/rashid@fed7c8f69dc2bf9de5954e53f1b01d8f2c785f6f",
 # ]
 # ///
 """Standalone checks for the rashid validation adapter.

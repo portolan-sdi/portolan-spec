@@ -85,8 +85,8 @@ the original.
 A `stable: false` source is still refetched on every build rather than served
 from the cache, because the canonical Asset is converted from those bytes and a
 stale cached copy would publish data that no longer matches upstream. That is
-what core.md asks for when it requires those values to be regenerated at publish
-time.
+what `PORTO-CORE-030` asks for when it requires any `file:size` and
+`file:checksum` an asset carries to match the bytes its `href` resolves to.
 
 ### Revalidating it
 

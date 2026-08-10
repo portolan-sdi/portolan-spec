@@ -12,13 +12,16 @@
 #   "stac-geoparquet>=0.8.1",
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
 #   "rasterio>=1.5",
-#   # Pinned to the exact merge commit of portolan-sdi/rashid#87, which answers
-#   # the rashid#86 we filed from this work. It adds --data-scope local, so a
-#   # metadata-only mirror runs every local data rule without streaming a single
-#   # remote byte. No release carries it yet, v0.1.3 predates the merge, so this
-#   # is a commit pin rather than main to keep the build reproducible. Return
-#   # this to a version range once it ships.
-#   "rashid[data] @ git+https://github.com/portolan-sdi/rashid@8d9e11f2b742e2873a2f397a182c8e1aace07dcc",
+#   # Pinned to the exact merge commit of portolan-sdi/rashid#108. Two things
+#   # this catalog depends on land after v0.1.3 and no release carries either.
+#   # rashid#87 adds --data-scope local, so a metadata-only mirror runs every
+#   # local data rule without streaming a remote byte. rashid#90, #106 and #108
+#   # then track the spec changes this branch is built against, PTL-AST-003 down
+#   # to a warning under the SHOULD in PORTO-CORE-028, the live pass scoped to
+#   # the catalog's own hosts, and PORTO-FMT-006 ordering judged at every
+#   # row-group count. A commit pin rather than main keeps the build
+#   # reproducible. Return this to a version range once it ships.
+#   "rashid[data] @ git+https://github.com/portolan-sdi/rashid@fed7c8f69dc2bf9de5954e53f1b01d8f2c785f6f",
 #   "rio-cogeo>=5.3",
 #   "Pillow>=11",
 # ]
@@ -65,7 +68,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from check_catalogs import load_baseline
-from stacio import load_manifest, build_catalog
+from stacio import load_manifest, build_catalog, regen_docs
 from validate import validate
 
 
@@ -87,6 +90,10 @@ def main() -> int:
     ap.add_argument("--only", default=None, help="build only this collection id")
     ap.add_argument("--schema", default=root / "stac/json-schema/v0.1.0/schema.json", type=Path)
     ap.add_argument("--no-validate", action="store_true")
+    ap.add_argument("--docs-only", action="store_true",
+                    help="regenerate README/AGENTS sidecars and table:columns "
+                         "descriptions from the manifest against the committed "
+                         "catalog, no fetch, no conversion")
     args = ap.parse_args()
 
     files = sorted(p for p in args.manifests.glob("*.yaml"))
@@ -100,6 +107,9 @@ def main() -> int:
         print(f"=== manifest {mf.name} ===", file=sys.stderr)
         manifest = load_manifest(mf)
         cat_out = args.out / mf.stem
+        if args.docs_only:
+            regen_docs(manifest, cat_out, args.cache)
+            continue
         build_catalog(manifest, cat_out, args.cache, args.only)
         if not args.no_validate and not args.only:
             baseline = load_baseline(root, cat_out)

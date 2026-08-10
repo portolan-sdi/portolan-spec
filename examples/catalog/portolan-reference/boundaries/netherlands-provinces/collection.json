@@ -82,31 +82,38 @@
         },
         {
           "name": "identificatie",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Province identifier PV20 through PV31, PV plus the CBS province code. The join key to CBS StatLine regional tables."
         },
         {
           "name": "naam",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Official province name. Frysl\u00e2n carries its official Frisian spelling, a filter on Friesland returns nothing."
         },
         {
           "name": "code",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Two-digit CBS province code as a string, 20 through 31. Joins to ligt_in_provincie_code in the source's municipality layer."
         },
         {
           "name": "ligt_in_land_code",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Country code, the constant 6030 for Nederland."
         },
         {
           "name": "ligt_in_land_naam",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "Country name, the constant Nederland."
         },
         {
           "name": "geom",
-          "type": "geometry('epsg:28992')"
+          "type": "geometry('epsg:28992')",
+          "description": "Province geometry, multipolygon, in the Dutch national grid EPSG:28992 in meters."
         },
         {
           "name": "bbox",
-          "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+          "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+          "description": "Per-feature bounding box struct in RD New meters, the GeoParquet covering."
         }
       ],
       "table:primary_geometry": "geom",
@@ -138,7 +145,8 @@
       "type": "application/vnd.mapbox.style+json",
       "title": "Categorical MapLibre style",
       "roles": [
-        "style"
+        "style",
+        "default"
       ],
       "file:size": 1116,
       "file:checksum": "12209ba3d8136ec149ac47a65465488dd16e17cb90491b370d2955bdbf30bbbec96e"
@@ -162,6 +170,17 @@
       ],
       "file:size": 188545,
       "file:checksum": "12203e5bed76be1af81a77828cebf137805a4168848e56289de7d197eb7341ebb2b0"
+    },
+    "metadata": {
+      "href": "./iso19115.xml",
+      "type": "application/vnd.iso.19139+xml",
+      "title": "ISO 19115 metadata record, BRK Bestuurlijke Gebieden (Nationaal Georegister)",
+      "roles": [
+        "metadata",
+        "iso-19115"
+      ],
+      "file:size": 40942,
+      "file:checksum": "122039561f53e91b85883209646f809d8ff6a3976eb6539528d8e4802c5689f75fe7"
     }
   },
   "links": [
