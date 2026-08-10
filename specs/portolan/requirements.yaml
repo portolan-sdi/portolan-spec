@@ -706,6 +706,18 @@ requirements:
       `metadata` role — though new catalogs need not pre-produce them, since
       tooling should make translation easy.
 
+  # Numbered after the last format requirement because it was added once the
+  # document's scope was stated; kept here in document order, where the
+  # sentence it anchors lives.
+  - id: PORTO-FMT-045
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A validator MUST apply the format requirements in this document to the
+      catalog's own cloud-native assets and MUST NOT fail an asset for its
+      format because it carries the `source` role.
+
   - id: PORTO-FMT-004
     severity: MUST
     enforcement: validator
@@ -1107,6 +1119,12 @@ exclusions:
       by structural validation; the Portolan-level guidance to carry an
       explicit `datetime` lives under [Temporal
       Metadata](#temporal-metadata) as a SHOULD.
+
+  # Cross-reference to PORTO-FMT-002, which carries the SHOULD itself.
+  - file: specs/portolan/core.md
+    quote: >-
+      PORTO-FMT-002 says that a mirror SHOULD include the original when it is
+      directly downloadable rather than available only through an API.
 
   # Statement about possible future spec evolution, not a conformance rule.
   - file: specs/portolan/formats.md

@@ -18,7 +18,23 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 - **Data Storage** (PORTO-CORE-073): a validator MUST probe the servers hosting
   the catalog's own cloud-native assets and MUST NOT require upstream servers to
   satisfy the section's requirements. This writes down the carve-out reis
-  already applies to `source` and `alternate` assets (#89).
+  already applies to upstream assets (#89).
+- **Assets**: the `source` and `collection-mirror` roles are defined where the
+  other roles are listed. `source` names the upstream original a cloud-native
+  asset was derived from, which PORTO-FMT-002 has asked a mirror to carry since
+  0.1.0; the role gives that asset a name and settles what carrying one costs.
+  It is a reference, satisfied by an href pointing at the upstream server, so no
+  publisher retains or rehosts an original to comply. `collection-mirror` is
+  already required on a published item mirror by PORTO-FMT-041; this documents
+  it rather than adding a requirement. Neither role is enumerated in the JSON
+  Schema, which still accepts any non-empty role string (#90).
+- **Formats** (PORTO-FMT-045): a validator MUST apply the format requirements to
+  the catalog's own cloud-native assets and MUST NOT fail an asset for its
+  format because that asset carries the `source` role. An upstream original is
+  a Shapefile or a GeoPackage as often as not, and judging it as a COG or a
+  GeoParquet was never intended. The role records provenance, not hosting;
+  which servers the Data Storage requirements reach is settled by
+  PORTO-CORE-073 (#90).
 
 ### Changed
 
