@@ -729,10 +729,15 @@ requirements:
     file: specs/portolan/formats.md
     quote: >-
       Rows MUST be spatially ordered so nearby features are nearby in the
-      file. A file of five or more row groups is tested on either of: - **low
-      overlap** — fewer than 30% of consecutive row-group pairs have
-      interior-intersecting bounding boxes; or - **high locality** — row-group
-      boxes average under about 25% of the file extent.
+      file. This binds every file, whatever its row-group layout. A validator
+      measures it over the rows themselves: partition them into the groups a
+      conforming writer would have emitted, then check that those cluster. A
+      file of five or more row groups is tested on its actual row groups as
+      well, which a reader can judge from footer metadata without touching the
+      data. It passes on either of: - **low overlap** — fewer than 30% of
+      consecutive row-group pairs have interior-intersecting bounding boxes;
+      or - **high locality** — row-group boxes average under about 25% of the
+      file extent.
 
   - id: PORTO-FMT-044
     severity: MUST
@@ -740,10 +745,9 @@ requirements:
     file: specs/portolan/formats.md
     quote: >-
       A validator MUST NOT fault a file for missing a threshold its row-group
-      count cannot express. The ordering requirement itself still holds, so a
-      validator MAY measure it another way, such as partitioning the rows of a
-      single-row-group file into the groups a conforming writer would have
-      emitted and applying the same two tests to those.
+      count cannot express. Row ordering is a separate property and is not
+      exempted with them, so a file below five row groups is still judged on
+      its rows.
 
   - id: PORTO-FMT-007
     severity: MUST

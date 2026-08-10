@@ -27,8 +27,14 @@ Distributing GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so it can
 queried without a server. Files SHOULD be compressed to stay small, with `zstd`
 RECOMMENDED.
 
-Rows MUST be spatially ordered so nearby features are nearby in the file. A file of
-five or more row groups is tested on either of:
+Rows MUST be spatially ordered so nearby features are nearby in the file. This binds
+every file, whatever its row-group layout. A validator measures it over the rows
+themselves: partition them into the groups a conforming writer would have emitted,
+then check that those cluster.
+
+A file of five or more row groups is tested on its actual row groups as well, which
+a reader can judge from footer metadata without touching the data. It passes on
+either of:
 
 - **low overlap** — fewer than 30% of consecutive row-group pairs have
   interior-intersecting bounding boxes; or
@@ -38,15 +44,13 @@ Boxes that small let a reader skip at least half the row groups for a query wind
 covering 10% of the extent. That payoff is why the threshold sits at 25%. It is not
 a further test to run.
 
-Neither test applies below five row groups. Both measure a fraction over the row
+Neither row-group test applies below five. Both measure a fraction over the row
 groups themselves, and too few groups leave that fraction nowhere useful to land.
 Three groups can only overlap on 0%, 50%, or 100% of consecutive pairs. An average
 box under 25% of the extent is out of reach on two or three however well the rows
 are sorted. A validator MUST NOT fault a file for missing a threshold its row-group
-count cannot express. The ordering requirement itself still holds, so a validator
-MAY measure it another way, such as partitioning the rows of a single-row-group file
-into the groups a conforming writer would have emitted and applying the same two
-tests to those.
+count cannot express. Row ordering is a separate property and is not exempted with
+them, so a file below five row groups is still judged on its rows.
 
 Files MUST provide per-row-group spatial statistics so readers can skip row groups
 from metadata alone — either:
