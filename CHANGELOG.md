@@ -11,13 +11,13 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Added
 
-- `PORTO-FMT-044` and `PORTO-FMT-045`: a vector collection SHOULD document its
+- `PORTO-FMT-046` and `PORTO-FMT-047`: a vector collection SHOULD document its
   columns with the STAC [table](https://github.com/stac-extensions/table)
   extension, carrying `table:columns` on the collection, and an item holding a
   GeoParquet data asset SHOULD carry the field in its `properties`. Those are
   the two placements the extension defines, and the collection is the only one
   a partitioned collection has, since its data sits behind `partition:glob`
-  rather than in an asset. `PORTO-FMT-046` permits per-asset declaration where
+  rather than in an asset. `PORTO-FMT-048` permits per-asset declaration where
   a collection's data assets describe differing schemas. The same SHOULD
   already covered tabular collections (`PORTO-FMT-037`); nothing asked a vector
   collection for its schema, so a catalog could publish a hundred attribute
@@ -97,8 +97,8 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   enforcement moves from `process` to `validator`, since a data pass can check it.
 - **Assets** (PORTO-CORE-029): reworded to govern a `file:checksum` where one is
   present. Multihash encoding is still required, unchanged in force.
-- **Requirements manifest**: 116 requirements, now 85 MUST, 17 SHOULD, and
-  14 MAY.
+- **Requirements manifest**: 121 requirements, now 87 MUST, 19 SHOULD, and
+  15 MAY.
 - **Default style is identified by a `default` role**
   ([`specs/portolan/core.md`](specs/portolan/core.md)): a collection with more than
   one style now MUST mark exactly one style asset with `roles: ["style", "default"]`,

@@ -1103,7 +1103,7 @@ requirements:
       include per-row-group spatial statistics, and row groups MUST contain no
       more than 150,000 rows.
 
-  - id: PORTO-FMT-044
+  - id: PORTO-FMT-046
     severity: SHOULD
     enforcement: validator
     file: specs/portolan/formats.md
@@ -1113,7 +1113,7 @@ requirements:
       `table:columns` with names, types, and descriptions on the collection
       itself.
 
-  - id: PORTO-FMT-045
+  - id: PORTO-FMT-047
     severity: SHOULD
     enforcement: validator
     file: specs/portolan/formats.md
@@ -1121,7 +1121,7 @@ requirements:
       An item that carries a GeoParquet data asset, as when partition files
       are modeled as items, SHOULD carry the same field in its `properties`.
 
-  - id: PORTO-FMT-046
+  - id: PORTO-FMT-048
     severity: MAY
     enforcement: validator
     file: specs/portolan/formats.md

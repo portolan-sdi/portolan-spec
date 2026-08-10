@@ -477,7 +477,7 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
     deriv = spec.get("derivatives", {}) or {}
     data_name = ""
     # The table extension scopes `table:*` to Collection fields and Item
-    # Properties, and PORTO-FMT-044 asks a vector collection for them there, so
+    # Properties, and PORTO-FMT-046 asks a vector collection for them there, so
     # these are merged into the collection rather than onto the data asset.
     table_fields: dict[str, Any] = {}
 

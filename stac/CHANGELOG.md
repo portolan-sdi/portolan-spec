@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The extension registry now records the table extension as SHOULD for vector
   collections as well as tabular ones, and names the two placements the
-  extension defines, matching `PORTO-FMT-044` and `PORTO-FMT-045`. The vector
+  extension defines, matching `PORTO-FMT-046` and `PORTO-FMT-047`. The vector
   examples carry `table:columns` on the collection, and the partitioned item
   carries it in `properties`. The schema is unchanged.
 - The schema no longer requires `file:size` and `file:checksum` on every asset,
