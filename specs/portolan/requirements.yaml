@@ -407,28 +407,46 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Servers MUST support range requests: honor the `Range` header, return
-      `206 Partial Content`, and advertise `Accept-Ranges: bytes`; HEAD
-      requests MUST return an accurate `Content-Length`.
+      A server hosting the catalog's cloud-native assets MUST support range
+      requests: honor the `Range` header, return `206 Partial Content`, and
+      advertise `Accept-Ranges: bytes`; HEAD requests MUST return an accurate
+      `Content-Length`.
 
   - id: PORTO-CORE-044
     severity: MUST
     enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      Servers MUST support HTTP/1.1 or greater; HTTP/2 or /3 is RECOMMENDED.
+      The server MUST support HTTP/1.1 or greater; HTTP/2 or /3 is
+      RECOMMENDED.
 
   - id: PORTO-CORE-045
     severity: MUST
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      To let browser clients read data directly, servers MUST also enable
-      CORS on all metadata and asset files: `Access-Control-Allow-Origin: *`
+      To let browser clients read data directly, a server hosting the
+      catalog's cloud-native assets MUST also enable CORS on all metadata and
+      asset files: `Access-Control-Allow-Origin: *`
       (or an equivalent read-permitting policy), allowed methods including
-      `GET` and `HEAD`, allowed request headers including `Range`, and
-      exposed response headers including `Content-Range`, `Content-Length`,
-      `Accept-Ranges`, and `ETag` (via `Access-Control-Expose-Headers`).
+      `GET` and `HEAD`, allowed request headers including `Range`,
+      `If-Match`, `If-Modified-Since`, `If-None-Match`, and
+      `If-Unmodified-Since` (via `Access-Control-Allow-Headers`), and exposed
+      response headers including `Content-Type`, `Content-Length`,
+      `Content-Range`, `Accept-Ranges`, and `ETag` (via
+      `Access-Control-Expose-Headers`).
+
+  # Numbered after the last core requirement because it was added to the Data
+  # Storage section once the section's scope was stated; kept here in document
+  # order, where the sentence it anchors lives.
+  - id: PORTO-CORE-073
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A validator MUST probe the servers hosting the catalog's own
+      cloud-native assets and MUST NOT require upstream servers to satisfy
+      these requirements.
 
   - id: PORTO-CORE-046
     severity: MUST
@@ -688,6 +706,18 @@ requirements:
       `metadata` role — though new catalogs need not pre-produce them, since
       tooling should make translation easy.
 
+  # Numbered after the last format requirement because it was added once the
+  # document's scope was stated; kept here in document order, where the
+  # sentence it anchors lives.
+  - id: PORTO-FMT-045
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A validator MUST apply the format requirements in this document to the
+      catalog's own cloud-native assets and MUST NOT fail an asset for its
+      format because it carries the `source` role.
+
   - id: PORTO-FMT-004
     severity: MUST
     enforcement: validator
@@ -711,11 +741,27 @@ requirements:
     file: specs/portolan/formats.md
     quote: >-
       Rows MUST be spatially ordered so nearby features are nearby in the
-      file, tested either as: - **low overlap** — fewer than 30% of
-      consecutive row-group pairs have interior-intersecting bounding boxes;
-      or - **high locality** — row-group boxes average under about 25% of the
-      file extent, letting a reader skip at least 50% of row groups for a
-      query window of 10% of the extent.
+      file. This rule applies to every file, no matter how many row groups it
+      has. A validator checks it by looking at the rows themselves. It splits
+      them into the groups a conforming writer would have produced, then checks
+      that each of those groups covers a small part of the file. A file with
+      five or more row groups gets a second check, using the row groups it
+      actually has. A reader can run this one from the file footer alone,
+      without reading any data. The file passes if either of these is true: -
+      **low overlap** — fewer than 30% of consecutive row-group pairs have
+      bounding boxes that overlap on their interiors; or - **high locality** —
+      row-group bounding boxes cover, on average, less than about 30% of the
+      file's total extent.
+
+  - id: PORTO-FMT-044
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A validator MUST NOT fail a file for missing a threshold that its
+      row-group count puts out of reach. Row ordering is a separate rule and is
+      not waived here, so a file with fewer than five row groups is still
+      checked on its rows.
 
   - id: PORTO-FMT-007
     severity: MUST
@@ -1026,15 +1072,15 @@ requirements:
     file: specs/portolan/formats.md
     quote: >-
       A raster collection that models scenes as items SHOULD also publish a
-      [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) mirror
-      of those items at `items.parquet` in the collection root.
+      [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) item
+      mirror at `items.parquet` in the collection root.
 
   - id: PORTO-FMT-041
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A published mirror MUST be registered as a collection-level asset
+      A published item mirror MUST be registered as a collection-level asset
       carrying media type `application/vnd.apache.parquet` and the role
       `collection-mirror`
 
@@ -1043,17 +1089,19 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      the file MUST reproduce the collection's items exactly at publish time —
-      one row per item, each row carrying that item's fields.
+      An item mirror is a derived Parquet copy and MUST exactly reproduce the
+      collection's items at publication time: one row per item, with every row
+      containing that item's fields.
 
   - id: PORTO-FMT-043
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      The GeoParquet requirements above bind the mirror as they bind vector
-      data: rows MUST be spatially ordered, the file MUST carry per-row-group
-      spatial statistics, and row groups MUST hold no more than 150,000 rows.
+      The GeoParquet requirements above apply to item mirrors exactly as they
+      apply to vector datasets. Rows MUST be spatially ordered, the file MUST
+      include per-row-group spatial statistics, and row groups MUST contain no
+      more than 150,000 rows.
 
   - id: PORTO-FMT-044
     severity: SHOULD
@@ -1097,6 +1145,12 @@ exclusions:
       by structural validation; the Portolan-level guidance to carry an
       explicit `datetime` lives under [Temporal
       Metadata](#temporal-metadata) as a SHOULD.
+
+  # Cross-reference to PORTO-FMT-002, which carries the SHOULD itself.
+  - file: specs/portolan/core.md
+    quote: >-
+      PORTO-FMT-002 says that a mirror SHOULD include the original when it is
+      directly downloadable rather than available only through an API.
 
   # Statement about possible future spec evolution, not a conformance rule.
   - file: specs/portolan/formats.md

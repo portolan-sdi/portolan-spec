@@ -25,9 +25,68 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   The reference catalog moves `table:columns`, `table:primary_geometry`, and
   `table:row_count` from the `data` asset to the collection to match, and
   `examples/tools/stacio.py` writes them there from now on.
+- **GeoParquet** (PORTO-FMT-044): a validator MUST NOT fail a file for missing a
+  spatial-ordering threshold that its row-group count puts out of reach. Row
+  ordering is a separate rule and is not waived along with those thresholds, so
+  a file with fewer than five row groups is still checked on its rows (#127).
+- **Data Storage** (PORTO-CORE-073): a validator MUST probe the servers hosting
+  the catalog's own cloud-native assets and MUST NOT require upstream servers to
+  satisfy the section's requirements. This writes down the carve-out reis
+  already applies to upstream assets (#89).
+- **Assets**: the `source` and `collection-mirror` roles are defined where the
+  other roles are listed. `source` names the upstream original a cloud-native
+  asset was derived from, which PORTO-FMT-002 has asked a mirror to carry since
+  0.1.0; the role gives that asset a name and settles what carrying one costs.
+  It is a reference, satisfied by an href pointing at the upstream server, so no
+  publisher retains or rehosts an original to comply. `collection-mirror` is
+  already required on a published item mirror by PORTO-FMT-041; this documents
+  it rather than adding a requirement. Neither role is enumerated in the JSON
+  Schema, which still accepts any non-empty role string (#90).
+- **Formats** (PORTO-FMT-045): a validator MUST apply the format requirements to
+  the catalog's own cloud-native assets and MUST NOT fail an asset for its
+  format because that asset carries the `source` role. An upstream original is
+  a Shapefile or a GeoPackage as often as not, and judging it as a COG or a
+  GeoParquet was never intended. The role records provenance, not hosting;
+  which servers the Data Storage requirements reach is settled by
+  PORTO-CORE-073 (#90).
 
 ### Changed
 
+- **GeoParquet** (PORTO-FMT-006): the low-overlap and high-locality checks now
+  apply only to files with five or more row groups, and the high-locality limit
+  moves from about 25% of the file extent to about 30%. Both checks measure a
+  percentage across the row groups, so with fewer than five groups the
+  percentage cannot land on a useful value, and a well-ordered four-row-group
+  file was failing for that reason alone. The 30% limit comes from measuring
+  Hilbert-sorted data, which is how producers usually sort: boxes cover 0.263 to
+  0.274 of the extent at five row groups and 0.250 to 0.270 at six, so the old
+  25% failed those files for having few row groups rather than for their
+  ordering. Files with seven or more groups already passed at 25%. The
+  low-overlap limit is unchanged, as is the rule that rows MUST be spatially
+  ordered, which still applies to every file. The 50% skip rate for a 10% query
+  window now reads as the benefit the limit delivers, not as a second check
+  (#127).
+- **"Item mirror" is now used consistently** (PORTO-FMT-040, PORTO-FMT-041,
+  PORTO-FMT-043). The STAC-GeoParquet copy of a collection's items is now always
+  referred to as an **item mirror** or **STAC-GeoParquet mirror**, leaving the
+  unqualified term **mirror** to its longstanding provenance meaning: a catalog
+  republishing data it did not produce. This is a wording-only change. The
+  requirements are unchanged, and the upstream role value `collection-mirror` is
+  unaffected (#99).
+- **Data Storage** (PORTO-CORE-043, PORTO-CORE-044, PORTO-CORE-045): clarifies
+  that the HTTP requirements apply to servers hosting the catalog's own
+  cloud-native assets. This includes range support, `206 Partial Content`,
+  `Accept-Ranges`, `Content-Length`, and CORS. Upstream originals hosted by
+  third parties are out of scope, and validators do not probe those hosts. The
+  requirements themselves are unchanged; this change only makes their scope
+  explicit, matching the behavior already implemented in reis (#89).
+- **Data Storage** (PORTO-CORE-045): the CORS requirement now names the header
+  set a browser actually needs. Allowed request headers add `If-Match`,
+  `If-Modified-Since`, `If-None-Match`, and `If-Unmodified-Since` next to
+  `Range`, and exposed response headers add `Content-Type`. Conditional requests
+  let a client revalidate a cached range instead of refetching it.
+  Provider-specific headers such as `x-amz-*` and `x-goog-*` stay out of scope,
+  as does versioning, which the specification does not yet define (#56).
 - **Assets** (PORTO-CORE-028): `file:size` and `file:checksum` drop from MUST to
   SHOULD. A catalog that describes data it does not host often cannot produce a
   checksum, so the old MUST left it a choice between failing conformance and
@@ -38,7 +97,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   enforcement moves from `process` to `validator`, since a data pass can check it.
 - **Assets** (PORTO-CORE-029): reworded to govern a `file:checksum` where one is
   present. Multihash encoding is still required, unchanged in force.
-- **Requirements manifest**: still 115 requirements, now 84 MUST, 17 SHOULD, and
+- **Requirements manifest**: 116 requirements, now 85 MUST, 17 SHOULD, and
   14 MAY.
 - **Default style is identified by a `default` role**
   ([`specs/portolan/core.md`](specs/portolan/core.md)): a collection with more than

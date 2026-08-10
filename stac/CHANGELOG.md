@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   asset carries either field rather than on every object with assets.
 - `PORTO-CORE-026`: `image/webp` is now a valid thumbnail media type alongside
   `image/png` and `image/jpeg`. No existing catalog breaks.
+- The media types and roles table lists the `source` and `collection-mirror`
+  roles, which catalogs already carry. The schema is unchanged: `roles` stays a
+  non-empty array of non-empty strings with no enumeration, so no previously
+  accepted value is removed.
 
 ## 0.1.0 - 2026-07-27
 
