@@ -27,37 +27,39 @@ Distributing GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so it can
 queried without a server. Files SHOULD be compressed to stay small, with `zstd`
 RECOMMENDED.
 
-Rows MUST be spatially ordered so nearby features are nearby in the file. This binds
-every file, whatever its row-group layout. A validator measures it over the rows
-themselves: partition them into the groups a conforming writer would have emitted,
-then check that those cluster.
+Rows MUST be spatially ordered so nearby features are nearby in the file. This rule
+applies to every file, no matter how many row groups it has. A validator checks it
+by looking at the rows themselves. It splits them into the groups a conforming
+writer would have produced, then checks that each of those groups covers a small
+part of the file.
 
-A file of five or more row groups is tested on its actual row groups as well, which
-a reader can judge from footer metadata without touching the data. It passes on
-either of:
+A file with five or more row groups gets a second check, using the row groups it
+actually has. A reader can run this one from the file footer alone, without reading
+any data. The file passes if either of these is true:
 
-- **low overlap** — fewer than 30% of consecutive row-group pairs have
-  interior-intersecting bounding boxes; or
-- **high locality** — row-group boxes average under about 30% of the file extent.
+- **low overlap** — fewer than 30% of consecutive row-group pairs have bounding
+  boxes that overlap on their interiors; or
+- **high locality** — row-group bounding boxes cover, on average, less than about
+  30% of the file's total extent.
 
-Boxes that small let a reader skip roughly half the row groups for a query window
-covering 10% of the extent. That payoff is why the threshold sits where it does. It
-is not a further test to run.
+Boxes that small let a reader skip about half the row groups when querying a window
+covering 10% of the extent. That is the benefit the 30% figure is meant to deliver,
+not a separate test to run.
 
-The figure is set from what a Hilbert sort actually achieves, the ordering producers
-reach for. Hilbert-sorted data lands near 27% of the extent at five row groups and
-falls away quickly as groups are added, so 30% admits it with a little room. A file
-divided into five groups gives each about a fifth of the extent before any slop, and
-a threshold tighter than that rejects well-sorted data for its row-group count
-rather than its ordering.
+The 30% figure comes from measuring Hilbert-sorted data, which is how producers
+usually sort. With five row groups, Hilbert-sorted boxes cover about 27% of the
+extent, and that number drops as row groups are added. Five row groups divide the
+extent five ways, so each box covers about a fifth of it before any overlap is
+counted. A stricter limit would fail well-sorted files for having few row groups.
 
-Neither row-group test applies below five. Both measure a fraction over the row
-groups themselves, and too few groups leave that fraction nowhere useful to land.
-Three groups can only overlap on 0%, 50%, or 100% of consecutive pairs. An average
-box under 30% of the extent is out of reach on two or three however well the rows
-are sorted. A validator MUST NOT fault a file for missing a threshold its row-group
-count cannot express. Row ordering is a separate property and is not exempted with
-them, so a file below five row groups is still judged on its rows.
+Neither of these two checks applies to a file with fewer than five row groups. Both
+measure a percentage across the row groups, and with only a few groups the
+percentage cannot land on a useful value. Three row groups can only produce an
+overlap of 0%, 50%, or 100%. Two or three boxes cannot average less than 30% of the
+extent, however well the rows are sorted. A validator MUST NOT fail a file for
+missing a threshold that its row-group count puts out of reach. Row ordering is a
+separate rule and is not waived here, so a file with fewer than five row groups is
+still checked on its rows.
 
 Files MUST provide per-row-group spatial statistics so readers can skip row groups
 from metadata alone — either:
