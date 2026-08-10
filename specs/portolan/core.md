@@ -318,16 +318,20 @@ Items SHOULD carry an explicit `datetime` (or a `start_datetime` /
 
 Cloud-native formats depend on clients fetching only the bytes they need, so
 Portolan catalogs assume data is hosted in cloud object storage reachable over
-HTTP range requests (S3-compatible or otherwise). Servers MUST support range
-requests: honor the `Range` header, return `206 Partial Content`, and advertise
-`Accept-Ranges: bytes`; HEAD requests MUST return an accurate `Content-Length`.
-Servers MUST support HTTP/1.1 or greater; HTTP/2 or /3 is RECOMMENDED. Endpoints
-that compress or transform responses in ways that break range semantics are not
-conformant.
+HTTP range requests (S3-compatible or otherwise). The rules below govern the
+servers hosting the catalog's own cloud-native assets, the copies the publisher
+uploaded and controls.
 
-To let browser clients read data directly, servers MUST also enable CORS on all
-metadata and asset files: `Access-Control-Allow-Origin: *` (or an equivalent
-read-permitting policy), allowed methods including `GET` and `HEAD`, allowed
+A server hosting those assets MUST support range requests: honor the `Range`
+header, return `206 Partial Content`, and advertise `Accept-Ranges: bytes`; HEAD
+requests MUST return an accurate `Content-Length`. That server MUST support
+HTTP/1.1 or greater; HTTP/2 or /3 is RECOMMENDED. Endpoints that compress or
+transform responses in ways that break range semantics are not conformant.
+
+To let browser clients read data directly, a server hosting those assets MUST
+also enable CORS on all metadata and asset files:
+`Access-Control-Allow-Origin: *` (or an equivalent read-permitting policy),
+allowed methods including `GET` and `HEAD`, allowed
 request headers including `Range`, `If-Match`, `If-Modified-Since`,
 `If-None-Match`, and `If-Unmodified-Since` (via
 `Access-Control-Allow-Headers`), and exposed response headers including
@@ -339,6 +343,14 @@ of refetching it, which keeps tile and range readers cheap on repeat views.
 Provider-specific headers such as `x-amz-*` and `x-goog-*` fall outside this
 requirement, since reading a public catalog takes no signed request. Portolan
 leaves cloud-specific configuration to separate guidance.
+
+A catalog also points at bytes the publisher does not host: the upstream source
+a mirror complements, and any original file an asset carries over from it. Those
+servers answer to a third party who never agreed to serve Portolan, so the rules
+above do not reach them. A validator probes the assets the publisher hosts and
+leaves upstream hosts alone. An upstream server that ignores `Range` or omits
+CORS headers is a limit on what clients can do with that copy, not a conformance
+failure of the catalog pointing at it.
 
 ## Providers
 

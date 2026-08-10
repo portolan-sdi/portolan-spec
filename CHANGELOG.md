@@ -18,6 +18,13 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   republishing data it did not produce. This is a wording-only change. The
   requirements are unchanged, and the upstream role value `collection-mirror` is
   unaffected (#99).
+- **Data Storage** (PORTO-CORE-043, PORTO-CORE-044, PORTO-CORE-045): the HTTP
+  requirements now name whose servers they bind. Range support, `206 Partial
+  Content`, `Accept-Ranges`, `Content-Length`, and CORS apply to the servers
+  hosting the catalog's own cloud-native assets. Upstream originals hosted by a
+  third party are exempt, and a validator leaves those hosts unprobed. The
+  requirements are unchanged in force; only their scope is now stated, matching
+  what reis already does (#89).
 - **Data Storage** (PORTO-CORE-045): the CORS requirement now names the header
   set a browser actually needs. Allowed request headers add `If-Match`,
   `If-Modified-Since`, `If-None-Match`, and `If-Unmodified-Since` next to

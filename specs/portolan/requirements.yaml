@@ -407,24 +407,27 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Servers MUST support range requests: honor the `Range` header, return
-      `206 Partial Content`, and advertise `Accept-Ranges: bytes`; HEAD
-      requests MUST return an accurate `Content-Length`.
+      A server hosting those assets MUST support range requests: honor the
+      `Range` header, return `206 Partial Content`, and advertise
+      `Accept-Ranges: bytes`; HEAD requests MUST return an accurate
+      `Content-Length`.
 
   - id: PORTO-CORE-044
     severity: MUST
     enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      Servers MUST support HTTP/1.1 or greater; HTTP/2 or /3 is RECOMMENDED.
+      That server MUST support HTTP/1.1 or greater; HTTP/2 or /3 is
+      RECOMMENDED.
 
   - id: PORTO-CORE-045
     severity: MUST
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      To let browser clients read data directly, servers MUST also enable
-      CORS on all metadata and asset files: `Access-Control-Allow-Origin: *`
+      To let browser clients read data directly, a server hosting those
+      assets MUST also enable CORS on all metadata and asset files:
+      `Access-Control-Allow-Origin: *`
       (or an equivalent read-permitting policy), allowed methods including
       `GET` and `HEAD`, allowed request headers including `Range`,
       `If-Match`, `If-Modified-Since`, `If-None-Match`, and
