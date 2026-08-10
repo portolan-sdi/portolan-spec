@@ -328,9 +328,17 @@ conformant.
 To let browser clients read data directly, servers MUST also enable CORS on all
 metadata and asset files: `Access-Control-Allow-Origin: *` (or an equivalent
 read-permitting policy), allowed methods including `GET` and `HEAD`, allowed
-request headers including `Range`, and exposed response headers including
-`Content-Range`, `Content-Length`, `Accept-Ranges`, and `ETag` (via
-`Access-Control-Expose-Headers`).
+request headers including `Range`, `If-Match`, `If-Modified-Since`,
+`If-None-Match`, and `If-Unmodified-Since` (via
+`Access-Control-Allow-Headers`), and exposed response headers including
+`Content-Type`, `Content-Length`, `Content-Range`, `Accept-Ranges`, and `ETag`
+(via `Access-Control-Expose-Headers`).
+
+The conditional-request headers let a browser revalidate a cached range instead
+of refetching it, which keeps tile and range readers cheap on repeat views.
+Provider-specific headers such as `x-amz-*` and `x-goog-*` fall outside this
+requirement, since reading a public catalog takes no signed request. Portolan
+leaves cloud-specific configuration to separate guidance.
 
 ## Providers
 
