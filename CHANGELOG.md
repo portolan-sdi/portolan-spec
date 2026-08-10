@@ -18,6 +18,13 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   republishing data it did not produce. This is a wording-only change. The
   requirements are unchanged, and the upstream role value `collection-mirror` is
   unaffected (#99).
+- **Data Storage** (PORTO-CORE-045): the CORS requirement now names the header
+  set a browser actually needs. Allowed request headers add `If-Match`,
+  `If-Modified-Since`, `If-None-Match`, and `If-Unmodified-Since` next to
+  `Range`, and exposed response headers add `Content-Type`. Conditional requests
+  let a client revalidate a cached range instead of refetching it.
+  Provider-specific headers such as `x-amz-*` and `x-goog-*` stay out of scope,
+  as does versioning, which the specification does not yet define (#56).
 - **Assets** (PORTO-CORE-028): `file:size` and `file:checksum` drop from MUST to
   SHOULD. A catalog that describes data it does not host often cannot produce a
   checksum, so the old MUST left it a choice between failing conformance and
