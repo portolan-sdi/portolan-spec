@@ -26,12 +26,18 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 - **GeoParquet** (PORTO-FMT-006): the low-overlap and high-locality tests now
   apply only to files of five or more row groups. Both measure a fraction over
   the row groups themselves, so below five the fraction has nowhere useful to
-  land: an average box under 25% of the extent is out of reach on two or three
-  row groups however well the rows are sorted, and a spatially ordered
-  four-row-group file was failing on that alone. The thresholds are unchanged,
-  as is the rule that rows MUST be spatially ordered. The 50% skip rate for a
-  10% query window now reads as the reason the threshold sits at 25% rather
-  than as a second test a validator runs (#127).
+  land, and a spatially ordered four-row-group file was failing on that alone.
+  The rule that rows MUST be spatially ordered is unchanged and still binds
+  every file, whatever its row-group layout. The 50% skip rate for a 10% query
+  window now reads as the reason for the threshold rather than as a second test
+  a validator runs (#127).
+- **GeoParquet** (PORTO-FMT-006): the high-locality threshold moves from about
+  25% of the file extent to about 30%. Measured over Hilbert-sorted points, the
+  ordering producers actually reach for, row-group boxes average 0.263 to 0.274
+  of the extent at five row groups and 0.250 to 0.270 at six, so 25% rejected
+  well-sorted data for its row-group count rather than its ordering. Seven
+  groups and above already cleared 25%. The low-overlap threshold is unchanged
+  at 30% of consecutive pairs (#127).
 - **"Item mirror" is now used consistently** (PORTO-FMT-040, PORTO-FMT-041,
   PORTO-FMT-043). The STAC-GeoParquet copy of a collection's items is now always
   referred to as an **item mirror** or **STAC-GeoParquet mirror**, leaving the

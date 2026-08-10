@@ -736,7 +736,7 @@ requirements:
       well, which a reader can judge from footer metadata without touching the
       data. It passes on either of: - **low overlap** — fewer than 30% of
       consecutive row-group pairs have interior-intersecting bounding boxes;
-      or - **high locality** — row-group boxes average under about 25% of the
+      or - **high locality** — row-group boxes average under about 30% of the
       file extent.
 
   - id: PORTO-FMT-044

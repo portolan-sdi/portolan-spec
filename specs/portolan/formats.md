@@ -38,16 +38,23 @@ either of:
 
 - **low overlap** — fewer than 30% of consecutive row-group pairs have
   interior-intersecting bounding boxes; or
-- **high locality** — row-group boxes average under about 25% of the file extent.
+- **high locality** — row-group boxes average under about 30% of the file extent.
 
-Boxes that small let a reader skip at least half the row groups for a query window
-covering 10% of the extent. That payoff is why the threshold sits at 25%. It is not
-a further test to run.
+Boxes that small let a reader skip roughly half the row groups for a query window
+covering 10% of the extent. That payoff is why the threshold sits where it does. It
+is not a further test to run.
+
+The figure is set from what a Hilbert sort actually achieves, the ordering producers
+reach for. Hilbert-sorted data lands near 27% of the extent at five row groups and
+falls away quickly as groups are added, so 30% admits it with a little room. A file
+divided into five groups gives each about a fifth of the extent before any slop, and
+a threshold tighter than that rejects well-sorted data for its row-group count
+rather than its ordering.
 
 Neither row-group test applies below five. Both measure a fraction over the row
 groups themselves, and too few groups leave that fraction nowhere useful to land.
 Three groups can only overlap on 0%, 50%, or 100% of consecutive pairs. An average
-box under 25% of the extent is out of reach on two or three however well the rows
+box under 30% of the extent is out of reach on two or three however well the rows
 are sorted. A validator MUST NOT fault a file for missing a threshold its row-group
 count cannot express. Row ordering is a separate property and is not exempted with
 them, so a file below five row groups is still judged on its rows.
