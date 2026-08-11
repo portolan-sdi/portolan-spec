@@ -23,6 +23,13 @@ Query the GeoParquet `data` asset in place with DuckDB spatial, read_parquet('na
 - 59 places carry POP_MAX below 1,000, mostly stations and outposts, so
   population filters silently drop real capitals of small territories.
 
+## CRS
+
+EPSG:4326, WGS84 longitude and latitude in degrees, the same CRS as the
+countries Collection, so the two overlay without a transform. `ST_Distance`
+returns degrees, use `ST_Distance_Sphere` for meters, and `ST_Transform`
+any layer in another CRS before comparing it to these points.
+
 ## Tested Queries
 
 Capitals per continent, with the country join done correctly.
