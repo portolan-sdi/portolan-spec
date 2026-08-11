@@ -29,16 +29,15 @@ the joins between Collections.
 
 ## Where the Data Comes From
 
-Licenses, CC-BY-4.0, CC0-1.0, PDDL-1.0.
-Provenance, 8 mirror Collections.
+All 8 Collections here are mirrors, so this catalog hosts copies of data produced elsewhere.
 
-Upstream sources.
+Natural Earth Countries (1:110m) is built from the [Natural Earth 110m Admin 0 Countries (zipped Shapefile)](https://naciscdn.org/naturalearth/110m/cultural/ne_110m_admin_0_countries.zip), pinned by checksum and licensed CC0-1.0.
+Natural Earth Populated Places (1:50m) is built from the [Natural Earth 50m Populated Places (zipped Shapefile)](https://naciscdn.org/naturalearth/50m/cultural/ne_50m_populated_places.zip), pinned by checksum and licensed CC0-1.0.
+United States Counties (2023, 1:500k) is built from the [US Census cartographic boundary counties 2023 500k (zipped Shapefile)](https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_500k.zip), pinned by checksum and licensed CC0-1.0.
 
-- Natural Earth Countries (1:110m), https://naciscdn.org/naturalearth/110m/cultural/ne_110m_admin_0_countries.zip
-- Natural Earth Populated Places (1:50m), https://naciscdn.org/naturalearth/50m/cultural/ne_50m_populated_places.zip
-- United States Counties (2023, 1:500k), https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_500k.zip
-- Boston Open Space, https://opendata.arcgis.com/api/v3/datasets/2868d370c55d4d458d4ae2224ef8cddd_7/downloads/data?format=shp&spatialRefId=4326
-- Netherlands Provinces, https://service.pdok.nl/kadaster/brk-bestuurlijke-gebieden/atom/downloads/BestuurlijkeGebieden_2026.gpkg
-- San Francisco Addresses (EAS), https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=5000&$order=:id
-- Sample Raster COG, https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif
-- Eurostat Electricity Prices for Household Consumers, https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/nrg_pc_204/?format=SDMX-CSV&compressed=false
+Boston Open Space tracks the [City of Boston Open Space (zipped Shapefile export)](https://opendata.arcgis.com/api/v3/datasets/2868d370c55d4d458d4ae2224ef8cddd_7/downloads/data?format=shp&spatialRefId=4326), a live endpoint refetched on every build rather than pinned, licensed PDDL-1.0.
+Netherlands Provinces is built from the [PDOK Bestuurlijke Gebieden 2026 (GeoPackage)](https://service.pdok.nl/kadaster/brk-bestuurlijke-gebieden/atom/downloads/BestuurlijkeGebieden_2026.gpkg), pinned by checksum and licensed CC-BY-4.0.
+San Francisco Addresses (EAS) tracks the [DataSF San Francisco Addresses with Units (GeoJSON, 5k extract)](https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=5000&$order=:id), a live endpoint refetched on every build rather than pinned, licensed PDDL-1.0.
+
+Sample Raster COG is built from the [rasterio RGB.byte.tif test fixture (GeoTIFF)](https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif), pinned by checksum and licensed CC0-1.0.
+Eurostat Electricity Prices for Household Consumers tracks the [Eurostat nrg_pc_204 electricity prices (SDMX-CSV)](https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/nrg_pc_204/?format=SDMX-CSV&compressed=false), a live endpoint refetched on every build rather than pinned, licensed CC-BY-4.0.

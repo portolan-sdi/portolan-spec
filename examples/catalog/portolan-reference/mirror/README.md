@@ -10,9 +10,6 @@ Cloud-native mirror Collections of data maintained elsewhere.
 
 ## Where the Data Comes From
 
-Licenses, PDDL-1.0.
-Provenance, 1 mirror Collection.
+The Collection here is a mirror, so this catalog hosts a copy of data produced elsewhere.
 
-Upstream sources.
-
-- San Francisco Addresses (EAS), https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=5000&$order=:id
+San Francisco Addresses (EAS) tracks the [DataSF San Francisco Addresses with Units (GeoJSON, 5k extract)](https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=5000&$order=:id), a live endpoint refetched on every build rather than pinned, licensed PDDL-1.0.
