@@ -106,6 +106,15 @@ includes the catalog id and title, the nested-catalog titles, thumbnail colors,
 and the basemap. If you find yourself adding a catalog-specific value to the
 Python, put it in the manifest instead and read it back.
 
+The CRS runs the other way, and it is the one exception worth naming. It is
+detected from the source, not declared, so no manifest states one in prose
+either. `crs.py` reads the code, the CRS name, whether it is geographic or
+projected, and the axis unit out of the CRS registry, and `{{crs}}` turns that
+into the block the best-practices documentation page asks every AGENTS.md for.
+A manifest keeps only the advice a registry cannot know, which upstream layer
+shares the CRS, which equal-area CRS to transform into, which DuckDB function
+misbehaves on this geometry.
+
 ## Manifest schema
 
 Top level of each file in `manifests/`.
@@ -138,7 +147,7 @@ Each entry in `collections`.
 - `join?`. Tabular only. `{column, target, target_column, target_file, note?}`. Emits the README join section and a runnable DuckDB example, which formats.md requires whenever geometry and attributes live in separate files. `target_file` is relative to the Collection directory.
 - `blurb?`. One line for the catalog-level collections tables. Falls back to the first sentence of `description`.
 - `metadata?`. `{url, media_type, title, standard?, filename?}`. Mirrors an upstream machine-readable metadata record, for example an ISO 19115 record from a GeoNetwork registry, into the Collection directory and attaches it as a `metadata`-role asset with real `file:size` and `file:checksum`. Mirrored rather than linked because a registry regenerates its XML and a checksum pinned to bytes the catalog does not control rots, the live-endpoint rule again. The fetch happens once, an existing local copy is reused.
-- `docs?`. `{readme?, agents?}`. Markdown templates for the Collection sidecars, the heart of the golden-example documentation. Each is near-final markdown whose structure and voice the manifest author controls per collection, with `{{placeholder}}` lines expanding to generated blocks that cannot drift from the built assets. README templates may use `{{quickstart}}` (the one tested open-it snippet, chosen by kind), `{{schema}}` (a table of the described columns from `table:columns`), `{{join}}` (the tabular join section), and `{{provenance}}` (the license and provenance block core.md requires, appended automatically when the template omits it). AGENTS templates may use `{{access}}` (the one-line access guidance). An unknown placeholder fails the build, a typo would otherwise publish literally. Without templates a minimal default skeleton is emitted, so a bare manifest still builds a conformant catalog.
+- `docs?`. `{readme?, agents?}`. Markdown templates for the Collection sidecars, the heart of the golden-example documentation. Each is near-final markdown whose structure and voice the manifest author controls per collection, with `{{placeholder}}` lines expanding to generated blocks that cannot drift from the built assets. README templates may use `{{quickstart}}` (the one tested open-it snippet, chosen by kind), `{{schema}}` (a table of the described columns from `table:columns`), `{{join}}` (the tabular join section), and `{{provenance}}` (the license and provenance block core.md requires, appended automatically when the template omits it). AGENTS templates may use `{{access}}` (the one-line access guidance). Both surfaces may use `{{crs}}` (the coordinate reference system and what follows from it), which is offered only where the built `data` asset carries a `proj:code`. A placeholder the surface does not offer fails the build, whether it is a typo or a `{{crs}}` on a non-geospatial Collection, since either would otherwise publish literally or silently vanish. Without templates a minimal default skeleton is emitted, so a bare manifest still builds a conformant catalog.
 
 ## Provenance is derived, not declared
 

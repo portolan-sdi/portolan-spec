@@ -22,12 +22,16 @@ Query the GeoParquet `data` asset in place with DuckDB spatial, read_parquet('na
 - Russia and Fiji cross the antimeridian, so their bboxes span the full
   longitude range and naive bbox-width logic breaks.
 
-## CRS, Degrees In, Degrees Out
+## Coordinate Reference System
 
-EPSG:4326, longitude and latitude in degrees. `ST_Area(geom)` returns
-square degrees, which makes Greenland read nearly as large as Brazil.
-For real areas use the spheroid function, and flip coordinates first
-because DuckDB's geodesic functions expect latitude first.
+EPSG:4326, WGS 84, a geographic coordinate reference system whose coordinates are in degrees.
+Planar distance and area functions return degrees and square degrees, which are not ground units and vary with latitude. For real distances and areas use a sphere or spheroid function, or transform to a projected CRS first.
+The `data` asset carries the same code as `proj:code`, so this and the machine-readable metadata cannot disagree.
+
+Coordinates are stored longitude first. `ST_Area(geom)` in square
+degrees makes Greenland read nearly as large as Brazil. For real areas
+use the spheroid function, and flip coordinates first because DuckDB's
+geodesic functions expect latitude first.
 
 ```sql
 INSTALL spatial; LOAD spatial;

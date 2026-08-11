@@ -26,10 +26,17 @@ from pathlib import Path
 import duckdb
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from stacio import resolve_providers, license_links  # noqa: E402
+from stacio import (  # noqa: E402
+    resolve_providers, license_links, crs_block, collection_agents_lines,
+)
 from convert import write_web_geoparquet, table_columns  # noqa: E402
-from crs import detect_vector_crs, detect_raster_crs, resolve_output_crs, assert_known_crs  # noqa: E402
+from crs import (  # noqa: E402
+    detect_vector_crs, detect_raster_crs, resolve_output_crs, assert_known_crs,
+    describe_crs,
+)
 import glob  # noqa: E402
+
+ROOT = Path(__file__).resolve().parents[3]
 
 HOST = {"name": "Portolan SDI", "url": "https://github.com/portolan-sdi",
         "email": "portolan@googlegroups.com"}
@@ -284,6 +291,84 @@ def check_to_cog_preserves_source_crs() -> None:
         assert -180 <= bb[0] <= 180 and -90 <= bb[1] <= 90, bb
 
 
+def check_describe_crs_geographic() -> None:
+    d = describe_crs("EPSG:4326")
+    assert d == {"code": "EPSG:4326", "name": "WGS 84", "kind": "geographic",
+                 "unit": "degree"}, d
+
+
+def check_describe_crs_projected() -> None:
+    d = describe_crs("EPSG:28992")
+    assert d["kind"] == "projected", d
+    assert d["unit"] == "metre", d
+    assert d["name"] == "Amersfoort / RD New", d
+
+
+def check_describe_crs_unknown_raises() -> None:
+    try:
+        describe_crs("EPSG:999999")
+    except ValueError as exc:
+        assert "unknown CRS" in str(exc), f"wrong message: {exc}"
+        return
+    raise AssertionError("an unresolvable CRS did not raise")
+
+
+def check_crs_block_is_derived_not_authored() -> None:
+    # Every fact in the block comes from the CRS registry, so a projected CRS
+    # gets its linear unit and a geographic one gets the degrees warning
+    # without anything in a manifest saying so.
+    proj = "\n".join(crs_block("EPSG:28992"))
+    assert "## Coordinate Reference System" in proj, proj
+    assert "EPSG:28992, Amersfoort / RD New" in proj, proj
+    assert "projected" in proj and "metres" in proj, proj
+    geog = "\n".join(crs_block("EPSG:4269"))
+    assert "EPSG:4269, NAD83" in geog, geog
+    assert "geographic" in geog and "square degrees" in geog, geog
+
+
+def check_crs_placeholder_renders_for_a_geospatial_collection() -> None:
+    spec = {"id": "x/y", "title": "T", "license": "CC0-1.0",
+            "docs": {"agents": "Lead.\n\n{{crs}}"}}
+    facts = {"kind": "vector", "data_name": "y.parquet", "has_visual": False,
+             "has_thumb": False, "crs": "EPSG:32618"}
+    out = "\n".join(collection_agents_lines(spec, facts))
+    assert "EPSG:32618, WGS 84 / UTM zone 18N" in out, out
+
+
+def check_crs_placeholder_without_a_proj_code_raises() -> None:
+    # A non-geospatial Collection has no CRS to state, so {{crs}} must fail the
+    # build rather than render an empty or vague block. The placeholder is
+    # simply not offered where the data asset carries no proj:code.
+    spec = {"id": "tabular/t", "title": "T", "license": "CC0-1.0",
+            "docs": {"agents": "Lead.\n\n{{crs}}"}}
+    facts = {"kind": "tabular", "data_name": "t.parquet", "has_visual": False,
+             "has_thumb": False, "crs": None}
+    try:
+        collection_agents_lines(spec, facts)
+    except ValueError as exc:
+        assert "{{crs}}" in str(exc), f"placeholder not named: {exc}"
+        assert "proj:code" in str(exc), f"reason not given: {exc}"
+        return
+    raise AssertionError("{{crs}} on a Collection with no CRS did not raise")
+
+
+def check_committed_agents_docs_state_their_crs() -> None:
+    # The drift guard. Every geospatial Collection's AGENTS.md must name the
+    # exact code its data asset carries, and a Collection with no proj:code
+    # must not claim one. This is what issue #138 found missing.
+    colls = sorted(glob.glob(str(ROOT / "examples/catalog/*/*/*/collection.json")))
+    assert colls, "no committed collections found"
+    for path in colls:
+        coll = json.loads(Path(path).read_text())
+        code = coll["assets"]["data"].get("proj:code")
+        agents = (Path(path).parent / "AGENTS.md").read_text()
+        cid = coll["id"]
+        if code:
+            assert code in agents, f"{cid} AGENTS.md never states its CRS {code}"
+        else:
+            assert "EPSG:" not in agents, f"{cid} has no proj:code but names an EPSG code"
+
+
 CHECKS = [
     check_official_host_moved_last,
     check_multiple_hosts_error,
@@ -303,6 +388,13 @@ CHECKS = [
     check_resolve_output_crs_precedence,
     check_assert_known_crs,
     check_to_cog_preserves_source_crs,
+    check_describe_crs_geographic,
+    check_describe_crs_projected,
+    check_describe_crs_unknown_raises,
+    check_crs_block_is_derived_not_authored,
+    check_crs_placeholder_renders_for_a_geospatial_collection,
+    check_crs_placeholder_without_a_proj_code_raises,
+    check_committed_agents_docs_state_their_crs,
 ]
 
 

@@ -16,12 +16,16 @@ Read the COG `data` asset with rioxarray.open_rasterio("sample-cog.tif", masked=
 - Eastings run 101,985 to 339,315 meters, far west of the UTM zone 18
   central meridian. Legal values, they just look odd.
 
-## CRS and Pixel Math
+## Coordinate Reference System
 
-EPSG:32618, WGS84 UTM zone 18N, in meters. Pixels are 300.04 meters
-square, so one pixel is about 9 hectares and pixel counts convert to
-area by multiplying by 300.04 squared. Reproject bounds to EPSG:4326
-before overlaying anything in longitude and latitude.
+EPSG:32618, WGS 84 / UTM zone 18N, a projected coordinate reference system whose coordinates are in metres.
+Planar distance and area functions return metres and square metres directly, so no geodesic correction is needed. Web maps and anything joined to data in degrees need a transform to EPSG:4326 first.
+The `data` asset carries the same code as `proj:code`, so this and the machine-readable metadata cannot disagree.
+
+## Pixel Math
+
+Pixels are 300.04 meters square, so one pixel is about 9 hectares and
+pixel counts convert to area by multiplying by 300.04 squared.
 
 ## Tested Reads
 
