@@ -10,9 +10,6 @@ Cloud Optimized GeoTIFF raster Collections.
 
 ## Where the Data Comes From
 
-Licenses, CC0-1.0.
-Provenance, 1 mirror Collection.
+The Collection here is a mirror, so this catalog hosts a copy of data produced elsewhere.
 
-Upstream sources.
-
-- Sample Raster COG, https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif
+Sample Raster COG is built from the [rasterio RGB.byte.tif test fixture (GeoTIFF)](https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif), pinned by checksum and licensed CC0-1.0.

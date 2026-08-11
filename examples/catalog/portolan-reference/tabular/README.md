@@ -10,9 +10,6 @@ Non-geospatial companion tables published as Parquet.
 
 ## Where the Data Comes From
 
-Licenses, CC-BY-4.0.
-Provenance, 1 mirror Collection.
+The Collection here is a mirror, so this catalog hosts a copy of data produced elsewhere.
 
-Upstream sources.
-
-- Eurostat Electricity Prices for Household Consumers, https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/nrg_pc_204/?format=SDMX-CSV&compressed=false
+Eurostat Electricity Prices for Household Consumers tracks the [Eurostat nrg_pc_204 electricity prices (SDMX-CSV)](https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/nrg_pc_204/?format=SDMX-CSV&compressed=false), a live endpoint refetched on every build rather than pinned, licensed CC-BY-4.0.
