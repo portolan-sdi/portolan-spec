@@ -131,6 +131,7 @@ Top level of each file in `manifests/`.
 - `host`. `{name, url, email}`. Appended as the `host`-role provider on mirror Collections.
 - `catalogs`. Map from the first id segment to `{title, description, readme?, agents?}` for each nested Catalog. The optional `readme` and `agents` are markdown templates like the per-collection `docs` below.
 - `docs?`. `{readme?, agents?}` markdown templates for the root Catalog sidecars. Catalog-level templates may use `{{collections}}` (the table of contents the best-practices page asks for), `{{sources}}` (licenses, provenance, upstream list), and `{{agents_index}}` (per-child pointers to each AGENTS.md). Without a template a default skeleton with those blocks is emitted.
+- `logo?`. `{source, type, title?}`. The catalog logo, emitted as the root `rel: icon` link core.md's Catalog Logo section describes. `source` is a path relative to the manifest file, and the image is copied into `_assets/` beside the root `catalog.json` so the href stays relative. `type` must be one a browser renders in an `<img>` element (`config.ICON_TYPES`), and the build raises on one that is not. `title` becomes the image's accessible label. Omit the block and the catalog ships no logo.
 - `thumbnails`. `{size, ocean_color, pad_vector?, pad_raster?, basemap: {url, attribution?}}`. The basemap is an XYZ raster tile URL template with `{z}/{x}/{y}` placeholders, CARTO light by default.
 - `output_crs?`. Optional output CRS for the canonical assets, for example `EPSG:4326`. Source-preserving by default, set at the top level for the whole catalog, or per collection to override just that one.
 - `collections`. The list below.
@@ -208,6 +209,7 @@ A Collection whose manifest sets `attribution` declares the attribution extensio
 Per manifest, the tree is `catalog/<stem>/`.
 
 - Root `catalog.json` at the top, one nested `catalog.json` per id segment, one `collection.json` per Collection.
+- `_assets/` beside the root `catalog.json` when the manifest declares a `logo`, holding the copied image the root `rel: icon` link points at. Root only, nested Catalogs and Collections get no logo.
 - Links are relative for structure (`root`, `parent`, `child`) and absolute https for upstream. Child links are titled. There are no `self` links.
 - Every node carries an `agents` link to its `AGENTS.md` and a `describedby` link to its `README.md`, both generated. The Collection README includes runnable open-it code chosen by kind, GeoPandas or DuckDB for GeoParquet, pandas or DuckDB for Parquet, rioxarray or rasterio for the COG.
 

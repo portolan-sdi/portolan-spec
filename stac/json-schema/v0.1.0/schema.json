@@ -151,7 +151,7 @@
       }
     },
     "links_conformant": {
-      "$comment": "Objects never carry a self link; a catalog is fully portable (pystac SELF_CONTAINED convention). Structural links (root, parent, child, item, collection) are relative and carry the required media type. Every child and item link carries a human-readable title so browsers can render names without fetching every child. Whether every link resolves is a crawling check performed by Portolan tooling.",
+      "$comment": "Objects never carry a self link; a catalog is fully portable (pystac SELF_CONTAINED convention). Structural links (root, parent, child, item, collection) are relative and carry the required media type. Every child and item link carries a human-readable title so browsers can render names without fetching every child. A logo link (rel 'icon') declares a media type a browser renders in an img element (spec: Catalog Logo); that its href is relative and that it carries a title are SHOULD-level, so Portolan tooling reports them rather than the schema. Whether every link resolves is a crawling check performed by Portolan tooling.",
       "type": "object",
       "properties": {
         "links": {
@@ -234,6 +234,32 @@
                     "title": {
                       "type": "string",
                       "minLength": 1
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "required": ["rel"],
+                  "properties": {
+                    "rel": {
+                      "const": "icon"
+                    }
+                  }
+                },
+                "then": {
+                  "required": ["type"],
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "image/apng",
+                        "image/avif",
+                        "image/gif",
+                        "image/jpeg",
+                        "image/png",
+                        "image/svg+xml",
+                        "image/webp"
+                      ]
                     }
                   }
                 }

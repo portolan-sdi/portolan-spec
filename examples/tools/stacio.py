@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 import sys
 from pathlib import Path
 from typing import Any
@@ -14,7 +15,7 @@ import yaml
 from common import filesize, multihash
 from config import (
     SCHEMA_URI, FILE_EXT, WEBMAP_EXT, TABLE_EXT, PROJ_EXT,
-    ATTRIBUTION_EXT, STAC_VERSION, MEDIA,
+    ATTRIBUTION_EXT, STAC_VERSION, MEDIA, ICON_TYPES,
 )
 from fetch import fetch
 from crs import resolve_output_crs, describe_crs
@@ -32,6 +33,11 @@ from thumbnails import (
 def load_manifest(path: Path) -> dict:
     m = yaml.safe_load(path.read_text())
     assert m["schema_uri"] == SCHEMA_URI, "manifest schema_uri must be the pinned v0.1.0 URI"
+    logo = m.get("logo")
+    if logo:
+        # The manifest directory is the only place that knows where a relative
+        # logo source points, and build_catalog never sees the manifest path.
+        logo["path"] = (path.parent / logo["source"]).resolve()
     return m
 
 
@@ -589,6 +595,34 @@ SIDE_LINKS = [
 ]
 
 
+def write_logo(manifest: dict, out: Path) -> dict | None:
+    """Copy the catalog logo into `_assets/` and return its `icon` link.
+
+    core.md scopes the logo to the root catalog and asks for a relative href, so
+    the image is copied beside the catalog rather than linked where it lives.
+    That keeps the built tree portable, and it keeps the link resolvable, which
+    the spec requires of every link in a catalog.
+
+    A manifest without a `logo` block builds a catalog without one. A logo whose
+    media type no browser renders is a manifest error, not a silent omission,
+    because the link would validate and then show nothing.
+    """
+    logo = manifest.get("logo")
+    if not logo:
+        return None
+    src = Path(logo["path"])
+    if not src.is_file():
+        raise ValueError(f"logo source not found: {src}")
+    if logo["type"] not in ICON_TYPES:
+        raise ValueError(
+            f"logo type {logo['type']!r} is not one a browser renders, "
+            f"expected one of {sorted(ICON_TYPES)}")
+    assets = out / "_assets"
+    assets.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(src, assets / src.name)
+    return link("icon", f"./_assets/{src.name}", logo["type"], logo.get("title"))
+
+
 # ------------------------------------------------------------- collection build
 def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
                      thumb: dict, manifest_output_crs: str | None) -> dict:
@@ -597,7 +631,6 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
     depth = len(seg)
     coll_dir = out_root.joinpath(*seg)
     if coll_dir.exists():
-        import shutil
         shutil.rmtree(coll_dir)
     coll_dir.mkdir(parents=True, exist_ok=True)
     stem = seg[-1]
@@ -1029,12 +1062,15 @@ def build_catalog(manifest: dict, out: Path, cache: Path, only: str | None) -> N
             link("child", f"./{g}/catalog.json", "application/json", _group_meta(manifest, g)[0])
             for g in groups
         ]
+        # The logo is a root-catalog link, so it is emitted here and nowhere else.
+        icon = write_logo(manifest, out)
         root = {
             "type": "Catalog", "stac_version": STAC_VERSION, "stac_extensions": [SCHEMA_URI],
             "id": manifest["id"], "title": manifest["title"],
             "description": manifest["description"].strip(),
             "links": ([link("root", "./catalog.json", "application/json")]
-                      + root_children + [dict(SIDE_LINKS[0]), dict(SIDE_LINKS[1])]),
+                      + root_children + [dict(SIDE_LINKS[0]), dict(SIDE_LINKS[1])]
+                      + ([icon] if icon else [])),
         }
         if catalog_updated:
             root["updated"] = catalog_updated

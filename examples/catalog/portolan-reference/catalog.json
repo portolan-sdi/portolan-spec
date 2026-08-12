@@ -54,6 +54,12 @@
       "href": "./README.md",
       "type": "text/markdown",
       "title": "Human-readable documentation"
+    },
+    {
+      "rel": "icon",
+      "href": "./_assets/portolan-logo.png",
+      "type": "image/png",
+      "title": "Portolan SDI"
     }
   ],
   "updated": "2026-07-21T00:00:00Z"

@@ -602,6 +602,37 @@ requirements:
       The `README.md` MUST contain at minimum a title, description, license,
       and data provenance.
 
+  - id: PORTO-CORE-074
+    severity: MAY
+    enforcement: process
+    file: specs/portolan/core.md
+    quote: >-
+      The root catalog MAY publish a logo as a link with `rel: "icon"`.
+
+  - id: PORTO-CORE-075
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      An `icon` link MUST declare a `type`, and that type MUST be one of
+      `image/apng`, `image/avif`, `image/gif`, `image/jpeg`, `image/png`,
+      `image/svg+xml`, or `image/webp`.
+
+  - id: PORTO-CORE-076
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      An `icon` link SHOULD carry a `title`.
+
+  - id: PORTO-CORE-077
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      The `href` SHOULD be relative, which keeps the catalog portable for the
+      reason [Links](#links) gives.
+
   - id: PORTO-CORE-064
     severity: SHOULD
     enforcement: process

@@ -23,6 +23,19 @@ MEDIA = {
     "png": "image/png",
 }
 
+# Media types a catalog logo may declare, from core.md's Catalog Logo section.
+# A client drops an icon whose media type it does not recognize, so the build
+# refuses a logo it knows will render nowhere.
+ICON_TYPES = frozenset({
+    "image/apng",
+    "image/avif",
+    "image/gif",
+    "image/jpeg",
+    "image/png",
+    "image/svg+xml",
+    "image/webp",
+})
+
 # Categorical palette shared by the thumbnails and the MapLibre styles, so a
 # collection reads the same across both. Tableau 10 minus grey.
 PALETTE = ["#4e79a7", "#f28e2b", "#59a14f", "#e15759", "#b07aa1",
