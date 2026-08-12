@@ -14,4 +14,4 @@ its incubating doc is removed. Debate happens in GitHub issues and PRs.
 | [`raster-styling.md`](raster-styling.md) | Open — how raster styles are expressed ([#41](https://github.com/portolan-sdi/portolan-spec/issues/41)) |
 | [`point-cloud.md`](point-cloud.md) | Deferred — awaiting a COPC reference implementation |
 | [`geotiff-stats-headers.md`](geotiff-stats-headers.md) | Encoding detail for the (normative) COG statistics requirement |
-| [`stac-geoparquet.md`](stac-geoparquet.md) | Partly graduated — raster item mirrors are normative; STAC-GeoParquet mirrors of collections still open ([#72](https://github.com/portolan-sdi/portolan-spec/issues/72)) |
+| [`stac-geoparquet.md`](stac-geoparquet.md) | Partly graduated — raster item mirrors are normative; STAC-GeoParquet mirrors of collections still open ([#44](https://github.com/portolan-sdi/portolan-spec/issues/44)) |
