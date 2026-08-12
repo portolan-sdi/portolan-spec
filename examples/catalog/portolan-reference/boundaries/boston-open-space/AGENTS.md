@@ -26,11 +26,16 @@ Query the GeoParquet `data` asset in place with DuckDB spatial, read_parquet('bo
   neighborhoods, and four large linear parks are assigned the literal
   value Multi-District rather than a place.
 
+## Coordinate Reference System
+
+EPSG:4326, WGS 84, a geographic coordinate reference system whose coordinates are in degrees.
+Planar distance and area functions return degrees and square degrees, which are not ground units and vary with latitude. For real distances and areas use a sphere or spheroid function, or transform to a projected CRS first.
+The `data` asset carries the same code as `proj:code`.
+
 ## Area, Use the ACRES Column
 
-Geometry is WGS84 degrees, so `ST_Area` returns square degrees. The
-official `ACRES` column matches geodesic geometry area to a median of
-0.003 acres, use it. If you must compute, DuckDB's spheroid function
+The official `ACRES` column matches geodesic geometry area to a median
+of 0.003 acres, use it. If you must compute, DuckDB's spheroid function
 wants latitude first, and skipping the flip shrinks Boston by more
 than half.
 

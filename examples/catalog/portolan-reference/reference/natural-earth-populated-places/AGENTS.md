@@ -23,6 +23,16 @@ Query the GeoParquet `data` asset in place with DuckDB spatial, read_parquet('na
 - 59 places carry POP_MAX below 1,000, mostly stations and outposts, so
   population filters silently drop real capitals of small territories.
 
+## Coordinate Reference System
+
+EPSG:4326, WGS 84, a geographic coordinate reference system whose coordinates are in degrees.
+Planar distance functions return degrees, which are not ground units and vary with latitude. For real distances use a sphere or spheroid function, or transform to a projected CRS first.
+The `data` asset carries the same code as `proj:code`.
+
+The same CRS as the countries Collection, so the two overlay and join
+without a transform. Nearest-neighbour work wants
+`ST_Distance_Sphere`, which the query below uses.
+
 ## Tested Queries
 
 Capitals per continent, with the country join done correctly.

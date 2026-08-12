@@ -8,12 +8,16 @@ ligt_in_provincie_code.
 
 Query the GeoParquet `data` asset in place with DuckDB spatial, read_parquet('netherlands-provinces.parquet'), or load it with GeoPandas. It streams over HTTP range requests, so query the published URL directly rather than downloading first. For rendering use the visual PMTiles asset with its MapLibre styles.
 
-## CRS, a Metric National Grid
+## Coordinate Reference System
 
-EPSG:28992, Amersfoort / RD New, the Dutch national grid in meters,
-valid only for the European Netherlands. `ST_Area(geom)` returns
-square meters directly, divide by 1e6 for square kilometres, and the
-results match CBS official figures to one decimal. Web maps need
+EPSG:28992, Amersfoort / RD New, a projected coordinate reference system whose coordinates are in metres.
+Planar distance and area functions return metres and square metres directly, so no geodesic correction is needed. Web maps and anything joined to data in degrees need a transform to EPSG:4326 first.
+The `data` asset carries the same code as `proj:code`.
+
+This is the Dutch national grid, valid only for the European
+Netherlands. Divide `ST_Area(geom)` by 1e6 for square kilometres and
+the results match CBS official figures to one decimal. The transform
+web maps need is
 `ST_Transform(geom, 'EPSG:28992', 'EPSG:4326', always_xy := true)`,
 and without always_xy the axes come back flipped. Points must be
 transformed into RD before ST_Contains. The bbox covering column is

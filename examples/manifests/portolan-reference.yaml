@@ -281,12 +281,12 @@ collections:
         - Russia and Fiji cross the antimeridian, so their bboxes span the full
           longitude range and naive bbox-width logic breaks.
 
-        ## CRS, Degrees In, Degrees Out
+        {{crs}}
 
-        EPSG:4326, longitude and latitude in degrees. `ST_Area(geom)` returns
-        square degrees, which makes Greenland read nearly as large as Brazil.
-        For real areas use the spheroid function, and flip coordinates first
-        because DuckDB's geodesic functions expect latitude first.
+        Coordinates are stored longitude first. `ST_Area(geom)` in square
+        degrees makes Greenland read nearly as large as Brazil. For real areas
+        use the spheroid function, and flip coordinates first because DuckDB's
+        geodesic functions expect latitude first.
 
         ```sql
         INSTALL spatial; LOAD spatial;
@@ -457,6 +457,12 @@ collections:
           a projection.
         - 59 places carry POP_MAX below 1,000, mostly stations and outposts, so
           population filters silently drop real capitals of small territories.
+
+        {{crs}}
+
+        The same CRS as the countries Collection, so the two overlay and join
+        without a transform. Nearest-neighbour work wants
+        `ST_Distance_Sphere`, which the query below uses.
 
         ## Tested Queries
 
@@ -647,12 +653,12 @@ collections:
           Francisco's polygon covers 122 km2 while ALAND plus AWATER is 601
           km2. Offshore points in legal county water fall in no polygon.
 
-        ## Areas, the Wrong Way and the Right Way
+        {{crs}}
 
-        Coordinates are NAD83 degrees, EPSG:4269, so `ST_Area` returns square
-        degrees and DuckDB's `ST_Area_Spheroid` returns NaN or wrong values on
-        several of these multipolygons. Trust `ALAND` and `AWATER`, or
-        transform to an equal-area CRS.
+        The spheroid escape hatch does not work here. DuckDB's
+        `ST_Area_Spheroid` returns NaN or wrong values on several of these
+        multipolygons, so trust `ALAND` and `AWATER`, or transform to an
+        equal-area CRS.
 
         ```sql
         INSTALL spatial; LOAD spatial;
@@ -849,11 +855,12 @@ collections:
           neighborhoods, and four large linear parks are assigned the literal
           value Multi-District rather than a place.
 
+        {{crs}}
+
         ## Area, Use the ACRES Column
 
-        Geometry is WGS84 degrees, so `ST_Area` returns square degrees. The
-        official `ACRES` column matches geodesic geometry area to a median of
-        0.003 acres, use it. If you must compute, DuckDB's spheroid function
+        The official `ACRES` column matches geodesic geometry area to a median
+        of 0.003 acres, use it. If you must compute, DuckDB's spheroid function
         wants latitude first, and skipping the flip shrinks Boston by more
         than half.
 
@@ -1042,12 +1049,12 @@ collections:
 
         {{access}}
 
-        ## CRS, a Metric National Grid
+        {{crs}}
 
-        EPSG:28992, Amersfoort / RD New, the Dutch national grid in meters,
-        valid only for the European Netherlands. `ST_Area(geom)` returns
-        square meters directly, divide by 1e6 for square kilometres, and the
-        results match CBS official figures to one decimal. Web maps need
+        This is the Dutch national grid, valid only for the European
+        Netherlands. Divide `ST_Area(geom)` by 1e6 for square kilometres and
+        the results match CBS official figures to one decimal. The transform
+        web maps need is
         `ST_Transform(geom, 'EPSG:28992', 'EPSG:4326', always_xy := true)`,
         and without always_xy the axes come back flipped. Points must be
         transformed into RD before ST_Contains. The bbox covering column is
@@ -1259,11 +1266,11 @@ collections:
           number, and supname holds the 2026 incumbents, which dates the
           snapshot.
 
-        ## CRS
+        {{crs}}
 
-        EPSG:4326 degrees, so ST_Distance returns degrees. Use
-        ST_Distance_Sphere for meters, or transform to EPSG:26910 for planar
-        work.
+        For metric distances use `ST_Distance_Sphere`, as the query below
+        does, or transform to EPSG:26910, UTM zone 10N, for planar work over
+        San Francisco.
 
         ## Tested Queries
 
@@ -1416,12 +1423,12 @@ collections:
         - Eastings run 101,985 to 339,315 meters, far west of the UTM zone 18
           central meridian. Legal values, they just look odd.
 
-        ## CRS and Pixel Math
+        {{crs}}
 
-        EPSG:32618, WGS84 UTM zone 18N, in meters. Pixels are 300.04 meters
-        square, so one pixel is about 9 hectares and pixel counts convert to
-        area by multiplying by 300.04 squared. Reproject bounds to EPSG:4326
-        before overlaying anything in longitude and latitude.
+        ## Pixel Math
+
+        Pixels are 300.04 meters square, so one pixel is about 9 hectares and
+        pixel counts convert to area by multiplying by 300.04 squared.
 
         ## Tested Reads
 

@@ -6,6 +6,7 @@ per collection. Nothing about the CRS is hardcoded in the rest of the generator.
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import duckdb
@@ -57,6 +58,53 @@ def detect_vector_crs(gdal_path: str, layer: str | None) -> str:
         raise ValueError(
             f"{gdal_path} layer {chosen['name']} uses unsupported authority "
             f"{auth_name!r} (only EPSG is supported)")
+    return out
+
+
+# PROJJSON names a CRS by type. Only the two horizontal kinds the generator can
+# produce are mapped, so a compound or vertical CRS raises rather than being
+# described with prose that would not be true of it.
+_CRS_KINDS = {"GeographicCRS": "geographic", "ProjectedCRS": "projected"}
+
+_DESCRIBED: dict[str, dict] = {}
+
+
+def describe_crs(crs: str) -> dict:
+    """Return `{code, name, kind, unit}` for an `AUTH:CODE` string.
+
+    `kind` is `geographic` or `projected` and `unit` is the axis unit, both read
+    out of the PROJJSON DuckDB holds for the CRS rather than inferred from the
+    code. That keeps the generated CRS prose true for whatever CRS a Collection
+    happens to preserve, instead of true only for the ones someone thought of.
+    Raises if DuckDB cannot resolve the CRS or the CRS is not a horizontal one.
+    Results are memoized, the lookup costs a DuckDB connection."""
+    if crs in _DESCRIBED:
+        return _DESCRIBED[crs]
+    auth, _, code = crs.partition(":")
+    con = duckdb.connect()
+    try:
+        con.execute("INSTALL spatial; LOAD spatial;")
+        row = con.execute(
+            "SELECT projjson FROM duckdb_coordinate_systems() "
+            "WHERE auth_name = ? AND auth_code = ?", [auth, code]).fetchone()
+    finally:
+        con.close()
+    if not row:
+        raise ValueError(f"unknown CRS {crs}")
+    pj = json.loads(row[0])
+    kind = _CRS_KINDS.get(pj.get("type"))
+    if not kind:
+        raise ValueError(f"{crs} is a {pj.get('type')}, not a horizontal CRS")
+    axes = pj.get("coordinate_system", {}).get("axis") or []
+    unit = axes[0].get("unit") if axes else None
+    # PROJJSON writes a unit either as a bare name or as an object when it
+    # carries a conversion factor, for example a US survey foot.
+    if isinstance(unit, dict):
+        unit = unit.get("name")
+    if not unit:
+        raise ValueError(f"{crs} declares no axis unit")
+    out = {"code": crs, "name": pj.get("name") or crs, "kind": kind, "unit": unit}
+    _DESCRIBED[crs] = out
     return out
 
 
