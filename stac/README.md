@@ -109,8 +109,12 @@ Whether a catalog is official or a mirror is derived from its providers (produce
 | Thumbnail | `image/png`, `image/jpeg`, or `image/webp` | `thumbnail` |
 | Sidecar metadata | (format-specific) | `metadata`, `iso-19115` |
 | MapLibre style | `application/vnd.mapbox.style+json` | `style` (Portolan-defined role) |
+| STAC-GeoParquet item mirror | `application/vnd.apache.parquet` | `collection-mirror` (Portolan-defined role) |
+| Upstream original | (format-specific) | `source` (Portolan-defined role) |
 
 Styles are STAC assets: each style file is a collection-level asset with `roles: ["style"]`, discovered by filtering assets on that role — no separate manifest exists (spec: Visualization Styles).
+
+A `source` asset names the upstream original a cloud-native asset was derived from, so the format requirements do not reach it. A mirror should carry one when the original is a direct download, which means referencing it at the upstream href, not rehosting the file. `collection-mirror` is required on a published item mirror. Neither role is enumerated in the JSON Schema, which accepts any non-empty role string.
 
 ### Formats
 

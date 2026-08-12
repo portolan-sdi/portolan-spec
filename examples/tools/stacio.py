@@ -669,6 +669,7 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
 
     return {"id": cid, "seg": seg, "title": spec["title"], "updated": prov.get("updated"),
             "license": spec["license"], "is_mirror": is_mirror, "source": src["url"],
+            "source_title": src["title"], "stable": src.get("stable", True),
             "kind": kind, "geometry": spec.get("geometry"), "n": n,
             "bands": len(bands), "blurb": blurb(spec)}
 
@@ -722,28 +723,57 @@ def collections_table(colls: list[dict], nested: bool) -> list[str]:
     return lines
 
 
+def _provenance_sentence(colls: list[dict]) -> str:
+    """Whether the Collections beneath this node are mirrors, in one sentence."""
+    n = len(colls)
+    mirrors = sum(1 for c in colls if c["is_mirror"])
+    official = n - mirrors
+    if not official:
+        if n == 1:
+            return ("The Collection here is a mirror, so this catalog hosts a "
+                    "copy of data produced elsewhere.")
+        return (f"All {n} Collections here are mirrors, so this catalog hosts "
+                "copies of data produced elsewhere.")
+    if not mirrors:
+        subject = ("The Collection here is published" if n == 1
+                   else f"All {n} Collections here are published")
+        return f"{subject} by the organization that produced the data."
+    return (f"{mirrors} of the {n} Collections here are mirrors of data produced "
+            f"elsewhere, and {official} come straight from the organization that "
+            "produced them.")
+
+
+def _source_sentence(c: dict) -> str:
+    """One Collection and its upstream file, named and linked inside a sentence."""
+    src = f"[{c['source_title']}]({c['source']})"
+    if c["stable"]:
+        return (f"{c['title']} is built from the {src}, pinned by checksum and "
+                f"licensed {c['license']}.")
+    return (f"{c['title']} tracks the {src}, a live endpoint refetched on every "
+            f"build rather than pinned, licensed {c['license']}.")
+
+
 def sources_block(colls: list[dict]) -> list[str]:
-    """License and provenance lines for a catalog-level README.
+    """Licensing and provenance for a catalog-level README, written as prose.
 
     core.md requires every README, on catalogs as well as collections, to carry a
     title, a description, a license, and data provenance. A catalog holds no data
-    of its own, so it states the licenses and the provenance of what it contains."""
-    licenses = sorted({c["license"] for c in colls})
-    mirrors = sum(1 for c in colls if c["is_mirror"])
-    official = len(colls) - mirrors
-    kinds = []
-    if mirrors:
-        kinds.append(f"{mirrors} mirror {'Collection' if mirrors == 1 else 'Collections'}")
-    if official:
-        kinds.append(f"{official} official {'Collection' if official == 1 else 'Collections'}")
-    lines = [
-        f"Licenses, {', '.join(licenses)}.",
-        f"Provenance, {' and '.join(kinds)}.",
-        "",
-        "Upstream sources.",
-        "",
-    ]
-    lines += [f"- {c['title']}, {c['source']}" for c in colls]
+    of its own, so it states the licenses and the provenance of what it contains.
+
+    best-practices/documentation.md asks for every link to be introduced in a
+    flowing sentence rather than collected in a bare reference list at the
+    bottom, so each Collection gets one sentence naming the upstream file it was
+    built from, whether those bytes are pinned, and the license they arrive
+    under. Sentences run three to a paragraph, which keeps a group of one and a
+    catalog of eight both readable. One sentence per source line keeps a diff
+    pointed at the Collection that changed, and markdown reads consecutive lines
+    as one paragraph anyway."""
+    if not colls:
+        return []
+    lines = [_provenance_sentence(colls)]
+    sentences = [_source_sentence(c) for c in colls]
+    for i in range(0, len(sentences), 3):
+        lines += [""] + sentences[i:i + 3]
     return lines
 
 
@@ -771,7 +801,11 @@ def catalog_sidecar_bodies(title: str, description: str, colls: list[dict],
         "## Collections\n\n{{collections}}\n\n"
         "## Where the Data Comes From\n\n{{sources}}")
     readme = render_template(readme_tpl, blocks, f"{where} readme")
-    if "Licenses," not in "\n".join(readme):
+    # core.md wants the license and provenance on every README, so a template
+    # that leaves out {{sources}} gets the block appended anyway. Tested on the
+    # template rather than on the rendered prose, which has no fixed phrase to
+    # match now that the block is written as sentences.
+    if "{{sources}}" not in readme_tpl:
         readme += [""] + sources_block(colls)
     agents_tpl = (templates.get("agents") or "").strip() or (
         f"This catalog groups {len(colls)} Collections. Each carries its own "
@@ -973,6 +1007,8 @@ def regen_docs(manifest: dict, out: Path, cache: Path) -> None:
         built.append({"id": spec["id"], "seg": seg, "title": spec["title"],
                       "updated": prov.get("updated"), "license": spec["license"],
                       "is_mirror": is_mirror, "source": spec["source"]["url"],
+                      "source_title": spec["source"]["title"],
+                      "stable": spec["source"].get("stable", True),
                       "kind": spec["kind"], "geometry": spec.get("geometry"),
                       "n": facts["n"], "bands": len(facts["bands"]),
                       "blurb": blurb(spec)})

@@ -12,6 +12,10 @@ SHOULD reference alternate formats of data and metadata — for example an exist
 ISO 19115 file referenced as an asset with the `metadata` role — though new
 catalogs need not pre-produce them, since tooling should make translation easy.
 
+The requirements in this document apply to the catalog's own cloud-native assets: copies that the publisher derives and publishes. They do not apply to `source` assets, which represent the upstream originals from which those copies were derived and may use a non-cloud-native format.
+
+A validator MUST apply the format requirements in this document to the catalog's own cloud-native assets and MUST NOT fail an asset for its format because it carries the `source` role. The `source` role identifies provenance, not hosting. The Data Storage requirements in core.md apply according to who hosts the bytes, as specified there, regardless of the roles an asset carries.
+
 ## Vector
 
 Vector has no single complete cloud-native format yet, so Portolan pairs two strong
@@ -27,14 +31,39 @@ Distributing GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so it can
 queried without a server. Files SHOULD be compressed to stay small, with `zstd`
 RECOMMENDED.
 
-Rows MUST be spatially ordered so nearby features are nearby in the file, tested
-either as:
+Rows MUST be spatially ordered so nearby features are nearby in the file. This rule
+applies to every file, no matter how many row groups it has. A validator checks it
+by looking at the rows themselves. It splits them into the groups a conforming
+writer would have produced, then checks that each of those groups covers a small
+part of the file.
 
-- **low overlap** — fewer than 30% of consecutive row-group pairs have
-  interior-intersecting bounding boxes; or
-- **high locality** — row-group boxes average under about 25% of the file extent,
-  letting a reader skip at least 50% of row groups for a query window of 10% of the
-  extent.
+A file with five or more row groups gets a second check, using the row groups it
+actually has. A reader can run this one from the file footer alone, without reading
+any data. The file passes if either of these is true:
+
+- **low overlap** — fewer than 30% of consecutive row-group pairs have bounding
+  boxes that overlap on their interiors; or
+- **high locality** — row-group bounding boxes cover, on average, less than about
+  30% of the file's total extent.
+
+Boxes that small let a reader skip about half the row groups when querying a window
+covering 10% of the extent. That is the benefit the 30% figure is meant to deliver,
+not a separate test to run.
+
+The 30% figure comes from measuring Hilbert-sorted data, which is how producers
+usually sort. With five row groups, Hilbert-sorted boxes cover about 27% of the
+extent, and that number drops as row groups are added. Five row groups divide the
+extent five ways, so each box covers about a fifth of it before any overlap is
+counted. A stricter limit would fail well-sorted files for having few row groups.
+
+Neither of these two checks applies to a file with fewer than five row groups. Both
+measure a percentage across the row groups, and with only a few groups the
+percentage cannot land on a useful value. Three row groups can only produce an
+overlap of 0%, 50%, or 100%. Two or three boxes cannot average less than 30% of the
+extent, however well the rows are sorted. A validator MUST NOT fail a file for
+missing a threshold that its row-group count puts out of reach. Row ordering is a
+separate rule and is not waived here, so a file with fewer than five row groups is
+still checked on its rows.
 
 Files MUST provide per-row-group spatial statistics so readers can skip row groups
 from metadata alone — either:
@@ -163,32 +192,42 @@ The exact on-disk encoding (the TIFF `GDAL_METADATA` tag and its XML layout, and
 Compliance is defined by the tag contents, not by use of GDAL.
 
 **Item mirror.** A raster collection that models scenes as items SHOULD also publish a
-[stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) mirror of those items at
+[stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) item mirror at
 `items.parquet` in the collection root. One range request then returns the whole
 collection's item metadata, in place of one HTTP fetch per scene. Clients can search a large
 scene collection, or assemble it into a data cube, without a STAC API server.
 
-No item-count threshold applies. Tooling generates the mirror from the item JSON, and the
-saved fetches add up at any size.
+An **item mirror** is a Parquet copy of a collection's items. This is distinct from
+Portolan's provenance meaning of *mirror*, where a mirror is a catalog republishing data it
+did not produce. See [Source Provenance](core.md#source-provenance).
 
-A published mirror MUST be registered as a collection-level asset carrying media type
+Always refer to this construct as an **item mirror** or **STAC-GeoParquet mirror**, never
+simply **mirror**.
+
+No item-count threshold applies. Tooling generates the item mirror directly from the item
+JSON, and avoiding repeated JSON fetches provides a benefit even for small collections.
+
+A published item mirror MUST be registered as a collection-level asset carrying media type
 `application/vnd.apache.parquet` and the role `collection-mirror`, per [Referencing STAC
 Geoparquet Collections in STAC Collection
 JSON](https://radiantearth.github.io/stac-geoparquet-spec/latest/#referencing-a-stac-geoparquet-collections-in-a-stac-collection-json).
 That single registration is the whole requirement; no `rel: "items"` link is needed.
 
-The item JSON stays normative and the Parquet mirrors it, so the file MUST reproduce the
-collection's items exactly at publish time — one row per item, each row carrying that
-item's fields. A mirror that lags its items answers queries wrongly, and the client reading
-it cannot tell.
+The item JSON remains the normative representation. An item mirror is a derived Parquet copy
+and MUST exactly reproduce the collection's items at publication time: one row per item,
+with every row containing that item's fields.
 
-The GeoParquet requirements above bind the mirror as they bind vector data: rows MUST be
-spatially ordered, the file MUST carry per-row-group spatial statistics, and row groups
-MUST hold no more than 150,000 rows. An item index is queried by extent like any other
-spatial table, and readers prune it the same way.
+An item mirror that falls out of sync with its source items produces incorrect query
+results, and clients have no reliable way to detect the mismatch.
 
-A collection holding a single COG has no items and publishes no mirror. Mirroring other
-collection types, and mirroring a whole catalog's collections, remain incubating. See
+The GeoParquet requirements above apply to item mirrors exactly as they apply to vector
+datasets. Rows MUST be spatially ordered, the file MUST include per-row-group spatial
+statistics, and row groups MUST contain no more than 150,000 rows. Clients query an item
+mirror spatially just as they query any other GeoParquet dataset.
+
+A collection containing only a single COG has no items and therefore publishes no item
+mirror. Item mirrors for other collection types, and STAC-GeoParquet mirrors covering an
+entire catalog's collections, remain incubating. See
 [`specs/incubating/stac-geoparquet.md`](../incubating/stac-geoparquet.md).
 
 Raster styling (colormaps, legends, continuous vs. categorical vs. multiband) is

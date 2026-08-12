@@ -234,6 +234,8 @@ are fine — use all that apply. The `style` role, used for MapLibre style files
 a Portolan-defined role rather than a standard STAC one (see [Visualization
 Styles](#visualization-styles)).
 
+The `source` role identifies an upstream original from which a cloud-native asset in this catalog was derived. For example, a publisher that converts an upstream Shapefile or GeoPackage to GeoParquet may include the original file as a `source` asset. PORTO-FMT-002 says that a mirror SHOULD include the original when it is directly downloadable rather than available only through an API. This means linking to the upstream file; the publisher does not need to retain, rehost, or redistribute it. A `source` asset is exempt from the format requirements because it represents the upstream original and may use a non-cloud-native format. A catalog that provides metadata for data that is already available upstream in a cloud-native format does not need a `source` asset; its `data` asset points directly to the upstream data. `collection-mirror` identifies the STAC-GeoParquet copy of a collection's items, as specified under Item mirror in formats.md.
+
 Portolan reuses existing extensions rather than restating their fields: `file` for
 `file:values`, `table` for schema and columns, `raster` and `vector` for band and
 layer detail, `license` for per-asset license, and `scientific` for citation or
@@ -318,19 +320,45 @@ Items SHOULD carry an explicit `datetime` (or a `start_datetime` /
 
 Cloud-native formats depend on clients fetching only the bytes they need, so
 Portolan catalogs assume data is hosted in cloud object storage reachable over
-HTTP range requests (S3-compatible or otherwise). Servers MUST support range
+HTTP range requests (S3-compatible or otherwise).
+
+The requirements in this section apply to servers hosting the catalog's own
+cloud-native assets: the copies of the data that the publisher has uploaded and
+controls. They do not apply to upstream sources hosted by third parties.
+
+A server hosting the catalog's cloud-native assets MUST support range
 requests: honor the `Range` header, return `206 Partial Content`, and advertise
 `Accept-Ranges: bytes`; HEAD requests MUST return an accurate `Content-Length`.
-Servers MUST support HTTP/1.1 or greater; HTTP/2 or /3 is RECOMMENDED. Endpoints
+The server MUST support HTTP/1.1 or greater; HTTP/2 or /3 is RECOMMENDED. Endpoints
 that compress or transform responses in ways that break range semantics are not
 conformant.
 
-To let browser clients read data directly, servers MUST also enable CORS on all
+To let browser clients read data directly, a server hosting the catalog's
+cloud-native assets MUST also enable CORS on all
 metadata and asset files: `Access-Control-Allow-Origin: *` (or an equivalent
 read-permitting policy), allowed methods including `GET` and `HEAD`, allowed
-request headers including `Range`, and exposed response headers including
-`Content-Range`, `Content-Length`, `Accept-Ranges`, and `ETag` (via
-`Access-Control-Expose-Headers`).
+request headers including `Range`, `If-Match`, `If-Modified-Since`,
+`If-None-Match`, and `If-Unmodified-Since` (via
+`Access-Control-Allow-Headers`), and exposed response headers including
+`Content-Type`, `Content-Length`, `Content-Range`, `Accept-Ranges`, and `ETag`
+(via `Access-Control-Expose-Headers`).
+
+The conditional-request headers let a browser revalidate a cached range instead
+of refetching it, which keeps tile and range readers cheap on repeat views.
+Provider-specific headers such as `x-amz-*` and `x-goog-*` fall outside this
+requirement, since reading a public catalog takes no signed request. Portolan
+leaves cloud-specific configuration to separate guidance.
+
+Catalogs also reference bytes that the publisher does not host, including
+upstream sources that a mirror complements and original files carried over from
+an upstream source. Because those servers are operated by third parties and are
+outside the publisher's control, the requirements above do not apply to them.
+
+A validator MUST probe the servers hosting the catalog's own cloud-native assets
+and MUST NOT require upstream servers to satisfy these requirements. An upstream
+server that does not support range requests or provide the required CORS headers
+limits the capabilities available to clients using that upstream copy, but does
+not make the catalog non-conformant.
 
 ## Providers
 
