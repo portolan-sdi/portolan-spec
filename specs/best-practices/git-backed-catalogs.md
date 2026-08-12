@@ -1,212 +1,115 @@
 # Best Practices — Git-Backed Catalogs
 
-Core defines what a catalog contains and
-[how it declares conformance](../portolan/core.md#conformance-and-versioning).
-It says nothing about how you get there. This page covers one way of working
-that several publishers arrived at independently: keep the catalog metadata in
-a git repository, keep the data out of it, and let continuous integration
-validate every change before it publishes.
+## Why use git for catalog management?
 
-Nothing here is a requirement. A catalog assembled by hand and uploaded once
-conforms exactly as well as one built this way.
+Git gives publishers a controlled way to manage catalog metadata before and after publication. It provides change history, review, validation, and rollback without making git part of the published catalog itself.
 
-## Version control is what makes a catalog safe to edit
+A catalog may already be public when someone discovers an error. With a git-backed workflow, the publisher can correct the metadata in a pull request, validate the change, and publish the new version. If a published change causes a problem, git also provides the previous version and the changes that led to it.
 
-A published catalog is a single mutable tree in a bucket. Overwrite
-`collection.json` with a broken one and the previous version is gone. There is
-no undo, and the damage is live the moment the upload finishes.
+This workflow is useful when several people or agents maintain a catalog, when contributors need to propose corrections, or when the catalog contains generated metadata. It also makes catalog maintenance more like software maintenance: changes are reviewed, checked, and recorded.
 
-Git supplies the undo. It also supplies three things that matter more as a
-catalog grows:
+Nothing on this page is a requirement. Core defines what a catalog contains and how it declares conformance, but it does not define how publishers manage or publish catalogs. A catalog built and maintained by another method can conform just as well.
 
-- **A gate.** Continuous integration runs the validator on every pull request,
-  so a change proves itself before it reaches the bucket. This matters most
-  when an agent is doing the editing. An agent that can run the check and read
-  the findings converges on a conforming catalog. An agent editing straight
-  into a bucket is guessing.
-- **A contribution path.** Someone who spots a wrong license or a stale
-  description can open a pull request. Without a repository the best they can
-  do is find an email address.
-- **An explanation.** `git log` on a collection says why a description changed
-  and who changed it. A published catalog carries an `updated` timestamp and
-  nothing else.
+## Keep metadata in git, not data
 
-## Metadata goes in git, data does not
+The repository should contain the metadata needed to build and publish the catalog. Large data files should remain outside git and be referenced by URL, because git keeps old versions of committed files in its history.
 
-The repository holds the STAC JSON, the READMEs, the agent guides, the styles,
-and the logo. It does not hold the GeoParquet, the COGs, the PMTiles, or the
-Zarr stores. Those live in object storage next to the published metadata, and
-the repository references them by URL.
+[Fields of the World](https://github.com/fieldsoftheworld/ftw-data-catalog) separates repository files into three groups:
 
-[Fields of the World](https://github.com/fieldsoftheworld/ftw-data-catalog)
-states the split as three categories of file, which is the clearest framing of
-it:
+1. **Tracked and published:** STAC JSON, `README.md`, `AGENTS.md`, `llms.txt`, thumbnails, and logos.
+2. **Tracked but not published:** build scripts, tests, publish configuration, and the repository's own README.
+3. **Not tracked:** data files, credentials, and caches.
 
-1. Tracked in git and published: the STAC JSON, `README.md`, `AGENTS.md`,
-   `llms.txt`, thumbnails, logos.
-2. Tracked in git and never published: the build scripts, the tests, the
-   publish configuration, the repository's own README.
-3. Neither: the data files, credentials, and caches. These are gitignored.
+Committing large data files makes the repository expensive to clone and maintain. Git retains old binary versions even after files are deleted. The [St. Louis catalog](https://github.com/cholmes/portolan-catalog-stlouis) therefore ignores `catalog/**/*.parquet` and `catalog/**/*.pmtiles`.
 
-The failure mode of committing data is not subtle. Git stores every version of
-every binary forever, so a 200 MB Parquet file regenerated weekly becomes tens
-of gigabytes that every clone pays for, and no amount of later deletion
-recovers it. The
-[St. Louis mirror](https://github.com/cholmes/portolan-catalog-stlouis)
-gitignores `catalog/**/*.parquet` and `catalog/**/*.pmtiles` by pattern, which
-keeps the rule from depending on anyone remembering it.
+A fresh clone may not contain the data needed by some checks. St. Louis uses `CI_LIGHT=1` in continuous integration to skip file-backed checks while keeping them available locally.
 
-One consequence is worth planning for. Because the data is absent from a fresh
-clone, any check that reads bytes has nothing to read. St. Louis handles this
-with a `CI_LIGHT=1` environment variable that skips the file-backed gates in
-continuous integration while keeping them available locally, where the data
-exists.
+## Separate published metadata from repository files
 
-## The published directory is the whole contract
+The repository should have a clear directory containing the files that it publishes. The three catalogs studied here use a directory such as `catalog/`, while build scripts, tests, and source material remain elsewhere in the repository.
 
-All three catalogs studied here use the same arrangement: one directory,
-usually `catalog/`, that is synced to object storage exactly as it appears in
-the repository. Everything inside it publishes. Nothing outside it can.
+This makes the publication boundary easy to inspect. The publish tool can sync that directory without maintaining a separate list of files that it is allowed to publish.
 
-This is worth more than a convention about tidiness. It makes "what is live"
-answerable by looking, and it makes publishing a credential or a build script
-structurally impossible rather than merely unlikely. The publish tool needs no
-allowlist because the directory boundary is the allowlist.
+A typical repository can use `catalog/` for published metadata, `staging/` or `sources/` for source material, `tools/` or `scripts/` for build code, and `tests/` for tests. A root `catalog.publish.yaml` can define the object-storage target and public base URL, keeping publication settings in one place.
 
-The rest of the repository then sorts itself out. Sources being prepared sit in
-`staging/` or `sources/`. Build code sits in `tools/` or `scripts/`. Tests sit
-in `tests/`. A `catalog.publish.yaml` at the root names the write target and
-the public base URL, so the mapping between the two lives in one file rather
-than being spread through the code.
+The publication directory does not need to contain the data assets referenced by the catalog. For example, a generated STAC-GeoParquet item index can live directly in object storage and be referenced by a collection.
 
-## Generate the catalog once it outgrows hand-editing
+## Generate large catalogs
 
-A catalog of twenty collections can be edited by hand. An imagery catalog of
-tens of thousands of items cannot, and committing them makes every clone and
-every diff expensive for no gain.
+Small catalogs can be edited by hand. Large item collections should be generated instead of maintained as thousands of individual files, because generated files make reviews, diffs, and clones unnecessarily expensive.
 
-Fields of the World draws this line inside a single catalog, which is the
-clearest illustration of where it falls. Its prediction collections are
-committed. Its Sentinel-2 feature collections are not: roughly 22,700 tiles per
-year across two years is about 45,000 item files, and its
-`scripts/features/README.md` says committing them is impractical. The
-`.gitignore` enforces it with `catalog/features/*/items/`.
+Fields of the World shows this distinction within one catalog. It commits its prediction collections but not its Sentinel-2 feature items, which contain about 22,700 tiles per year across two years, or about 45,000 item files. Its `scripts/features/README.md` explains why committing them is impractical, and `.gitignore` enforces the policy with `catalog/features/*/items/`.
 
-What replaces the items is not nothing. The committed `collection.json` points
-at a STAC-GeoParquet `items.parquet` on object storage as the item index, so a
-client reads one file instead of tens of thousands of links. The generator
-writes the items and the index straight to the bucket, and the publish script
-never sees them because they are outside the published directory.
+The generated items are replaced by a STAC-GeoParquet item index in object storage. The committed `collection.json` points to `items.parquet`, allowing clients to read one index instead of thousands of individual item files.
 
-What you commit instead is the generator and its inputs.
-[TriMet](https://github.com/cholmes/portolan-catalog-trimet) commits a `tools/`
-pipeline and the source listings it reads, with the Shapefiles gitignored and
-re-fetchable. A reviewer reads a diff to `make_styles.py`. Nobody reads a diff
-across sixty-three generated style files.
+The repository should contain the generator and its inputs. [TriMet](https://github.com/cholmes/portolan-catalog-trimet) commits a `tools/` pipeline and its source listings while ignoring source Shapefiles that can be fetched again.
 
-Generating the tree turns hand-editing into a bug, so it needs a check rather
-than a request. TriMet's `tests/test_regen.py` rebuilds and compares against
-the committed catalog, which is what makes "edit the generator, not the output"
-enforceable.
+Generated output should be deterministic. TriMet's `tests/test_regen.py` rebuilds the catalog and compares it with the committed version, which lets the repository enforce the rule that contributors edit the generator rather than generated output.
 
-## Validate every change before it lands
+## Validate changes with continuous integration
 
-The gate is [rashid](https://github.com/portolan-sdi/rashid) for Portolan
-conformance and [stac-check](https://github.com/stac-utils/stac-check) for STAC
-validity and best practices. Both install from PyPI and run offline, so a
-workflow is short:
+Use [rashid](https://github.com/portolan-sdi/rashid) for Portolan conformance and [stac-check](https://github.com/stac-utils/stac-check) for STAC validity and best practices. Both install from PyPI and run offline.
+
+A minimal workflow is:
 
 ```yaml
 - run: python -m pip install stac-check rashid
 - run: rashid check catalog/
 ```
 
-A root catalog with no collections yet passes cleanly, so a repository is green
-from its first commit:
+Run these checks on pull requests and before publication. This catches errors before a change reaches the published catalog and gives agents a clear feedback loop when they edit metadata.
+
+A root catalog with no collections can pass validation, which allows a repository to remain valid from its first commit:
 
 ```console
 $ rashid check catalog/ --schema
 OK: 1 files checked, no findings.
 ```
 
-Two things surprise people wiring this up for the first time.
+### Handle validator differences
 
-**stac-check will recommend a `self` link.** Portolan forbids one, because a
-static catalog that hardcodes its own location cannot be mirrored or moved.
-Treat stac-check's best-practice notes as advisory and let rashid be the gate,
-which is what Fields of the World does in `tests/test_stac_valid.py`.
+`stac-check` recommends a `self` link, but Portolan forbids it because a static catalog should not hardcode its own location when it may be mirrored or moved. Treat `stac-check` best-practice recommendations as advisory and use rashid as the Portolan conformance gate, as Fields of the World does in `tests/test_stac_valid.py`.
 
-**Waivers need somewhere to live.** A catalog sometimes has a good reason to
-carry a finding, such as targeting a spec change that has not shipped. TriMet
-keeps a [`docs/conformance.md`](https://github.com/cholmes/portolan-catalog-trimet/blob/main/docs/conformance.md)
-listing every accepted deviation with its reasoning, and its test fails on any
-finding not on that list. The list cannot grow silently, which is the point.
+### Record accepted deviations
 
-## How a catalog points back at its repository is unsettled
+A catalog may have a reason to accept a validator finding temporarily, for example when it targets a spec change that has not shipped. TriMet records accepted deviations in [`docs/conformance.md`](https://github.com/cholmes/portolan-catalog-trimet/blob/main/docs/conformance.md), and its test fails when a finding is not listed there.
 
-Core's [`via`](../portolan/core.md#source-provenance) records where the data
-came from. Nothing records where the catalog is maintained. A consumer holding
-a published `catalog.json` has no dependable way to reach the repository that
-produced it, which means no way to file the correction the README asked for.
+## Link a catalog to its repository
 
-As of August 2026 three encodings are in use, and every catalog studied here
-uses at least two of them. No two use the same pair.
+Core's [`via`](../portolan/core.md#source-provenance) link relation records where the data came from. It does not identify the repository that maintains the catalog, so a consumer may have no machine-readable way to find the repository or report a correction.
 
-**Dedicated fields.** Fields of the World carries `git:repository`, `git:ref`,
-and `git:provider`, plus `vcs` and `issues` link relations. This is the shape
-of [an extension proposal](https://github.com/portolan-sdi/portolan-spec/issues/145)
-that has not shipped, so nothing writes or reads the fields generically.
-Portolan 0.1 defines no git extension and rashid ignores them, and the guard is
-`tests/test_git_ext.py`, twenty lines of string equality against a literal URL.
-The fields sit on the root catalog only, so a consumer who lands on a
-`collection.json` sees nothing.
+Several catalogs use different approaches today, but no single approach has become standard. The examples below describe the current options without recommending one. The question is tracked in [issue #145](https://github.com/portolan-sdi/portolan-spec/issues/145).
 
-**The host provider's url.** TriMet and St. Louis both set the `url` of their
-`host` provider to the GitHub repository, on the root and on every collection.
-This adds no vocabulary, satisfies core's
-[provider requirements](../portolan/core.md#providers) at the same time, and
-reaches every level of the tree. The cost is ambiguity. A provider `url` means
-"where this organization can be reached", so a repository there is
-indistinguishable from a homepage, and there is nowhere to put the issue
-tracker separately.
+### Dedicated fields
 
-That encoding is also unavailable to some catalogs. Fields of the World hosts
-its data on Source Cooperative, so its `host` provider is Source Cooperative,
-which is the right answer to a different question.
+Fields of the World uses `git:repository`, `git:ref`, and `git:provider`, along with `vcs` and `issues` link relations. These fields follow the shape of an extension proposal that has not shipped, so Portolan 0.1 does not define them and rashid does not interpret them.
 
-**Prose.** TriMet's published README carries a table naming the catalog
-repository and the browser repository, then asks directly for issues and pull
-requests. The Fields of the World root description says the metadata is managed
-in its repository and that pull requests are welcome. A person finds this. No
-tool can act on it.
+Fields of the World checks the fields with `tests/test_git_ext.py`. They appear only on the root catalog, so a consumer opening a `collection.json` does not see them.
 
-Nothing is recommended here. That every catalog reaches for two encodings is
-the signal that none of them is sufficient alone, and the resolution belongs in
-the spec rather than in three independent conventions. Weigh in on
-[issue #145](https://github.com/portolan-sdi/portolan-spec/issues/145) if you
-publish a catalog this affects.
+### Host provider URL
+
+TriMet and St. Louis set the `url` of their `host` provider to the GitHub repository on both the root catalog and each collection. This uses existing Core vocabulary and makes the repository visible at every level of the tree.
+
+The meaning remains ambiguous. A provider `url` identifies where an organization can be reached, so a repository URL is not clearly different from a homepage. The approach also provides no separate place for an issue tracker.
+
+It does not work for every catalog. Fields of the World hosts its data on Source Cooperative, so its `host` provider correctly identifies Source Cooperative instead.
+
+### Prose
+
+TriMet's published README identifies the catalog repository and the browser repository, then directs users to issues and pull requests. The Fields of the World root description says that its repository manages the metadata and accepts pull requests.
+
+People can use this information, but software cannot reliably act on it. Repository discovery therefore remains an open question for the spec.
+
+Publishers affected by this question should contribute to [issue #145](https://github.com/portolan-sdi/portolan-spec/issues/145).
 
 ## Catalogs worth studying
 
-Three git-backed catalogs, readable end to end:
+- [ftw-data-catalog](https://github.com/fieldsoftheworld/ftw-data-catalog) — Metadata for a global machine-learning dataset with hundreds of gigabytes of data on Source Cooperative. Its `CLAUDE.md` documents the publication model and explains why a full recursive bucket listing was too slow.
+- [portolan-catalog-stlouis](https://github.com/cholmes/portolan-catalog-stlouis) — Twenty collections mirrored from a city open-data portal, with the fetch, conversion, assembly, and validation workflow in the repository.
+- [portolan-catalog-trimet](https://github.com/cholmes/portolan-catalog-trimet) — Eight transit datasets, with deterministic regeneration tests and a documented conformance-waiver process.
 
-- [ftw-data-catalog](https://github.com/fieldsoftheworld/ftw-data-catalog) —
-  metadata for a global machine-learning dataset whose data runs to hundreds
-  of gigabytes on Source Cooperative. Its `CLAUDE.md` documents the publish
-  model, including why a full recursive bucket listing was too slow and what
-  replaced it.
-- [portolan-catalog-stlouis](https://github.com/cholmes/portolan-catalog-stlouis)
-  — twenty collections mirrored from a city open-data portal, with the
-  fetch-convert-assemble pipeline and its gates in the repository.
-- [portolan-catalog-trimet](https://github.com/cholmes/portolan-catalog-trimet)
-  — eight transit datasets, notable for regeneration determinism tests and a
-  written conformance-waiver policy.
+## Status
 
-## This is a discussion
+This page documents practices used by three publishers as of August 2026. That is a small sample, so these practices may change as more git-backed catalogs are published.
 
-This page describes what three publishers converged on by August 2026, which
-is a small sample. The layout is consistent enough to write down. The
-discovery question is not settled at all, and parts of this may look wrong
-once more catalogs exist. If you maintain a git-backed catalog that solved
-something differently, open an issue or a pull request on the
-[spec repository](https://github.com/portolan-sdi/portolan-spec).
+The repository-discovery question is still open. If you maintain a git-backed catalog and use a different approach, open an issue or pull request on the [spec repository](https://github.com/portolan-sdi/portolan-spec).
