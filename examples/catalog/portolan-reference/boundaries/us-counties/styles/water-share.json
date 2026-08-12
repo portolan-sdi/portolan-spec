@@ -1,0 +1,57 @@
+{
+  "version": 8,
+  "name": "Share of water",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "pmtiles://../us-counties.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "us-counties",
+      "type": "fill",
+      "source": "data",
+      "paint": {
+        "fill-color": [
+          "step",
+          [
+            "/",
+            [
+              "get",
+              "AWATER"
+            ],
+            [
+              "max",
+              [
+                "+",
+                [
+                  "get",
+                  "ALAND"
+                ],
+                [
+                  "get",
+                  "AWATER"
+                ]
+              ],
+              1
+            ]
+          ],
+          "#f7fbff",
+          0.05,
+          "#bdd7e7",
+          0.2,
+          "#6baed6",
+          0.5,
+          "#08306b"
+        ],
+        "fill-outline-color": "#ffffff",
+        "fill-opacity": 0.6
+      },
+      "source-layer": "us-counties"
+    }
+  ],
+  "metadata": {
+    "description": "AWATER divided by total area, binned in the style expression itself, near-white for dry counties through deep blue where territorial water dominates."
+  }
+}

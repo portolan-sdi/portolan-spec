@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "us-counties labeled",
+  "name": "State colours with county names",
   "sources": {
     "data": {
       "type": "vector",
@@ -12,7 +12,6 @@
       "id": "us-counties",
       "type": "fill",
       "source": "data",
-      "source-layer": "us-counties",
       "paint": {
         "fill-color": [
           "match",
@@ -120,26 +119,30 @@
         ],
         "fill-outline-color": "#ffffff",
         "fill-opacity": 0.6
-      }
+      },
+      "source-layer": "us-counties"
     },
     {
       "id": "us-counties-labels",
       "type": "symbol",
       "source": "data",
+      "paint": {
+        "text-color": "#222222",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 1
+      },
       "source-layer": "us-counties",
       "layout": {
         "text-field": [
           "get",
           "NAME"
         ],
-        "text-size": 11,
+        "text-size": 9,
         "text-anchor": "center"
-      },
-      "paint": {
-        "text-color": "#222222",
-        "text-halo-color": "#ffffff",
-        "text-halo-width": 1
       }
     }
-  ]
+  ],
+  "metadata": {
+    "description": "The state mosaic with a NAME label per county."
+  }
 }

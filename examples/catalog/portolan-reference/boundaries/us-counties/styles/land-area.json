@@ -1,0 +1,39 @@
+{
+  "version": 8,
+  "name": "Land area in four classes",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "pmtiles://../us-counties.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "us-counties",
+      "type": "fill",
+      "source": "data",
+      "paint": {
+        "fill-color": [
+          "step",
+          [
+            "get",
+            "ALAND"
+          ],
+          "#eff3ff",
+          1000000000,
+          "#bdd7e7",
+          2500000000,
+          "#6baed6",
+          10000000000,
+          "#2171b5"
+        ],
+        "fill-outline-color": "#ffffff",
+        "fill-opacity": 0.6
+      },
+      "source-layer": "us-counties"
+    }
+  ],
+  "metadata": {
+    "description": "ALAND binned at one, two and a half, and ten billion square metres, light to dark blue, Alaska's census areas anchor the dark end."
+  }
+}

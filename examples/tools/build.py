@@ -47,7 +47,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from stacio import load_manifest, build_catalog, regen_docs
+from stacio import load_manifest, build_catalog, regen_styles, regen_docs
 from validate import validate
 
 
@@ -69,6 +69,9 @@ def main() -> int:
     ap.add_argument("--only", default=None, help="build only this collection id")
     ap.add_argument("--schema", default=root / "stac/json-schema/v0.1.0/schema.json", type=Path)
     ap.add_argument("--no-validate", action="store_true")
+    ap.add_argument("--styles-only", action="store_true",
+                    help="re-author MapLibre styles and their assets against "
+                         "the committed catalog, no fetch, no conversion")
     ap.add_argument("--docs-only", action="store_true",
                     help="regenerate README/AGENTS sidecars and table:columns "
                          "descriptions from the manifest against the committed "
@@ -86,6 +89,9 @@ def main() -> int:
         print(f"=== manifest {mf.name} ===", file=sys.stderr)
         manifest = load_manifest(mf)
         cat_out = args.out / mf.stem
+        if args.styles_only:
+            regen_styles(manifest, cat_out)
+            continue
         if args.docs_only:
             regen_docs(manifest, cat_out, args.cache)
             continue

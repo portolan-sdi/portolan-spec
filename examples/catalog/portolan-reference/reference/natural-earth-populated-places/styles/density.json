@@ -1,0 +1,24 @@
+{
+  "version": 8,
+  "name": "Place density heatmap",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "../natural-earth-populated-places.parquet"
+    }
+  },
+  "layers": [
+    {
+      "id": "natural-earth-populated-places",
+      "type": "heatmap",
+      "source": "data",
+      "paint": {
+        "heatmap-radius": 18,
+        "heatmap-opacity": 0.8
+      }
+    }
+  ],
+  "metadata": {
+    "description": "A MapLibre heatmap layer over the points, showing where the curated selection concentrates."
+  }
+}

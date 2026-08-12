@@ -1,0 +1,42 @@
+{
+  "version": 8,
+  "name": "Unit records against base addresses",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "pmtiles://../san-francisco-addresses.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "san-francisco-addresses",
+      "type": "circle",
+      "source": "data",
+      "paint": {
+        "circle-radius": 3,
+        "circle-color": [
+          "case",
+          [
+            "==",
+            [
+              "coalesce",
+              [
+                "get",
+                "unit_number"
+              ],
+              ""
+            ],
+            ""
+          ],
+          "#00796b",
+          "#e8710a"
+        ],
+        "circle-opacity": 0.85
+      },
+      "source-layer": "san-francisco-addresses"
+    }
+  ],
+  "metadata": {
+    "description": "Orange where the record carries a unit_number, teal for base addresses, the coalesce guards against both null and absent attributes."
+  }
+}

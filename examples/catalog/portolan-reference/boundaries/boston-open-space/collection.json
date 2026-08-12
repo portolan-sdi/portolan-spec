@@ -186,37 +186,6 @@
       "file:size": 989217,
       "file:checksum": "1220db3d459dc821db7adf739ad0afee9682a3b94f8d467c564c343dcb159a2b3281"
     },
-    "style-categorical": {
-      "href": "./styles/categorical.json",
-      "type": "application/vnd.mapbox.style+json",
-      "title": "Categorical MapLibre style",
-      "roles": [
-        "style",
-        "default"
-      ],
-      "file:size": 1074,
-      "file:checksum": "12206a77ee90951b2b7304d004d15e55dcec1eabfb6b51e12c14fa2fe7733ac5520e"
-    },
-    "style-labeled": {
-      "href": "./styles/labeled.json",
-      "type": "application/vnd.mapbox.style+json",
-      "title": "Labeled MapLibre style",
-      "roles": [
-        "style"
-      ],
-      "file:size": 1497,
-      "file:checksum": "1220f7ceb12f8e30c8e329e8ebbf9a36f80e2fe2455ff6a35653380420c790842d2c"
-    },
-    "style-graduated": {
-      "href": "./styles/graduated.json",
-      "type": "application/vnd.mapbox.style+json",
-      "title": "Graduated MapLibre style",
-      "roles": [
-        "style"
-      ],
-      "file:size": 707,
-      "file:checksum": "1220288ff97ed4f1e7d0524be583b61751c1ebd599f0ea1b89751891c7885d9cc607"
-    },
     "thumbnail": {
       "href": "./thumbnail.png",
       "type": "image/png",
@@ -226,6 +195,62 @@
       ],
       "file:size": 377459,
       "file:checksum": "122061292d50d6b52d5452897669fe629173564b49f0d2538de5605331a323299fb0"
+    },
+    "style-types": {
+      "href": "./styles/types.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Open space by type",
+      "roles": [
+        "style",
+        "default"
+      ],
+      "file:size": 1224,
+      "file:checksum": "1220b1762e9d48bd88b6901687f255ac37fb6afc3618f46f2e4d8a569f4b9df5bfcc",
+      "description": "TypeLong separates parks, parkways and reservations, cemeteries, urban wilds, malls and plazas, and community gardens."
+    },
+    "style-labeled": {
+      "href": "./styles/labeled.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Types with site names",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1586,
+      "file:checksum": "12200ce7dcdabc5683bbd6348a8fee0d83b23c47a48cf03557d9eef73d5085a9d2ca",
+      "description": "The type colouring with a SITE_NAME label per site."
+    },
+    "style-acreage": {
+      "href": "./styles/acreage.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Acreage in four classes",
+      "roles": [
+        "style"
+      ],
+      "file:size": 828,
+      "file:checksum": "122092647db9cb1290d34a8b4675e8e13548c4f45e6d2c26589726232bd0bb23d710",
+      "description": "ACRES binned at one, ten, and one hundred acres, light to dark green, from pocket parks through Franklin Park's 392 acres."
+    },
+    "style-ownership": {
+      "href": "./styles/ownership.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Who owns it",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1363,
+      "file:checksum": "1220430bfc3a3f3572e0156f3ce1ca91dbbdd6f1f2b360bf4f237ed8a26071a7fed5",
+      "description": "OWNERSHIP from the catalog palette, city, Commonwealth, federal, and the 214 privately owned sites side by side."
+    },
+    "style-protection": {
+      "href": "./styles/protection.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Permanently protected or not",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1122,
+      "file:checksum": "122029441a7dbf26793f87185cb67a1ee3e5055d271a6550c1cffad5b8fdaa349078",
+      "description": "The POS flag, deep green where protection is permanent under Article 97 or a conservation restriction, gray where it is not. The inner match relabels the raw X and N codes so the legend a client derives from the outer match reads in plain words."
     }
   },
   "links": [

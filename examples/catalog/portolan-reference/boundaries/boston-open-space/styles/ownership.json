@@ -1,0 +1,61 @@
+{
+  "version": 8,
+  "name": "Who owns it",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "pmtiles://../boston-open-space.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "boston-open-space",
+      "type": "fill",
+      "source": "data",
+      "paint": {
+        "fill-color": [
+          "match",
+          [
+            "get",
+            "OWNERSHIP"
+          ],
+          "City of Boston",
+          "#4e79a7",
+          "Private",
+          "#f28e2b",
+          "Commonwealth of Massachusetts",
+          "#59a14f",
+          "BRA",
+          "#e15759",
+          "BNAN",
+          "#b07aa1",
+          "Community Group/Nonprofit",
+          "#76b7b2",
+          "MassDOT",
+          "#edc948",
+          "MBTA",
+          "#ff9da7",
+          "BHA",
+          "#4e79a7",
+          "Massport",
+          "#f28e2b",
+          "United States of America",
+          "#59a14f",
+          "Boston Water & Sewer Commission",
+          "#e15759",
+          "MWRA",
+          "#b07aa1",
+          "TTOR",
+          "#76b7b2",
+          "#cccccc"
+        ],
+        "fill-outline-color": "#ffffff",
+        "fill-opacity": 0.6
+      },
+      "source-layer": "boston-open-space"
+    }
+  ],
+  "metadata": {
+    "description": "OWNERSHIP from the catalog palette, city, Commonwealth, federal, and the 214 privately owned sites side by side."
+  }
+}

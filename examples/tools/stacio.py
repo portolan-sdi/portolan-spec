@@ -22,7 +22,7 @@ from convert import (
     to_geoparquet, feature_count, to_cog, bands_from_cog,
     bbox_wgs84_raster, to_table_parquet, table_columns,
 )
-from derivatives import make_pmtiles, author_styles
+from derivatives import make_pmtiles, author_styles, CATEGORICAL_VARIANTS
 from thumbnails import (
     make_thumbnail_vector, make_thumbnail_raster, build_thumb_ctx, _thumb_desc,
 )
@@ -97,14 +97,58 @@ def asset(path: Path, media: str, roles: list[str], title: str, extra: dict | No
     return a
 
 
-def style_asset(path: Path, variant: str, default: bool = False) -> dict:
+def style_asset(path: Path, variant: dict, default: bool = False) -> dict:
     # core.md marks the default style with a second role, not by key or position,
     # because STAC assets are an unordered object whose keys carry no meaning a
     # client is expected to understand. Multiple roles per asset are standard STAC.
     roles = ["style", "default"] if default else ["style"]
-    return {"href": f"./styles/{path.name}", "type": MEDIA["style"],
-            "title": f"{variant.capitalize()} MapLibre style", "roles": roles,
-            "file:size": filesize(path), "file:checksum": multihash(path)}
+    title = variant.get("title") or f"{variant['name'].capitalize()} MapLibre style"
+    a = {"href": f"./styles/{path.name}", "type": MEDIA["style"],
+         "title": title, "roles": roles,
+         "file:size": filesize(path), "file:checksum": multihash(path)}
+    if variant.get("description"):
+        a["description"] = variant["description"]
+    return a
+
+
+def add_style_assets(assets: dict, coll_dir: Path, layer_name: str,
+                     source_url: str, sample_src: Path, spec: dict) -> None:
+    """Author the style variants and register them as assets, first as default.
+
+    Any style-* asset already present is dropped first, and any styles/*.json
+    the manifest no longer names is deleted, so a rename cannot strand a stale
+    style on disk or in the metadata."""
+    for key in [k for k in assets if k.startswith("style-")]:
+        del assets[key]
+    written = author_styles(coll_dir / "styles", layer_name, source_url,
+                            sample_src, spec)
+    keep = {p.name for p, _ in written}
+    for stale in (coll_dir / "styles").glob("*.json"):
+        if stale.name not in keep:
+            stale.unlink()
+    for i, (pth, variant) in enumerate(written):
+        assets[f"style-{variant['name']}"] = style_asset(pth, variant, default=i == 0)
+
+
+def thumb_style(spec: dict) -> dict:
+    """The paint context the thumbnail renders from.
+
+    core.md requires the thumbnail to be generated from default styling, and the
+    default style is the first variant, the one published with the default role.
+    The thumbnail paints categories only when that first variant is categorical,
+    from the same field and palette, so the preview and styles/<first>.json
+    cannot drift apart."""
+    st = spec.get("style") or {}
+    first = (st.get("variants") or [{}])[0]
+    ctx = {**st, "geometry": spec.get("geometry", "polygon"),
+           "default_variant": first.get("type", "default")}
+    if first.get("type") in CATEGORICAL_VARIANTS:
+        ctx["category_field"] = first.get("field")
+        if first.get("palette"):
+            ctx["palette"] = first["palette"]
+    else:
+        ctx.pop("category_field", None)
+    return ctx
 
 
 def source_asset(local: Path, spec_source: dict) -> dict:
@@ -586,6 +630,7 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
                                 "table:row_count": n, "proj:code": canon_crs})
         exts += [TABLE_EXT, PROJ_EXT]
         add_source_asset(assets, local, src)
+        source_url = f"../{stem}.parquet"
         if deriv.get("pmtiles"):
             pm = coll_dir / f"{stem}.pmtiles"
             make_pmtiles(norm, pm, layer_name)
@@ -593,26 +638,20 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
             exts.append(WEBMAP_EXT)
             links.append(link("pmtiles", f"./{pm.name}", MEDIA["pmtiles"], "Web map tiles",
                               {"pmtiles:layers": [layer_name]}))
-            # styles read the PMTiles, so only author them where a visual exists.
-            # The default variant (first in style.variants) also carries the
-            # default role, so the default is discoverable without relying on
-            # asset order, which a JSON object does not guarantee. core.md
-            # requires exactly that once a Collection has more than one style.
-            default_variant = (spec.get("style", {}).get("variants") or ["default"])[0]
-            for sp in author_styles(coll_dir / "styles", layer_name, pm.name, norm, spec):
-                assets[f"style-{sp.stem}"] = style_asset(sp, sp.stem,
-                                                         default=sp.stem == default_variant)
+            source_url = f"../{pm.name}"
+        # Styles read the PMTiles where a visual exists, and the GeoParquet
+        # itself where the collection renders from source, which clients like
+        # portolan-browser bind onto the data they loaded. The first variant
+        # also carries the default role, so the default is discoverable without
+        # relying on asset order, which a JSON object does not guarantee.
+        # core.md requires exactly that once a Collection has more than one
+        # style.
+        if (spec.get("style") or {}).get("variants"):
+            add_style_assets(assets, coll_dir, layer_name, source_url, norm, spec)
         if deriv.get("thumbnail", True):
             th = coll_dir / "thumbnail.png"
             tbbox = spec.get("thumbnail_bbox") or bbox
-            # core.md, the thumbnail is "generated from default styling", and the
-            # default style is the first variant, the one published with the
-            # default role. Pass that variant through so the preview and
-            # styles/<first>.json cannot drift apart.
-            st = spec.get("style") or {}
-            style = {**st, "geometry": spec.get("geometry", "polygon"),
-                     "default_variant": (st.get("variants") or ["default"])[0]}
-            make_thumbnail_vector(norm, th, tbbox, style, thumb)
+            make_thumbnail_vector(norm, th, tbbox, thumb_style(spec), thumb)
             assets["thumbnail"] = asset(th, MEDIA["png"], ["thumbnail"], _thumb_desc(thumb))
         bands, code = [], canon_crs
         norm.unlink(missing_ok=True)
@@ -730,6 +769,33 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
             "source_title": src["title"], "stable": src.get("stable", True),
             "kind": kind, "geometry": spec.get("geometry"), "n": n,
             "bands": len(bands), "blurb": blurb(spec)}
+
+
+# ------------------------------------------------------------- styles-only regen
+def regen_styles(manifest: dict, out: Path) -> None:
+    """Re-author every style variant against the committed tree, touching only
+    styles/*.json and each collection.json's style assets.
+
+    Styles iterate far more often than data, and a full rebuild refetches the
+    live upstream endpoints, churning parquet, PMTiles, and checksums under a
+    paint change. Values are sampled from the committed GeoParquet, attributes
+    only, so the CRS does not matter. Thumbnails are not re-rendered, which is
+    safe exactly when the default variant's paint is unchanged, and the full CI
+    rebuild repaints them from the same manifest either way."""
+    for spec in manifest["collections"]:
+        if spec.get("kind") != "vector" or not (spec.get("style") or {}).get("variants"):
+            continue
+        seg = spec["id"].split("/")
+        coll_dir = out.joinpath(*seg)
+        coll_path = coll_dir / "collection.json"
+        coll = json.loads(coll_path.read_text())
+        stem = seg[-1]
+        source_url = (f"../{stem}.pmtiles" if "visual" in coll["assets"]
+                      else f"../{stem}.parquet")
+        add_style_assets(coll["assets"], coll_dir, stem, source_url,
+                         coll_dir / f"{stem}.parquet", spec)
+        coll_path.write_text(json.dumps(coll, indent=2) + "\n")
+        print(f"[{spec['id']}] styles re-authored", file=sys.stderr)
 
 
 # --------------------------------------------------------------- catalog build

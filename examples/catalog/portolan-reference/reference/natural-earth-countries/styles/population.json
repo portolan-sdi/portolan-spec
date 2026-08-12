@@ -1,0 +1,38 @@
+{
+  "version": 8,
+  "name": "Population in four classes",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "../natural-earth-countries.parquet"
+    }
+  },
+  "layers": [
+    {
+      "id": "natural-earth-countries",
+      "type": "fill",
+      "source": "data",
+      "paint": {
+        "fill-color": [
+          "step",
+          [
+            "get",
+            "POP_EST"
+          ],
+          "#eff3ff",
+          10000000,
+          "#bdd7e7",
+          50000000,
+          "#6baed6",
+          200000000,
+          "#2171b5"
+        ],
+        "fill-outline-color": "#ffffff",
+        "fill-opacity": 0.6
+      }
+    }
+  ],
+  "metadata": {
+    "description": "POP_EST binned at ten million, fifty million, and two hundred million, light to dark blue, class breaks chosen so the map separates small states from the giants despite the skew."
+  }
+}

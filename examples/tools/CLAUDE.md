@@ -45,8 +45,15 @@ Inputs and outputs live under `examples/`, not here.
 uv run examples/tools/build.py                                # build every manifest
 uv run examples/tools/build.py --catalog portolan-reference   # one manifest by stem
 uv run examples/tools/build.py --only boundaries/us-counties  # one Collection, skips validation
+uv run examples/tools/build.py --styles-only                  # re-author styles only
 uv run examples/tools/build.py --docs-only                    # regenerate README/AGENTS only
 ```
+
+`--styles-only` re-authors every style variant against the committed tree,
+touching only `styles/*.json` and each collection.json's style assets. Values
+are sampled from the committed GeoParquet, so nothing is fetched or converted,
+and thumbnails are not re-rendered, which is safe exactly when the default
+variant's paint is unchanged.
 
 `--docs-only` rewrites every README.md and AGENTS.md from the manifest against
 the committed tree, refreshes the manifest-owned collection.json fields (title,
@@ -141,7 +148,14 @@ Each entry in `collections`.
 - `temporal`. `[start, end_or_null]`.
 - `thumbnail_bbox?`. `[minx, miny, maxx, maxy]`. Frames the preview only, not the data. Use it for antimeridian-spanning data.
 - `derivatives`. `{pmtiles, thumbnail}`. Booleans that toggle the PMTiles and thumbnail outputs.
-- `style?`. Per-Collection paint, `{color, outline, opacity, palette?, category_field?, label_field?, graduated_field?, variants?}`. Drives both the MapLibre styles and the thumbnail paint. `category_field` colours by category from the shared palette, `graduated_field` interpolates a numeric ramp, `label_field` adds labels, and `variants` lists which style files to author. The FIRST variant is the default style, is what the thumbnail renders, and is the one whose asset carries the `default` role alongside `style`.
+- `style?`. Per-Collection paint, `{color, outline, opacity, variants}`. Drives both the MapLibre styles and the thumbnail paint. Each entry in `variants` is a dict, `{name, title?, description?, type, ...}`, becoming one `styles/<name>.json` and one `style-<name>` asset with the `title` and `description` carried onto the asset and into the style body. The FIRST variant is the default style, is what the thumbnail renders, and is the one whose asset carries the `default` role alongside `style`. Variant types:
+  - `flat`. The base paint, optional `color` and `opacity` overrides.
+  - `categorical`. `{field, palette?, sort?}`. A `match` over the field's real values from the shared palette. `sort: value` orders by the field's own ordering, for ordinals like income groups, the default orders most-common-first.
+  - `graduated`. `{field, breaks?, ramp?, radius_range?}`. A binned `step`, not a continuous interpolate, because classed fills read better and a `step` is mechanically summarizable into a legend, which portolan-browser derives from the style body. `breaks` default to the sampled quartiles, `ramp` needs one colour per class (breaks plus one), and `radius_range` on points also steps the circle radius.
+  - `heatmap`. A MapLibre heatmap layer over points, optional `heatmap_radius`.
+  - `outline`. A line layer over polygons, optional `color` and `width`, no fill.
+  - `expression`. `{paint: {key: raw MapLibre expression}}`. The escape hatch for what no shorthand covers, a case over a flag, an arithmetic ratio, a highlight. Favor legend-derivable shapes, `match` and `step`, and relabel coded columns with an inner match so the legend reads in words (see spec issue #118).
+  - Any variant may add `labels: {field, size?, filter?}` for a symbol layer.
 - `columns?`. `{column_name: description}`. Merged into `table:columns` by `describe_columns`. A Parquet footer carries names and types but no semantics, so the prose has to come from the manifest. Required in spirit for `tabular`, where the column schema is the only semantic handle a consumer gets. Also feeds the `{{schema}}` table in the README, one authored description generates both surfaces.
 - `bbox?`. Tabular only. The area of interest the table pertains to, which core.md asks for in place of a geometric footprint. Absent, the fallback is the whole world, correct only for a genuinely global table.
 - `join?`. Tabular only. `{column, target, target_column, target_file, note?}`. Emits the README join section and a runnable DuckDB example, which formats.md requires whenever geometry and attributes live in separate files. `target_file` is relative to the Collection directory.
@@ -219,6 +233,8 @@ onto the canvas with `rasterio.features`. Rasters are warped on top with
 - The raster extension v2.0.0 is not declared, its schema conflicts with Collection-level assets (spec issues #52 and #41). Statistics still ship in core `bands`.
 - COG overview depth is never pinned. `to_cog` omits `overview_level` so rio-cogeo derives it from the raster size and the 512px output blocksize, halving until the coarsest level fits inside one tile. That is OGC 21-026's `/req/optimized_geotiff/number`, which formats.md raises to a MUST and rashid enforces as PTL-DAT-011. A fixed level, which this used to carry, under-builds overviews on a large raster and builds pointless ones on a raster smaller than a tile. Note the requirement reads "one tile across or down", so the bar is the shorter side, which is what rio-cogeo measures.
 - A MapLibre style's PMTiles url is relative to the `styles/` directory the file sits in, so it is `../name.pmtiles`, never `./name.pmtiles`. The `./` form resolves to `styles/name.pmtiles`, which does not exist, and the style then loads no tiles and renders an empty map. Nothing else catches this, rashid does not read style bodies and the STAC validators skip style files for having no `stac_version`, so `check_styles.py` asserts every url resolves to a real file. The source key and every `layers[].source` are `data` per formats.md, while `source-layer` stays the tippecanoe layer name.
+- A collection that renders from source, no PMTiles, gets styles too, sourcing the GeoParquet itself (`../name.parquet`) with no `source-layer`. MapLibre cannot load that url, and does not need to. A Portolan client binds the style onto the data it loaded, which portolan-browser does for GeoParquet from its PR #28, and check_styles.py asserts the url still resolves to the real file.
+- Legends are derived from style bodies by clients, and only `match` and binned `step` expressions on a fill layer summarize into one. That is why `graduated` emits `step` rather than a continuous interpolate, and why coded columns are relabeled through an inner match. The gaps, `case`, circle, line, and heatmap layers, and numeric label formatting, are spec issue #118.
 - The thumbnail is painted from the DEFAULT style, meaning the variant listed first in `style.variants`, which is also the variant `stacio` publishes with the `default` role that core.md requires. `stacio` passes `default_variant` into the thumbnail context and `thumbnails.py` only reaches for the category palette when that variant is in `CATEGORICAL_VARIANTS`. So a Collection that wants a category-coloured preview leads with `categorical`, it does not keep a flat `default` in front of it. Previously the thumbnail branched on `category_field` alone and three Collections shipped previews with zero pixels in common with their own default style.
 - tippecanoe records both `--name` and the verbatim command line in the archive metadata, so it runs with `cwd` set to the Collection directory and bare filenames. Passing absolute paths ships the builder's home directory inside every published `.pmtiles`.
 - A nested Collection's STAC `id` is its full POSIX path from the catalog root, `boundaries/us-counties`, not the leaf segment. Filenames still use the leaf, a slash cannot appear in one. Nothing validates this, rashid has no id rules and the profile schema has no id constraint, so it is easy to regress.

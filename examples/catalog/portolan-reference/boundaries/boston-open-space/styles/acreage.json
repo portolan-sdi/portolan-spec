@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "boston-open-space graduated",
+  "name": "Acreage in four classes",
   "sources": {
     "data": {
       "type": "vector",
@@ -12,27 +12,28 @@
       "id": "boston-open-space",
       "type": "fill",
       "source": "data",
-      "source-layer": "boston-open-space",
       "paint": {
         "fill-color": [
-          "interpolate",
-          [
-            "linear"
-          ],
+          "step",
           [
             "get",
             "ACRES"
           ],
-          0.0,
-          "#f7fbff",
-          0.635,
-          "#6baed6",
-          392.16,
-          "#08306b"
+          "#e8f5e9",
+          1,
+          "#a5d6a7",
+          10,
+          "#66bb6a",
+          100,
+          "#1b5e20"
         ],
         "fill-outline-color": "#ffffff",
         "fill-opacity": 0.6
-      }
+      },
+      "source-layer": "boston-open-space"
     }
-  ]
+  ],
+  "metadata": {
+    "description": "ACRES binned at one, ten, and one hundred acres, light to dark green, from pocket parks through Franklin Park's 392 acres."
+  }
 }

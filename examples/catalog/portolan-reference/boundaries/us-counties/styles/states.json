@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "us-counties categorical",
+  "name": "Counties by state",
   "sources": {
     "data": {
       "type": "vector",
@@ -12,7 +12,6 @@
       "id": "us-counties",
       "type": "fill",
       "source": "data",
-      "source-layer": "us-counties",
       "paint": {
         "fill-color": [
           "match",
@@ -120,7 +119,11 @@
         ],
         "fill-outline-color": "#ffffff",
         "fill-opacity": 0.6
-      }
+      },
+      "source-layer": "us-counties"
     }
-  ]
+  ],
+  "metadata": {
+    "description": "Every county coloured by STATE_NAME from the catalog palette, the classic mosaic that makes state boundaries emerge from county fills."
+  }
 }

@@ -140,27 +140,6 @@
       "file:size": 435122,
       "file:checksum": "1220a7a9d30cbd97f9a92161530a4f335aa50db1307ce24ab7d16f7de668595d519e"
     },
-    "style-categorical": {
-      "href": "./styles/categorical.json",
-      "type": "application/vnd.mapbox.style+json",
-      "title": "Categorical MapLibre style",
-      "roles": [
-        "style",
-        "default"
-      ],
-      "file:size": 1116,
-      "file:checksum": "12209ba3d8136ec149ac47a65465488dd16e17cb90491b370d2955bdbf30bbbec96e"
-    },
-    "style-labeled": {
-      "href": "./styles/labeled.json",
-      "type": "application/vnd.mapbox.style+json",
-      "title": "Labeled MapLibre style",
-      "roles": [
-        "style"
-      ],
-      "file:size": 1542,
-      "file:checksum": "12208ca919cc57340e124a236d994f7101f2a4011133feaf8a64b10f1d1af348962c"
-    },
     "thumbnail": {
       "href": "./thumbnail.png",
       "type": "image/png",
@@ -170,6 +149,51 @@
       ],
       "file:size": 188545,
       "file:checksum": "12203e5bed76be1af81a77828cebf137805a4168848e56289de7d197eb7341ebb2b0"
+    },
+    "style-provinces": {
+      "href": "./styles/provinces.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Provinces by name",
+      "roles": [
+        "style",
+        "default"
+      ],
+      "file:size": 1185,
+      "file:checksum": "1220cf5f8ee0cd01a9d9cc9719de17497d61bff1e179649e9a267e8268d06f690f4d",
+      "description": "Twelve provinces, one palette colour each."
+    },
+    "style-labeled": {
+      "href": "./styles/labeled.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Provinces with names",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1625,
+      "file:checksum": "1220ecd4e7efb630d5c84ea81ccd7c3ce7bc4125979e8569ee4f8b3e67b01cfe9e43",
+      "description": "The province colouring with a naam label on each."
+    },
+    "style-randstad": {
+      "href": "./styles/randstad.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "The Randstad and the rest",
+      "roles": [
+        "style"
+      ],
+      "file:size": 888,
+      "file:checksum": "122020b1129b4287304507f1d0f5a4079c6d2aa4c4a1f789c9364e5daaa717263628",
+      "description": "Noord-Holland, Zuid-Holland, and Utrecht, the provinces of the Randstad conurbation, highlighted orange against the rest in muted green."
+    },
+    "style-boundaries": {
+      "href": "./styles/boundaries.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "Boundary lines only",
+      "roles": [
+        "style"
+      ],
+      "file:size": 533,
+      "file:checksum": "122013feb7c07c1c517924d55cc90603ae6e1dd9bba54aad6585abe180cdddf09db6",
+      "description": "Province borders as bare lines with no fill, for use over other layers."
     },
     "metadata": {
       "href": "./iso19115.xml",

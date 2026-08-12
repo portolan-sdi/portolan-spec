@@ -1,0 +1,45 @@
+{
+  "version": 8,
+  "name": "Permanently protected or not",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "pmtiles://../boston-open-space.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "boston-open-space",
+      "type": "fill",
+      "source": "data",
+      "paint": {
+        "fill-color": [
+          "match",
+          [
+            "match",
+            [
+              "get",
+              "POS"
+            ],
+            "X",
+            "Protected forever",
+            "N",
+            "Not protected",
+            "Unclear"
+          ],
+          "Protected forever",
+          "#1b5e20",
+          "Not protected",
+          "#bdbdbd",
+          "#fdd835"
+        ],
+        "fill-outline-color": "#ffffff",
+        "fill-opacity": 0.6
+      },
+      "source-layer": "boston-open-space"
+    }
+  ],
+  "metadata": {
+    "description": "The POS flag, deep green where protection is permanent under Article 97 or a conservation restriction, gray where it is not. The inner match relabels the raw X and N codes so the legend a client derives from the outer match reads in plain words."
+  }
+}

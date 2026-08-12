@@ -1,0 +1,48 @@
+{
+  "version": 8,
+  "name": "Places by feature class",
+  "sources": {
+    "data": {
+      "type": "vector",
+      "url": "../natural-earth-populated-places.parquet"
+    }
+  },
+  "layers": [
+    {
+      "id": "natural-earth-populated-places",
+      "type": "circle",
+      "source": "data",
+      "paint": {
+        "circle-radius": 3,
+        "circle-color": [
+          "match",
+          [
+            "get",
+            "FEATURECLA"
+          ],
+          "Admin-1 capital",
+          "#4e79a7",
+          "Populated place",
+          "#f28e2b",
+          "Admin-0 capital",
+          "#59a14f",
+          "Admin-1 region capital",
+          "#e15759",
+          "Scientific station",
+          "#b07aa1",
+          "Admin-0 region capital",
+          "#76b7b2",
+          "Admin-0 capital alt",
+          "#edc948",
+          "Historic place",
+          "#ff9da7",
+          "#cccccc"
+        ],
+        "circle-opacity": 0.85
+      }
+    }
+  ],
+  "metadata": {
+    "description": "FEATURECLA separates national and regional capitals, plain populated places, and the 40 Antarctic scientific stations."
+  }
+}
