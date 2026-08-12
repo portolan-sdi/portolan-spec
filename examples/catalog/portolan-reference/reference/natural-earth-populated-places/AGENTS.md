@@ -31,7 +31,8 @@ The `data` asset carries the same code as `proj:code`.
 
 The same CRS as the countries Collection, so the two overlay and join
 without a transform. Nearest-neighbour work wants
-`ST_Distance_Sphere`, which the query below uses.
+`ST_Distance_Sphere`, which needs `geometry_always_xy` set first, as
+the query below does.
 
 ## Tested Queries
 
@@ -52,11 +53,12 @@ Nearest city to a point, distance in kilometres.
 
 ```sql
 INSTALL spatial; LOAD spatial;
+SET geometry_always_xy = true;
 SELECT NAME, ADM0NAME,
        round(ST_Distance_Sphere(geom, ST_Point(-122.4783, 37.8199)) / 1000, 1) AS km
 FROM read_parquet('natural-earth-populated-places.parquet')
 ORDER BY km LIMIT 3;
--- San Francisco 9.0 km, San Jose 71.7 km, Sacramento 120.4 km.
+-- San Francisco 8.0 km, San Jose 75.2 km, Sacramento 121.7 km.
 ```
 
 ## Related Collections
