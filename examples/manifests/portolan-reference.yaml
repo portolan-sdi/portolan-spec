@@ -55,6 +55,18 @@ host:
   url: https://github.com/portolan-sdi
   email: portolan@googlegroups.com
 
+# The catalog logo, published as the root rel=icon link core.md's Catalog Logo
+# section describes. source is relative to this manifest, and build.py copies the
+# image into _assets/ beside the root catalog.json so the href stays relative and
+# the catalog stays portable. type must be one a browser renders in an img
+# element, and the build fails on one that is not. title becomes the image's
+# accessible label wherever a page renders the logo. PNG rather than SVG here
+# because stac-js drops image/svg+xml, so STAC Browser would show nothing.
+logo:
+  source: assets/portolan-logo.png
+  type: image/png
+  title: Portolan SDI
+
 # Thumbnail rendering. build.py draws each thumbnail in Web Mercator at the
 # data's true aspect ratio over this XYZ tile basemap, so previews read as real
 # maps rather than stretched squares. tiles.py fetches only the tiles the framed

@@ -37,6 +37,12 @@
       "href": "./README.md",
       "type": "text/markdown",
       "title": "Human-readable documentation"
+    },
+    {
+      "rel": "icon",
+      "href": "./_assets/junta-andalucia.png",
+      "type": "image/png",
+      "title": "Junta de Andalucía"
     }
   ]
 }

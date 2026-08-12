@@ -450,6 +450,33 @@ the IANA-registered relation for a resource carrying a description of the linked
 resource, and is already common in STAC. The `README.md` MUST contain at minimum a
 title, description, license, and data provenance.
 
+## Catalog Logo
+
+A registry lists many catalogs side by side. A logo makes each one recognizable
+before the reader has read a word. The root catalog MAY publish a logo as a link
+with `rel: "icon"`.
+
+STAC defines no `logo` relation. `icon` is registered with IANA, and stac-js and
+STAC Browser already read it. STAC uses `preview` for a preview of the data
+itself, so `preview` is not the relation for a logo. A collection publishes its
+data preview as a `thumbnail` asset, described under
+[Visualization](#visualization).
+
+An `icon` link MUST declare a `type`, and that type MUST be one of `image/apng`,
+`image/avif`, `image/gif`, `image/jpeg`, `image/png`, `image/svg+xml`, or
+`image/webp`. A client drops an icon whose media type it does not recognize, so an
+undeclared type renders nowhere. stac-js rejects `image/svg+xml`. STAC Browser
+therefore does not show an SVG logo.
+
+An `icon` link SHOULD carry a `title`. A page that renders the logo needs the
+title as the image's accessible label. Only the publisher knows what the logo
+shows.
+
+The `href` SHOULD be relative, which keeps the catalog portable for the reason
+[Links](#links) gives. A catalog stores the image under `_assets/` beside the root
+`catalog.json`. An absolute `href` to an external host stays valid, and a publisher
+who serves one logo across several catalogs will use one.
+
 ## Metadata
 
 Collections SHOULD include machine-readable metadata (e.g. [Apache
