@@ -1,11 +1,15 @@
 # Keeps the actions in .github/workflows/ current.
 #
 # Several of them are pinned exactly rather than to a floating major, because
-# setup-uv stopped publishing major tags after v7 and peak/action-setup-s5cmd
-# publishes no tags at all, so the jobs holding publishing credentials pin it to
-# a commit. An exact pin is only safe while something raises it. Without this
-# config those versions freeze at whatever was current the day they were
-# written, and the repo quietly ships an action nobody has looked at in a year.
+# setup-uv stopped publishing major tags after v7. An exact pin is only safe
+# while something raises it. Without this config those versions freeze at
+# whatever was current the day they were written, and the repo quietly ships an
+# action nobody has looked at in a year.
+#
+# One pin sits outside that reach. .github/actions/setup-s5cmd downloads a
+# pinned s5cmd release asset by URL, and Dependabot reads `uses:` references
+# rather than URLs in shell, so it will never raise that one. Upgrading s5cmd
+# is a hand edit of the version and the digest together, recorded there.
 #
 # Directory / covers .github/workflows/ for this ecosystem.
 
