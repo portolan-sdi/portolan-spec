@@ -19,6 +19,7 @@ conformance rules the JSON schema delegates to tooling. Run:
     uv run examples/tools/tests/check_compliance.py
 """
 import json
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -401,6 +402,30 @@ def check_committed_agents_docs_state_their_crs() -> None:
             assert "EPSG:" not in agents, f"{cid} has no proj:code but names an EPSG code"
 
 
+def check_geodesic_examples_set_the_axis_order() -> None:
+    # DuckDB's geodesic functions read the first coordinate as latitude unless
+    # geometry_always_xy is set, and this catalog stores longitude first, so a
+    # block that calls one without the setting publishes a wrong number that
+    # still looks plausible. check_docs.py cannot catch it, because it proves a
+    # block runs rather than that its answer is right. Each block gets a fresh
+    # connection, so each one needs its own SET.
+    axis_sensitive = ("ST_Distance_Sphere", "ST_Area_Spheroid",
+                      "ST_Length_Spheroid", "ST_Perimeter_Spheroid")
+    docs = sorted(glob.glob(str(ROOT / "examples/catalog/**/*.md"), recursive=True))
+    assert docs, "no committed docs found"
+    checked = 0
+    for path in docs:
+        for block in re.findall(r"```sql\n(.*?)```", Path(path).read_text(), re.S):
+            if not any(fn in block for fn in axis_sensitive):
+                continue
+            checked += 1
+            rel = Path(path).relative_to(ROOT)
+            assert "SET geometry_always_xy = true;" in block, (
+                f"{rel} runs a geodesic function without setting the axis "
+                f"order, so its answer is wrong\n{block}")
+    assert checked, "no geodesic examples found, the guard is checking nothing"
+
+
 CHECKS = [
     check_official_host_moved_last,
     check_multiple_hosts_error,
@@ -429,6 +454,7 @@ CHECKS = [
     check_crs_placeholder_renders_for_a_geospatial_collection,
     check_crs_placeholder_without_a_proj_code_raises,
     check_committed_agents_docs_state_their_crs,
+    check_geodesic_examples_set_the_axis_order,
 ]
 
 

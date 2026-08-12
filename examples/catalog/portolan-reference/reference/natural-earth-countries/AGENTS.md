@@ -30,16 +30,17 @@ The `data` asset carries the same code as `proj:code`.
 
 Coordinates are stored longitude first. `ST_Area(geom)` in square
 degrees makes Greenland read nearly as large as Brazil. For real areas
-use the spheroid function, and flip coordinates first because DuckDB's
-geodesic functions expect latitude first.
+use the spheroid function, and set `geometry_always_xy` first, because
+DuckDB still reads the first coordinate as latitude by default.
 
 ```sql
 INSTALL spatial; LOAD spatial;
-SELECT NAME, round(ST_Area_Spheroid(ST_FlipCoordinates(geom)) / 1e6) AS km2
+SET geometry_always_xy = true;
+SELECT NAME, round(ST_Area_Spheroid(geom) / 1e6) AS km2
 FROM read_parquet('natural-earth-countries.parquet')
 ORDER BY km2 DESC LIMIT 5;
 -- Russia 17,018,507 then Antarctica, Canada, United States, China.
--- Without the flip, Brazil returns 5.2M km2 instead of 8.5M and 33
+-- Without the setting, Brazil returns 5.2M km2 instead of 8.5M and 33
 -- countries return NaN.
 ```
 

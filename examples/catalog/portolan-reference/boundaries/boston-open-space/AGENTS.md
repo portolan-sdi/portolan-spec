@@ -35,16 +35,17 @@ The `data` asset carries the same code as `proj:code`.
 ## Area, Use the ACRES Column
 
 The official `ACRES` column matches geodesic geometry area to a median
-of 0.003 acres, use it. If you must compute, DuckDB's spheroid function
-wants latitude first, and skipping the flip shrinks Boston by more
-than half.
+of 0.003 acres, use it. If you must compute, set `geometry_always_xy`
+first, because DuckDB reads the first coordinate as latitude by
+default and that shrinks Boston by more than half.
 
 ```sql
 INSTALL spatial; LOAD spatial;
-SELECT round(sum(ST_Area_Spheroid(ST_FlipCoordinates(geom))) / 4046.8564) AS acres_flipped,
+SET geometry_always_xy = true;
+SELECT round(sum(ST_Area_Spheroid(geom)) / 4046.8564) AS acres_geodesic,
        round(sum(ACRES)) AS acres_official
 FROM read_parquet('boston-open-space.parquet');
--- 7374 from geometry against 7356 official. Without the flip, 3250.
+-- 7374 from geometry against 7356 official. Without the setting, 3250.
 ```
 
 Eighteen sites disagree with their geometry by more than 10 percent,

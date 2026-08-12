@@ -32,10 +32,11 @@ EPSG:4269, NAD83, a geographic coordinate reference system whose coordinates are
 Planar distance and area functions return degrees and square degrees, which are not ground units and vary with latitude. For real distances and areas use a sphere or spheroid function, or transform to a projected CRS first.
 The `data` asset carries the same code as `proj:code`.
 
-The spheroid escape hatch does not work here. DuckDB's
-`ST_Area_Spheroid` returns NaN or wrong values on several of these
-multipolygons, so trust `ALAND` and `AWATER`, or transform to an
-equal-area CRS.
+The spheroid function works here once `geometry_always_xy` is set.
+Without it 1,646 of the 3,235 counties return NaN, which reads like a
+geometry problem and is not. Transforming to an equal-area CRS is
+still the better habit, since it leaves you somewhere you can measure,
+and the query below does that.
 
 ```sql
 INSTALL spatial; LOAD spatial;

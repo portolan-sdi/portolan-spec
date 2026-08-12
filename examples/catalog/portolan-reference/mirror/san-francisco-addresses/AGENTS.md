@@ -34,9 +34,9 @@ EPSG:4326, WGS 84, a geographic coordinate reference system whose coordinates ar
 Planar distance functions return degrees, which are not ground units and vary with latitude. For real distances use a sphere or spheroid function, or transform to a projected CRS first.
 The `data` asset carries the same code as `proj:code`.
 
-For metric distances use `ST_Distance_Sphere`, as the query below
-does, or transform to EPSG:26910, UTM zone 10N, for planar work over
-San Francisco.
+For metric distances use `ST_Distance_Sphere` with
+`geometry_always_xy` set, as the query below does, or transform to
+EPSG:26910, UTM zone 10N, for planar work over San Francisco.
 
 ## Tested Queries
 
@@ -54,12 +54,13 @@ Addresses within 250 meters of a point, metric distance done right.
 
 ```sql
 INSTALL spatial; LOAD spatial;
+SET geometry_always_xy = true;
 SELECT address,
        round(ST_Distance_Sphere(geom, ST_Point(-122.419331, 37.779237))) AS meters
 FROM read_parquet('san-francisco-addresses.parquet')
 WHERE ST_Distance_Sphere(geom, ST_Point(-122.419331, 37.779237)) < 250
 ORDER BY meters LIMIT 5;
--- 512 Van Ness Ave #415 at 104 meters leads.
+-- One row, 512 Van Ness Ave #415 at 136 meters.
 ```
 
 Buildings with the most sampled units.
