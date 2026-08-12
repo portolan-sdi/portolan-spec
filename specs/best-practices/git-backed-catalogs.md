@@ -78,7 +78,7 @@ A catalog may have a reason to accept a validator finding temporarily, for examp
 
 Core's [`via`](../portolan/core.md#source-provenance) link relation records where the data came from. It does not identify the repository that maintains the catalog, so a consumer may have no machine-readable way to find the repository or report a correction.
 
-Several catalogs use different approaches today, but no single approach has become standard. The examples below describe the current options without recommending one. The question is tracked in [issue #145](https://github.com/portolan-sdi/portolan-spec/issues/145).
+Several catalogs use different approaches today, but no single approach has become standard. The examples below describe the current options without recommending one.
 
 ### Dedicated fields
 
@@ -98,9 +98,7 @@ It does not work for every catalog. Fields of the World hosts its data on Source
 
 TriMet's published README identifies the catalog repository and the browser repository, then directs users to issues and pull requests. The Fields of the World root description says that its repository manages the metadata and accepts pull requests.
 
-People can use this information, but software cannot reliably act on it. Repository discovery therefore remains an open question for the spec.
-
-Publishers affected by this question should contribute to [issue #145](https://github.com/portolan-sdi/portolan-spec/issues/145).
+People can use this information, but software cannot reliably act on it. Repository discovery therefore remains an open question for the spec. Publishers affected by it should open an issue on the [spec repository](https://github.com/portolan-sdi/portolan-spec).
 
 ## Catalogs worth studying
 
