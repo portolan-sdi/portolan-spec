@@ -12,7 +12,7 @@ Query the GeoParquet `data` asset in place with DuckDB spatial, read_parquet('ne
 
 EPSG:28992, Amersfoort / RD New, a projected coordinate reference system whose coordinates are in metres.
 Planar distance and area functions return metres and square metres directly, so no geodesic correction is needed. Web maps and anything joined to data in degrees need a transform to EPSG:4326 first.
-The `data` asset carries the same code as `proj:code`, so this and the machine-readable metadata cannot disagree.
+The `data` asset carries the same code as `proj:code`.
 
 This is the Dutch national grid, valid only for the European
 Netherlands. Divide `ST_Area(geom)` by 1e6 for square kilometres and

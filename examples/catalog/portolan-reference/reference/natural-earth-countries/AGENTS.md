@@ -26,7 +26,7 @@ Query the GeoParquet `data` asset in place with DuckDB spatial, read_parquet('na
 
 EPSG:4326, WGS 84, a geographic coordinate reference system whose coordinates are in degrees.
 Planar distance and area functions return degrees and square degrees, which are not ground units and vary with latitude. For real distances and areas use a sphere or spheroid function, or transform to a projected CRS first.
-The `data` asset carries the same code as `proj:code`, so this and the machine-readable metadata cannot disagree.
+The `data` asset carries the same code as `proj:code`.
 
 Coordinates are stored longitude first. `ST_Area(geom)` in square
 degrees makes Greenland read nearly as large as Brazil. For real areas

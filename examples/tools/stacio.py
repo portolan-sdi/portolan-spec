@@ -308,7 +308,48 @@ _UNIT_PLURALS = {
 }
 
 
-def crs_block(crs: str) -> list[str]:
+# What a CRS costs you depends on the geometry, not on the CRS alone. A point
+# has no area and a line has no area, so naming area functions there sends a
+# reader after a measurement the data cannot produce. Each shape gets the
+# measures it can actually compute, as the function name, what it returns, and
+# the plural noun for the geodesic advice.
+_MEASURES = {
+    "polygon": ("distance and area", "{u} and square {u}", "distances and areas"),
+    "line": ("length and distance", "{u}", "lengths and distances"),
+    "point": ("distance", "{u}", "distances"),
+}
+
+
+def _vector_consequence(shape: str, unit: str, geographic: bool) -> str:
+    """What the CRS means for SQL over a geometry column of this shape."""
+    if shape not in _MEASURES:
+        raise ValueError(
+            f"a vector Collection using {{{{crs}}}} needs a known geometry to "
+            f"say what follows from its CRS, got {shape!r}, expected one of "
+            f"{', '.join(sorted(_MEASURES))}")
+    names, returns, real = _MEASURES[shape]
+    got = returns.format(u=unit)
+    if geographic:
+        return (f"Planar {names} functions return {got}, which are not ground "
+                f"units and vary with latitude. For real {real} use a sphere "
+                "or spheroid function, or transform to a projected CRS first.")
+    return (f"Planar {names} functions return {got} directly, so no geodesic "
+            "correction is needed. Web maps and anything joined to data in "
+            "degrees need a transform to EPSG:4326 first.")
+
+
+def _raster_consequence(unit: str, geographic: bool) -> str:
+    """What the CRS means for a grid, which has no geometry column at all."""
+    if geographic:
+        return ("Pixel size is in degrees, so the ground size of a cell "
+                "changes with latitude. Warp to a projected CRS before "
+                "measuring anything off the grid.")
+    return (f"Pixel size is in {unit}, so cell size and any distance read off "
+            f"the grid are already in {unit}. Web maps need a warp to "
+            "EPSG:3857, and joining to data in degrees needs EPSG:4326 first.")
+
+
+def crs_block(crs: str, kind: str, geometry: str | None) -> list[str]:
     """The coordinate reference system block, and the consequence of it.
 
     The best-practices documentation page asks an AGENTS.md to name the CRS and
@@ -318,31 +359,27 @@ def crs_block(crs: str) -> list[str]:
     the axis unit, so a Collection that changes its output CRS cannot leave
     stale prose behind. Nothing about the CRS is written by hand in a manifest.
 
+    The consequence is chosen by kind and geometry as well, because the same
+    CRS costs a different thing on each. A polygon layer can measure area, a
+    line layer length, a point layer only distance, and a raster has no
+    geometry column to run any of them over, so it is told about pixel size
+    instead. Naming a measure the data cannot produce reads as authoritative
+    and sends a consumer down a dead end.
+
     A Collection with no CRS never gets this block, and `{{crs}}` is withheld
     from its templates rather than rendering something vague."""
     d = describe_crs(crs)
     unit = _UNIT_PLURALS.get(d["unit"], d["unit"])
-    lines = [
+    geographic = d["kind"] == "geographic"
+    return [
         "## Coordinate Reference System",
         "",
         f"{d['code']}, {d['name']}, a {d['kind']} coordinate reference system "
         f"whose coordinates are in {unit}.",
+        _raster_consequence(unit, geographic) if kind == "raster"
+        else _vector_consequence(geometry or "", unit, geographic),
+        "The `data` asset carries the same code as `proj:code`.",
     ]
-    if d["kind"] == "geographic":
-        lines.append(
-            f"Planar distance and area functions return {unit} and square "
-            f"{unit}, which are not ground units and vary with latitude. For "
-            "real distances and areas use a sphere or spheroid function, or "
-            "transform to a projected CRS first.")
-    else:
-        lines.append(
-            f"Planar distance and area functions return {unit} and square "
-            f"{unit} directly, so no geodesic correction is needed. Web maps "
-            "and anything joined to data in degrees need a transform to "
-            "EPSG:4326 first.")
-    lines.append("The `data` asset carries the same code as `proj:code`, so "
-                 "this and the machine-readable metadata cannot disagree.")
-    return lines
 
 
 def provenance_block(spec: dict, providers: list[dict], facts: dict) -> list[str]:
@@ -432,7 +469,8 @@ def collection_readme_extra(spec: dict, facts: dict) -> list[str]:
         "join": join_section(facts.get("join") or {}),
     }
     if facts.get("crs"):
-        blocks["crs"] = crs_block(facts["crs"])
+        blocks["crs"] = crs_block(facts["crs"], facts["kind"],
+                                  spec.get("geometry"))
     template = (docs.get("readme") or "").strip()
     if not template:
         template = "## Quick Start\n\n{{quickstart}}"
@@ -461,7 +499,8 @@ def collection_agents_lines(spec: dict, facts: dict) -> list[str]:
                          facts["has_visual"], facts["has_thumb"])
     blocks = {"access": [access]}
     if facts.get("crs"):
-        blocks["crs"] = crs_block(facts["crs"])
+        blocks["crs"] = crs_block(facts["crs"], facts["kind"],
+                                  spec.get("geometry"))
     template = (docs.get("agents") or "").strip()
     if not template:
         src = facts["src"]

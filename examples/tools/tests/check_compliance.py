@@ -317,18 +317,50 @@ def check_crs_block_is_derived_not_authored() -> None:
     # Every fact in the block comes from the CRS registry, so a projected CRS
     # gets its linear unit and a geographic one gets the degrees warning
     # without anything in a manifest saying so.
-    proj = "\n".join(crs_block("EPSG:28992"))
+    proj = "\n".join(crs_block("EPSG:28992", "vector", "polygon"))
     assert "## Coordinate Reference System" in proj, proj
     assert "EPSG:28992, Amersfoort / RD New" in proj, proj
     assert "projected" in proj and "metres" in proj, proj
-    geog = "\n".join(crs_block("EPSG:4269"))
+    geog = "\n".join(crs_block("EPSG:4269", "vector", "polygon"))
     assert "EPSG:4269, NAD83" in geog, geog
     assert "geographic" in geog and "square degrees" in geog, geog
 
 
+def check_crs_consequence_matches_the_geometry() -> None:
+    # A measure the geometry cannot produce reads as authoritative and sends a
+    # consumer after a number that is always zero. Verified in DuckDB 1.5.5,
+    # ST_Area and ST_Length on a POINT both return 0.0, and ST_Area on a
+    # LINESTRING returns 0.0, so only a polygon may be told about area.
+    point = "\n".join(crs_block("EPSG:4326", "vector", "point"))
+    assert "area" not in point.lower(), point
+    assert "distance" in point, point
+    line = "\n".join(crs_block("EPSG:4326", "vector", "line"))
+    assert "area" not in line.lower(), line
+    assert "length" in line, line
+    polygon = "\n".join(crs_block("EPSG:4326", "vector", "polygon"))
+    assert "square degrees" in polygon, polygon
+    # A raster has no geometry column, so naming SQL measures over one is
+    # meaningless. It is told about pixel size instead.
+    raster = "\n".join(crs_block("EPSG:32618", "raster", None))
+    assert "Pixel size" in raster, raster
+    assert "functions" not in raster, raster
+
+
+def check_crs_block_without_a_geometry_raises() -> None:
+    # A vector Collection whose manifest omits geometry cannot be told what
+    # follows from its CRS, so the build stops rather than guessing polygon
+    # and shipping area advice to a point layer.
+    try:
+        crs_block("EPSG:4326", "vector", None)
+    except ValueError as exc:
+        assert "geometry" in str(exc), f"reason not given: {exc}"
+        return
+    raise AssertionError("a vector Collection with no geometry did not raise")
+
+
 def check_crs_placeholder_renders_for_a_geospatial_collection() -> None:
     spec = {"id": "x/y", "title": "T", "license": "CC0-1.0",
-            "docs": {"agents": "Lead.\n\n{{crs}}"}}
+            "geometry": "polygon", "docs": {"agents": "Lead.\n\n{{crs}}"}}
     facts = {"kind": "vector", "data_name": "y.parquet", "has_visual": False,
              "has_thumb": False, "crs": "EPSG:32618"}
     out = "\n".join(collection_agents_lines(spec, facts))
@@ -392,6 +424,8 @@ CHECKS = [
     check_describe_crs_projected,
     check_describe_crs_unknown_raises,
     check_crs_block_is_derived_not_authored,
+    check_crs_consequence_matches_the_geometry,
+    check_crs_block_without_a_geometry_raises,
     check_crs_placeholder_renders_for_a_geospatial_collection,
     check_crs_placeholder_without_a_proj_code_raises,
     check_committed_agents_docs_state_their_crs,

@@ -19,8 +19,8 @@ Read the COG `data` asset with rioxarray.open_rasterio("sample-cog.tif", masked=
 ## Coordinate Reference System
 
 EPSG:32618, WGS 84 / UTM zone 18N, a projected coordinate reference system whose coordinates are in metres.
-Planar distance and area functions return metres and square metres directly, so no geodesic correction is needed. Web maps and anything joined to data in degrees need a transform to EPSG:4326 first.
-The `data` asset carries the same code as `proj:code`, so this and the machine-readable metadata cannot disagree.
+Pixel size is in metres, so cell size and any distance read off the grid are already in metres. Web maps need a warp to EPSG:3857, and joining to data in degrees needs EPSG:4326 first.
+The `data` asset carries the same code as `proj:code`.
 
 ## Pixel Math
 
