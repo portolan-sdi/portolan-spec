@@ -11,6 +11,8 @@ the people who publish them and the agents that consume them.
   what makes a good `README.md`.
 - [`philosophy.md`](philosophy.md) — how to think about scoping, organizing, and
   maintaining a Portolan catalog; pointers to exemplary catalogs.
+- [`git-backed-catalogs.md`](git-backed-catalogs.md) — keeping catalog metadata
+  in a repository, with the data outside it, and validating every change in CI.
 - [`grader.md`](grader.md) — the rubric for rating catalog quality, A+ through F.
 - [`styling.md`](styling.md) — making visualization styles that are clear and
   distinctive across a catalog.
