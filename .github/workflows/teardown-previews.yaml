@@ -40,11 +40,10 @@ jobs:
         with:
           persist-credentials: false
 
-      # Same commit pin as publish-catalogs.yaml, this repo publishes no tags.
+      # The same local action publish-catalogs.yaml installs s5cmd with, so the
+      # delete and the publish run the same pinned binary.
       - name: Install s5cmd
-        uses: peak/action-setup-s5cmd@bde462e7399c68b4a9b05549d90b0e7d5c95e60f
-        with:
-          version: v2.3.0
+        uses: ./.github/actions/setup-s5cmd
 
       - uses: astral-sh/setup-uv@v9.0.0
 

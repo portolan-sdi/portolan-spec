@@ -143,14 +143,14 @@ jobs:
           sudo apt-get install -y --no-install-recommends tippecanoe
           tippecanoe --version
 
-      # peak/action-setup-s5cmd publishes no tags, so this is pinned to a commit
-      # rather than tracking main. The job holds publishing credentials, and a
-      # mutable third-party ref in it is a supply-chain hole. Reads as `@main`
-      # in peak's own README.
+      # A local action rather than peak/action-setup-s5cmd. That one resolves
+      # the download through the unauthenticated GitHub releases API, which is
+      # rate limited per runner IP and takes the publish down with it when the
+      # IP arrives spent. The local one fetches a pinned release asset by URL
+      # and checks its digest, so this job depends on no API and on no mutable
+      # third-party ref while holding publishing credentials.
       - name: Install s5cmd
-        uses: peak/action-setup-s5cmd@bde462e7399c68b4a9b05549d90b0e7d5c95e60f
-        with:
-          version: v2.3.0
+        uses: ./.github/actions/setup-s5cmd
 
       - uses: astral-sh/setup-uv@v9.0.0
         with:

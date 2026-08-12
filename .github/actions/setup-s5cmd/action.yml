@@ -1,0 +1,77 @@
+name: Setup s5cmd
+description: Install a pinned s5cmd on PATH from a checksum-verified release asset.
+
+# Replaces peak/action-setup-s5cmd, which resolves the download URL through the
+# unauthenticated GitHub releases API. That API is rate limited per runner IP,
+# and a shared IP can arrive already spent. The limited response is an error
+# object rather than the release list the action expects, so its `jq` filter
+# indexes a string and the step dies with:
+#
+#   jq: error (at <stdin>:1): Cannot index string with string "tag_name"
+#
+# The failure lands on whichever job draws the exhausted IP, so it reads as a
+# flake and a re-run usually clears it. It is not a flake. Every publish is one
+# unlucky scheduling away from it, and the jobs it breaks are the ones that
+# hold Source Cooperative credentials.
+#
+# Release asset URLs are deterministic, so fetching one directly needs no API
+# call and cannot be rate limited.
+#
+# The version and the checksum are pinned here rather than taken as inputs.
+# They have to move together, and an input that lets a caller raise one without
+# the other is a trap. Both callers want the same s5cmd anyway. To upgrade,
+# change both values below and confirm the new digest against the
+# `s5cmd_checksums.txt` published with that release.
+#
+# Dependabot does not watch a URL in a shell script the way it watches a `uses:`
+# reference, so nothing raises this automatically. See .github/dependabot.yml.
+
+runs:
+  using: composite
+  steps:
+    - name: Install s5cmd
+      shell: bash
+      env:
+        S5CMD_VERSION: 2.3.0
+        S5CMD_SHA256: de0fdbfa3aceae55e069ba81a0fc17b2026567637603734a387b2fca06c299b4
+      run: |
+        set -euo pipefail
+
+        # The pinned digest covers the Linux x86-64 asset alone. A runner that
+        # is neither would need its own digest, and guessing one from the
+        # architecture would defeat the point of pinning it. Fail loudly here
+        # instead of downloading an asset nobody has vouched for.
+        if [ "$RUNNER_OS" != "Linux" ] || [ "$RUNNER_ARCH" != "X64" ]; then
+          echo "::error::setup-s5cmd pins the Linux X64 asset, but this runner" \
+            "is ${RUNNER_OS} ${RUNNER_ARCH}. Add a digest for that platform" \
+            "in .github/actions/setup-s5cmd/action.yml before using it there."
+          exit 1
+        fi
+
+        asset="s5cmd_${S5CMD_VERSION}_Linux-64bit.tar.gz"
+        url="https://github.com/peak/s5cmd/releases/download/v${S5CMD_VERSION}/${asset}"
+
+        work="${RUNNER_TEMP}/s5cmd-install"
+        bin="${RUNNER_TEMP}/s5cmd-bin"
+        mkdir -p "$work" "$bin"
+
+        # --fail keeps an HTML error page from being written into the archive,
+        # so a bad response reports itself as a failed download rather than a
+        # corrupt tarball. The retries cover transient network errors, which
+        # were never the problem this action solves but are cheap to absorb.
+        curl --silent --show-error --location --fail \
+          --retry 3 --retry-all-errors \
+          --output "${work}/${asset}" "$url"
+
+        # The URL says where the bytes came from. The digest says which bytes
+        # arrived. These jobs hold publishing credentials, so both are checked.
+        echo "${S5CMD_SHA256}  ${work}/${asset}" | sha256sum --check --strict -
+
+        tar -xzf "${work}/${asset}" -C "$bin" s5cmd
+
+        echo "$bin" >> "$GITHUB_PATH"
+
+        # publish_catalogs.py looks s5cmd up with shutil.which and exits if it
+        # is missing. Proving it runs here turns a broken install into a clear
+        # failure in this step rather than a confusing one several steps later.
+        "${bin}/s5cmd" version
