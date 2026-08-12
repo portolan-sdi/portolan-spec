@@ -76,47 +76,63 @@ A catalog may have a reason to accept a validator finding temporarily, for examp
 
 ## Link a catalog to its repository
 
-Core's [`via`](../portolan/core.md#source-provenance) link relation records where the data came from. It does not identify the repository that maintains the catalog, so a consumer may have no machine-readable way to find the repository or report a correction.
+If a catalog is maintained in Git, publish two links on the root catalog:
 
-Add two links to the root catalog: `vcs` for the repository, and `issues` for its issue tracker. Both hrefs are absolute, because the repository is not part of the published catalog.
+* `vcs` points to the repository.
+* `issues` points to its issue tracker.
+
+Use absolute URLs because the repository is outside the published catalog.
 
 ```json
 { "rel": "vcs",    "href": "https://github.com/example/catalog", "title": "Source repository" },
 { "rel": "issues", "href": "https://github.com/example/catalog/issues", "title": "Issue tracker" }
 ```
 
-This is a convention for catalogs managed this way, not a Core requirement. Core describes every catalog, and most catalogs have no repository behind them. A validator cannot check this either, because nothing in a published catalog says whether one exists.
+This is a best practice, not a Core requirement. Not every catalog is maintained in Git, and a catalog does not say whether it is. A validator therefore cannot require these links.
 
-Fields of the World already publishes both links. The reasoning for preferring them over the two alternatives follows.
+Fields of the World already uses both links. The reasons for this convention are below.
 
-### Why links rather than fields
+### Why use links
 
-Fields of the World also carries `git:repository`, `git:ref`, and `git:provider`, from an extension proposal that has not shipped. Portolan 0.1 does not define these fields, rashid does not interpret them, and `tests/test_git_ext.py` checks them with hardcoded string comparisons.
+Fields of the World also publishes `git:repository`, `git:ref`, and `git:provider` fields from an extension proposal that has not shipped. Portolan does not define these fields, and rashid does not interpret them.
 
-The links carry the same information at lower cost. A repository is a related resource, which is what link relations are for, and the extra fields are derivable or rare: the provider follows from the host name, the branch defaults to the repository's default branch, and a path inside the repository matters only for a monorepo. Neither `vcs` nor `issues` is registered with IANA, but a consumer that does not recognize a relation ignores it.
+The links provide what a consumer needs without adding new fields:
 
-### Why not the host provider URL
+* The repository URL identifies the repository and its Git provider.
+* The default branch needs no separate field.
+* A repository path is only needed when the catalog lives inside a monorepo.
+* A repository and its issue tracker are related resources, so link relations are a natural way to reference them.
 
-TriMet and St. Louis set the `url` of their `host` provider to the GitHub repository, on the root catalog and on each collection. This uses existing Core vocabulary and appears at every level of the tree.
+`vcs` and `issues` are not IANA-registered relations, but clients that do not recognize them can ignore them.
 
-It cannot serve as a general mechanism. A provider `url` records where an organization can be reached, so a repository URL there is indistinguishable from a homepage, and it leaves no place for an issue tracker. It also fails for catalogs that use a hosting service: Fields of the World stores its data on Source Cooperative, so its `host` provider correctly identifies Source Cooperative rather than a repository.
+### Why not `providers[host].url`
+
+TriMet and St. Louis put their GitHub repository in the `url` of the `host` provider, both on the root catalog and on collections.
+
+This is ambiguous because `host` identifies where the catalog's data is hosted, not where its metadata is maintained. FTW demonstrates the problem: its data is hosted by Source Cooperative, so its `host` provider correctly points to Source Cooperative rather than its Git repository.
+
+It also provides no separate link to the issue tracker.
 
 ### Why the root catalog only
 
-The repository describes the whole tree, so repeating it on every collection duplicates a fact that can then go stale. Every object carries a `root` link, so a consumer that arrives at a `collection.json` is one step from the answer.
+The repository maintains the catalog as a whole, so repeating the repository links on every collection adds duplication.
 
-### Prose as well
+The root catalog is always reachable through the `root` link. A client that starts at a collection can therefore follow that link to find the repository.
 
-TriMet's published README identifies the catalog repository and directs readers to issues and pull requests. The Fields of the World root description says that its repository manages the metadata and accepts pull requests. Software cannot act on either, but people find them, so write the invitation in prose as well as in the links.
+### Include the links in prose too
+
+The machine-readable links are the reliable way for software to find the repository and issue tracker. A README or catalog description can also tell people where to contribute.
+
+TriMet's README and the Fields of the World description both do this. This is useful for human contributors but does not replace the links.
 
 ## Catalogs worth studying
 
-- [ftw-data-catalog](https://github.com/fieldsoftheworld/ftw-data-catalog) — Metadata for a global machine-learning dataset with hundreds of gigabytes of data on Source Cooperative. Its `CLAUDE.md` documents the publication model and explains why a full recursive bucket listing was too slow.
-- [portolan-catalog-stlouis](https://github.com/cholmes/portolan-catalog-stlouis) — Twenty collections mirrored from a city open-data portal, with the fetch, conversion, assembly, and validation workflow in the repository.
-- [portolan-catalog-trimet](https://github.com/cholmes/portolan-catalog-trimet) — Eight transit datasets, with deterministic regeneration tests and a documented conformance-waiver process.
+* [ftw-data-catalog](https://github.com/fieldsoftheworld/ftw-data-catalog) — Metadata for a global machine-learning dataset with hundreds of gigabytes of data on Source Cooperative. Its `CLAUDE.md` documents the publication model and explains why a full recursive bucket listing was too slow.
+* [portolan-catalog-stlouis](https://github.com/cholmes/portolan-catalog-stlouis) — Twenty collections mirrored from a city open-data portal, with the fetch, conversion, assembly, and validation workflow in the repository.
+* [portolan-catalog-trimet](https://github.com/cholmes/portolan-catalog-trimet) — Eight transit datasets, with deterministic regeneration tests and a documented conformance-waiver process.
 
 ## Status
 
-This page documents practices used by three publishers as of August 2026. That is a small sample, so these practices may change as more git-backed catalogs are published.
+This page documents practices used by three publishers as of August 2026. The `vcs` and `issues` convention is already used by Fields of the World; the other practices are drawn from all three catalogs.
 
-The `vcs` and `issues` links are the newest part and the least tested. One catalog publishes them today. If enough catalogs adopt them, they are a candidate for Core; if a better mechanism appears first, this page changes. If you maintain a git-backed catalog and do something different, open an issue or pull request on the [spec repository](https://github.com/portolan-sdi/portolan-spec).
+This is a best practice rather than a normative requirement. We can revisit it if more Git-backed catalogs reveal a better pattern.
