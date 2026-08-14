@@ -9,6 +9,18 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+## 0.1.1 - 2026-08-14
+
+A catalog declares this version by carrying
+`https://schemas.portolan-sdi.org/portolan/v0.1.1/schema.json` in `stac_extensions`.
+The `v0.1.0` schema stays published unchanged, so a catalog authored against that
+version keeps validating against it.
+
+Two changes ask something new of a catalog that already conforms. A collection
+with more than one style now MUST mark exactly one style asset with the `default`
+role (`PORTO-CORE-070`, raised from SHOULD), and a root catalog that publishes an
+`icon` link MUST give it a `type` (`PORTO-CORE-075`).
+
 ### Added
 
 - `PORTO-FMT-046` and `PORTO-FMT-047`: a vector collection SHOULD document its
@@ -49,6 +61,23 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   GeoParquet was never intended. The role records provenance, not hosting;
   which servers the Data Storage requirements reach is settled by
   PORTO-CORE-073 (#90).
+- **Catalog Logo** (PORTO-CORE-074 through PORTO-CORE-077): the root catalog MAY
+  publish a logo as a link with `rel: "icon"`. A registry lists many catalogs
+  side by side, and a logo makes each one recognizable before the reader has read
+  a word. STAC defines no `logo` relation, `icon` is registered with IANA, and
+  stac-js and STAC Browser already read it. An `icon` link MUST declare a `type`
+  drawn from the seven image media types a browser renders in an `<img>` element,
+  since a client drops an icon whose media type it does not recognize. The link
+  SHOULD carry a `title`, which a page renders as the image's accessible label,
+  and its `href` SHOULD be relative, which keeps the catalog portable. The
+  reference catalog publishes the Portolan logo from `_assets/` (#136).
+- **Git-backed catalogs**: a new best-practices page,
+  [`specs/best-practices/git-backed-catalogs.md`](specs/best-practices/git-backed-catalogs.md),
+  covers publishing a catalog whose source of truth is a Git repository. It
+  recommends `vcs` and `issues` links on the root catalog so software can find
+  the repository and its issue tracker. Both relations are registered with IANA.
+  This is a recommended convention, not a Portolan requirement, and the page says
+  so (#145).
 
 ### Changed
 
@@ -108,8 +137,8 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   enforcement moves from `process` to `validator`, since a data pass can check it.
 - **Assets** (PORTO-CORE-029): reworded to govern a `file:checksum` where one is
   present. Multihash encoding is still required, unchanged in force.
-- **Requirements manifest**: 121 requirements, now 87 MUST, 19 SHOULD, and
-  15 MAY.
+- **Requirements manifest**: 125 requirements, now 88 MUST, 21 SHOULD, and
+  16 MAY.
 - **Default style is identified by a `default` role**
   ([`specs/portolan/core.md`](specs/portolan/core.md)): a collection with more than
   one style now MUST mark exactly one style asset with `roles: ["style", "default"]`,

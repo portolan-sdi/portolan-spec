@@ -16,6 +16,12 @@ sentence it governs, so the check needs no markup inside the markdown:
    inside the span of some matched quote or exclusion. Adding a normative
    sentence without a manifest entry fails here.
 
+3. The newest requirements census in CHANGELOG.md must match the manifest.
+   The census is the "**Requirements manifest**: N requirements, now A MUST,
+   B SHOULD, and C MAY." line a release writes. Nothing else reads the
+   changelog, so before this check the census drifted every time a
+   requirement landed without a release (#150).
+
 Exclusions cover uppercase keyword mentions that are not requirements (for
 example, prose explaining the RFC 2119 conventions themselves).
 
@@ -29,6 +35,7 @@ Usage::
 
 from __future__ import annotations
 
+import collections
 import re
 import sys
 from pathlib import Path
@@ -38,6 +45,14 @@ import yaml
 # specs/tools/check_requirements.py -> repo root is three levels up
 ROOT = Path(__file__).resolve().parent.parent.parent
 MANIFEST = ROOT / "specs" / "portolan" / "requirements.yaml"
+CHANGELOG = ROOT / "CHANGELOG.md"
+
+# The census line a release writes, matched against whitespace-normalized text
+# because the changelog wraps it across two lines.
+CENSUS = re.compile(
+    r"\*\*Requirements manifest\*\*: (\d+) requirements, now (\d+) MUST, "
+    r"(\d+) SHOULD, and (\d+) MAY\."
+)
 
 KEYWORD = re.compile(
     r"\b(MUST NOT|MUST|SHOULD NOT|SHOULD|MAY|REQUIRED|RECOMMENDED|OPTIONAL)\b"
@@ -59,9 +74,37 @@ def spans_of(needle: str, haystack: str) -> list[tuple[int, int]]:
     return spans
 
 
+def census_errors(manifest: dict) -> list[str]:
+    """Compare the newest CHANGELOG.md census against the manifest.
+
+    The topmost census line is the newest one, so a release that changes the
+    requirement set and forgets to write a fresh census fails here rather than
+    shipping a stale number. A changelog with no census line at all has nothing
+    to drift.
+    """
+    matches = list(CENSUS.finditer(normalize(CHANGELOG.read_text())))
+    if not matches:
+        return []
+    claimed = tuple(int(group) for group in matches[0].groups())
+    counts = collections.Counter(e["severity"] for e in manifest["requirements"])
+    actual = (
+        len(manifest["requirements"]),
+        counts["MUST"],
+        counts["SHOULD"],
+        counts["MAY"],
+    )
+    if claimed == actual:
+        return []
+    return [
+        "CHANGELOG.md census reads {} requirements, {} MUST, {} SHOULD, {} MAY; "
+        "the manifest holds {}, {}, {}, {}".format(*claimed, *actual)
+    ]
+
+
 def main() -> int:
     errors: list[str] = []
     manifest = yaml.safe_load(MANIFEST.read_text())
+    errors.extend(census_errors(manifest))
 
     seen_ids: set[str] = set()
     per_file_spans: dict[str, list[tuple[int, int]]] = {}
