@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.1.1 - 2026-08-14
+
+The schema is published at
+<https://schemas.portolan-sdi.org/portolan/v0.1.1/schema.json>. The `v0.1.0`
+schema stays published unchanged.
+
 ### Changed
 
 - The extension registry now records the table extension as SHOULD for vector
@@ -24,6 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   asset carries either field rather than on every object with assets.
 - `PORTO-CORE-026`: `image/webp` is now a valid thumbnail media type alongside
   `image/png` and `image/jpeg`. No existing catalog breaks.
+- A link with `rel: "icon"` now MUST carry a `type`, and the schema restricts it
+  to `image/apng`, `image/avif`, `image/gif`, `image/jpeg`, `image/png`,
+  `image/svg+xml`, and `image/webp`, matching core.md's Catalog Logo section. The
+  section's other two rules, a relative `href` and a `title`, are SHOULD-level,
+  so Portolan tooling reports them and the schema does not. A catalog that
+  carries an icon link without a media type conformed before and does not now.
 - The media types and roles table lists the `source` and `collection-mirror`
   roles, which catalogs already carry. The schema is unchanged: `roles` stays a
   non-empty array of non-empty strings with no enumeration, so no previously

@@ -67,7 +67,7 @@ def main() -> int:
     ap.add_argument("--cache", default=root / "examples/.cache", type=Path)
     ap.add_argument("--catalog", default=None, help="build only the manifest with this file stem")
     ap.add_argument("--only", default=None, help="build only this collection id")
-    ap.add_argument("--schema", default=root / "stac/json-schema/v0.1.0/schema.json", type=Path)
+    ap.add_argument("--schema", default=root / "stac/json-schema/v0.1.1/schema.json", type=Path)
     ap.add_argument("--no-validate", action="store_true")
     ap.add_argument("--styles-only", action="store_true",
                     help="re-author MapLibre styles and their assets against "
