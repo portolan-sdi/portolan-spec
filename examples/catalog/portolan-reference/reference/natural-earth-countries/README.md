@@ -62,7 +62,7 @@ Twenty-two of the 171 columns do most of the work.
 | `geom` | geometry | Country geometry, polygon or multipolygon, WGS84 longitude and latitude. |
 | `bbox` | struct(xmin double, ymin double, xmax double, ymax double) | Per-feature bounding box struct, the GeoParquet covering used for spatial predicate pushdown. |
 
-The table has 171 columns in all. The full list with types lives in `table:columns` on the `data` asset.
+The table has 171 columns in all. The full list with types lives in `table:columns` on the collection.
 
 ## Join Statistics to Geometry
 

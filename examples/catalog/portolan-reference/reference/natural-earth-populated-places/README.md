@@ -72,7 +72,7 @@ Nineteen of the 140 columns cover most uses.
 | `geom` | geometry | Point geometry, WGS84 longitude and latitude. Use it instead of the legacy LATITUDE and LONGITUDE columns. |
 | `bbox` | struct(xmin double, ymin double, xmax double, ymax double) | Per-feature bounding box struct, the GeoParquet covering. |
 
-The table has 140 columns in all. The full list with types lives in `table:columns` on the `data` asset.
+The table has 140 columns in all. The full list with types lives in `table:columns` on the collection.
 
 ## Limitations
 

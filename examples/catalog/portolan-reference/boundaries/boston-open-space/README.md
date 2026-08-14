@@ -63,7 +63,7 @@ The `data` asset is GeoParquet 2.0 with a native geometry type and a covering bb
 | `geom` | geometry | Site geometry, WGS84 longitude and latitude. |
 | `bbox` | struct(xmin double, ymin double, xmax double, ymax double) | Per-feature bounding box struct, the GeoParquet covering. |
 
-The table has 21 columns in all. The full list with types lives in `table:columns` on the `data` asset.
+The table has 21 columns in all. The full list with types lives in `table:columns` on the collection.
 
 ## Protection and Access Are Columns, Not Assumptions
 

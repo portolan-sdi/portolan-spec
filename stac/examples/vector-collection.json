@@ -4,7 +4,8 @@
   "stac_extensions": [
     "https://schemas.portolan-sdi.org/portolan/v0.1.0/schema.json",
     "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json",
-    "https://stac-extensions.github.io/file/v2.1.0/schema.json"
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json"
   ],
   "id": "municipal-boundaries",
   "title": "Municipal Boundaries of Andalusia",
@@ -55,6 +56,33 @@
       ]
     }
   },
+  "table:columns": [
+    {
+      "name": "municipio_id",
+      "type": "string",
+      "description": "INE municipality code, five digits, stable across editions."
+    },
+    {
+      "name": "nombre",
+      "type": "string",
+      "description": "Official municipality name in Spanish."
+    },
+    {
+      "name": "provincia",
+      "type": "string",
+      "description": "Province the municipality belongs to, one of the eight in Andalusia."
+    },
+    {
+      "name": "superficie_km2",
+      "type": "double",
+      "description": "Area in square kilometres, computed in EPSG:25830."
+    },
+    {
+      "name": "geometry",
+      "type": "binary",
+      "description": "Municipality boundary as WKB, EPSG:4326."
+    }
+  ],
   "assets": {
     "data": {
       "href": "./municipal-boundaries.parquet",

@@ -53,7 +53,7 @@ abandoning it.
 | `geom` | geometry('epsg:28992') | Province geometry, multipolygon, in the Dutch national grid EPSG:28992 in meters. |
 | `bbox` | struct(xmin double, ymin double, xmax double, ymax double) | Per-feature bounding box struct in RD New meters, the GeoParquet covering. |
 
-The table has 8 columns in all. The full list with types lives in `table:columns` on the `data` asset.
+The table has 8 columns in all. The full list with types lives in `table:columns` on the collection.
 
 ## Join the National Statistics
 

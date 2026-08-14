@@ -56,6 +56,589 @@
       ]
     }
   },
+  "table:columns": [
+    {
+      "name": "fid",
+      "type": "bigint"
+    },
+    {
+      "name": "SCALERANK",
+      "type": "integer",
+      "description": "Importance rank 0 to 10, 0 most important. Filter on it to thin labels by zoom."
+    },
+    {
+      "name": "NATSCALE",
+      "type": "integer"
+    },
+    {
+      "name": "LABELRANK",
+      "type": "integer"
+    },
+    {
+      "name": "FEATURECLA",
+      "type": "varchar",
+      "description": "What kind of place this is. Admin-0 capital, Admin-1 capital, Populated place, Scientific station, and four rarer classes."
+    },
+    {
+      "name": "NAME",
+      "type": "varchar",
+      "description": "Display name with diacritics, for example Neuqu\u00e9n. Not unique, several city names repeat across countries."
+    },
+    {
+      "name": "NAMEPAR",
+      "type": "varchar"
+    },
+    {
+      "name": "NAMEALT",
+      "type": "varchar"
+    },
+    {
+      "name": "NAMEASCII",
+      "type": "varchar",
+      "description": "ASCII fallback spelling of the name."
+    },
+    {
+      "name": "ADM0CAP",
+      "type": "integer",
+      "description": "1 marks a national capital, 200 rows in this file."
+    },
+    {
+      "name": "CAPIN",
+      "type": "varchar"
+    },
+    {
+      "name": "WORLDCITY",
+      "type": "integer",
+      "description": "1 flags 70 globally prominent cities."
+    },
+    {
+      "name": "MEGACITY",
+      "type": "integer",
+      "description": "1 flags the 462 places Natural Earth treats as megacities."
+    },
+    {
+      "name": "SOV0NAME",
+      "type": "varchar"
+    },
+    {
+      "name": "SOV_A3",
+      "type": "varchar"
+    },
+    {
+      "name": "ADM0NAME",
+      "type": "varchar",
+      "description": "Country name the point belongs to."
+    },
+    {
+      "name": "ADM0_A3",
+      "type": "varchar",
+      "description": "Natural Earth country code, the join key to the countries Collection."
+    },
+    {
+      "name": "ADM1NAME",
+      "type": "varchar",
+      "description": "First-level admin region the point belongs to."
+    },
+    {
+      "name": "ISO_A2",
+      "type": "varchar"
+    },
+    {
+      "name": "NOTE",
+      "type": "varchar"
+    },
+    {
+      "name": "LATITUDE",
+      "type": "double"
+    },
+    {
+      "name": "LONGITUDE",
+      "type": "double"
+    },
+    {
+      "name": "POP_MAX",
+      "type": "bigint",
+      "description": "Population of the metro area, LandScan derived. Tokyo carries 35,676,000."
+    },
+    {
+      "name": "POP_MIN",
+      "type": "bigint",
+      "description": "Population of the city proper. Tokyo carries 8,336,599."
+    },
+    {
+      "name": "POP_OTHER",
+      "type": "bigint"
+    },
+    {
+      "name": "RANK_MAX",
+      "type": "integer"
+    },
+    {
+      "name": "RANK_MIN",
+      "type": "integer"
+    },
+    {
+      "name": "MEGANAME",
+      "type": "varchar"
+    },
+    {
+      "name": "LS_NAME",
+      "type": "varchar"
+    },
+    {
+      "name": "MAX_POP10",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_POP20",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_POP50",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_POP300",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_POP310",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_NATSCA",
+      "type": "bigint"
+    },
+    {
+      "name": "MIN_AREAKM",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_AREAKM",
+      "type": "bigint"
+    },
+    {
+      "name": "MIN_AREAMI",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_AREAMI",
+      "type": "bigint"
+    },
+    {
+      "name": "MIN_PERKM",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_PERKM",
+      "type": "bigint"
+    },
+    {
+      "name": "MIN_PERMI",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_PERMI",
+      "type": "bigint"
+    },
+    {
+      "name": "MIN_BBXMIN",
+      "type": "double"
+    },
+    {
+      "name": "MAX_BBXMIN",
+      "type": "double"
+    },
+    {
+      "name": "MIN_BBXMAX",
+      "type": "double"
+    },
+    {
+      "name": "MAX_BBXMAX",
+      "type": "double"
+    },
+    {
+      "name": "MIN_BBYMIN",
+      "type": "double"
+    },
+    {
+      "name": "MAX_BBYMIN",
+      "type": "double"
+    },
+    {
+      "name": "MIN_BBYMAX",
+      "type": "double"
+    },
+    {
+      "name": "MAX_BBYMAX",
+      "type": "double"
+    },
+    {
+      "name": "MEAN_BBXC",
+      "type": "double"
+    },
+    {
+      "name": "MEAN_BBYC",
+      "type": "double"
+    },
+    {
+      "name": "TIMEZONE",
+      "type": "varchar",
+      "description": "IANA time zone name, empty for 114 rows."
+    },
+    {
+      "name": "UN_FID",
+      "type": "integer"
+    },
+    {
+      "name": "POP1950",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1955",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1960",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1965",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1970",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1975",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1980",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1985",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1990",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1995",
+      "type": "bigint"
+    },
+    {
+      "name": "POP2000",
+      "type": "bigint"
+    },
+    {
+      "name": "POP2005",
+      "type": "bigint"
+    },
+    {
+      "name": "POP2010",
+      "type": "bigint"
+    },
+    {
+      "name": "POP2015",
+      "type": "bigint"
+    },
+    {
+      "name": "POP2020",
+      "type": "bigint"
+    },
+    {
+      "name": "POP2025",
+      "type": "bigint"
+    },
+    {
+      "name": "POP2050",
+      "type": "bigint"
+    },
+    {
+      "name": "MIN_ZOOM",
+      "type": "double",
+      "description": "Suggested minimum web-map zoom for showing the place."
+    },
+    {
+      "name": "WIKIDATAID",
+      "type": "varchar",
+      "description": "Wikidata QID, missing for 7 rows."
+    },
+    {
+      "name": "WOF_ID",
+      "type": "bigint"
+    },
+    {
+      "name": "CAPALT",
+      "type": "integer"
+    },
+    {
+      "name": "NAME_EN",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_DE",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_ES",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_FR",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_PT",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_RU",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_ZH",
+      "type": "varchar"
+    },
+    {
+      "name": "LABEL",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_AR",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_BN",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_EL",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_HI",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_HU",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_ID",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_IT",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_JA",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_KO",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_NL",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_PL",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_SV",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_TR",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_VI",
+      "type": "varchar"
+    },
+    {
+      "name": "NE_ID",
+      "type": "bigint",
+      "description": "Stable Natural Earth feature id, unique in this file."
+    },
+    {
+      "name": "NAME_FA",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_HE",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_UK",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_UR",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_ZHT",
+      "type": "varchar"
+    },
+    {
+      "name": "GEONAMESID",
+      "type": "bigint",
+      "description": "GeoNames id, missing for 43 rows."
+    },
+    {
+      "name": "FCLASS_ISO",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_US",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_FR",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_RU",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_ES",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_CN",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_TW",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_IN",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_NP",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_PK",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_DE",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_GB",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_BR",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_IL",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_PS",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_SA",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_EG",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_MA",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_PT",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_AR",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_JP",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_KO",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_VN",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_TR",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_ID",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_PL",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_GR",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_IT",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_NL",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_SE",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_BD",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_UA",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_TLC",
+      "type": "varchar"
+    },
+    {
+      "name": "geom",
+      "type": "geometry",
+      "description": "Point geometry, WGS84 longitude and latitude. Use it instead of the legacy LATITUDE and LONGITUDE columns."
+    },
+    {
+      "name": "bbox",
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+      "description": "Per-feature bounding box struct, the GeoParquet covering."
+    }
+  ],
+  "table:primary_geometry": "geom",
+  "table:row_count": 1251,
   "assets": {
     "data": {
       "href": "./natural-earth-populated-places.parquet",
@@ -66,589 +649,6 @@
       ],
       "file:size": 618506,
       "file:checksum": "1220acfc4c9abd3e9302626b384b41d7c74c62cc5026289d3aee3bca35a0c13ee5f0",
-      "table:columns": [
-        {
-          "name": "fid",
-          "type": "bigint"
-        },
-        {
-          "name": "SCALERANK",
-          "type": "integer",
-          "description": "Importance rank 0 to 10, 0 most important. Filter on it to thin labels by zoom."
-        },
-        {
-          "name": "NATSCALE",
-          "type": "integer"
-        },
-        {
-          "name": "LABELRANK",
-          "type": "integer"
-        },
-        {
-          "name": "FEATURECLA",
-          "type": "varchar",
-          "description": "What kind of place this is. Admin-0 capital, Admin-1 capital, Populated place, Scientific station, and four rarer classes."
-        },
-        {
-          "name": "NAME",
-          "type": "varchar",
-          "description": "Display name with diacritics, for example Neuqu\u00e9n. Not unique, several city names repeat across countries."
-        },
-        {
-          "name": "NAMEPAR",
-          "type": "varchar"
-        },
-        {
-          "name": "NAMEALT",
-          "type": "varchar"
-        },
-        {
-          "name": "NAMEASCII",
-          "type": "varchar",
-          "description": "ASCII fallback spelling of the name."
-        },
-        {
-          "name": "ADM0CAP",
-          "type": "integer",
-          "description": "1 marks a national capital, 200 rows in this file."
-        },
-        {
-          "name": "CAPIN",
-          "type": "varchar"
-        },
-        {
-          "name": "WORLDCITY",
-          "type": "integer",
-          "description": "1 flags 70 globally prominent cities."
-        },
-        {
-          "name": "MEGACITY",
-          "type": "integer",
-          "description": "1 flags the 462 places Natural Earth treats as megacities."
-        },
-        {
-          "name": "SOV0NAME",
-          "type": "varchar"
-        },
-        {
-          "name": "SOV_A3",
-          "type": "varchar"
-        },
-        {
-          "name": "ADM0NAME",
-          "type": "varchar",
-          "description": "Country name the point belongs to."
-        },
-        {
-          "name": "ADM0_A3",
-          "type": "varchar",
-          "description": "Natural Earth country code, the join key to the countries Collection."
-        },
-        {
-          "name": "ADM1NAME",
-          "type": "varchar",
-          "description": "First-level admin region the point belongs to."
-        },
-        {
-          "name": "ISO_A2",
-          "type": "varchar"
-        },
-        {
-          "name": "NOTE",
-          "type": "varchar"
-        },
-        {
-          "name": "LATITUDE",
-          "type": "double"
-        },
-        {
-          "name": "LONGITUDE",
-          "type": "double"
-        },
-        {
-          "name": "POP_MAX",
-          "type": "bigint",
-          "description": "Population of the metro area, LandScan derived. Tokyo carries 35,676,000."
-        },
-        {
-          "name": "POP_MIN",
-          "type": "bigint",
-          "description": "Population of the city proper. Tokyo carries 8,336,599."
-        },
-        {
-          "name": "POP_OTHER",
-          "type": "bigint"
-        },
-        {
-          "name": "RANK_MAX",
-          "type": "integer"
-        },
-        {
-          "name": "RANK_MIN",
-          "type": "integer"
-        },
-        {
-          "name": "MEGANAME",
-          "type": "varchar"
-        },
-        {
-          "name": "LS_NAME",
-          "type": "varchar"
-        },
-        {
-          "name": "MAX_POP10",
-          "type": "bigint"
-        },
-        {
-          "name": "MAX_POP20",
-          "type": "bigint"
-        },
-        {
-          "name": "MAX_POP50",
-          "type": "bigint"
-        },
-        {
-          "name": "MAX_POP300",
-          "type": "bigint"
-        },
-        {
-          "name": "MAX_POP310",
-          "type": "bigint"
-        },
-        {
-          "name": "MAX_NATSCA",
-          "type": "bigint"
-        },
-        {
-          "name": "MIN_AREAKM",
-          "type": "bigint"
-        },
-        {
-          "name": "MAX_AREAKM",
-          "type": "bigint"
-        },
-        {
-          "name": "MIN_AREAMI",
-          "type": "bigint"
-        },
-        {
-          "name": "MAX_AREAMI",
-          "type": "bigint"
-        },
-        {
-          "name": "MIN_PERKM",
-          "type": "bigint"
-        },
-        {
-          "name": "MAX_PERKM",
-          "type": "bigint"
-        },
-        {
-          "name": "MIN_PERMI",
-          "type": "bigint"
-        },
-        {
-          "name": "MAX_PERMI",
-          "type": "bigint"
-        },
-        {
-          "name": "MIN_BBXMIN",
-          "type": "double"
-        },
-        {
-          "name": "MAX_BBXMIN",
-          "type": "double"
-        },
-        {
-          "name": "MIN_BBXMAX",
-          "type": "double"
-        },
-        {
-          "name": "MAX_BBXMAX",
-          "type": "double"
-        },
-        {
-          "name": "MIN_BBYMIN",
-          "type": "double"
-        },
-        {
-          "name": "MAX_BBYMIN",
-          "type": "double"
-        },
-        {
-          "name": "MIN_BBYMAX",
-          "type": "double"
-        },
-        {
-          "name": "MAX_BBYMAX",
-          "type": "double"
-        },
-        {
-          "name": "MEAN_BBXC",
-          "type": "double"
-        },
-        {
-          "name": "MEAN_BBYC",
-          "type": "double"
-        },
-        {
-          "name": "TIMEZONE",
-          "type": "varchar",
-          "description": "IANA time zone name, empty for 114 rows."
-        },
-        {
-          "name": "UN_FID",
-          "type": "integer"
-        },
-        {
-          "name": "POP1950",
-          "type": "bigint"
-        },
-        {
-          "name": "POP1955",
-          "type": "bigint"
-        },
-        {
-          "name": "POP1960",
-          "type": "bigint"
-        },
-        {
-          "name": "POP1965",
-          "type": "bigint"
-        },
-        {
-          "name": "POP1970",
-          "type": "bigint"
-        },
-        {
-          "name": "POP1975",
-          "type": "bigint"
-        },
-        {
-          "name": "POP1980",
-          "type": "bigint"
-        },
-        {
-          "name": "POP1985",
-          "type": "bigint"
-        },
-        {
-          "name": "POP1990",
-          "type": "bigint"
-        },
-        {
-          "name": "POP1995",
-          "type": "bigint"
-        },
-        {
-          "name": "POP2000",
-          "type": "bigint"
-        },
-        {
-          "name": "POP2005",
-          "type": "bigint"
-        },
-        {
-          "name": "POP2010",
-          "type": "bigint"
-        },
-        {
-          "name": "POP2015",
-          "type": "bigint"
-        },
-        {
-          "name": "POP2020",
-          "type": "bigint"
-        },
-        {
-          "name": "POP2025",
-          "type": "bigint"
-        },
-        {
-          "name": "POP2050",
-          "type": "bigint"
-        },
-        {
-          "name": "MIN_ZOOM",
-          "type": "double",
-          "description": "Suggested minimum web-map zoom for showing the place."
-        },
-        {
-          "name": "WIKIDATAID",
-          "type": "varchar",
-          "description": "Wikidata QID, missing for 7 rows."
-        },
-        {
-          "name": "WOF_ID",
-          "type": "bigint"
-        },
-        {
-          "name": "CAPALT",
-          "type": "integer"
-        },
-        {
-          "name": "NAME_EN",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_DE",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_ES",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_FR",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_PT",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_RU",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_ZH",
-          "type": "varchar"
-        },
-        {
-          "name": "LABEL",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_AR",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_BN",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_EL",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_HI",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_HU",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_ID",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_IT",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_JA",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_KO",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_NL",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_PL",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_SV",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_TR",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_VI",
-          "type": "varchar"
-        },
-        {
-          "name": "NE_ID",
-          "type": "bigint",
-          "description": "Stable Natural Earth feature id, unique in this file."
-        },
-        {
-          "name": "NAME_FA",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_HE",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_UK",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_UR",
-          "type": "varchar"
-        },
-        {
-          "name": "NAME_ZHT",
-          "type": "varchar"
-        },
-        {
-          "name": "GEONAMESID",
-          "type": "bigint",
-          "description": "GeoNames id, missing for 43 rows."
-        },
-        {
-          "name": "FCLASS_ISO",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_US",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_FR",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_RU",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_ES",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_CN",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_TW",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_IN",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_NP",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_PK",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_DE",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_GB",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_BR",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_IL",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_PS",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_SA",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_EG",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_MA",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_PT",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_AR",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_JP",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_KO",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_VN",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_TR",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_ID",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_PL",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_GR",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_IT",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_NL",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_SE",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_BD",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_UA",
-          "type": "varchar"
-        },
-        {
-          "name": "FCLASS_TLC",
-          "type": "varchar"
-        },
-        {
-          "name": "geom",
-          "type": "geometry",
-          "description": "Point geometry, WGS84 longitude and latitude. Use it instead of the legacy LATITUDE and LONGITUDE columns."
-        },
-        {
-          "name": "bbox",
-          "type": "struct(xmin double, ymin double, xmax double, ymax double)",
-          "description": "Per-feature bounding box struct, the GeoParquet covering."
-        }
-      ],
-      "table:primary_geometry": "geom",
-      "table:row_count": 1251,
       "proj:code": "EPSG:4326"
     },
     "source": {

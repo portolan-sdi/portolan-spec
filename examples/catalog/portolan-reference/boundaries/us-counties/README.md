@@ -60,7 +60,7 @@ with nine planning regions, so this file carries GEOIDs 09110 through
 | `geom` | geometry('epsg:4269') | County geometry clipped to the shoreline, NAD83 longitude and latitude. |
 | `bbox` | struct(xmin double, ymin double, xmax double, ymax double) | Per-feature bounding box struct, the GeoParquet covering. |
 
-The table has 15 columns in all. The full list with types lives in `table:columns` on the `data` asset.
+The table has 15 columns in all. The full list with types lives in `table:columns` on the collection.
 
 ## Join Census Data
 
