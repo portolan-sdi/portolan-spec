@@ -150,6 +150,14 @@ a new required field, and removing or renaming a field or accepted value are all
 breaking. A change is **non-breaking** when previously-conforming catalogs still
 conform, as with adding a warning, relaxing a constraint, or clarifying wording.
 
+**A released schema is immutable.** Once a version is tagged, the JSON Schema
+served at its URI never changes, so a catalog validates the same way in a year
+as on the day it was published. Editing the schema means adding a new version
+directory under [`stac/json-schema/`](stac/json-schema/), even for a change the
+prose treats as a clarification. The publish workflow rebuilds
+`schemas.portolan-sdi.org` from every tracked version directory on each release,
+so an in-place edit would republish the old URI with new rules.
+
 ## Contributing
 
 The spec is developed in the open, and this repository records the decisions
