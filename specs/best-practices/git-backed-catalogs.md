@@ -34,6 +34,20 @@ The publication directory does not need to contain the data assets referenced by
 
 A typical repository can use `catalog/` for published metadata, `staging/` or `sources/` for source material, `tools/` or `scripts/` for build code, and `tests/` for tests. A root `catalog.publish.yaml` can define the object-storage target and public base URL, keeping publication settings in one place.
 
+## Keep links relative
+
+Core requires relative structural links and says nothing about `self` links. For a git-backed catalog the `self` link is worth leaving out of the tracked tree, and the reason is the workflow rather than the standard.
+
+A git-backed catalog is authored in one place and served from another. The same JSON has to be valid in the repository, in whatever preview a pull request builds, and in production. Relative links give all three for free: one tree of bytes, checked by CI on a laptop or a runner, published unchanged. A `self` link names one of those locations, so the copy in git is either wrong for the other two or has to be rewritten on the way out.
+
+That cost is small in absolute terms, since only the root catalog carries the link. It is annoying in a repository. A tracked file whose correct content depends on where it was deployed produces diff noise, and it conflicts on merge or rebase for reasons that have nothing to do with the change under review. It is also a file that a contributor can get wrong in a pull request without any local check catching it.
+
+The pull is real in the other direction. A published catalog with no `self` link records nothing about where it lives. A reader holding a copy cannot tell where it came from, and a tool reading the metadata cannot turn a relative asset href into a URL without being handed a base separately. That is the case STAC's relative published catalog answers.
+
+The two goals are compatible if the publish step owns the link. Keep the tracked tree free of `self` links, and let the tool that uploads add an absolute one to the root catalog, since it is the only thing that knows the destination. The publish configuration already holds that URL: a `catalog.publish.yaml` with a `public_base` key, as described above, has everything the step needs. The repository stays portable and the published catalog stays self-describing, which is the split a git-backed workflow wants.
+
+Two practices reinforce the same point. Assets are addressed relative to the collection that declares them, which keeps a collection movable within the tree. Tools that generate documentation from the catalog, such as a README with a file table, need an absolute base to make those paths clickable; give them the publish configuration rather than absolute hrefs in the metadata.
+
 ## Keep the tools and inputs
 
 The repository should contain the scripts, tools, and source inputs used to produce the catalog. This can be custom code or existing tools such as GDAL/OGR, `gpio`, or `portolan-cli`.

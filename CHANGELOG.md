@@ -9,6 +9,31 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+### Changed
+
+- **A `self` link is no longer forbidden** (`PORTO-CORE-034`,
+  [`specs/portolan/core.md`](specs/portolan/core.md)): the rule now says only
+  that structural links MUST be relative. Portolan takes no position on `self`.
+  STAC treats the presence of one as the difference between a self-contained
+  catalog and a [relative published
+  catalog](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#relative-published-catalog),
+  and both are legitimate: the first is portable, the second records where it is
+  served from. Which one suits a catalog follows from how it is built and
+  published, not from anything Portolan needs, so forbidding the link ruled out
+  a layout STAC recommends for catalogs that live online without buying
+  conformance anything (#159). Relaxing a constraint is non-breaking.
+
+### Added
+
+- **Guidance on `self` links for git-backed catalogs**
+  ([`specs/best-practices/git-backed-catalogs.md`](specs/best-practices/git-backed-catalogs.md)):
+  a new "Keep links relative" section, replacing the normative rule with the
+  reasoning behind it. A git-backed catalog is authored in one place and served
+  from another, so a tracked `self` link is either wrong for two of the three
+  and produces diff and merge noise. The section recommends keeping the tracked
+  tree free of `self` links and letting the publish step write an absolute one
+  onto the root catalog from the `public_base` it already holds.
+
 ## 0.1.1 - 2026-08-14
 
 A catalog declares this version by carrying

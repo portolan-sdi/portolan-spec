@@ -327,8 +327,7 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      All structural links MUST be relative, and objects MUST NOT include a
-      `self` link.
+      All structural links MUST be relative.
 
   - id: PORTO-CORE-035
     severity: MUST

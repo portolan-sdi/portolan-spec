@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- The `links_conformant` block must stop rejecting a `self` link, on every
+  object rather than only the root, to match `PORTO-CORE-034`. A released
+  schema is immutable, so the edit belongs to the next version directory under
+  `stac/json-schema/` and lands with the release that cuts it (#159).
+
 ## 0.1.1 - 2026-08-14
 
 The schema is published at
