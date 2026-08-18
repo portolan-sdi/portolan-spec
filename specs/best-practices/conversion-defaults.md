@@ -17,10 +17,11 @@ these defaults.
   data types. `zstd` and `LZW` are fine alternatives where the reader supports them.
   Reach for lossy `JPEG` or `WEBP` only for visual imagery where some pixel loss is
   acceptable, never for measured or categorical data.
-- **Predictor: horizontal for integer, floating-point for float.** Predictor `2`
-  (horizontal differencing) shrinks integer rasters, and predictor `3` suits
-  floating-point data. Skip the predictor for RGB byte imagery and already-compressed
-  inputs, where it adds nothing.
+- **Predictor: horizontal for integer; test floating-point data.** Predictor `2`
+  often shrinks integer rasters. Predictor `3` can help dense, continuous
+  floating-point rasters, but it can increase the size of sparse float rasters.
+  Test representative files before you set a predictor default. Skip the predictor
+  for RGB byte imagery and already-compressed inputs, where it adds nothing.
 - **Internal tiles: 512×512.**
   [OGC 21-026](https://docs.ogc.org/is/21-026/21-026.html#optimized_geotiff-requirements-class)
   asks for square tiles no larger than a screen viewport and recommends a power of
