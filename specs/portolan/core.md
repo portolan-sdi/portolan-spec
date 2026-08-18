@@ -167,7 +167,9 @@ collection holds an intermediate (thematic) `catalog.json`, a data directory hol
 the leaf `collection.json`, and a subdirectory within a collection may hold a
 `catalog.json` that organizes many items. Deep nesting is allowed, with every
 level above the leaf a catalog; a catalog may also appear below a collection to
-organize its items (for example, a raster collection grouping items by year).
+organize its items (for example, a raster collection grouping items by year). A
+catalog with twenty or more children SHOULD organize them into subcatalogs,
+thematic or otherwise, so users can browse the data.
 
 ```
 environment/
