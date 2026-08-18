@@ -16,8 +16,14 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   of children is hard to browse, and the profile already allows a catalog at
   every level above a leaf, including below a collection. rashid reports the
   fan-out as a warning (`PTL-CAT-001`).
-- **Requirements manifest**: 126 requirements, now 88 MUST, 22 SHOULD, and
-  16 MAY.
+- **Multilingual catalogs** (`PORTO-CORE-079`, `PORTO-CORE-080`): catalogs can
+  publish a separate STAC tree for each language. `alternate` links connect the
+  trees without adding them to the catalog hierarchy. Each tree has its own root,
+  while equivalent objects use the same IDs.
+- **Multilingual catalog guidance**: a new best-practices page explains how to
+  structure, link, translate, and maintain the language trees.
+- **Requirements manifest**: 128 requirements, now 89 MUST, 22 SHOULD, and
+  17 MAY.
 
 ## 0.1.1 - 2026-08-14
 

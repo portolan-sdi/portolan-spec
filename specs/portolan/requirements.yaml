@@ -358,6 +358,33 @@ requirements:
       A link that fails to resolve, or resolves to the wrong object, is a
       conformance failure.
 
+  - id: PORTO-CORE-079
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A catalog MAY publish one STAC object tree for each language. The root
+      catalog links to each translated root with an `alternate` link, as
+      defined by the STAC
+      [Language](https://github.com/stac-extensions/language) extension.
+
+  - id: PORTO-CORE-080
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A translated tree represents the same catalog in another language. It is
+      not part of the containment tree. A catalog MUST NOT link to a translated
+      root with `child` or `item`.
+
+      Each language tree has its own root catalog. That root has no `parent`
+      link. Every `root` link in the tree points to that root catalog.
+      Equivalent objects keep the same ID across language trees.
+
+      A validator MUST treat a translated root as the start of a separate
+      language tree. It MUST NOT report missing containment links or duplicate
+      IDs between language trees.
+
   - id: PORTO-CORE-037
     severity: MUST
     enforcement: validator
