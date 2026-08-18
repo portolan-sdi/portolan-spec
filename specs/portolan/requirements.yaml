@@ -185,6 +185,14 @@ requirements:
     quote: >-
       A collection MUST NOT contain a child collection.
 
+  - id: PORTO-CORE-078
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A catalog with twenty or more children SHOULD organize them into
+      subcatalogs, thematic or otherwise, so users can browse the data.
+
   - id: PORTO-CORE-019
     severity: MUST
     enforcement: validator
