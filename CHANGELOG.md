@@ -11,10 +11,11 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Added
 
-- `PORTO-CORE-078`: a catalog with twenty or more children SHOULD organize them
-  into subcatalogs, thematic or otherwise. A flat list of dozens of children is
-  hard to browse, and the profile already allows a catalog at every level above
-  a leaf. rashid reports the fan-out as a warning (`PTL-CAT-001`).
+- `PORTO-CORE-078`: a catalog or collection with twenty or more children SHOULD
+  organize them into subcatalogs, thematic or otherwise. A flat list of dozens
+  of children is hard to browse, and the profile already allows a catalog at
+  every level above a leaf, including below a collection. rashid reports the
+  fan-out as a warning (`PTL-CAT-001`).
 - **Requirements manifest**: 126 requirements, now 88 MUST, 22 SHOULD, and
   16 MAY.
 
