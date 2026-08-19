@@ -29,7 +29,7 @@ national-geodata/
 ├── en/
 │   ├── catalog.json
 │   ├── README.md
-│   ├── AGENTS.md
+│   ├── AGENTS.md             # may stay in the source language
 │   └── cadastru/
 │       ├── collection.json
 │       ├── README.md
@@ -117,13 +117,19 @@ link to an item in the source tree and identify its language with `hreflang`:
 Translate the link title even when the target item remains in the source language.
 Clients can show the title without fetching the item.
 
-Use `hreflang` on translated `describedby` and `agents` links too. These links point
-to language-specific prose in `README.md` and `AGENTS.md`.
+Use `hreflang` on the `describedby` and `agents` links too. Both point at files in
+the same directory. The value names the language of the file it points at.
 
 ## What to Translate
 
-Translate the root catalog, collections, and their `README.md` and `AGENTS.md` files.
-These contain the descriptions that people use to understand and find the data.
+Translate the root catalog, the collections, and their `README.md` files. These
+carry the descriptions that people use to understand and find the data. The
+`AGENTS.md` files may stay in the source language, see
+[Agent Guidance](#agent-guidance).
+
+Translate the column descriptions under `table:columns` as well. A client shows
+them beside the column names, so they read as prose to the user. Keep the column
+names themselves unchanged.
 
 Translate items only when their prose warrants it. Items often contain identifiers,
 geometries, times, and asset hrefs, so duplicating thousands of them may add little
@@ -139,6 +145,31 @@ Keep these values identical in every language:
 
 They are identifiers or properties of shared data. Stable values also let clients
 match equivalent objects across trees.
+
+## Agent Guidance
+
+Every catalog and collection MUST carry an `AGENTS.md`, and the `agents` link MUST
+point at the sibling file. Core states this under
+[AGENTS.md](../portolan/core.md#agentsmd). A translated node is a catalog or a
+collection, so it carries the file too. `rashid check` reports `PTL-FIL-001` and
+`PTL-FIL-002` when it does not.
+
+The language of that file is a separate choice. Technical guidance describes the
+data rather than the prose, so it may stay in the source language. Mark the link
+with the language of the file, not the language of the tree:
+
+```json
+{
+  "rel": "agents",
+  "href": "./AGENTS.md",
+  "type": "text/markdown",
+  "title": "Guidance for AI agents",
+  "hreflang": "ro"
+}
+```
+
+Translate `AGENTS.md` when the guidance itself is about the language. The term
+glossary below is one example, because a translating agent reads it.
 
 ## One Source Language
 
