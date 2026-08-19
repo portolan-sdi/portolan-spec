@@ -19,5 +19,5 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       # Exact version, setup-uv has no floating v9 tag. See examples-checks.yaml.
-      - uses: astral-sh/setup-uv@v9.0.0
+      - uses: astral-sh/setup-uv@v10.0.1
       - run: uv run specs/tools/check_requirements.py

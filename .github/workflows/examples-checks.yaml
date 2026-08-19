@@ -41,7 +41,7 @@ jobs:
       # pinned to an exact version while checkout above can float. What raises
       # it is .github/dependabot.yml, since an exact pin is only safe while
       # something keeps it current.
-      - uses: astral-sh/setup-uv@v9.0.0
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true
           # Each check_*.py carries its own PEP 723 dependencies, so the cache

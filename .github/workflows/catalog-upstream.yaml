@@ -36,7 +36,7 @@ jobs:
           persist-credentials: false
 
       # Exact version, setup-uv has no floating v9 tag. See examples-checks.yaml.
-      - uses: astral-sh/setup-uv@v9.0.0
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true
           cache-dependency-glob: 'examples/tools/**/*.py'

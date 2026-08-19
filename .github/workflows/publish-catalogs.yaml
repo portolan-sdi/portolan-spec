@@ -80,7 +80,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: astral-sh/setup-uv@v9.0.0
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true
           # publish_catalogs.py carries its own PEP 723 dependencies, so the key
@@ -152,7 +152,7 @@ jobs:
       - name: Install s5cmd
         uses: ./.github/actions/setup-s5cmd
 
-      - uses: astral-sh/setup-uv@v9.0.0
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true
           # Each entrypoint carries its own PEP 723 dependencies, so the cache
