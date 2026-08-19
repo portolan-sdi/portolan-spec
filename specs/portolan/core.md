@@ -284,6 +284,26 @@ fails to resolve, or resolves to the wrong object, is a conformance failure.
 
 Provenance (`via`) links are covered under [Source Provenance](#source-provenance).
 
+### Alternate-Language Trees
+
+A catalog MAY publish one STAC object tree for each language. The root catalog links
+to each translated root with an `alternate` link, as defined by the STAC
+[Language](https://github.com/stac-extensions/language) extension.
+
+A translated tree represents the same catalog in another language. It is not part of
+the containment tree. A catalog MUST NOT link to a translated root with `child` or
+`item`.
+
+Each language tree has its own root catalog. That root has no `parent` link. Every
+`root` link in the tree points to that root catalog. Equivalent objects keep the same
+ID across language trees.
+
+A validator MUST treat a translated root as the start of a separate language tree. It
+MUST NOT report missing containment links or duplicate IDs between language trees.
+
+Publishers choose which languages and objects to translate. [Multilingual
+Catalogs](../best-practices/multilingual-catalogs.md) gives maintenance guidance.
+
 ## Human-Readable Titles
 
 STAC Browser and other clients render `child` and `item` link titles directly;

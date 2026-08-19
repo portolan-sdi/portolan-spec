@@ -13,6 +13,8 @@ the people who publish them and the agents that consume them.
   maintaining a Portolan catalog; pointers to exemplary catalogs.
 - [`git-backed-catalogs.md`](git-backed-catalogs.md) — keeping catalog metadata
   in a repository, with the data outside it, and validating every change in CI.
+- [`multilingual-catalogs.md`](multilingual-catalogs.md) — how to publish and
+  maintain catalog metadata in several languages.
 - [`grader.md`](grader.md) — the rubric for rating catalog quality, A+ through F.
 - [`styling.md`](styling.md) — making visualization styles that are clear and
   distinctive across a catalog.
