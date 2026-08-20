@@ -2,7 +2,7 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #   "jsonschema>=4.26.0",
-#   "rashid[data]>=0.1.6,<0.2.0",
+#   "rashid[data]>=0.1.7,<0.2.0",
 # ]
 # ///
 """Standalone checks for the rashid validation adapter.
