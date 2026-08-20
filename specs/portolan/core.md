@@ -78,7 +78,7 @@ versioned schema URI carries the specification version the object was authored
 against.
 
 Every catalog and collection MUST declare the versioned Portolan schema URI (e.g.
-`https://schemas.portolan-sdi.org/portolan/v0.1.1/schema.json`) in its `stac_extensions`
+`https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json`) in its `stac_extensions`
 array. The schema URI is the single signal of specification version; no separate
 version property is defined. Declaration happens at the catalog and collection
 level only, since assets cannot carry `stac_extensions`, and items inherit

@@ -7,7 +7,7 @@
 #   "pyarrow>=25",
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
 #   "rasterio>=1.5",
-#   "rashid[data]>=0.1.6,<0.2.0",
+#   "rashid[data]>=0.1.7,<0.2.0",
 #   "rio-cogeo>=5.3",
 #   "Pillow>=11",
 # ]
@@ -67,7 +67,7 @@ def main() -> int:
     ap.add_argument("--cache", default=root / "examples/.cache", type=Path)
     ap.add_argument("--catalog", default=None, help="build only the manifest with this file stem")
     ap.add_argument("--only", default=None, help="build only this collection id")
-    ap.add_argument("--schema", default=root / "stac/json-schema/v0.1.1/schema.json", type=Path)
+    ap.add_argument("--schema", default=root / "stac/json-schema/v0.1.2/schema.json", type=Path)
     ap.add_argument("--no-validate", action="store_true")
     ap.add_argument("--styles-only", action="store_true",
                     help="re-author MapLibre styles and their assets against "

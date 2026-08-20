@@ -67,7 +67,7 @@ requirements:
     file: specs/portolan/core.md
     quote: >-
       Every catalog and collection MUST declare the versioned Portolan schema
-      URI (e.g. `https://schemas.portolan-sdi.org/portolan/v0.1.1/schema.json`)
+      URI (e.g. `https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json`)
       in its `stac_extensions` array.
 
   - id: PORTO-CORE-007
