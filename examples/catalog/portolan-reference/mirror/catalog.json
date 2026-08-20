@@ -2,7 +2,7 @@
   "type": "Catalog",
   "stac_version": "1.1.0",
   "stac_extensions": [
-    "https://schemas.portolan-sdi.org/portolan/v0.1.1/schema.json"
+    "https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json"
   ],
   "id": "mirror",
   "title": "Mirrored Collections",

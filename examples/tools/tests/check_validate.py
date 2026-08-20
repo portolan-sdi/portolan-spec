@@ -19,7 +19,7 @@ from validate import _local_schema_validator  # noqa: E402
 from validate import _LocalOnlyReader  # noqa: E402
 
 REPO = Path(__file__).resolve().parent.parent.parent.parent
-SCHEMA = REPO / "stac/json-schema/v0.1.1/schema.json"
+SCHEMA = REPO / "stac/json-schema/v0.1.2/schema.json"
 REFERENCE = REPO / "examples/catalog/portolan-reference"
 
 import shutil  # noqa: E402

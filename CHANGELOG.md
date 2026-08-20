@@ -7,7 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
-## Unreleased
+## 0.1.2 - 2026-08-20
+
+A catalog declares this version by carrying
+`https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json` in `stac_extensions`.
+The `v0.1.0` and `v0.1.1` schemas stay published unchanged, so a catalog authored
+against either version keeps validating against it.
+
+Nothing in this release asks more of a catalog that already conforms. The
+fan-out guidance is a SHOULD that rashid reports as a warning, and the
+multilingual rules permit a structure the profile previously left unspecified.
+The schema carries no change beyond its own `$id`.
 
 ### Added
 
