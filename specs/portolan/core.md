@@ -291,7 +291,8 @@ Provenance (`via`) links are covered under [Source Provenance](#source-provenanc
 
 A catalog MAY publish one STAC object tree for each language. The root catalog links
 to each translated root with an `alternate` link, as defined by the STAC
-[Language](https://github.com/stac-extensions/language) extension.
+[Language](https://github.com/stac-extensions/language) extension. The profile's
+extension registry pins the version of that extension to declare.
 
 A translated tree represents the same catalog in another language. It is not part of
 the containment tree. A catalog MUST NOT link to a translated root with `child` or
