@@ -148,7 +148,7 @@ Tracked in the specification and deliberately **not** settled by this schema:
 - [Single-file vector collection](examples/vector-collection.json) — GeoParquet + PMTiles + style + thumbnail as collection-level assets
 - [Partitioned vector collection](examples/vector-partitioned-collection.json) and [partition item](examples/vector-partitioned-item.json)
 
-The files are stored flat in `examples/` for convenience, but their relative hrefs describe the specification's canonical directory layout (`{collection_id}/collection.json`, `{item_id}/item.json` beneath it) — so href targets such as `../catalog.json`, `AGENTS.md`, and the data files are illustrative and not present in this repository. The examples carry no `self` links and use relative structural hrefs, the portable layout the [git-backed best practices](../specs/best-practices/git-backed-catalogs.md#links-and-the-publish-step) recommend for a tracked tree.
+The files are stored flat in `examples/` for convenience, but their relative hrefs describe the specification's canonical directory layout (`{collection_id}/collection.json`, `{item_id}/item.json` beneath it) — so href targets such as `../catalog.json`, `AGENTS.md`, and the data files are illustrative and not present in this repository. The examples carry no `self` links and use relative structural hrefs, the portable layout the [git-backed best practices](../specs/best-practices/git-backed-catalogs.md) recommend for a tracked tree.
 
 ## Building and Testing
 
