@@ -136,7 +136,7 @@ defined in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and
 The specification is versioned with [SemVer](https://semver.org/), starting
 pre-1.0. A catalog declares the version it was authored against through the
 **Portolan STAC profile schema URI** in its `stac_extensions` array, e.g.
-`https://schemas.portolan-sdi.org/portolan/v0.1.1/schema.json`. That schema URI
+`https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json`. That schema URI
 is the single signal of specification version, and there is no separate version
 file (see
 [Conformance and Versioning](specs/portolan/core.md#conformance-and-versioning)).

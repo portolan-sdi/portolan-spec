@@ -14,6 +14,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   schema is immutable, so the edit belongs to the next version directory under
   `stac/json-schema/` and lands with the release that cuts it (#159).
 
+## 0.1.2 - 2026-08-20
+
+The schema is published at
+<https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json>. The `v0.1.0` and
+`v0.1.1` schemas stay published unchanged.
+
+### Changed
+
+- The schema is identical to `v0.1.1` apart from its `$id`. The specification
+  release adds `PORTO-CORE-078`, `PORTO-CORE-079`, and `PORTO-CORE-080`, none of
+  which the schema can check: the fan-out rule counts children across the tree,
+  and the multilingual rules govern `alternate` links between separate roots.
+  The version directory exists because the schema URI is the signal of
+  specification version, and a released schema is immutable.
+>>>>>>> origin/main
+
 ## 0.1.1 - 2026-08-14
 
 The schema is published at

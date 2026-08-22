@@ -7,7 +7,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
-## Unreleased
+## 0.1.2 - 2026-08-20
+
+A catalog declares this version by carrying
+`https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json` in `stac_extensions`.
+The `v0.1.0` and `v0.1.1` schemas stay published unchanged, so a catalog authored
+against either version keeps validating against it.
+
+Nothing in this release asks more of a catalog that already conforms. The
+fan-out guidance is a SHOULD that rashid reports as a warning, and the
+multilingual rules permit a structure the profile previously left unspecified.
+The schema carries no change beyond its own `$id`.
+
+### Added
+
+- `PORTO-CORE-078`: a catalog or collection with twenty or more children SHOULD
+  organize them into subcatalogs, thematic or otherwise. A flat list of dozens
+  of children is hard to browse, and the profile already allows a catalog at
+  every level above a leaf, including below a collection. rashid reports the
+  fan-out as a warning (`PTL-CAT-001`).
+- **Multilingual catalogs** (`PORTO-CORE-079`, `PORTO-CORE-080`): catalogs can
+  publish a separate STAC tree for each language. `alternate` links connect the
+  trees without adding them to the catalog hierarchy. Each tree has its own root,
+  while equivalent objects use the same IDs.
+- **Multilingual catalog guidance**: a new best-practices page explains how to
+  structure, link, translate, and maintain the language trees.
+- **Requirements manifest**: 128 requirements, now 89 MUST, 22 SHOULD, and
+  17 MAY.
 
 ### Changed
 

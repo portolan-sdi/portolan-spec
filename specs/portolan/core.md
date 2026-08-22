@@ -78,7 +78,7 @@ versioned schema URI carries the specification version the object was authored
 against.
 
 Every catalog and collection MUST declare the versioned Portolan schema URI (e.g.
-`https://schemas.portolan-sdi.org/portolan/v0.1.1/schema.json`) in its `stac_extensions`
+`https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json`) in its `stac_extensions`
 array. The schema URI is the single signal of specification version; no separate
 version property is defined. Declaration happens at the catalog and collection
 level only, since assets cannot carry `stac_extensions`, and items inherit
@@ -167,7 +167,9 @@ collection holds an intermediate (thematic) `catalog.json`, a data directory hol
 the leaf `collection.json`, and a subdirectory within a collection may hold a
 `catalog.json` that organizes many items. Deep nesting is allowed, with every
 level above the leaf a catalog; a catalog may also appear below a collection to
-organize its items (for example, a raster collection grouping items by year).
+organize its items (for example, a raster collection grouping items by year). A
+catalog or collection with twenty or more children SHOULD organize them into
+subcatalogs, thematic or otherwise, so users can browse the data.
 
 ```
 environment/
@@ -289,6 +291,26 @@ rather than merely checking that the `href` is present or well-formed. A link th
 fails to resolve, or resolves to the wrong object, is a conformance failure.
 
 Provenance (`via`) links are covered under [Source Provenance](#source-provenance).
+
+### Alternate-Language Trees
+
+A catalog MAY publish one STAC object tree for each language. The root catalog links
+to each translated root with an `alternate` link, as defined by the STAC
+[Language](https://github.com/stac-extensions/language) extension.
+
+A translated tree represents the same catalog in another language. It is not part of
+the containment tree. A catalog MUST NOT link to a translated root with `child` or
+`item`.
+
+Each language tree has its own root catalog. That root has no `parent` link. Every
+`root` link in the tree points to that root catalog. Equivalent objects keep the same
+ID across language trees.
+
+A validator MUST treat a translated root as the start of a separate language tree. It
+MUST NOT report missing containment links or duplicate IDs between language trees.
+
+Publishers choose which languages and objects to translate. [Multilingual
+Catalogs](../best-practices/multilingual-catalogs.md) gives maintenance guidance.
 
 ## Human-Readable Titles
 

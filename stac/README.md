@@ -3,7 +3,7 @@
 > **Work in Progress** — This profile is under active development. Requirement levels and the schema URL may change before the first stable release.
 
 - **Title:** Portolan
-- **Identifier:** <https://schemas.portolan-sdi.org/portolan/v0.1.1/schema.json>
+- **Identifier:** <https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json>
 - **Field Name Prefix:** portolan (reserved; no fields defined in v0.1)
 - **Scope:** Catalog, Collection — Items inherit conformance from their collection
 - **[Extension Maturity Classification](https://github.com/radiantearth/stac-spec/tree/master/extensions#extension-maturity):** Proposal
@@ -42,7 +42,7 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 
 | Name                | Schema URI for `stac_extensions`                                            | Requirement | When / Usage |
 | ------------------- | --------------------------------------------------------------------------- | ----------- | ------------ |
-| [Portolan][] | `https://schemas.portolan-sdi.org/portolan/v0.1.1/schema.json` | **MUST**    | Always — every catalog and collection; items inherit conformance |
+| [Portolan][] | `https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json` | **MUST**    | Always — every catalog and collection; items inherit conformance |
 | [File Info][] | `https://stac-extensions.github.io/file/v2.1.0/schema.json`                 | **MUST**    | When an asset carries `file:size` or `file:checksum`, both of which are SHOULD-level per asset (checksum as multihash) |
 | [Web Map Links][] | `https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json`        | **MUST**    | When PMTiles are provided: the `rel: "pmtiles"` link |
 | [Version][] | `https://stac-extensions.github.io/version/v1.2.0/schema.json`              | **MUST**    | When dataset versioning is used (never `portolan:` fields) |
