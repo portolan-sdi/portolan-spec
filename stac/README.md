@@ -25,7 +25,7 @@ The `portolan:` prefix stays reserved for future use.
 The schema encodes the specification's structural requirements that STAC core leaves optional:
 
 - Every Catalog and Collection has a non-empty `title` and `description`; every `child` and `item` link carries a `title` (spec: Human-Readable Titles).
-- No object carries a `self` link, and structural links (`root`, `parent`, `child`, `item`, `collection`) are relative and carry `type: "application/json"` (`application/geo+json` for links to items), keeping a catalog fully portable (spec: Links).
+- Structural links (`root`, `parent`, `child`, `item`, `collection`) carry `type: "application/json"` (`application/geo+json` for links to items) (spec: Links). The schemas through v0.1.2 also reject a `self` link and require relative structural hrefs; the specification has dropped both rules, and the relaxation lands with the next schema version.
 - Every asset has `href`, a media `type`, and at least one `role` (spec: Assets). `file:size` and `file:checksum` are SHOULD-level, so the schema checks their shape where present without requiring them; the checksum's multihash encoding, and whether either value matches the bytes, are verified by tooling rather than schema.
 - Absolute asset hrefs use `https` — `s3://` and other bucket schemes are rejected; relative hrefs are allowed (spec: Assets).
 - Every Collection declares `providers` with at least one `producer` and a `host` reachable through `url` or `email`; that the host is exactly one and listed last is checked by tooling (spec: Providers).
@@ -82,13 +82,14 @@ As the profile grows, per-format requirement sets (vector, raster, tabular) may 
 
 ### Link relations
 
-Objects MUST NOT include a `self` link, and all structural links MUST be relative (pystac `SELF_CONTAINED` convention), so a catalog can be moved or rehosted without rewriting any file.
+Structural links can be relative or absolute; the specification takes no position, and the [STAC best practices on the use of links](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-catalog-and-collection.md#use-of-links) cover the trade-offs. A catalog served over the internet from a single fixed URL SHOULD carry an absolute `self` link on its root catalog (spec: Links).
 
 | `rel` | Where | Notes |
 | ----- | ----- | ----- |
-| `root`, `parent` | All objects (root catalog has no `parent`) | Relative; `type: "application/json"` |
-| `child` / `item` | Catalogs and collections, one per child | Relative, typed (`application/geo+json` for items); MUST carry a `title` |
-| `collection` | Items | Relative; `type: "application/json"` |
+| `root`, `parent` | All objects (root catalog has no `parent`) | `type: "application/json"` |
+| `child` / `item` | Catalogs and collections, one per child | Typed (`application/geo+json` for items); MUST carry a `title` |
+| `collection` | Items | `type: "application/json"` |
+| `self` | Root catalog | Absolute; SHOULD when the catalog is served from a single fixed URL |
 | `agents` | Catalog, Collection | Points to `AGENTS.md`, `type: "text/markdown"` |
 | `describedby` | Catalog, Collection | Points to `README.md`, `type: "text/markdown"` |
 | `via` | Collection | Mirror only: the original source, `type: "text/html"` |
@@ -147,7 +148,7 @@ Tracked in the specification and deliberately **not** settled by this schema:
 - [Single-file vector collection](examples/vector-collection.json) — GeoParquet + PMTiles + style + thumbnail as collection-level assets
 - [Partitioned vector collection](examples/vector-partitioned-collection.json) and [partition item](examples/vector-partitioned-item.json)
 
-The files are stored flat in `examples/` for convenience, but their relative hrefs describe the specification's canonical directory layout (`{collection_id}/collection.json`, `{item_id}/item.json` beneath it) — so href targets such as `../catalog.json`, `AGENTS.md`, and the data files are illustrative and not present in this repository. Per the spec's Links section the examples carry no `self` links and use only relative structural hrefs.
+The files are stored flat in `examples/` for convenience, but their relative hrefs describe the specification's canonical directory layout (`{collection_id}/collection.json`, `{item_id}/item.json` beneath it) — so href targets such as `../catalog.json`, `AGENTS.md`, and the data files are illustrative and not present in this repository. The examples carry no `self` links and use relative structural hrefs, the portable layout the [git-backed best practices](../specs/best-practices/git-backed-catalogs.md#links-and-the-publish-step) recommend for a tracked tree.
 
 ## Building and Testing
 

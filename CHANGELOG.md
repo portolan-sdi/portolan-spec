@@ -7,6 +7,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
+## Unreleased
+
+### Changed
+
+- **Core takes no position on relative versus absolute links**
+  (`PORTO-CORE-034` retired,
+  [`specs/portolan/core.md`](specs/portolan/core.md)): the rule that all
+  structural links be relative, and that objects carry no `self` link, is gone.
+  Both link styles have sound uses. Relative links keep a catalog portable, and
+  absolute links name a location some hosts and clients handle more reliably,
+  so the choice belongs to the publisher rather than the standard (#159). The
+  Links section now points to the [STAC best practices on the use of
+  links](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-catalog-and-collection.md#use-of-links)
+  for the trade-offs. Relaxing a constraint is non-breaking.
+- **Requirements manifest**: 128 requirements, now 88 MUST, 23 SHOULD, and
+  17 MAY.
+
+### Added
+
+- **A published root catalog SHOULD carry a `self` link** (`PORTO-CORE-081`,
+  [`specs/portolan/core.md`](specs/portolan/core.md)): a catalog served over
+  the internet from a single fixed URL SHOULD carry an absolute `self` link on
+  its root catalog, matching the STAC best practice. The link records the
+  canonical location, so a downloaded copy still says where it came from and a
+  tool can turn relative references into URLs from the metadata alone.
+  Enforcement is `process`: whether a catalog is served from a fixed URL is a
+  publisher fact a validator cannot see in the files.
+- **Guidance on links for git-backed catalogs**
+  ([`specs/best-practices/git-backed-catalogs.md`](specs/best-practices/git-backed-catalogs.md)):
+  a new "Links and the publish step" section. It recommends relative links and
+  no `self` link in the tracked tree, so the same files validate in the
+  repository, in a preview, and in production, and it has the publish step
+  write the absolute `self` link onto the root catalog from the `public_base`
+  it already holds. It also notes where absolute asset hrefs serve clients
+  better, such as the Source Cooperative file listing.
+
 ## 0.1.2 - 2026-08-20
 
 A catalog declares this version by carrying
@@ -34,31 +70,6 @@ The schema carries no change beyond its own `$id`.
   structure, link, translate, and maintain the language trees.
 - **Requirements manifest**: 128 requirements, now 89 MUST, 22 SHOULD, and
   17 MAY.
-
-### Changed
-
-- **A `self` link is no longer forbidden** (`PORTO-CORE-034`,
-  [`specs/portolan/core.md`](specs/portolan/core.md)): the rule now says only
-  that structural links MUST be relative. Portolan takes no position on `self`.
-  STAC treats the presence of one as the difference between a self-contained
-  catalog and a [relative published
-  catalog](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#relative-published-catalog),
-  and both are legitimate: the first is portable, the second records where it is
-  served from. Which one suits a catalog follows from how it is built and
-  published, not from anything Portolan needs, so forbidding the link ruled out
-  a layout STAC recommends for catalogs that live online without buying
-  conformance anything (#159). Relaxing a constraint is non-breaking.
-
-### Added
-
-- **Guidance on `self` links for git-backed catalogs**
-  ([`specs/best-practices/git-backed-catalogs.md`](specs/best-practices/git-backed-catalogs.md)):
-  a new "Keep links relative" section, replacing the normative rule with the
-  reasoning behind it. A git-backed catalog is authored in one place and served
-  from another, so a tracked `self` link is either wrong for two of the three
-  and produces diff and merge noise. The section recommends keeping the tracked
-  tree free of `self` links and letting the publish step write an absolute one
-  onto the root catalog from the `public_base` it already holds.
 
 ## 0.1.1 - 2026-08-14
 

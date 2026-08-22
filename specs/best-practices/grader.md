@@ -62,11 +62,9 @@ dimensions; the A+ sits above them all.
   the root, every sub-catalog, and every collection. Each `AGENTS.md` is
   linked with `rel: "agents"` and each `README.md` with `rel: "describedby"`,
   both typed `text/markdown` and pointing at the raw file. Every catalog and
-  collection declares the Portolan schema URI. Structural links are relative;
-  no object carries a `self` link.
+  collection declares the Portolan schema URI.
 - **B** — All files exist and resolve, with scattered defects: a wrong media
-  type on a `describedby` link, a missing schema URI on some objects, a stray
-  `self` link.
+  type on a `describedby` link, or a missing schema URI on some objects.
 - **D** — A file class is absent across the catalog (every `AGENTS.md` 404s,
   or the links to them are missing), the schema URI appears nowhere, or
   hardcoded `self` links pin every object to one deployment URL.

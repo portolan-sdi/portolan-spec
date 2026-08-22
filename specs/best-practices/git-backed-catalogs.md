@@ -34,19 +34,15 @@ The publication directory does not need to contain the data assets referenced by
 
 A typical repository can use `catalog/` for published metadata, `staging/` or `sources/` for source material, `tools/` or `scripts/` for build code, and `tests/` for tests. A root `catalog.publish.yaml` can define the object-storage target and public base URL, keeping publication settings in one place.
 
-## Keep links relative
+## Links and the publish step
 
-Core requires relative structural links and says nothing about `self` links. For a git-backed catalog the `self` link is worth leaving out of the tracked tree, and the reason is the workflow rather than the standard.
+Core takes no position on relative versus absolute links, and it recommends an absolute `self` link on the root of a catalog served from a single fixed URL. The [STAC best practices on the use of links](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-catalog-and-collection.md#use-of-links) cover the general trade-offs. A git-backed workflow gets the best of both by keeping the tracked tree portable and letting the publish step add what only it knows.
 
-A git-backed catalog is authored in one place and served from another. The same JSON has to be valid in the repository, in whatever preview a pull request builds, and in production. Relative links give all three for free: one tree of bytes, checked by CI on a laptop or a runner, published unchanged. A `self` link names one of those locations, so the copy in git is either wrong for the other two or has to be rewritten on the way out.
+Keep structural links relative in the repository. A git-backed catalog is authored in one place and served from another, and the same JSON has to be valid in the repository, in whatever preview a pull request builds, and in production. Relative links give all three for free: one tree of bytes, checked by CI on a laptop or a runner, published unchanged.
 
-That cost is small in absolute terms, since only the root catalog carries the link. It is annoying in a repository. A tracked file whose correct content depends on where it was deployed produces diff noise, and it conflicts on merge or rebase for reasons that have nothing to do with the change under review. It is also a file that a contributor can get wrong in a pull request without any local check catching it.
+Leave the `self` link out of the tracked tree for the same reason. A tracked file whose correct content depends on where it is deployed produces diff noise, and it conflicts on merge or rebase for reasons unrelated to the change under review. Instead, have the publish step write the absolute `self` link onto the root catalog as it uploads. The tool doing the upload is the only one that knows the destination, and the publish configuration already holds the URL: a `catalog.publish.yaml` with a `public_base` key, as described above, has everything the step needs. The repository stays portable, and the published catalog records its canonical location.
 
-The pull is real in the other direction. A published catalog with no `self` link records nothing about where it lives. A reader holding a copy cannot tell where it came from, and a tool reading the metadata cannot turn a relative asset href into a URL without being handed a base separately. That is the case STAC's relative published catalog answers.
-
-The two goals are compatible if the publish step owns the link. Keep the tracked tree free of `self` links, and let the tool that uploads add an absolute one to the root catalog, since it is the only thing that knows the destination. The publish configuration already holds that URL: a `catalog.publish.yaml` with a `public_base` key, as described above, has everything the step needs. The repository stays portable and the published catalog stays self-describing, which is the split a git-backed workflow wants.
-
-Two practices reinforce the same point. Assets are addressed relative to the collection that declares them, which keeps a collection movable within the tree. Tools that generate documentation from the catalog, such as a README with a file table, need an absolute base to make those paths clickable; give them the publish configuration rather than absolute hrefs in the metadata.
+Asset hrefs deserve their own decision. Absolute asset hrefs work better with some clients, because a client that reads one object in isolation has no base to resolve a relative href against. The Source Cooperative file listing is a concrete case: it renders asset hrefs as download links, and only absolute ones resolve. The publish step can rewrite asset hrefs to absolute from the same `public_base` it uses for the `self` link, or the tracked tree can carry absolute asset hrefs from the start when the data already has a stable home.
 
 ## Keep the tools and inputs
 
@@ -88,7 +84,7 @@ OK: 1 files checked, no findings.
 
 ### Handle validator differences
 
-`stac-check` recommends a `self` link, but Portolan forbids it because a static catalog should not hardcode its own location when it may be mirrored or moved. Treat `stac-check` best-practice recommendations as advisory and use rashid as the Portolan conformance gate, as Fields of the World does in `tests/test_stac_valid.py`.
+`stac-check` recommends a `self` link, which the tracked tree omits on purpose because the publish step adds it. Treat `stac-check` best-practice recommendations as advisory and use rashid as the Portolan conformance gate, as Fields of the World does in `tests/test_stac_valid.py`.
 
 ### Record accepted deviations
 

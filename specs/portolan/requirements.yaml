@@ -331,12 +331,17 @@ requirements:
       Every structural link MUST carry a `type` of `application/json` (or
       `application/geo+json` for links to items).
 
-  - id: PORTO-CORE-034
-    severity: MUST
-    enforcement: validator
+  # PORTO-CORE-034 (all structural links MUST be relative, and objects MUST NOT
+  # include a self link) is retired. Portolan takes no position on relative
+  # versus absolute links, and PORTO-CORE-081 recommends a root self link on a
+  # published catalog (#159).
+  - id: PORTO-CORE-081
+    severity: SHOULD
+    enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      All structural links MUST be relative.
+      A catalog served over the internet from a single fixed URL SHOULD carry
+      an absolute `self` link on its root catalog.
 
   - id: PORTO-CORE-035
     severity: MUST

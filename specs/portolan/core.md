@@ -269,20 +269,22 @@ every object it contains; an item MUST include `root`, `parent`, and `collection
 links. Every structural link MUST carry a `type` of `application/json` (or
 `application/geo+json` for links to items).
 
-All structural links MUST be relative. This keeps a catalog portable: it can be
-created, validated, moved between local, staging, and production environments,
-or rehosted at a new URL without rewriting a file.
+Structural links can be relative or absolute; Portolan takes no position.
+Relative links keep a catalog portable, so the same tree of files validates
+locally, in staging, and in production without a rewrite. Absolute links name
+their location outright, which some hosts and clients handle more reliably.
+The [STAC best practices on the use of
+links](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-catalog-and-collection.md#use-of-links)
+walk through the choice, and [Git-Backed
+Catalogs](../best-practices/git-backed-catalogs.md#links-and-the-publish-step)
+covers how it plays out for a catalog maintained in git.
 
-Portolan says nothing about `self` links. STAC treats the presence of one as the
-difference between a self-contained catalog and a published catalog, and both
-are legitimate. A catalog that omits it stays portable in the sense above, and
-one that carries an absolute `self` link on its root records where it is served
-from, which is the [relative published
-catalog](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#relative-published-catalog)
-of the STAC best practices, `RELATIVE_PUBLISHED` in pystac. Which of the two
-suits a catalog depends on how it is built and maintained rather than on
-anything Portolan needs, so it is left to the publisher and discussed under
-[Git-Backed Catalogs](../best-practices/git-backed-catalogs.md#keep-links-relative).
+A catalog served over the internet from a single fixed URL SHOULD carry an
+absolute `self` link on its root catalog. The link records the canonical
+location, so someone holding a downloaded copy can see where it came from, and
+a tool can resolve the catalog's relative references into URLs from the
+metadata alone. STAC requires that a `self` link be
+[absolute](https://github.com/radiantearth/stac-spec/blob/master/commons/links.md#relation-types).
 
 Every link in a catalog MUST resolve. A validator MUST resolve each relative link
 against the catalog's own file tree, whether on a local filesystem or on object
