@@ -298,8 +298,12 @@ remainder against the file tree, as it does for a relative href.
 
 A catalog that carries absolute structural links without a root `self` link
 gives a validator no base. The validator reports nothing for those links,
-because it cannot place them. The requirement to resolve still holds. A
-publisher who wants the check keeps a root `self` link.
+because it cannot place them. An `href` that does not start with the base gets
+the same treatment. A root catalog that links a child in a different bucket
+therefore gets no check on that link.
+
+The requirement to resolve still holds. A publisher who wants the check keeps a
+root `self` link.
 
 Provenance (`via`) links are covered under [Source Provenance](#source-provenance).
 
