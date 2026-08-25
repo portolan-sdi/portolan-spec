@@ -20,7 +20,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   so the choice belongs to the publisher rather than the standard (#159). The
   Links section now points to the [STAC best practices on the use of
   links](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-catalog-and-collection.md#use-of-links)
-  for the trade-offs. Relaxing a constraint is non-breaking.
+  for the trade-offs.
 - **Requirements manifest**: 128 requirements, now 88 MUST, 23 SHOULD, and
   17 MAY.
 

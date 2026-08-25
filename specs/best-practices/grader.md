@@ -66,8 +66,7 @@ dimensions; the A+ sits above them all.
 - **B** — All files exist and resolve, with scattered defects: a wrong media
   type on a `describedby` link, or a missing schema URI on some objects.
 - **D** — A file class is absent across the catalog (every `AGENTS.md` 404s,
-  or the links to them are missing), the schema URI appears nowhere, or
-  hardcoded `self` links pin every object to one deployment URL.
+  or the links to them are missing), or the schema URI appears nowhere.
 
 ## 2. Metadata integrity
 

@@ -292,6 +292,15 @@ storage, and confirm the referenced file is present and is the correct object,
 rather than merely checking that the `href` is present or well-formed. A link that
 fails to resolve, or resolves to the wrong object, is a conformance failure.
 
+A validator resolves an absolute structural link through the base that the root
+`self` link names. It strips that base from the `href`. It then resolves the
+remainder against the file tree, as it does for a relative href.
+
+A catalog that carries absolute structural links without a root `self` link
+gives a validator no base. The validator reports nothing for those links,
+because it cannot place them. The requirement to resolve still holds. A
+publisher who wants the check keeps a root `self` link.
+
 Provenance (`via`) links are covered under [Source Provenance](#source-provenance).
 
 ### Alternate-Language Trees
