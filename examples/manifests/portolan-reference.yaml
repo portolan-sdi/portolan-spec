@@ -49,6 +49,13 @@ description: >-
   upstream sources, vector polygons and points, raster, tabular, mirror
   provenance, nested catalogs and flat collections.
 schema_uri: https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json
+# English is the source tree. Each code in translations loads a complete locale
+# overlay from portolan-reference.locales/<code>.yaml. Overlays use stable
+# Catalog and Collection IDs, so list order cannot attach text to the wrong node.
+language:
+  code: en
+  name: English
+translations: [ar, ja]
 
 host:
   name: Portolan SDI

@@ -1,0 +1,357 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
+  ],
+  "id": "mirror/san-francisco-addresses",
+  "title": "サンフランシスコの住所（EAS）",
+  "description": "サンフランシスコのEnterprise Addressing Systemによる住所ポイントです。 5000件の抽出データをGeoParquetとPMTilesで公開します。",
+  "license": "PDDL-1.0",
+  "keywords": [
+    "住所",
+    "ポイント",
+    "サンフランシスコ",
+    "DataSF",
+    "EAS"
+  ],
+  "providers": [
+    {
+      "name": "City and County of San Francisco",
+      "url": "https://www.sf.gov",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "DataSF",
+      "url": "https://datasf.org/opendata/",
+      "roles": [
+        "processor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -122.51042,
+          37.708191,
+          -122.362069,
+          37.827479
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2018-10-12T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "table:columns": [
+    {
+      "name": "fid",
+      "type": "bigint"
+    },
+    {
+      "name": "street_full_street_name",
+      "type": "varchar"
+    },
+    {
+      "name": "zip_code",
+      "type": "varchar"
+    },
+    {
+      "name": "latitude",
+      "type": "varchar"
+    },
+    {
+      "name": "address_number_suffix",
+      "type": "varchar"
+    },
+    {
+      "name": "supdistpad",
+      "type": "varchar"
+    },
+    {
+      "name": "complete_landmark_name",
+      "type": "varchar"
+    },
+    {
+      "name": "eas_fullid",
+      "type": "varchar"
+    },
+    {
+      "name": "direct_source",
+      "type": "varchar"
+    },
+    {
+      "name": "cnn",
+      "type": "varchar"
+    },
+    {
+      "name": "data_loaded_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "name": "longitude",
+      "type": "varchar"
+    },
+    {
+      "name": "street_name",
+      "type": "varchar"
+    },
+    {
+      "name": "supdist",
+      "type": "varchar"
+    },
+    {
+      "name": "eas_baseid",
+      "type": "varchar"
+    },
+    {
+      "name": "nhood",
+      "type": "varchar"
+    },
+    {
+      "name": "block",
+      "type": "varchar"
+    },
+    {
+      "name": "supname",
+      "type": "varchar"
+    },
+    {
+      "name": "street_type",
+      "type": "varchar"
+    },
+    {
+      "name": "eas_subid",
+      "type": "varchar"
+    },
+    {
+      "name": "lot",
+      "type": "varchar"
+    },
+    {
+      "name": "address",
+      "type": "varchar"
+    },
+    {
+      "name": "unit_number",
+      "type": "varchar"
+    },
+    {
+      "name": "supervisor",
+      "type": "varchar"
+    },
+    {
+      "name": "data_updated_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "name": "address_number",
+      "type": "varchar"
+    },
+    {
+      "name": "parcel_number",
+      "type": "varchar"
+    },
+    {
+      "name": "numbertext",
+      "type": "varchar"
+    },
+    {
+      "name": "data_as_of",
+      "type": "timestamp with time zone"
+    },
+    {
+      "name": "landmark_aliases",
+      "type": "varchar"
+    },
+    {
+      "name": "geom",
+      "type": "geometry"
+    },
+    {
+      "name": "bbox",
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+    }
+  ],
+  "table:primary_geometry": "geom",
+  "table:row_count": 5000,
+  "assets": {
+    "data": {
+      "href": "../../../mirror/san-francisco-addresses/san-francisco-addresses.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "データ",
+      "roles": [
+        "data"
+      ],
+      "file:size": 501424,
+      "file:checksum": "12204c4f7dfe87f4ae4cf5844c5ead6f298768ef749d85d03549175c31e769bd8601",
+      "proj:code": "EPSG:4326"
+    },
+    "visual": {
+      "href": "../../../mirror/san-francisco-addresses/san-francisco-addresses.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "ウェブ地図タイル",
+      "roles": [
+        "visual"
+      ],
+      "file:size": 859881,
+      "file:checksum": "12200dea0e9eb01a74f3b0fcc4b0e915e88cb19e85571351991828478cbe012ccc23"
+    },
+    "thumbnail": {
+      "href": "../../../mirror/san-francisco-addresses/thumbnail.png",
+      "type": "image/png",
+      "title": "サムネイル",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 394792,
+      "file:checksum": "1220561ef9990b472b81af48d46c7e0450a9523ab919ab015c5d99f354fc241f9b9c"
+    },
+    "style-addresses": {
+      "href": "../../../mirror/san-francisco-addresses/styles/addresses.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "地図スタイル",
+      "roles": [
+        "style",
+        "default"
+      ],
+      "file:size": 552,
+      "file:checksum": "12208d45a18d45323c29a208824c770e5ff230871a2132ce57255395298fd0a513aa"
+    },
+    "style-sources": {
+      "href": "../../../mirror/san-francisco-addresses/styles/sources.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "地図スタイル",
+      "roles": [
+        "style"
+      ],
+      "file:size": 888,
+      "file:checksum": "1220d70ecc51d61828ebe574013e0f98a00fd4edc93b0bc8c623b39610f8f113517f"
+    },
+    "style-units": {
+      "href": "../../../mirror/san-francisco-addresses/styles/units.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "地図スタイル",
+      "roles": [
+        "style"
+      ],
+      "file:size": 930,
+      "file:checksum": "12209edf3bdc9344bccb0e3c68a1272d9f1bcaac1ec5c29d93afedb3801fa002bc64"
+    },
+    "style-neighborhoods": {
+      "href": "../../../mirror/san-francisco-addresses/styles/neighborhoods.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "地図スタイル",
+      "roles": [
+        "style"
+      ],
+      "file:size": 2645,
+      "file:checksum": "1220cb8b03ffc514ba45d29971c08104851c3009fbf6fb580bd06955ea76be3ccc46"
+    },
+    "style-density": {
+      "href": "../../../mirror/san-francisco-addresses/styles/density.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "地図スタイル",
+      "roles": [
+        "style"
+      ],
+      "file:size": 603,
+      "file:checksum": "1220cb54b18d67e77ec5a630db226a0ff36cca1fd4516d1356a7c1ae925ee71d8eec"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "pmtiles",
+      "href": "../../../mirror/san-francisco-addresses/san-francisco-addresses.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "ウェブ地図タイル",
+      "pmtiles:layers": [
+        "san-francisco-addresses"
+      ]
+    },
+    {
+      "rel": "via",
+      "href": "https://data.sfgov.org/",
+      "type": "text/html",
+      "title": "元の出典"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "エージェント向けガイド",
+      "hreflang": "ja"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "人が読める文書",
+      "hreflang": "ja"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../../mirror/san-francisco-addresses/collection.json",
+      "type": "application/json",
+      "title": "San Francisco Addresses (EAS)",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../../ar/mirror/san-francisco-addresses/collection.json",
+      "type": "application/json",
+      "title": "عناوين سان فرانسيسكو من EAS",
+      "hreflang": "ar"
+    }
+  ],
+  "updated": "2026-07-21T00:00:00Z",
+  "language": {
+    "code": "ja",
+    "name": "日本語",
+    "alternate": "Japanese"
+  },
+  "languages": [
+    {
+      "code": "en",
+      "name": "English"
+    },
+    {
+      "code": "ar",
+      "name": "العربية",
+      "alternate": "Arabic",
+      "dir": "rtl"
+    }
+  ]
+}

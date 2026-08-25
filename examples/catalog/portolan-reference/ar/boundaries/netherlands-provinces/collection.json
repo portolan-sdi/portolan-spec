@@ -1,0 +1,274 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json",
+    "https://stac-extensions.github.io/attribution/v0.1.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
+  ],
+  "id": "boundaries/netherlands-provinces",
+  "title": "مقاطعات هولندا",
+  "description": "حدود المقاطعات الهولندية الاثنتي عشرة من خدمة PDOK التابعة للسجل العقاري. تنشر المجموعة GeoParquet وPMTiles مع أنماط خرائط.",
+  "license": "CC-BY-4.0",
+  "keywords": [
+    "حدود",
+    "مقاطعات",
+    "هولندا",
+    "إداري",
+    "PDOK"
+  ],
+  "providers": [
+    {
+      "name": "Kadaster",
+      "url": "https://www.kadaster.nl",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "PDOK",
+      "url": "https://www.pdok.nl",
+      "roles": [
+        "processor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          3.307938,
+          50.750367,
+          7.227498,
+          53.576423
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2026-01-01T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "table:columns": [
+    {
+      "name": "fid",
+      "type": "bigint"
+    },
+    {
+      "name": "identificatie",
+      "type": "varchar"
+    },
+    {
+      "name": "naam",
+      "type": "varchar"
+    },
+    {
+      "name": "code",
+      "type": "varchar"
+    },
+    {
+      "name": "ligt_in_land_code",
+      "type": "varchar"
+    },
+    {
+      "name": "ligt_in_land_naam",
+      "type": "varchar"
+    },
+    {
+      "name": "geom",
+      "type": "geometry('epsg:28992')"
+    },
+    {
+      "name": "bbox",
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+    }
+  ],
+  "table:primary_geometry": "geom",
+  "table:row_count": 12,
+  "assets": {
+    "data": {
+      "href": "../../../boundaries/netherlands-provinces/netherlands-provinces.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "البيانات",
+      "roles": [
+        "data"
+      ],
+      "file:size": 872875,
+      "file:checksum": "12204041b0c384032ead2a68bf154bc35c7806cb906c6604a453d99ecd5e1dc8b374",
+      "proj:code": "EPSG:28992"
+    },
+    "source": {
+      "href": "https://service.pdok.nl/kadaster/brk-bestuurlijke-gebieden/atom/downloads/BestuurlijkeGebieden_2026.gpkg",
+      "type": "application/geopackage+sqlite3",
+      "title": "ملف المصدر الأصلي",
+      "roles": [
+        "source"
+      ],
+      "file:size": 14495744,
+      "file:checksum": "12201efa5bbed78bb5aa9d918d48bcabcd9a3c0e816671545e42cd68be057b8423e6"
+    },
+    "visual": {
+      "href": "../../../boundaries/netherlands-provinces/netherlands-provinces.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "بلاطات خريطة الويب",
+      "roles": [
+        "visual"
+      ],
+      "file:size": 435122,
+      "file:checksum": "1220a7a9d30cbd97f9a92161530a4f335aa50db1307ce24ab7d16f7de668595d519e"
+    },
+    "thumbnail": {
+      "href": "../../../boundaries/netherlands-provinces/thumbnail.png",
+      "type": "image/png",
+      "title": "صورة مصغرة",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 188545,
+      "file:checksum": "12203e5bed76be1af81a77828cebf137805a4168848e56289de7d197eb7341ebb2b0"
+    },
+    "style-provinces": {
+      "href": "../../../boundaries/netherlands-provinces/styles/provinces.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style",
+        "default"
+      ],
+      "file:size": 1185,
+      "file:checksum": "1220cf5f8ee0cd01a9d9cc9719de17497d61bff1e179649e9a267e8268d06f690f4d"
+    },
+    "style-labeled": {
+      "href": "../../../boundaries/netherlands-provinces/styles/labeled.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1625,
+      "file:checksum": "1220ecd4e7efb630d5c84ea81ccd7c3ce7bc4125979e8569ee4f8b3e67b01cfe9e43"
+    },
+    "style-randstad": {
+      "href": "../../../boundaries/netherlands-provinces/styles/randstad.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style"
+      ],
+      "file:size": 888,
+      "file:checksum": "122020b1129b4287304507f1d0f5a4079c6d2aa4c4a1f789c9364e5daaa717263628"
+    },
+    "style-boundaries": {
+      "href": "../../../boundaries/netherlands-provinces/styles/boundaries.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style"
+      ],
+      "file:size": 533,
+      "file:checksum": "122013feb7c07c1c517924d55cc90603ae6e1dd9bba54aad6585abe180cdddf09db6"
+    },
+    "metadata": {
+      "href": "../../../boundaries/netherlands-provinces/iso19115.xml",
+      "type": "application/vnd.iso.19139+xml",
+      "title": "البيانات الوصفية الأصلية",
+      "roles": [
+        "metadata",
+        "iso-19115"
+      ],
+      "file:size": 40942,
+      "file:checksum": "122039561f53e91b85883209646f809d8ff6a3976eb6539528d8e4802c5689f75fe7"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "pmtiles",
+      "href": "../../../boundaries/netherlands-provinces/netherlands-provinces.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "بلاطات خريطة الويب",
+      "pmtiles:layers": [
+        "netherlands-provinces"
+      ]
+    },
+    {
+      "rel": "via",
+      "href": "https://www.pdok.nl/introductie/-/article/bestuurlijke-gebieden",
+      "type": "text/html",
+      "title": "المصدر الأصلي"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "إرشادات للوكلاء",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "وثائق قابلة للقراءة",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../../boundaries/netherlands-provinces/collection.json",
+      "type": "application/json",
+      "title": "Netherlands Provinces",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../../ja/boundaries/netherlands-provinces/collection.json",
+      "type": "application/json",
+      "title": "オランダの州",
+      "hreflang": "ja"
+    }
+  ],
+  "attribution": "Kadaster / PDOK",
+  "updated": "2026-07-16T00:00:00Z",
+  "language": {
+    "code": "ar",
+    "name": "العربية",
+    "alternate": "Arabic",
+    "dir": "rtl"
+  },
+  "languages": [
+    {
+      "code": "en",
+      "name": "English"
+    },
+    {
+      "code": "ja",
+      "name": "日本語",
+      "alternate": "Japanese"
+    }
+  ]
+}

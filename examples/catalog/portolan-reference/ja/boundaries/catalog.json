@@ -1,0 +1,87 @@
+{
+  "type": "Catalog",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
+  ],
+  "id": "boundaries",
+  "title": "行政界",
+  "description": "公的な提供元による行政界とオープンスペースのコレクションです。",
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "child",
+      "href": "./us-counties/collection.json",
+      "type": "application/json",
+      "title": "米国の郡（2023年、1:50万）"
+    },
+    {
+      "rel": "child",
+      "href": "./boston-open-space/collection.json",
+      "type": "application/json",
+      "title": "ボストンのオープンスペース"
+    },
+    {
+      "rel": "child",
+      "href": "./netherlands-provinces/collection.json",
+      "type": "application/json",
+      "title": "オランダの州"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "エージェント向けガイド",
+      "hreflang": "ja"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "人が読める文書",
+      "hreflang": "ja"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../boundaries/catalog.json",
+      "type": "application/json",
+      "title": "Administrative Boundaries",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../ar/boundaries/catalog.json",
+      "type": "application/json",
+      "title": "الحدود الإدارية",
+      "hreflang": "ar"
+    }
+  ],
+  "updated": "2026-07-21T00:00:00Z",
+  "language": {
+    "code": "ja",
+    "name": "日本語",
+    "alternate": "Japanese"
+  },
+  "languages": [
+    {
+      "code": "en",
+      "name": "English"
+    },
+    {
+      "code": "ar",
+      "name": "العربية",
+      "alternate": "Arabic",
+      "dir": "rtl"
+    }
+  ]
+}

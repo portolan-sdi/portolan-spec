@@ -5,7 +5,8 @@
     "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
     "https://stac-extensions.github.io/file/v2.1.0/schema.json",
     "https://stac-extensions.github.io/table/v1.2.0/schema.json",
-    "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
   ],
   "id": "reference/natural-earth-countries",
   "title": "Natural Earth Countries (1:110m)",
@@ -791,7 +792,7 @@
     "thumbnail": {
       "href": "./thumbnail.png",
       "type": "image/png",
-      "title": "Preview thumbnail over a light basemap. \u00a9 OpenStreetMap contributors \u00a9 CARTO.",
+      "title": "Preview thumbnail over a light basemap. © OpenStreetMap contributors © CARTO.",
       "roles": [
         "thumbnail"
       ],
@@ -876,14 +877,47 @@
       "rel": "agents",
       "href": "./AGENTS.md",
       "type": "text/markdown",
-      "title": "Guidance for AI agents"
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
     },
     {
       "rel": "describedby",
       "href": "./README.md",
       "type": "text/markdown",
-      "title": "Human-readable documentation"
+      "title": "Human-readable documentation",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../ar/reference/natural-earth-countries/collection.json",
+      "type": "application/json",
+      "title": "دول Natural Earth بمقياس 1:110 مليون",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../ja/reference/natural-earth-countries/collection.json",
+      "type": "application/json",
+      "title": "Natural Earthの国境（1:1億1000万）",
+      "hreflang": "ja"
     }
   ],
-  "updated": "2026-07-16T00:00:00Z"
+  "updated": "2026-07-16T00:00:00Z",
+  "language": {
+    "code": "en",
+    "name": "English"
+  },
+  "languages": [
+    {
+      "code": "ar",
+      "name": "العربية",
+      "alternate": "Arabic",
+      "dir": "rtl"
+    },
+    {
+      "code": "ja",
+      "name": "日本語",
+      "alternate": "Japanese"
+    }
+  ]
 }

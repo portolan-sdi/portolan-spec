@@ -1,0 +1,292 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
+  ],
+  "id": "boundaries/us-counties",
+  "title": "مقاطعات الولايات المتحدة لعام 2023 بمقياس 1:500 ألف",
+  "description": "حدود المقاطعات وما يعادلها من ملف التعداد الأمريكي لعام 2023. تنشر المجموعة الحدود المبسطة بصيغة GeoParquet مع المصدر الأصلي.",
+  "license": "CC0-1.0",
+  "keywords": [
+    "حدود",
+    "مقاطعات",
+    "الولايات المتحدة",
+    "تعداد",
+    "TIGER"
+  ],
+  "providers": [
+    {
+      "name": "U.S. Census Bureau",
+      "url": "https://www.census.gov",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -179.146711,
+          -14.548699,
+          179.77847,
+          71.387815
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2023-01-01T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "table:columns": [
+    {
+      "name": "fid",
+      "type": "bigint"
+    },
+    {
+      "name": "STATEFP",
+      "type": "varchar"
+    },
+    {
+      "name": "COUNTYFP",
+      "type": "varchar"
+    },
+    {
+      "name": "COUNTYNS",
+      "type": "varchar"
+    },
+    {
+      "name": "GEOIDFQ",
+      "type": "varchar"
+    },
+    {
+      "name": "GEOID",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME",
+      "type": "varchar"
+    },
+    {
+      "name": "NAMELSAD",
+      "type": "varchar"
+    },
+    {
+      "name": "STUSPS",
+      "type": "varchar"
+    },
+    {
+      "name": "STATE_NAME",
+      "type": "varchar"
+    },
+    {
+      "name": "LSAD",
+      "type": "varchar"
+    },
+    {
+      "name": "ALAND",
+      "type": "bigint"
+    },
+    {
+      "name": "AWATER",
+      "type": "bigint"
+    },
+    {
+      "name": "geom",
+      "type": "geometry('epsg:4269')"
+    },
+    {
+      "name": "bbox",
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+    }
+  ],
+  "table:primary_geometry": "geom",
+  "table:row_count": 3235,
+  "assets": {
+    "data": {
+      "href": "../../../boundaries/us-counties/us-counties.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "البيانات",
+      "roles": [
+        "data"
+      ],
+      "file:size": 7043980,
+      "file:checksum": "12204cebf3e79848686820e2122491d1051e35caea5c17baef25f20217ea26e06753",
+      "proj:code": "EPSG:4269"
+    },
+    "source": {
+      "href": "https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_500k.zip",
+      "type": "application/zip",
+      "title": "ملف المصدر الأصلي",
+      "roles": [
+        "source"
+      ],
+      "file:size": 11630077,
+      "file:checksum": "122099d6597b1fc7767deef62e01d28d8b5dcbd578e151855f7dc0d173cbf5bf0868"
+    },
+    "visual": {
+      "href": "../../../boundaries/us-counties/us-counties.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "بلاطات خريطة الويب",
+      "roles": [
+        "visual"
+      ],
+      "file:size": 4564130,
+      "file:checksum": "12207b1ded32a1575ad3c27432aba77c3dac2697c9a4bcd2cdf448b4cb7c03dca318"
+    },
+    "thumbnail": {
+      "href": "../../../boundaries/us-counties/thumbnail.png",
+      "type": "image/png",
+      "title": "صورة مصغرة",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 73106,
+      "file:checksum": "1220820dc6da8d8576602a5e7f69f8272ee3e6a1264c2938d1640292eb14f329918b"
+    },
+    "style-states": {
+      "href": "../../../boundaries/us-counties/styles/states.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style",
+        "default"
+      ],
+      "file:size": 2804,
+      "file:checksum": "122038e017c4e841051daabef3ab2f692ea61cba96cb0423a1568c600f8b7ec1583d"
+    },
+    "style-labeled": {
+      "href": "../../../boundaries/us-counties/styles/labeled.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style"
+      ],
+      "file:size": 3139,
+      "file:checksum": "122067bdebd7e8390a42a13edf8a0f4f7506ce4aeb55c03e89cf85cecdfe3cb72dc0"
+    },
+    "style-land-area": {
+      "href": "../../../boundaries/us-counties/styles/land-area.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style"
+      ],
+      "file:size": 845,
+      "file:checksum": "12203ba6025f031f1165db0ae24e09a9da5df3126e899eea4bcb283144cd32047eea"
+    },
+    "style-water-share": {
+      "href": "../../../boundaries/us-counties/styles/water-share.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1178,
+      "file:checksum": "12205bddfd31995653688fd37cdde4af0233c9df49a6014fbb236b1a722075129b57"
+    },
+    "style-county-types": {
+      "href": "../../../boundaries/us-counties/styles/county-types.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1203,
+      "file:checksum": "1220c844bce21f7dc4b604eb3a20c5adc58ccfbb08050f1a157519c069417e619f29"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "pmtiles",
+      "href": "../../../boundaries/us-counties/us-counties.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "بلاطات خريطة الويب",
+      "pmtiles:layers": [
+        "us-counties"
+      ]
+    },
+    {
+      "rel": "via",
+      "href": "https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html",
+      "type": "text/html",
+      "title": "المصدر الأصلي"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "إرشادات للوكلاء",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "وثائق قابلة للقراءة",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../../boundaries/us-counties/collection.json",
+      "type": "application/json",
+      "title": "United States Counties (2023, 1:500k)",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../../ja/boundaries/us-counties/collection.json",
+      "type": "application/json",
+      "title": "米国の郡（2023年、1:50万）",
+      "hreflang": "ja"
+    }
+  ],
+  "updated": "2026-07-16T00:00:00Z",
+  "language": {
+    "code": "ar",
+    "name": "العربية",
+    "alternate": "Arabic",
+    "dir": "rtl"
+  },
+  "languages": [
+    {
+      "code": "en",
+      "name": "English"
+    },
+    {
+      "code": "ja",
+      "name": "日本語",
+      "alternate": "Japanese"
+    }
+  ]
+}

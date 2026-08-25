@@ -5,7 +5,8 @@
     "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
     "https://stac-extensions.github.io/file/v2.1.0/schema.json",
     "https://stac-extensions.github.io/table/v1.2.0/schema.json",
-    "https://stac-extensions.github.io/attribution/v0.1.0/schema.json"
+    "https://stac-extensions.github.io/attribution/v0.1.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
   ],
   "id": "tabular/eurostat-electricity-prices",
   "title": "Eurostat Electricity Prices for Household Consumers",
@@ -157,15 +158,48 @@
       "rel": "agents",
       "href": "./AGENTS.md",
       "type": "text/markdown",
-      "title": "Guidance for AI agents"
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
     },
     {
       "rel": "describedby",
       "href": "./README.md",
       "type": "text/markdown",
-      "title": "Human-readable documentation"
+      "title": "Human-readable documentation",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../ar/tabular/eurostat-electricity-prices/collection.json",
+      "type": "application/json",
+      "title": "أسعار كهرباء الأسر من Eurostat",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../ja/tabular/eurostat-electricity-prices/collection.json",
+      "type": "application/json",
+      "title": "Eurostatの家庭向け電力価格",
+      "hreflang": "ja"
     }
   ],
   "attribution": "Source, Eurostat",
-  "updated": "2026-07-21T00:00:00Z"
+  "updated": "2026-07-21T00:00:00Z",
+  "language": {
+    "code": "en",
+    "name": "English"
+  },
+  "languages": [
+    {
+      "code": "ar",
+      "name": "العربية",
+      "alternate": "Arabic",
+      "dir": "rtl"
+    },
+    {
+      "code": "ja",
+      "name": "日本語",
+      "alternate": "Japanese"
+    }
+  ]
 }

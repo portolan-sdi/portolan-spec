@@ -29,7 +29,8 @@ The generator is a small set of plain sibling modules under examples/tools/, run
 through this build.py entrypoint. config holds the static constants, common the
 shared helpers, fetch the downloader, convert the format conversions,
 derivatives the PMTiles and MapLibre styles, thumbnails the previews, stacio the
-STAC assembly and catalog builders, and validate the conformance checks.
+STAC assembly and catalog builders, translations the alternate-language trees,
+and validate the conformance checks.
 
 Prerequisites (FOSS, on PATH): tippecanoe and uv. The data and thumbnail paths
 run on DuckDB spatial, rasterio, and rio-cogeo, which vendor their own GDAL
@@ -48,6 +49,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from stacio import load_manifest, build_catalog, regen_styles, regen_docs
+from translations import build_translations
 from validate import validate
 
 
@@ -91,11 +93,14 @@ def main() -> int:
         cat_out = args.out / mf.stem
         if args.styles_only:
             regen_styles(manifest, cat_out)
+            build_translations(manifest, mf, cat_out)
             continue
         if args.docs_only:
             regen_docs(manifest, cat_out, args.cache)
+            build_translations(manifest, mf, cat_out)
             continue
         build_catalog(manifest, cat_out, args.cache, args.only)
+        build_translations(manifest, mf, cat_out)
         if not args.no_validate and not args.only:
             validate(cat_out, args.schema)
     print("done", file=sys.stderr)

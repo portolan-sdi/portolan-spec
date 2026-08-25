@@ -4,7 +4,8 @@
   "stac_extensions": [
     "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
     "https://stac-extensions.github.io/file/v2.1.0/schema.json",
-    "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
   ],
   "id": "raster/sample-cog",
   "title": "Sample Raster COG",
@@ -112,7 +113,7 @@
     "thumbnail": {
       "href": "./thumbnail.png",
       "type": "image/png",
-      "title": "Preview thumbnail over a light basemap. \u00a9 OpenStreetMap contributors \u00a9 CARTO.",
+      "title": "Preview thumbnail over a light basemap. © OpenStreetMap contributors © CARTO.",
       "roles": [
         "thumbnail"
       ],
@@ -141,14 +142,47 @@
       "rel": "agents",
       "href": "./AGENTS.md",
       "type": "text/markdown",
-      "title": "Guidance for AI agents"
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
     },
     {
       "rel": "describedby",
       "href": "./README.md",
       "type": "text/markdown",
-      "title": "Human-readable documentation"
+      "title": "Human-readable documentation",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../ar/raster/sample-cog/collection.json",
+      "type": "application/json",
+      "title": "نموذج بيانات نقطية بصيغة COG",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../ja/raster/sample-cog/collection.json",
+      "type": "application/json",
+      "title": "COGラスターのサンプル",
+      "hreflang": "ja"
     }
   ],
-  "updated": "2026-07-21T00:00:00Z"
+  "updated": "2026-07-21T00:00:00Z",
+  "language": {
+    "code": "en",
+    "name": "English"
+  },
+  "languages": [
+    {
+      "code": "ar",
+      "name": "العربية",
+      "alternate": "Arabic",
+      "dir": "rtl"
+    },
+    {
+      "code": "ja",
+      "name": "日本語",
+      "alternate": "Japanese"
+    }
+  ]
 }

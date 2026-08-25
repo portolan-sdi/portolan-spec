@@ -1,0 +1,100 @@
+{
+  "type": "Catalog",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
+  ],
+  "id": "portolan-reference",
+  "title": "كتالوج بورتولان المرجعي",
+  "description": "كتالوج مرجعي متنوع يوضح الحالات الرئيسية في مواصفة بورتولان 0.1. يستخدم بيانات حقيقية مفتوحة الترخيص من مصادرها الأصلية.",
+  "links": [
+    {
+      "rel": "root",
+      "href": "./catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "child",
+      "href": "./reference/catalog.json",
+      "type": "application/json",
+      "title": "خرائط الأساس المرجعية"
+    },
+    {
+      "rel": "child",
+      "href": "./boundaries/catalog.json",
+      "type": "application/json",
+      "title": "الحدود الإدارية"
+    },
+    {
+      "rel": "child",
+      "href": "./mirror/catalog.json",
+      "type": "application/json",
+      "title": "المجموعات المنسوخة"
+    },
+    {
+      "rel": "child",
+      "href": "./raster/catalog.json",
+      "type": "application/json",
+      "title": "البيانات النقطية"
+    },
+    {
+      "rel": "child",
+      "href": "./tabular/catalog.json",
+      "type": "application/json",
+      "title": "البيانات الجدولية"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "إرشادات للوكلاء",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "وثائق قابلة للقراءة",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "icon",
+      "href": "../_assets/portolan-logo.png",
+      "type": "image/png",
+      "title": "شعار Portolan SDI"
+    },
+    {
+      "rel": "alternate",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Portolan Reference Catalog",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../ja/catalog.json",
+      "type": "application/json",
+      "title": "Portolan参照カタログ",
+      "hreflang": "ja"
+    }
+  ],
+  "updated": "2026-07-21T00:00:00Z",
+  "language": {
+    "code": "ar",
+    "name": "العربية",
+    "alternate": "Arabic",
+    "dir": "rtl"
+  },
+  "languages": [
+    {
+      "code": "en",
+      "name": "English"
+    },
+    {
+      "code": "ja",
+      "name": "日本語",
+      "alternate": "Japanese"
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "type": "Catalog",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
+  ],
+  "id": "reference",
+  "title": "参照用ベースマップ",
+  "description": "位置確認と結合に使えるパブリックドメインのベースマップです。",
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "child",
+      "href": "./natural-earth-countries/collection.json",
+      "type": "application/json",
+      "title": "Natural Earthの国境（1:1億1000万）"
+    },
+    {
+      "rel": "child",
+      "href": "./natural-earth-populated-places/collection.json",
+      "type": "application/json",
+      "title": "Natural Earthの居住地（1:5000万）"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "エージェント向けガイド",
+      "hreflang": "ja"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "人が読める文書",
+      "hreflang": "ja"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../reference/catalog.json",
+      "type": "application/json",
+      "title": "Reference Basemaps",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../ar/reference/catalog.json",
+      "type": "application/json",
+      "title": "خرائط الأساس المرجعية",
+      "hreflang": "ar"
+    }
+  ],
+  "updated": "2026-07-16T00:00:00Z",
+  "language": {
+    "code": "ja",
+    "name": "日本語",
+    "alternate": "Japanese"
+  },
+  "languages": [
+    {
+      "code": "en",
+      "name": "English"
+    },
+    {
+      "code": "ar",
+      "name": "العربية",
+      "alternate": "Arabic",
+      "dir": "rtl"
+    }
+  ]
+}

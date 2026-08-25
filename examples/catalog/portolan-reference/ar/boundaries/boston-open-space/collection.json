@@ -1,0 +1,306 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
+  ],
+  "id": "boundaries/boston-open-space",
+  "title": "المساحات المفتوحة في بوسطن",
+  "description": "حدائق وملاعب وحقول ومناطق محمية ومقابر من نظام بوسطن الجغرافي. تحتوي المجموعة على 1012 مضلعا بصيغ GeoParquet وPMTiles.",
+  "license": "PDDL-1.0",
+  "keywords": [
+    "مساحات مفتوحة",
+    "حدائق",
+    "بوسطن",
+    "ترفيه",
+    "حدود"
+  ],
+  "providers": [
+    {
+      "name": "City of Boston",
+      "url": "https://data.boston.gov",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -71.190913,
+          42.227891,
+          -70.874864,
+          42.396534
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2025-01-01T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "table:columns": [
+    {
+      "name": "fid",
+      "type": "bigint"
+    },
+    {
+      "name": "OBJECTID",
+      "type": "integer"
+    },
+    {
+      "name": "SITE_NAME",
+      "type": "varchar"
+    },
+    {
+      "name": "OWNERSHIP",
+      "type": "varchar"
+    },
+    {
+      "name": "PROTECTION",
+      "type": "varchar"
+    },
+    {
+      "name": "TYPECODE",
+      "type": "integer"
+    },
+    {
+      "name": "DISTRICT",
+      "type": "varchar"
+    },
+    {
+      "name": "ACRES",
+      "type": "double"
+    },
+    {
+      "name": "ADDRESS",
+      "type": "varchar"
+    },
+    {
+      "name": "ZonAgg",
+      "type": "varchar"
+    },
+    {
+      "name": "TypeLong",
+      "type": "varchar"
+    },
+    {
+      "name": "OS_Own_Jur",
+      "type": "varchar"
+    },
+    {
+      "name": "OS_Mngmnt",
+      "type": "varchar"
+    },
+    {
+      "name": "POS",
+      "type": "varchar"
+    },
+    {
+      "name": "PA",
+      "type": "varchar"
+    },
+    {
+      "name": "ALT_NAME",
+      "type": "varchar"
+    },
+    {
+      "name": "AgncyJuris",
+      "type": "varchar"
+    },
+    {
+      "name": "ShapeSTAre",
+      "type": "double"
+    },
+    {
+      "name": "ShapeSTLen",
+      "type": "double"
+    },
+    {
+      "name": "geom",
+      "type": "geometry"
+    },
+    {
+      "name": "bbox",
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+    }
+  ],
+  "table:primary_geometry": "geom",
+  "table:row_count": 1012,
+  "assets": {
+    "data": {
+      "href": "../../../boundaries/boston-open-space/boston-open-space.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "البيانات",
+      "roles": [
+        "data"
+      ],
+      "file:size": 1188770,
+      "file:checksum": "122012852a6892d9f47810b6ad54959b22b840bdfbb118b136a25cc6dd7da41d3cff",
+      "proj:code": "EPSG:4326"
+    },
+    "visual": {
+      "href": "../../../boundaries/boston-open-space/boston-open-space.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "بلاطات خريطة الويب",
+      "roles": [
+        "visual"
+      ],
+      "file:size": 989217,
+      "file:checksum": "1220db3d459dc821db7adf739ad0afee9682a3b94f8d467c564c343dcb159a2b3281"
+    },
+    "thumbnail": {
+      "href": "../../../boundaries/boston-open-space/thumbnail.png",
+      "type": "image/png",
+      "title": "صورة مصغرة",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 377459,
+      "file:checksum": "122061292d50d6b52d5452897669fe629173564b49f0d2538de5605331a323299fb0"
+    },
+    "style-types": {
+      "href": "../../../boundaries/boston-open-space/styles/types.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style",
+        "default"
+      ],
+      "file:size": 1224,
+      "file:checksum": "1220b1762e9d48bd88b6901687f255ac37fb6afc3618f46f2e4d8a569f4b9df5bfcc"
+    },
+    "style-labeled": {
+      "href": "../../../boundaries/boston-open-space/styles/labeled.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1586,
+      "file:checksum": "12200ce7dcdabc5683bbd6348a8fee0d83b23c47a48cf03557d9eef73d5085a9d2ca"
+    },
+    "style-acreage": {
+      "href": "../../../boundaries/boston-open-space/styles/acreage.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style"
+      ],
+      "file:size": 828,
+      "file:checksum": "122092647db9cb1290d34a8b4675e8e13548c4f45e6d2c26589726232bd0bb23d710"
+    },
+    "style-ownership": {
+      "href": "../../../boundaries/boston-open-space/styles/ownership.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1363,
+      "file:checksum": "1220430bfc3a3f3572e0156f3ce1ca91dbbdd6f1f2b360bf4f237ed8a26071a7fed5"
+    },
+    "style-protection": {
+      "href": "../../../boundaries/boston-open-space/styles/protection.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1122,
+      "file:checksum": "122029441a7dbf26793f87185cb67a1ee3e5055d271a6550c1cffad5b8fdaa349078"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "pmtiles",
+      "href": "../../../boundaries/boston-open-space/boston-open-space.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "بلاطات خريطة الويب",
+      "pmtiles:layers": [
+        "boston-open-space"
+      ]
+    },
+    {
+      "rel": "via",
+      "href": "https://bostonopendata-boston.opendata.arcgis.com/datasets/2868d370c55d4d458d4ae2224ef8cddd_7",
+      "type": "text/html",
+      "title": "المصدر الأصلي"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "إرشادات للوكلاء",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "وثائق قابلة للقراءة",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../../boundaries/boston-open-space/collection.json",
+      "type": "application/json",
+      "title": "Boston Open Space",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../../ja/boundaries/boston-open-space/collection.json",
+      "type": "application/json",
+      "title": "ボストンのオープンスペース",
+      "hreflang": "ja"
+    }
+  ],
+  "updated": "2026-07-21T00:00:00Z",
+  "language": {
+    "code": "ar",
+    "name": "العربية",
+    "alternate": "Arabic",
+    "dir": "rtl"
+  },
+  "languages": [
+    {
+      "code": "en",
+      "name": "English"
+    },
+    {
+      "code": "ja",
+      "name": "日本語",
+      "alternate": "Japanese"
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+language:
+  code: ar
+  name: العربية
+  alternate: Arabic
+  dir: rtl
+
+messages:
+  collections: المجموعات
+  data_files: ملفات البيانات
+  license: الرخصة (License)
+  source: المصدر وسجل المنشأ (Source and provenance)
+  last_synced: آخر مزامنة
+  detailed_english: التفاصيل باللغة الإنجليزية
+  agent_heading: إرشادات للوكلاء
+  agent_intro: اقرأ دليل الوكلاء باللغة الإنجليزية قبل معالجة هذه البيانات.
+  link_titles:
+    agents: إرشادات للوكلاء
+    describedby: وثائق قابلة للقراءة
+    pmtiles: بلاطات خريطة الويب
+    via: المصدر الأصلي
+    canonical: سجل البيانات الوصفية الأصلي
+    license: الرخصة
+    icon: شعار Portolan SDI
+  asset_titles:
+    data: البيانات
+    visual: بلاطات خريطة الويب
+    thumbnail: صورة مصغرة
+    source: ملف المصدر الأصلي
+    metadata: البيانات الوصفية الأصلية
+    style: نمط الخريطة
+    other: ملف إضافي
+
+catalog:
+  title: كتالوج بورتولان المرجعي
+  description: >-
+    كتالوج مرجعي متنوع يوضح الحالات الرئيسية في مواصفة بورتولان 0.1.
+    يستخدم بيانات حقيقية مفتوحة الترخيص من مصادرها الأصلية.
+
+catalogs:
+  reference:
+    title: خرائط الأساس المرجعية
+    description: طبقات خرائط أساس من الملكية العامة للاسترشاد والربط.
+  boundaries:
+    title: الحدود الإدارية
+    description: مجموعات للحدود الإدارية والمساحات المفتوحة من مصادر رسمية.
+  mirror:
+    title: المجموعات المنسوخة
+    description: نسخ سحابية أصلية البنية لبيانات تحتفظ بها جهات أخرى.
+  raster:
+    title: البيانات النقطية
+    description: مجموعات نقطية بصيغة GeoTIFF محسنة للسحابة.
+  tabular:
+    title: البيانات الجدولية
+    description: جداول مرافقة غير مكانية منشورة بصيغة Parquet.
+
+collections:
+  reference/natural-earth-countries:
+    title: دول Natural Earth بمقياس 1:110 مليون
+    description: >-
+      حدود دول العالم من Natural Earth بمقياس 1:110 مليون.
+      تنشر المجموعة GeoParquet مع ملف Shapefile الأصلي المضغوط.
+    keywords: [حدود, دول, Natural Earth, مرجع, خريطة أساس]
+  reference/natural-earth-populated-places:
+    title: الأماكن المأهولة في Natural Earth بمقياس 1:50 مليون
+    description: >-
+      نقاط للمدن والبلدات والأماكن المأهولة من Natural Earth بمقياس 1:50 مليون.
+      تنشر المجموعة GeoParquet مع المصدر الأصلي.
+    keywords: [أماكن, مدن, نقاط, Natural Earth, مرجع]
+  boundaries/us-counties:
+    title: مقاطعات الولايات المتحدة لعام 2023 بمقياس 1:500 ألف
+    description: >-
+      حدود المقاطعات وما يعادلها من ملف التعداد الأمريكي لعام 2023.
+      تنشر المجموعة الحدود المبسطة بصيغة GeoParquet مع المصدر الأصلي.
+    keywords: [حدود, مقاطعات, الولايات المتحدة, تعداد, TIGER]
+  boundaries/boston-open-space:
+    title: المساحات المفتوحة في بوسطن
+    description: >-
+      حدائق وملاعب وحقول ومناطق محمية ومقابر من نظام بوسطن الجغرافي.
+      تحتوي المجموعة على 1012 مضلعا بصيغ GeoParquet وPMTiles.
+    keywords: [مساحات مفتوحة, حدائق, بوسطن, ترفيه, حدود]
+  boundaries/netherlands-provinces:
+    title: مقاطعات هولندا
+    description: >-
+      حدود المقاطعات الهولندية الاثنتي عشرة من خدمة PDOK التابعة للسجل العقاري.
+      تنشر المجموعة GeoParquet وPMTiles مع أنماط خرائط.
+    keywords: [حدود, مقاطعات, هولندا, إداري, PDOK]
+  mirror/san-francisco-addresses:
+    title: عناوين سان فرانسيسكو من EAS
+    description: >-
+      نقاط عناوين من نظام العناوين المؤسسي في سان فرانسيسكو.
+      تنشر المجموعة عينة من 5000 سجل بصيغ GeoParquet وPMTiles.
+    keywords: [عناوين, نقاط, سان فرانسيسكو, DataSF, EAS]
+  raster/sample-cog:
+    title: نموذج بيانات نقطية بصيغة COG
+    description: >-
+      ملف GeoTIFF صغير ومحسن للسحابة بثلاث حزم من بيانات اختبار rasterio.
+      تعرض الصورة جزيرة أندروس في جزر البهاما ضمن UTM 18N.
+    keywords: [بيانات نقطية, COG, نموذج, RGB, GeoTIFF]
+  tabular/eurostat-electricity-prices:
+    title: أسعار كهرباء الأسر من Eurostat
+    description: >-
+      أسعار كهرباء نصف سنوية للأسر حسب البلد وفئة الاستهلاك والضريبة والعملة.
+      تنشر المجموعة جدول nrg_pc_204 بصيغة Parquet للربط مع خريطة NUTS 0.
+    keywords: [طاقة, كهرباء, أسعار, Eurostat, بيانات جدولية]

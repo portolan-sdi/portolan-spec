@@ -1,0 +1,192 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json",
+    "https://stac-extensions.github.io/attribution/v0.1.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
+  ],
+  "id": "tabular/eurostat-electricity-prices",
+  "title": "Eurostatの家庭向け電力価格",
+  "description": "国、消費量区分、税、通貨ごとの半年単位の家庭向け電力価格です。 nrg_pc_204表をParquetで公開し、NUTS 0の地図と結合できます。",
+  "license": "CC-BY-4.0",
+  "keywords": [
+    "エネルギー",
+    "電力",
+    "価格",
+    "Eurostat",
+    "表形式データ"
+  ],
+  "providers": [
+    {
+      "name": "Eurostat",
+      "url": "https://ec.europa.eu/eurostat",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -31.5,
+          34.0,
+          46.5,
+          71.5
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2007-01-01T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "table:columns": [
+    {
+      "name": "DATAFLOW",
+      "type": "varchar"
+    },
+    {
+      "name": "LAST UPDATE",
+      "type": "timestamp"
+    },
+    {
+      "name": "freq",
+      "type": "varchar"
+    },
+    {
+      "name": "siec",
+      "type": "varchar"
+    },
+    {
+      "name": "nrg_cons",
+      "type": "varchar"
+    },
+    {
+      "name": "unit",
+      "type": "varchar"
+    },
+    {
+      "name": "tax",
+      "type": "varchar"
+    },
+    {
+      "name": "currency",
+      "type": "varchar"
+    },
+    {
+      "name": "geo",
+      "type": "varchar"
+    },
+    {
+      "name": "TIME_PERIOD",
+      "type": "varchar"
+    },
+    {
+      "name": "OBS_VALUE",
+      "type": "double"
+    },
+    {
+      "name": "OBS_FLAG",
+      "type": "varchar"
+    },
+    {
+      "name": "CONF_STATUS",
+      "type": "varchar"
+    }
+  ],
+  "table:row_count": 65412,
+  "assets": {
+    "data": {
+      "href": "../../../tabular/eurostat-electricity-prices/eurostat-electricity-prices.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "データ",
+      "roles": [
+        "data"
+      ],
+      "file:size": 163273,
+      "file:checksum": "1220106081590cd5eacab833ea121be58b7b0686fec532215d3573ac0b13e94269a2"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "via",
+      "href": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table",
+      "type": "text/html",
+      "title": "元の出典"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "エージェント向けガイド",
+      "hreflang": "ja"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "人が読める文書",
+      "hreflang": "ja"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../../tabular/eurostat-electricity-prices/collection.json",
+      "type": "application/json",
+      "title": "Eurostat Electricity Prices for Household Consumers",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../../ar/tabular/eurostat-electricity-prices/collection.json",
+      "type": "application/json",
+      "title": "أسعار كهرباء الأسر من Eurostat",
+      "hreflang": "ar"
+    }
+  ],
+  "attribution": "Source, Eurostat",
+  "updated": "2026-07-21T00:00:00Z",
+  "language": {
+    "code": "ja",
+    "name": "日本語",
+    "alternate": "Japanese"
+  },
+  "languages": [
+    {
+      "code": "en",
+      "name": "English"
+    },
+    {
+      "code": "ar",
+      "name": "العربية",
+      "alternate": "Arabic",
+      "dir": "rtl"
+    }
+  ]
+}

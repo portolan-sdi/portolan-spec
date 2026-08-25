@@ -1,0 +1,100 @@
+{
+  "type": "Catalog",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
+  ],
+  "id": "portolan-reference",
+  "title": "Portolan参照カタログ",
+  "description": "Portolan 0.1仕様の主な事例を示す参照カタログです。 元の提供元から取得した、オープンライセンスの実データを使います。",
+  "links": [
+    {
+      "rel": "root",
+      "href": "./catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "child",
+      "href": "./reference/catalog.json",
+      "type": "application/json",
+      "title": "参照用ベースマップ"
+    },
+    {
+      "rel": "child",
+      "href": "./boundaries/catalog.json",
+      "type": "application/json",
+      "title": "行政界"
+    },
+    {
+      "rel": "child",
+      "href": "./mirror/catalog.json",
+      "type": "application/json",
+      "title": "ミラーコレクション"
+    },
+    {
+      "rel": "child",
+      "href": "./raster/catalog.json",
+      "type": "application/json",
+      "title": "ラスターデータ"
+    },
+    {
+      "rel": "child",
+      "href": "./tabular/catalog.json",
+      "type": "application/json",
+      "title": "表形式データ"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "エージェント向けガイド",
+      "hreflang": "ja"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "人が読める文書",
+      "hreflang": "ja"
+    },
+    {
+      "rel": "icon",
+      "href": "../_assets/portolan-logo.png",
+      "type": "image/png",
+      "title": "Portolan SDIのロゴ"
+    },
+    {
+      "rel": "alternate",
+      "href": "../catalog.json",
+      "type": "application/json",
+      "title": "Portolan Reference Catalog",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../ar/catalog.json",
+      "type": "application/json",
+      "title": "كتالوج بورتولان المرجعي",
+      "hreflang": "ar"
+    }
+  ],
+  "updated": "2026-07-21T00:00:00Z",
+  "language": {
+    "code": "ja",
+    "name": "日本語",
+    "alternate": "Japanese"
+  },
+  "languages": [
+    {
+      "code": "en",
+      "name": "English"
+    },
+    {
+      "code": "ar",
+      "name": "العربية",
+      "alternate": "Arabic",
+      "dir": "rtl"
+    }
+  ]
+}

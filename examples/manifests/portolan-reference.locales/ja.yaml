@@ -1,0 +1,103 @@
+language:
+  code: ja
+  name: 日本語
+  alternate: Japanese
+
+messages:
+  collections: コレクション
+  data_files: データファイル
+  license: ライセンス (License)
+  source: 出典と来歴 (Source and provenance)
+  last_synced: 最終同期
+  detailed_english: 英語の詳細情報
+  agent_heading: エージェント向けガイド
+  agent_intro: このデータを処理する前に、英語のエージェント向けガイドを読んでください。
+  link_titles:
+    agents: エージェント向けガイド
+    describedby: 人が読める文書
+    pmtiles: ウェブ地図タイル
+    via: 元の出典
+    canonical: 上流のメタデータレコード
+    license: ライセンス
+    icon: Portolan SDIのロゴ
+  asset_titles:
+    data: データ
+    visual: ウェブ地図タイル
+    thumbnail: サムネイル
+    source: 元のソースファイル
+    metadata: 上流のメタデータ
+    style: 地図スタイル
+    other: 追加ファイル
+
+catalog:
+  title: Portolan参照カタログ
+  description: >-
+    Portolan 0.1仕様の主な事例を示す参照カタログです。
+    元の提供元から取得した、オープンライセンスの実データを使います。
+
+catalogs:
+  reference:
+    title: 参照用ベースマップ
+    description: 位置確認と結合に使えるパブリックドメインのベースマップです。
+  boundaries:
+    title: 行政界
+    description: 公的な提供元による行政界とオープンスペースのコレクションです。
+  mirror:
+    title: ミラーコレクション
+    description: 他の組織が管理するデータのクラウドネイティブなミラーです。
+  raster:
+    title: ラスターデータ
+    description: Cloud Optimized GeoTIFF形式のラスターコレクションです。
+  tabular:
+    title: 表形式データ
+    description: Parquet形式で公開する非空間の関連テーブルです。
+
+collections:
+  reference/natural-earth-countries:
+    title: Natural Earthの国境（1:1億1000万）
+    description: >-
+      Natural Earthによる世界の国境データです。縮尺は1:1億1000万です。
+      GeoParquetと元の圧縮Shapefileを公開します。
+    keywords: [境界, 国, Natural Earth, 参照, ベースマップ]
+  reference/natural-earth-populated-places:
+    title: Natural Earthの居住地（1:5000万）
+    description: >-
+      Natural Earthによる都市、町、居住地のポイントです。縮尺は1:5000万です。
+      GeoParquetと元データを公開します。
+    keywords: [場所, 都市, ポイント, Natural Earth, 参照]
+  boundaries/us-counties:
+    title: 米国の郡（2023年、1:50万）
+    description: >-
+      2023年の米国国勢調査地図ファイルによる郡と同等区域の境界です。
+      簡略化した境界をGeoParquetと元データで公開します。
+    keywords: [境界, 郡, 米国, 国勢調査, TIGER]
+  boundaries/boston-open-space:
+    title: ボストンのオープンスペース
+    description: >-
+      Boston GISによる公園、遊び場、運動場、保全地、墓地のデータです。
+      1012個のポリゴンをGeoParquetとPMTilesで公開します。
+    keywords: [オープンスペース, 公園, ボストン, レクリエーション, 境界]
+  boundaries/netherlands-provinces:
+    title: オランダの州
+    description: >-
+      オランダ地籍局のPDOKサービスによる12州の境界です。
+      GeoParquet、PMTiles、地図スタイルを公開します。
+    keywords: [境界, 州, オランダ, 行政, PDOK]
+  mirror/san-francisco-addresses:
+    title: サンフランシスコの住所（EAS）
+    description: >-
+      サンフランシスコのEnterprise Addressing Systemによる住所ポイントです。
+      5000件の抽出データをGeoParquetとPMTilesで公開します。
+    keywords: [住所, ポイント, サンフランシスコ, DataSF, EAS]
+  raster/sample-cog:
+    title: COGラスターのサンプル
+    description: >-
+      rasterioのテストデータを使う、小さな3バンドのCloud Optimized GeoTIFFです。
+      UTM 18Nでバハマのアンドロス島を表示します。
+    keywords: [ラスター, COG, サンプル, RGB, GeoTIFF]
+  tabular/eurostat-electricity-prices:
+    title: Eurostatの家庭向け電力価格
+    description: >-
+      国、消費量区分、税、通貨ごとの半年単位の家庭向け電力価格です。
+      nrg_pc_204表をParquetで公開し、NUTS 0の地図と結合できます。
+    keywords: [エネルギー, 電力, 価格, Eurostat, 表形式データ]

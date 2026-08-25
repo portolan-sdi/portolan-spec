@@ -12,6 +12,7 @@ RASTER_EXT = "https://stac-extensions.github.io/raster/v2.0.0/schema.json"
 TABLE_EXT = "https://stac-extensions.github.io/table/v1.2.0/schema.json"
 PROJ_EXT = "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
 ATTRIBUTION_EXT = "https://stac-extensions.github.io/attribution/v0.1.0/schema.json"
+LANGUAGE_EXT = "https://stac-extensions.github.io/language/v1.0.0/schema.json"
 STAC_VERSION = "1.1.0"
 
 MEDIA = {

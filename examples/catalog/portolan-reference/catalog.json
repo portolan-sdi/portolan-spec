@@ -2,7 +2,8 @@
   "type": "Catalog",
   "stac_version": "1.1.0",
   "stac_extensions": [
-    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json"
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
   ],
   "id": "portolan-reference",
   "title": "Portolan Reference Catalog",
@@ -47,20 +48,53 @@
       "rel": "agents",
       "href": "./AGENTS.md",
       "type": "text/markdown",
-      "title": "Guidance for AI agents"
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
     },
     {
       "rel": "describedby",
       "href": "./README.md",
       "type": "text/markdown",
-      "title": "Human-readable documentation"
+      "title": "Human-readable documentation",
+      "hreflang": "en"
     },
     {
       "rel": "icon",
       "href": "./_assets/portolan-logo.png",
       "type": "image/png",
       "title": "Portolan SDI"
+    },
+    {
+      "rel": "alternate",
+      "href": "./ar/catalog.json",
+      "type": "application/json",
+      "title": "كتالوج بورتولان المرجعي",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "alternate",
+      "href": "./ja/catalog.json",
+      "type": "application/json",
+      "title": "Portolan参照カタログ",
+      "hreflang": "ja"
     }
   ],
-  "updated": "2026-07-21T00:00:00Z"
+  "updated": "2026-07-21T00:00:00Z",
+  "language": {
+    "code": "en",
+    "name": "English"
+  },
+  "languages": [
+    {
+      "code": "ar",
+      "name": "العربية",
+      "alternate": "Arabic",
+      "dir": "rtl"
+    },
+    {
+      "code": "ja",
+      "name": "日本語",
+      "alternate": "Japanese"
+    }
+  ]
 }

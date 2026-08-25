@@ -1,0 +1,772 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
+  ],
+  "id": "reference/natural-earth-populated-places",
+  "title": "الأماكن المأهولة في Natural Earth بمقياس 1:50 مليون",
+  "description": "نقاط للمدن والبلدات والأماكن المأهولة من Natural Earth بمقياس 1:50 مليون. تنشر المجموعة GeoParquet مع المصدر الأصلي.",
+  "license": "CC0-1.0",
+  "keywords": [
+    "أماكن",
+    "مدن",
+    "نقاط",
+    "Natural Earth",
+    "مرجع"
+  ],
+  "providers": [
+    {
+      "name": "Natural Earth",
+      "url": "https://www.naturalearthdata.com",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -175.220564,
+          -90.0,
+          179.216647,
+          78.220971
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2022-05-13T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "table:columns": [
+    {
+      "name": "fid",
+      "type": "bigint"
+    },
+    {
+      "name": "SCALERANK",
+      "type": "integer"
+    },
+    {
+      "name": "NATSCALE",
+      "type": "integer"
+    },
+    {
+      "name": "LABELRANK",
+      "type": "integer"
+    },
+    {
+      "name": "FEATURECLA",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME",
+      "type": "varchar"
+    },
+    {
+      "name": "NAMEPAR",
+      "type": "varchar"
+    },
+    {
+      "name": "NAMEALT",
+      "type": "varchar"
+    },
+    {
+      "name": "NAMEASCII",
+      "type": "varchar"
+    },
+    {
+      "name": "ADM0CAP",
+      "type": "integer"
+    },
+    {
+      "name": "CAPIN",
+      "type": "varchar"
+    },
+    {
+      "name": "WORLDCITY",
+      "type": "integer"
+    },
+    {
+      "name": "MEGACITY",
+      "type": "integer"
+    },
+    {
+      "name": "SOV0NAME",
+      "type": "varchar"
+    },
+    {
+      "name": "SOV_A3",
+      "type": "varchar"
+    },
+    {
+      "name": "ADM0NAME",
+      "type": "varchar"
+    },
+    {
+      "name": "ADM0_A3",
+      "type": "varchar"
+    },
+    {
+      "name": "ADM1NAME",
+      "type": "varchar"
+    },
+    {
+      "name": "ISO_A2",
+      "type": "varchar"
+    },
+    {
+      "name": "NOTE",
+      "type": "varchar"
+    },
+    {
+      "name": "LATITUDE",
+      "type": "double"
+    },
+    {
+      "name": "LONGITUDE",
+      "type": "double"
+    },
+    {
+      "name": "POP_MAX",
+      "type": "bigint"
+    },
+    {
+      "name": "POP_MIN",
+      "type": "bigint"
+    },
+    {
+      "name": "POP_OTHER",
+      "type": "bigint"
+    },
+    {
+      "name": "RANK_MAX",
+      "type": "integer"
+    },
+    {
+      "name": "RANK_MIN",
+      "type": "integer"
+    },
+    {
+      "name": "MEGANAME",
+      "type": "varchar"
+    },
+    {
+      "name": "LS_NAME",
+      "type": "varchar"
+    },
+    {
+      "name": "MAX_POP10",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_POP20",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_POP50",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_POP300",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_POP310",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_NATSCA",
+      "type": "bigint"
+    },
+    {
+      "name": "MIN_AREAKM",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_AREAKM",
+      "type": "bigint"
+    },
+    {
+      "name": "MIN_AREAMI",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_AREAMI",
+      "type": "bigint"
+    },
+    {
+      "name": "MIN_PERKM",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_PERKM",
+      "type": "bigint"
+    },
+    {
+      "name": "MIN_PERMI",
+      "type": "bigint"
+    },
+    {
+      "name": "MAX_PERMI",
+      "type": "bigint"
+    },
+    {
+      "name": "MIN_BBXMIN",
+      "type": "double"
+    },
+    {
+      "name": "MAX_BBXMIN",
+      "type": "double"
+    },
+    {
+      "name": "MIN_BBXMAX",
+      "type": "double"
+    },
+    {
+      "name": "MAX_BBXMAX",
+      "type": "double"
+    },
+    {
+      "name": "MIN_BBYMIN",
+      "type": "double"
+    },
+    {
+      "name": "MAX_BBYMIN",
+      "type": "double"
+    },
+    {
+      "name": "MIN_BBYMAX",
+      "type": "double"
+    },
+    {
+      "name": "MAX_BBYMAX",
+      "type": "double"
+    },
+    {
+      "name": "MEAN_BBXC",
+      "type": "double"
+    },
+    {
+      "name": "MEAN_BBYC",
+      "type": "double"
+    },
+    {
+      "name": "TIMEZONE",
+      "type": "varchar"
+    },
+    {
+      "name": "UN_FID",
+      "type": "integer"
+    },
+    {
+      "name": "POP1950",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1955",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1960",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1965",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1970",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1975",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1980",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1985",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1990",
+      "type": "bigint"
+    },
+    {
+      "name": "POP1995",
+      "type": "bigint"
+    },
+    {
+      "name": "POP2000",
+      "type": "bigint"
+    },
+    {
+      "name": "POP2005",
+      "type": "bigint"
+    },
+    {
+      "name": "POP2010",
+      "type": "bigint"
+    },
+    {
+      "name": "POP2015",
+      "type": "bigint"
+    },
+    {
+      "name": "POP2020",
+      "type": "bigint"
+    },
+    {
+      "name": "POP2025",
+      "type": "bigint"
+    },
+    {
+      "name": "POP2050",
+      "type": "bigint"
+    },
+    {
+      "name": "MIN_ZOOM",
+      "type": "double"
+    },
+    {
+      "name": "WIKIDATAID",
+      "type": "varchar"
+    },
+    {
+      "name": "WOF_ID",
+      "type": "bigint"
+    },
+    {
+      "name": "CAPALT",
+      "type": "integer"
+    },
+    {
+      "name": "NAME_EN",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_DE",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_ES",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_FR",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_PT",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_RU",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_ZH",
+      "type": "varchar"
+    },
+    {
+      "name": "LABEL",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_AR",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_BN",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_EL",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_HI",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_HU",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_ID",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_IT",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_JA",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_KO",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_NL",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_PL",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_SV",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_TR",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_VI",
+      "type": "varchar"
+    },
+    {
+      "name": "NE_ID",
+      "type": "bigint"
+    },
+    {
+      "name": "NAME_FA",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_HE",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_UK",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_UR",
+      "type": "varchar"
+    },
+    {
+      "name": "NAME_ZHT",
+      "type": "varchar"
+    },
+    {
+      "name": "GEONAMESID",
+      "type": "bigint"
+    },
+    {
+      "name": "FCLASS_ISO",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_US",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_FR",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_RU",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_ES",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_CN",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_TW",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_IN",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_NP",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_PK",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_DE",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_GB",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_BR",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_IL",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_PS",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_SA",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_EG",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_MA",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_PT",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_AR",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_JP",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_KO",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_VN",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_TR",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_ID",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_PL",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_GR",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_IT",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_NL",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_SE",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_BD",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_UA",
+      "type": "varchar"
+    },
+    {
+      "name": "FCLASS_TLC",
+      "type": "varchar"
+    },
+    {
+      "name": "geom",
+      "type": "geometry"
+    },
+    {
+      "name": "bbox",
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+    }
+  ],
+  "table:primary_geometry": "geom",
+  "table:row_count": 1251,
+  "assets": {
+    "data": {
+      "href": "../../../reference/natural-earth-populated-places/natural-earth-populated-places.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "البيانات",
+      "roles": [
+        "data"
+      ],
+      "file:size": 618506,
+      "file:checksum": "1220acfc4c9abd3e9302626b384b41d7c74c62cc5026289d3aee3bca35a0c13ee5f0",
+      "proj:code": "EPSG:4326"
+    },
+    "source": {
+      "href": "https://naciscdn.org/naturalearth/50m/cultural/ne_50m_populated_places.zip",
+      "type": "application/zip",
+      "title": "ملف المصدر الأصلي",
+      "roles": [
+        "source"
+      ],
+      "file:size": 553649,
+      "file:checksum": "12209022c3be867be79c44bd6fc6ff4dcc210e85ffee13b033bf4d1d87d83c9ee6b4"
+    },
+    "thumbnail": {
+      "href": "../../../reference/natural-earth-populated-places/thumbnail.png",
+      "type": "image/png",
+      "title": "صورة مصغرة",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 134432,
+      "file:checksum": "12200c8eae74720f9c14bb0899345884fe1be9dac78a437bd096fc4f30736e35d19a"
+    },
+    "style-places": {
+      "href": "../../../reference/natural-earth-populated-places/styles/places.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style",
+        "default"
+      ],
+      "file:size": 501,
+      "file:checksum": "1220a3a7d3a84990a23e6879ea0f878178021c38fa293849de4f1e5bda03b42e8cea"
+    },
+    "style-population": {
+      "href": "../../../reference/natural-earth-populated-places/styles/population.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1073,
+      "file:checksum": "1220a5e345a4d1c3b882d07ee945f7fe6ebb979e49d645e8d0752fe46cf93ca538dd"
+    },
+    "style-feature-class": {
+      "href": "../../../reference/natural-earth-populated-places/styles/feature-class.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style"
+      ],
+      "file:size": 1112,
+      "file:checksum": "1220e8a421fc0d086974f520f3e18de62cadc63c5d72f969a3971b7dfd8d1c11b696"
+    },
+    "style-capitals": {
+      "href": "../../../reference/natural-earth-populated-places/styles/capitals.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style"
+      ],
+      "file:size": 926,
+      "file:checksum": "1220f22a199fcd8ae0a26f0001dad9b9474013aab3f03fdc3a90b29084d5af128561"
+    },
+    "style-density": {
+      "href": "../../../reference/natural-earth-populated-places/styles/density.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نمط الخريطة",
+      "roles": [
+        "style"
+      ],
+      "file:size": 521,
+      "file:checksum": "1220752fd5d3ce4c356ed3f348c8f260a6589a658c75a7e0b3aa3090fa0228031038"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "via",
+      "href": "https://www.naturalearthdata.com/downloads/50m-cultural-vectors/",
+      "type": "text/html",
+      "title": "المصدر الأصلي"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "إرشادات للوكلاء",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "وثائق قابلة للقراءة",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../../reference/natural-earth-populated-places/collection.json",
+      "type": "application/json",
+      "title": "Natural Earth Populated Places (1:50m)",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../../ja/reference/natural-earth-populated-places/collection.json",
+      "type": "application/json",
+      "title": "Natural Earthの居住地（1:5000万）",
+      "hreflang": "ja"
+    }
+  ],
+  "updated": "2026-07-16T00:00:00Z",
+  "language": {
+    "code": "ar",
+    "name": "العربية",
+    "alternate": "Arabic",
+    "dir": "rtl"
+  },
+  "languages": [
+    {
+      "code": "en",
+      "name": "English"
+    },
+    {
+      "code": "ja",
+      "name": "日本語",
+      "alternate": "Japanese"
+    }
+  ]
+}
