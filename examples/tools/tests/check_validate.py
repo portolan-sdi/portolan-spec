@@ -37,7 +37,9 @@ def check_self_link_fails() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         dst = Path(tmp) / "portolan-reference"
         shutil.copytree(REFERENCE, dst)
-        # Inject a forbidden self link into one Collection.
+        # Inject a self link into one Collection. The v0.1.2 schema rejects
+        # it. The specification no longer does, so the next schema version
+        # drops this check and this test flips with it.
         col = dst / "boundaries/us-counties/collection.json"
         obj = json.loads(col.read_text())
         obj["links"].append({"rel": "self", "href": "collection.json"})

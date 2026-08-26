@@ -269,18 +269,41 @@ every object it contains; an item MUST include `root`, `parent`, and `collection
 links. Every structural link MUST carry a `type` of `application/json` (or
 `application/geo+json` for links to items).
 
-All structural links MUST be relative, and objects MUST NOT include a `self` link.
-This keeps a catalog fully portable: it can be created, validated, moved between
-local, staging, and production environments, or rehosted at a new URL without
-rewriting any file. This choice follows pystac's `SELF_CONTAINED` convention and
-may be revisited in a future version if absolute self links prove necessary for
-published catalogs.
+Structural links can be relative or absolute; Portolan takes no position.
+Relative links keep a catalog portable, so the same tree of files validates
+locally, in staging, and in production without a rewrite. Absolute links name
+their location outright, which some hosts and clients handle more reliably.
+The [STAC best practices on the use of
+links](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-catalog-and-collection.md#use-of-links)
+walk through the choice, and [Git-Backed
+Catalogs](../best-practices/git-backed-catalogs.md#links-and-the-publish-step)
+covers how it plays out for a catalog maintained in git.
+
+A catalog served over the internet from a single fixed URL SHOULD carry an
+absolute `self` link on its root catalog. The link records the canonical
+location, so someone holding a downloaded copy can see where it came from, and
+a tool can resolve the catalog's relative references into URLs from the
+metadata alone. STAC requires that a `self` link be
+[absolute](https://github.com/radiantearth/stac-spec/blob/master/commons/links.md#relation-types).
 
 Every link in a catalog MUST resolve. A validator MUST resolve each relative link
 against the catalog's own file tree, whether on a local filesystem or on object
 storage, and confirm the referenced file is present and is the correct object,
 rather than merely checking that the `href` is present or well-formed. A link that
 fails to resolve, or resolves to the wrong object, is a conformance failure.
+
+A validator resolves an absolute structural link through the base that the root
+`self` link names. It strips that base from the `href`. It then resolves the
+remainder against the file tree, as it does for a relative href.
+
+A catalog that carries absolute structural links without a root `self` link
+gives a validator no base. The validator reports nothing for those links,
+because it cannot place them. An `href` that does not start with the base gets
+the same treatment. A root catalog that links a child in a different bucket
+therefore gets no check on that link.
+
+The requirement to resolve still holds. A publisher who wants the check keeps a
+root `self` link.
 
 Provenance (`via`) links are covered under [Source Provenance](#source-provenance).
 

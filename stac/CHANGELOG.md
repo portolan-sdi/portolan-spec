@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- The `links_conformant` block must stop rejecting a `self` link and stop
+  requiring a relative `href` on structural links, following the spec's removal
+  of both rules (#159). A released schema is immutable, so the edits belong to
+  the next version directory under `stac/json-schema/` and land with the
+  release that cuts it. The new recommendation of a root `self` link
+  (`PORTO-CORE-081`) is conditional on how the publisher serves the catalog,
+  so the schema does not check it.
+
 ## 0.1.2 - 2026-08-20
 
 The schema is published at
