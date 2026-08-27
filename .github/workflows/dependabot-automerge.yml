@@ -1,0 +1,16 @@
+# Synced from portolan-sdi/portolan-ops (ci/dependabot-automerge.yml).
+# The workflow checks the PR author and does not run PR code.
+name: Dependabot auto-merge
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dependabot:
+    uses: portolan-sdi/portolan-ops/.github/workflows/reusable-dependabot-automerge.yml@v1
+    permissions:
+      contents: write
+      pull-requests: write
