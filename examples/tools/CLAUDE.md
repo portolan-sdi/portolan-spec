@@ -264,7 +264,7 @@ proven by running rashid directly, without the adapter. Do that before publishin
 rebuild.
 
 ```bash
-uv run --with "rashid[data]>=0.1.6,<0.2.0" \
+uv run --with "rashid[data]>=0.1.8,<0.2.0" \
   rashid check --schema examples/catalog/portolan-reference
 ```
 
@@ -306,7 +306,7 @@ party servers. The spec scopes those MUSTs to the catalog's own assets as of
 PORTO-CORE-073, so a validator does not probe an upstream host.
 
 rashid comes from PyPI, pinned to a compatible range in `build.py`'s PEP 723
-header, currently `rashid[data]>=0.1.6,<0.2.0`. Bumping the Portolan schema is a
+header, currently `rashid[data]>=0.1.8,<0.2.0`. Bumping the Portolan schema is a
 coordinated change across this repo and rashid, update the local schema,
 regenerate the reference catalog, re-vendor fixtures into rashid, then bump the
 rashid range here.
