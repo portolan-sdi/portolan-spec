@@ -177,7 +177,12 @@ jobs:
           # collection dropped from the manifest would otherwise survive there
           # and get published as though it were still current.
           rm -rf "examples/catalog/${CATALOG}"
-          uv run examples/tools/build.py --catalog "$CATALOG"
+          # The rashid pin bump and the rashid release land in the same pull
+          # request. A restored uv cache can hold a PyPI index page from
+          # before that version exists, and the resolve then fails. Refresh
+          # the one package. See #155.
+          uv run --refresh-package rashid \
+            examples/tools/build.py --catalog "$CATALOG"
 
       # Nothing unvalidated reaches a public URL. Errors and warnings both fail,
       # the same gate the weekly catalog-upstream run applies.
