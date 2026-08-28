@@ -32,7 +32,7 @@ from thumbnails import (
 # --------------------------------------------------------------------- manifest
 def load_manifest(path: Path) -> dict:
     m = yaml.safe_load(path.read_text())
-    assert m["schema_uri"] == SCHEMA_URI, "manifest schema_uri must be the pinned v0.1.2 URI"
+    assert m["schema_uri"] == SCHEMA_URI, "manifest schema_uri must be the pinned v0.2.0 URI"
     logo = m.get("logo")
     if logo:
         # The manifest directory is the only place that knows where a relative

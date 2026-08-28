@@ -5,17 +5,33 @@ All notable changes to the Portolan STAC profile will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.2.0 - 2026-08-28
+
+The schema is published at
+<https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json>. The `v0.1.0`,
+`v0.1.1`, and `v0.1.2` schemas stay published unchanged.
+
+This is the first schema change since `v0.1.0`. `v0.1.1` and `v0.1.2` each
+carried a new `$id` and nothing else.
 
 ### Changed
 
-- The `links_conformant` block must stop rejecting a `self` link and stop
-  requiring a relative `href` on structural links, following the spec's removal
-  of both rules (#159). A released schema is immutable, so the edits belong to
-  the next version directory under `stac/json-schema/` and land with the
-  release that cuts it. The new recommendation of a root `self` link
-  (`PORTO-CORE-081`) is conditional on how the publisher serves the catalog,
-  so the schema does not check it.
+- The `links_conformant` block accepts a `self` link. The branch that mapped
+  `rel: "self"` to `false` is gone, following the spec's retirement of
+  `PORTO-CORE-034` (#159).
+- The `links_conformant` block accepts an absolute structural `href`. The
+  `"not": {"pattern": "://"}` constraint is gone from the
+  `root`/`parent`/`child`/`collection` branch and from the `item` branch.
+  `PORTO-CORE-034` carried that rule too.
+
+The rest of the block is unchanged. Structural links still carry the required
+media type, `child` and `item` links still carry a title, and an `icon` link
+still declares a renderable media type.
+
+The new recommendation of a root `self` link (`PORTO-CORE-081`) is conditional
+on how the publisher serves the catalog, so the schema does not check it. A
+validator resolves an absolute structural link through the base that the root
+`self` link names, which the schema also cannot check.
 
 ## 0.1.2 - 2026-08-20
 

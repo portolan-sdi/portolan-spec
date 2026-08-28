@@ -7,7 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
-## Unreleased
+## 0.2.0 - 2026-08-28
+
+A catalog declares this version by carrying
+`https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json` in `stac_extensions`.
+The `v0.1.0`, `v0.1.1`, and `v0.1.2` schemas stay published unchanged, so a
+catalog authored against any of them keeps validating against it.
+
+This release is breaking, and it bumps MINOR under the pre-1.0 policy. Every
+catalog that conformed to `v0.1.2` still conforms. A validator built against
+`v0.1.2` does not. It reports an error for a `self` link and for an absolute
+structural `href`. `v0.2.0` allows both. rashid 0.1.8 is the first
+release that carries the new rules.
 
 ### Changed
 
@@ -23,6 +34,14 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   for the trade-offs.
 - **Requirements manifest**: 128 requirements, now 88 MUST, 23 SHOULD, and
   17 MAY.
+- **The versioning policy defines `misvalidate`** ([`README.md`](README.md#versioning)):
+  the breaking rule tested both catalogs and tools, and the non-breaking rule
+  tested only catalogs, so the two rules were not opposites and a relaxation
+  matched both (#182). A tool now misvalidates when it reports an error against
+  a conforming catalog, or reports no error against a non-conforming one. Under
+  that definition a relaxation is breaking, because a released tool rejects what
+  the new version allows. A table lists the verdict for each kind of change.
+  After `1.0.0`, a relaxation bumps MINOR rather than MAJOR.
 
 ### Added
 
