@@ -1,4 +1,4 @@
-# Portolan reference catalog manifest, authored against Portolan spec v0.1.2.
+# Portolan reference catalog manifest, authored against Portolan spec v0.2.0.
 #
 # One manifest file describes one whole catalog. build.py reads every *.yaml in
 # this directory and builds each into its own tree under the output directory,
@@ -48,7 +48,7 @@ description: >-
   specification with real, openly licensed data pulled from its original
   upstream sources, vector polygons and points, raster, tabular, mirror
   provenance, nested catalogs and flat collections.
-schema_uri: https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json
+schema_uri: https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json
 
 host:
   name: Portolan SDI

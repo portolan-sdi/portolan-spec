@@ -53,7 +53,7 @@ language:
 ```json
 {
   "stac_extensions": [
-    "https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json",
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
     "https://stac-extensions.github.io/language/v1.0.0/schema.json"
   ],
   "language": { "code": "ro", "name": "Română", "alternate": "Romanian" },

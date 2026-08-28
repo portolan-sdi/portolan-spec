@@ -2,7 +2,7 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #   "jsonschema>=4.26.0",
-#   "rashid[data]>=0.1.7,<0.2.0",
+#   "rashid[data]>=0.1.8,<0.2.0",
 # ]
 # ///
 """Standalone checks for the rashid validation adapter.
@@ -19,7 +19,7 @@ from validate import _local_schema_validator  # noqa: E402
 from validate import _LocalOnlyReader  # noqa: E402
 
 REPO = Path(__file__).resolve().parent.parent.parent.parent
-SCHEMA = REPO / "stac/json-schema/v0.1.2/schema.json"
+SCHEMA = REPO / "stac/json-schema/v0.2.0/schema.json"
 REFERENCE = REPO / "examples/catalog/portolan-reference"
 
 import shutil  # noqa: E402
@@ -33,22 +33,37 @@ def check_reference_catalog_passes() -> None:
     validate(REFERENCE, SCHEMA)
 
 
-def check_self_link_fails() -> None:
+def check_self_link_passes() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         dst = Path(tmp) / "portolan-reference"
         shutil.copytree(REFERENCE, dst)
-        # Inject a self link into one Collection. The v0.1.2 schema rejects
-        # it. The specification no longer does, so the next schema version
-        # drops this check and this test flips with it.
+        # Inject a self link into one Collection. The schemas through v0.1.2
+        # reject it. PORTO-CORE-034 is retired, so v0.2.0 accepts it.
         col = dst / "boundaries/us-counties/collection.json"
         obj = json.loads(col.read_text())
-        obj["links"].append({"rel": "self", "href": "collection.json"})
+        obj["links"].append(
+            {
+                "rel": "self",
+                "href": "https://example.org/us-counties/collection.json",
+                "type": "application/json",
+            }
+        )
         col.write_text(json.dumps(obj))
         try:
             validate(dst, SCHEMA)
-        except SystemExit:
-            return
-        raise AssertionError("a self link should fail validation")
+        except SystemExit as exc:
+            raise AssertionError("a self link should pass validation") from exc
+
+
+def check_absolute_structural_href_passes() -> None:
+    # PORTO-CORE-034 also required a relative structural href. v0.2.0 drops
+    # that rule, so an absolute child href passes the schema.
+    obj = json.loads((REFERENCE / "boundaries/catalog.json").read_text())
+    for link in obj["links"]:
+        if link["rel"] == "child":
+            link["href"] = "https://example.org/boundaries/" + link["href"].removeprefix("./")
+    validate_object = _local_schema_validator(SCHEMA)
+    assert validate_object(obj) == [], validate_object(obj)
 
 
 def check_schema_validator_passes_conformant_root() -> None:
@@ -106,7 +121,8 @@ CHECKS = [
     check_local_only_reader_drops_remote,
     check_local_only_reader_keeps_local,
     check_reference_catalog_passes,
-    check_self_link_fails,
+    check_self_link_passes,
+    check_absolute_structural_href_passes,
 ]
 
 

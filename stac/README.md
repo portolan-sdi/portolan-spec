@@ -3,8 +3,8 @@
 > **Work in Progress** — This profile is under active development. Requirement levels and the schema URL may change before the first stable release.
 
 - **Title:** Portolan
-- **Identifier:** <https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json>
-- **Field Name Prefix:** portolan (reserved; no fields defined in v0.1)
+- **Identifier:** <https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json>
+- **Field Name Prefix:** portolan (reserved; no fields defined yet)
 - **Scope:** Catalog, Collection — Items inherit conformance from their collection
 - **[Extension Maturity Classification](https://github.com/radiantearth/stac-spec/tree/master/extensions#extension-maturity):** Proposal
 
@@ -25,7 +25,7 @@ The `portolan:` prefix stays reserved for future use.
 The schema encodes the specification's structural requirements that STAC core leaves optional:
 
 - Every Catalog and Collection has a non-empty `title` and `description`; every `child` and `item` link carries a `title` (spec: Human-Readable Titles).
-- Structural links (`root`, `parent`, `child`, `item`, `collection`) carry `type: "application/json"` (`application/geo+json` for links to items) (spec: Links). The schemas through v0.1.2 also reject a `self` link and require relative structural hrefs; the specification has dropped both rules, and the relaxation lands with the next schema version.
+- Structural links (`root`, `parent`, `child`, `item`, `collection`) carry `type: "application/json"` (`application/geo+json` for links to items) (spec: Links). The schema takes no position on relative versus absolute hrefs, and it accepts a `self` link. The schemas through v0.1.2 reject a `self` link and require a relative structural href. v0.2.0 drops both rules, following the specification.
 - Every asset has `href`, a media `type`, and at least one `role` (spec: Assets). `file:size` and `file:checksum` are SHOULD-level, so the schema checks their shape where present without requiring them; the checksum's multihash encoding, and whether either value matches the bytes, are verified by tooling rather than schema.
 - Absolute asset hrefs use `https` — `s3://` and other bucket schemes are rejected; relative hrefs are allowed (spec: Assets).
 - Every Collection declares `providers` with at least one `producer` and a `host` reachable through `url` or `email`; that the host is exactly one and listed last is checked by tooling (spec: Providers).
@@ -42,7 +42,7 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 
 | Name                | Schema URI for `stac_extensions`                                            | Requirement | When / Usage |
 | ------------------- | --------------------------------------------------------------------------- | ----------- | ------------ |
-| [Portolan][] | `https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json` | **MUST**    | Always — every catalog and collection; items inherit conformance |
+| [Portolan][] | `https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json` | **MUST**    | Always — every catalog and collection; items inherit conformance |
 | [File Info][] | `https://stac-extensions.github.io/file/v2.1.0/schema.json`                 | **MUST**    | When an asset carries `file:size` or `file:checksum`, both of which are SHOULD-level per asset (checksum as multihash) |
 | [Web Map Links][] | `https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json`        | **MUST**    | When PMTiles are provided: the `rel: "pmtiles"` link |
 | [Version][] | `https://stac-extensions.github.io/version/v1.2.0/schema.json`              | **MUST**    | When dataset versioning is used (never `portolan:` fields) |

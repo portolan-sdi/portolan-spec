@@ -127,7 +127,7 @@ misbehaves on this geometry.
 Top level of each file in `manifests/`.
 
 - `id`, `title`, `description`. Root Catalog identity.
-- `schema_uri`. Must equal the pinned v0.1.2 URI. `load_manifest` asserts this.
+- `schema_uri`. Must equal the pinned v0.2.0 URI. `load_manifest` asserts this.
 - `host`. `{name, url, email}`. Appended as the `host`-role provider on mirror Collections.
 - `catalogs`. Map from the first id segment to `{title, description, readme?, agents?}` for each nested Catalog. The optional `readme` and `agents` are markdown templates like the per-collection `docs` below.
 - `docs?`. `{readme?, agents?}` markdown templates for the root Catalog sidecars. Catalog-level templates may use `{{collections}}` (the table of contents the best-practices page asks for), `{{sources}}` (licenses, provenance, upstream list), and `{{agents_index}}` (per-child pointers to each AGENTS.md). Without a template a default skeleton with those blocks is emitted.
@@ -252,7 +252,7 @@ finding. Warnings and infos print without failing.
 Four passes run. The metadata pass checks the Portolan rules. The structural
 pass checks STAC 1.1.0 core validity and degrades to a warning when its
 schemas are unreachable. The schema pass validates every object against the
-working-copy schema at `../../stac/json-schema/v0.1.2/schema.json`, injected
+working-copy schema at `../../stac/json-schema/v0.2.0/schema.json`, injected
 so the build tests this repo's schema rather than the published one. The data
 pass reads the built assets and checks checksum, size, format, COG internal
 overviews, COG band statistics including valid percent, and GeoParquet ordering,
@@ -264,7 +264,7 @@ proven by running rashid directly, without the adapter. Do that before publishin
 rebuild.
 
 ```bash
-uv run --with "rashid[data]>=0.1.6,<0.2.0" \
+uv run --with "rashid[data]>=0.1.8,<0.2.0" \
   rashid check --schema examples/catalog/portolan-reference
 ```
 
@@ -306,7 +306,7 @@ party servers. The spec scopes those MUSTs to the catalog's own assets as of
 PORTO-CORE-073, so a validator does not probe an upstream host.
 
 rashid comes from PyPI, pinned to a compatible range in `build.py`'s PEP 723
-header, currently `rashid[data]>=0.1.6,<0.2.0`. Bumping the Portolan schema is a
+header, currently `rashid[data]>=0.1.8,<0.2.0`. Bumping the Portolan schema is a
 coordinated change across this repo and rashid, update the local schema,
 regenerate the reference catalog, re-vendor fixtures into rashid, then bump the
 rashid range here.

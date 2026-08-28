@@ -5,7 +5,7 @@ logic, no catalog-specific values.
 """
 from __future__ import annotations
 
-SCHEMA_URI = "https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json"
+SCHEMA_URI = "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json"
 FILE_EXT = "https://stac-extensions.github.io/file/v2.1.0/schema.json"
 WEBMAP_EXT = "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json"
 RASTER_EXT = "https://stac-extensions.github.io/raster/v2.0.0/schema.json"

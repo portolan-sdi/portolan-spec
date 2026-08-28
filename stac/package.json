@@ -1,6 +1,6 @@
 {
   "name": "portolan-stac-profile",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Portolan STAC profile — JSON Schema for the schema-checkable requirements plus a profile over reused STAC extensions",
   "scripts": {
     "pretest": "node scripts/fetch-extension-schemas.js",

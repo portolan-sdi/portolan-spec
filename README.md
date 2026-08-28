@@ -136,19 +136,35 @@ defined in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and
 The specification is versioned with [SemVer](https://semver.org/), starting
 pre-1.0. A catalog declares the version it was authored against through the
 **Portolan STAC profile schema URI** in its `stac_extensions` array, e.g.
-`https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json`. That schema URI
+`https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json`. That schema URI
 is the single signal of specification version, and there is no separate version
 file (see
 [Conformance and Versioning](specs/portolan/core.md#conformance-and-versioning)).
 
 **Bump policy while pre-1.0:** any breaking change bumps the MINOR version (e.g.
 `0.1.0` → `0.2.0`), and non-breaking changes bump PATCH. Once the spec reaches
-`1.0.0`, normal SemVer applies. A change is **breaking** when a catalog that
-conformed to the previous version may no longer conform, or when a tool built
-against the previous version may misvalidate. Raising a rule's severity, adding
-a new required field, and removing or renaming a field or accepted value are all
-breaking. A change is **non-breaking** when previously-conforming catalogs still
-conform, as with adding a warning, relaxing a constraint, or clarifying wording.
+`1.0.0`, normal SemVer applies, with the carve-out below.
+
+A change is **breaking** when a catalog that conformed to the previous version
+may no longer conform, or when a tool built against the previous version may
+misvalidate. A tool **misvalidates** when it reports an error against a
+conforming catalog, or reports no error against a non-conforming one. A change
+is **non-breaking** when neither test finds anything. Previously-conforming
+catalogs still conform, and a tool built against the previous version returns
+the verdicts it returned before.
+
+| Change | What an old tool does | Verdict |
+| --- | --- | --- |
+| Raise a rule's severity | misses an error that is now due | breaking |
+| Add a required field | misses an error that is now due | breaking |
+| Remove or rename a field or accepted value | misses an error that is now due | breaking |
+| Relax a constraint | reports an error against a catalog that now conforms | breaking |
+| Add a warning | emits no warning, and no error was due | non-breaking |
+| Clarify wording | returns the same verdicts | non-breaking |
+
+**After `1.0.0`, a relaxation bumps MINOR, not MAJOR.** Normal SemVer maps a
+break to MAJOR. A relaxation breaks tools alone, and every catalog that
+conformed still conforms, so MINOR carries the signal at the right cost.
 
 **A released schema is immutable.** Once a version is tagged, the JSON Schema
 served at its URI never changes, so a catalog validates the same way in a year
