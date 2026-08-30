@@ -161,7 +161,7 @@ npm install
 npm test
 ```
 
-`npm test` runs (after a `pretest` step that fetches the pinned extension schemas into the gitignored `.schema-cache/`):
+`npm test` runs after a `pretest` step that fetches pinned extension schemas into the gitignored `.schema-cache/`. This cache includes Portolan extensions and third-party schemas that the examples require.
 
 - **check-markdown** — remark lint over the profile documents.
 - **check-version** — every versioned Portolan schema URI reference (schema `$id`, READMEs, examples, spec documents) matches the `package.json` version, and the matching `json-schema/v<version>/` directory exists.
