@@ -6,12 +6,12 @@
 
 - [البيانات](../../../reference/natural-earth-countries/natural-earth-countries.parquet)
 - [ملف المصدر الأصلي](https://naciscdn.org/naturalearth/110m/cultural/ne_110m_admin_0_countries.zip)
-- [صورة مصغرة](../../../reference/natural-earth-countries/thumbnail.png)
 - [الدول حسب القارة](../../../reference/natural-earth-countries/styles/continents.json)
 - [خريطة سياسية كلاسيكية بسبعة ألوان](../../../reference/natural-earth-countries/styles/map-colors.json)
 - [فئات الدخل حسب البنك الدولي](../../../reference/natural-earth-countries/styles/income-groups.json)
 - [عدد السكان في أربع فئات](../../../reference/natural-earth-countries/styles/population.json)
 - [القارات مع أسماء الدول](../../../reference/natural-earth-countries/styles/labeled.json)
+- [صورة مصغرة](../../../reference/natural-earth-countries/thumbnail.png)
 
 ## الرخصة (License)
 

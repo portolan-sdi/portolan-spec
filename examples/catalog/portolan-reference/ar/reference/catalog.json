@@ -51,13 +51,6 @@
       "type": "application/json",
       "title": "الإنجليزية",
       "hreflang": "en"
-    },
-    {
-      "rel": "alternate",
-      "href": "../../ja/reference/catalog.json",
-      "type": "application/json",
-      "title": "اليابانية",
-      "hreflang": "ja"
     }
   ],
   "updated": "2026-07-16T00:00:00Z",
@@ -71,11 +64,6 @@
     {
       "code": "en",
       "name": "English"
-    },
-    {
-      "code": "ja",
-      "name": "日本語",
-      "alternate": "Japanese"
     }
   ]
 }

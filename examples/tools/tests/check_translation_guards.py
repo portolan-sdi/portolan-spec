@@ -56,13 +56,14 @@ def _messages(link_titles: dict | None = None) -> dict:
 def _locale(
     *,
     link_titles: dict | None = None,
+    catalog: dict | None = None,
     catalogs: dict | None = None,
     collections: dict | None = None,
 ) -> dict:
     return {
         "language": {"code": "ar", "name": "العربية", "dir": "rtl"},
         "messages": _messages(link_titles),
-        "catalog": {"title": "عينة", "description": "عينة."},
+        "catalog": catalog or {"title": "عينة", "description": "عينة."},
         "catalogs": catalogs or {},
         "collections": collections or {},
     }
@@ -212,6 +213,114 @@ def check_unknown_column_fails() -> None:
         )
 
 
+def _asset_case(asset_override: dict):
+    manifest = {
+        "language": {"code": "en", "name": "English"},
+        "translations": ["ar"],
+        "catalogs": {"group": {}},
+        "collections": [{"id": "group/item"}],
+    }
+    locale = _locale(
+        catalogs={"group": {"title": "مجموعة", "description": "مجموعة."}},
+        collections={
+            "group/item": {
+                "title": "  عنصر  ",
+                "description": "عنصر.",
+                "assets": {"style-main": asset_override},
+            }
+        },
+    )
+    stack, out, path = _case(manifest, locale)
+    _write_json(out / "catalog.json", _source())
+    _write_json(out / "group/catalog.json", _source(id="group"))
+    _write_json(out / "group/item/collection.json", _source(
+        "Collection",
+        id="item",
+        license="CC0-1.0",
+        assets={
+            "style-main": {
+                "href": "https://example.com/style.json",
+                "roles": ["style"],
+                "title": "Main style",
+                "description": "The main style.",
+            }
+        },
+    ))
+    return stack, out, path
+
+
+def check_missing_asset_description_fails() -> None:
+    stack, out, path = _asset_case({"title": "النمط الرئيسي"})
+    with stack:
+        manifest = yaml.safe_load(path.read_text())
+        _expect_value_error(
+            lambda: build_translations(manifest, path, out),
+            "must translate every asset description",
+        )
+
+
+def check_asset_description_and_titles_are_localized() -> None:
+    stack, out, path = _asset_case({
+        "title": "  النمط الرئيسي  ",
+        "description": "  النمط الرئيسي.  ",
+    })
+    with stack:
+        manifest = yaml.safe_load(path.read_text())
+        build_translations(manifest, path, out)
+        result = json.loads((out / "ar/group/item/collection.json").read_text())
+        assert result["title"] == "عنصر"
+        assert result["assets"]["style-main"]["title"] == "النمط الرئيسي"
+        assert result["assets"]["style-main"]["description"] == "النمط الرئيسي."
+
+
+def _link_case(link_overrides: dict | None):
+    manifest = {
+        "language": {"code": "en", "name": "English"},
+        "translations": ["ar"],
+        "catalogs": {},
+        "collections": [],
+    }
+    catalog = {"title": "عينة", "description": "عينة."}
+    if link_overrides is not None:
+        catalog["links"] = {"via": link_overrides}
+    locale = _locale(link_titles={"via": "المصدر"}, catalog=catalog)
+    stack, out, path = _case(manifest, locale)
+    _write_json(out / "catalog.json", _source(links=[
+        {
+            "rel": "via",
+            "href": "https://example.com/one",
+            "title": "Source one",
+        },
+        {
+            "rel": "via",
+            "href": "https://example.com/two",
+            "title": "Source two",
+        },
+    ]))
+    return stack, out, path, manifest
+
+
+def check_repeated_link_relation_needs_overrides() -> None:
+    stack, out, path, manifest = _link_case(None)
+    with stack:
+        _expect_value_error(
+            lambda: build_translations(manifest, path, out),
+            "must give each repeated link relation a title",
+        )
+
+
+def check_repeated_link_relation_uses_distinct_titles() -> None:
+    stack, out, path, manifest = _link_case({
+        "https://example.com/one": "المصدر الأول",
+        "https://example.com/two": "المصدر الثاني",
+    })
+    with stack:
+        build_translations(manifest, path, out)
+        result = json.loads((out / "ar/catalog.json").read_text())
+        titles = [link["title"] for link in result["links"] if link["rel"] == "via"]
+        assert titles == ["المصدر الأول", "المصدر الثاني"]
+
+
 CHECKS = [
     check_zero_locales_clear_only_generated_language_state,
     check_invalid_links_do_not_prune,
@@ -219,6 +328,10 @@ CHECKS = [
     check_directory_collision_preserves_source,
     check_missing_column_fails,
     check_unknown_column_fails,
+    check_missing_asset_description_fails,
+    check_asset_description_and_titles_are_localized,
+    check_repeated_link_relation_needs_overrides,
+    check_repeated_link_relation_uses_distinct_titles,
 ]
 
 

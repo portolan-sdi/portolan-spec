@@ -6,12 +6,12 @@
 
 - [البيانات](../../../mirror/san-francisco-addresses/san-francisco-addresses.parquet)
 - [بلاطات خريطة الويب](../../../mirror/san-francisco-addresses/san-francisco-addresses.pmtiles)
-- [صورة مصغرة](../../../mirror/san-francisco-addresses/thumbnail.png)
 - [نقاط العناوين](../../../mirror/san-francisco-addresses/styles/addresses.json)
 - [مصدر إدخال كل سجل في EAS](../../../mirror/san-francisco-addresses/styles/sources.json)
 - [سجلات الوحدات مقابل العناوين الأساسية](../../../mirror/san-francisco-addresses/styles/units.json)
 - [أحياء التحليل](../../../mirror/san-francisco-addresses/styles/neighborhoods.json)
 - [خريطة حرارية لكثافة العناوين](../../../mirror/san-francisco-addresses/styles/density.json)
+- [صورة مصغرة](../../../mirror/san-francisco-addresses/thumbnail.png)
 
 ## الرخصة (License)
 

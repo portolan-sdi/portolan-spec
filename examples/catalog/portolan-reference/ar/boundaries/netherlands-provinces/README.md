@@ -7,11 +7,11 @@
 - [البيانات](../../../boundaries/netherlands-provinces/netherlands-provinces.parquet)
 - [ملف المصدر الأصلي](https://service.pdok.nl/kadaster/brk-bestuurlijke-gebieden/atom/downloads/BestuurlijkeGebieden_2026.gpkg)
 - [بلاطات خريطة الويب](../../../boundaries/netherlands-provinces/netherlands-provinces.pmtiles)
-- [صورة مصغرة](../../../boundaries/netherlands-provinces/thumbnail.png)
 - [المقاطعات حسب الاسم](../../../boundaries/netherlands-provinces/styles/provinces.json)
 - [المقاطعات مع الأسماء](../../../boundaries/netherlands-provinces/styles/labeled.json)
 - [راندستاد وبقية البلاد](../../../boundaries/netherlands-provinces/styles/randstad.json)
 - [خطوط الحدود فقط](../../../boundaries/netherlands-provinces/styles/boundaries.json)
+- [صورة مصغرة](../../../boundaries/netherlands-provinces/thumbnail.png)
 - [البيانات الوصفية الأصلية](../../../boundaries/netherlands-provinces/iso19115.xml)
 
 ## الرخصة (License)

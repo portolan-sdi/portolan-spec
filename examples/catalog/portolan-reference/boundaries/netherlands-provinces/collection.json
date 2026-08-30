@@ -141,16 +141,6 @@
       "file:size": 435122,
       "file:checksum": "1220a7a9d30cbd97f9a92161530a4f335aa50db1307ce24ab7d16f7de668595d519e"
     },
-    "thumbnail": {
-      "href": "./thumbnail.png",
-      "type": "image/png",
-      "title": "Preview thumbnail over a light basemap. © OpenStreetMap contributors © CARTO.",
-      "roles": [
-        "thumbnail"
-      ],
-      "file:size": 188545,
-      "file:checksum": "12203e5bed76be1af81a77828cebf137805a4168848e56289de7d197eb7341ebb2b0"
-    },
     "style-provinces": {
       "href": "./styles/provinces.json",
       "type": "application/vnd.mapbox.style+json",
@@ -195,6 +185,16 @@
       "file:size": 533,
       "file:checksum": "122013feb7c07c1c517924d55cc90603ae6e1dd9bba54aad6585abe180cdddf09db6",
       "description": "Province borders as bare lines with no fill, for use over other layers."
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview thumbnail over a light basemap. © OpenStreetMap contributors © CARTO.",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 188545,
+      "file:checksum": "12203e5bed76be1af81a77828cebf137805a4168848e56289de7d197eb7341ebb2b0"
     },
     "metadata": {
       "href": "./iso19115.xml",
@@ -254,13 +254,6 @@
       "type": "application/json",
       "title": "Arabic",
       "hreflang": "ar"
-    },
-    {
-      "rel": "alternate",
-      "href": "../../ja/boundaries/netherlands-provinces/collection.json",
-      "type": "application/json",
-      "title": "Japanese",
-      "hreflang": "ja"
     }
   ],
   "attribution": "Kadaster / PDOK",
@@ -275,11 +268,6 @@
       "name": "العربية",
       "alternate": "Arabic",
       "dir": "rtl"
-    },
-    {
-      "code": "ja",
-      "name": "日本語",
-      "alternate": "Japanese"
     }
   ]
 }

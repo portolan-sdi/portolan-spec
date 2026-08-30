@@ -158,13 +158,6 @@
       "type": "application/json",
       "title": "الإنجليزية",
       "hreflang": "en"
-    },
-    {
-      "rel": "alternate",
-      "href": "../../../ja/raster/sample-cog/collection.json",
-      "type": "application/json",
-      "title": "اليابانية",
-      "hreflang": "ja"
     }
   ],
   "updated": "2026-07-21T00:00:00Z",
@@ -178,11 +171,6 @@
     {
       "code": "en",
       "name": "English"
-    },
-    {
-      "code": "ja",
-      "name": "日本語",
-      "alternate": "Japanese"
     }
   ]
 }

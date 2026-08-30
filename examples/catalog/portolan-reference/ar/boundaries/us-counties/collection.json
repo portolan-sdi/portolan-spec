@@ -168,16 +168,6 @@
       "file:size": 4564130,
       "file:checksum": "12207b1ded32a1575ad3c27432aba77c3dac2697c9a4bcd2cdf448b4cb7c03dca318"
     },
-    "thumbnail": {
-      "href": "../../../boundaries/us-counties/thumbnail.png",
-      "type": "image/png",
-      "title": "صورة مصغرة",
-      "roles": [
-        "thumbnail"
-      ],
-      "file:size": 73106,
-      "file:checksum": "1220820dc6da8d8576602a5e7f69f8272ee3e6a1264c2938d1640292eb14f329918b"
-    },
     "style-states": {
       "href": "../../../boundaries/us-counties/styles/states.json",
       "type": "application/vnd.mapbox.style+json",
@@ -187,7 +177,8 @@
         "default"
       ],
       "file:size": 2804,
-      "file:checksum": "122038e017c4e841051daabef3ab2f692ea61cba96cb0423a1568c600f8b7ec1583d"
+      "file:checksum": "122038e017c4e841051daabef3ab2f692ea61cba96cb0423a1568c600f8b7ec1583d",
+      "description": "يلون النمط كل مقاطعة حسب STATE_NAME من لوحة ألوان الكتالوج. تنتج الفسيفساء الكلاسيكية حدود الولايات من تعبئة المقاطعات."
     },
     "style-labeled": {
       "href": "../../../boundaries/us-counties/styles/labeled.json",
@@ -197,7 +188,8 @@
         "style"
       ],
       "file:size": 3139,
-      "file:checksum": "122067bdebd7e8390a42a13edf8a0f4f7506ce4aeb55c03e89cf85cecdfe3cb72dc0"
+      "file:checksum": "122067bdebd7e8390a42a13edf8a0f4f7506ce4aeb55c03e89cf85cecdfe3cb72dc0",
+      "description": "يعرض النمط فسيفساء الولايات مع تسمية NAME لكل مقاطعة."
     },
     "style-land-area": {
       "href": "../../../boundaries/us-counties/styles/land-area.json",
@@ -207,7 +199,8 @@
         "style"
       ],
       "file:size": 845,
-      "file:checksum": "12203ba6025f031f1165db0ae24e09a9da5df3126e899eea4bcb283144cd32047eea"
+      "file:checksum": "12203ba6025f031f1165db0ae24e09a9da5df3126e899eea4bcb283144cd32047eea",
+      "description": "يقسم النمط ALAND عند مليار ومليارين ونصف وعشرة مليارات متر مربع، من الأزرق الفاتح إلى الداكن. تقع مناطق التعداد في ألاسكا عند الطرف الداكن."
     },
     "style-water-share": {
       "href": "../../../boundaries/us-counties/styles/water-share.json",
@@ -217,7 +210,8 @@
         "style"
       ],
       "file:size": 1178,
-      "file:checksum": "12205bddfd31995653688fd37cdde4af0233c9df49a6014fbb236b1a722075129b57"
+      "file:checksum": "12205bddfd31995653688fd37cdde4af0233c9df49a6014fbb236b1a722075129b57",
+      "description": "يقسم النمط AWATER على المساحة الكلية، ثم يحدد الفئات داخل تعبير النمط. يمتد اللون من شبه الأبيض للمقاطعات الجافة إلى الأزرق الداكن حيث تسود المياه الإقليمية."
     },
     "style-county-types": {
       "href": "../../../boundaries/us-counties/styles/county-types.json",
@@ -227,7 +221,18 @@
         "style"
       ],
       "file:size": 1203,
-      "file:checksum": "1220c844bce21f7dc4b604eb3a20c5adc58ccfbb08050f1a157519c069417e619f29"
+      "file:checksum": "1220c844bce21f7dc4b604eb3a20c5adc58ccfbb08050f1a157519c069417e619f29",
+      "description": "يفصل رمز LSAD المقاطعات عن أبرشيات لويزيانا وأحياء ألاسكا ومناطق التعداد وبلديات بورتوريكو والمدن المستقلة ومناطق التخطيط في كونيتيكت."
+    },
+    "thumbnail": {
+      "href": "../../../boundaries/us-counties/thumbnail.png",
+      "type": "image/png",
+      "title": "صورة مصغرة",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 73106,
+      "file:checksum": "1220820dc6da8d8576602a5e7f69f8272ee3e6a1264c2938d1640292eb14f329918b"
     }
   },
   "links": [
@@ -276,13 +281,6 @@
       "type": "application/json",
       "title": "الإنجليزية",
       "hreflang": "en"
-    },
-    {
-      "rel": "alternate",
-      "href": "../../../ja/boundaries/us-counties/collection.json",
-      "type": "application/json",
-      "title": "اليابانية",
-      "hreflang": "ja"
     }
   ],
   "updated": "2026-07-16T00:00:00Z",
@@ -296,11 +294,6 @@
     {
       "code": "en",
       "name": "English"
-    },
-    {
-      "code": "ja",
-      "name": "日本語",
-      "alternate": "Japanese"
     }
   ]
 }

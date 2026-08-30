@@ -25,8 +25,8 @@ It exercises every major case in the spec.
 - Attributed Collections that carry the attribution extension.
 - Both render paths, a PMTiles `visual` derivative on most vector Collections
   and render-from-source on the two small Natural Earth Collections.
-- English, Arabic, and Japanese metadata trees. Arabic declares right-to-left
-  text. All three trees share the same data Assets.
+- English and Arabic metadata trees. Arabic declares right-to-left text. Both
+  trees share the same data Assets.
 
 Every Collection is a mirror. The spec derives that from who hosts the copy, and
 an organization hosting data it did not produce is a mirror even when it is the

@@ -234,8 +234,9 @@ Each locale overlay is one YAML file with the same node IDs as the manifest.
 - `messages.link_titles`. `{rel: title}`. Must name every link rel that carries a title, and no other. A missing rel fails the build rather than ships an English title.
 - `messages.asset_titles`. `{role: title}`. The title of an asset whose role is unique in its node.
 - `messages.language_names`. `{code: name}`. Names every other language in the current locale. Alternate links use these names.
-- `catalog`, `catalogs`, `collections`. `{title, description, keywords?, assets?, columns?}` per node. Every node the manifest declares needs an entry.
-- `collections.<id>.assets`. `{asset key: title}`. Required for every asset that shares its role with another asset in the same Collection, for example the five `style` assets. A role alone cannot tell those apart.
+- `catalog`, `catalogs`, `collections`. `{title, description, keywords?, assets?, links?, columns?}` per node. Every node the manifest declares needs an entry.
+- `collections.<id>.assets`. `{asset key: {title?, description?}}`. A shared role requires a per-key title. Each source asset description requires a translated description.
+- `<node>.links`. `{rel: {source href: title}}`. Repeated titled links with one relation require per-link titles.
 - `collections.<id>.columns`. `{column name: description}`. Required for every described `table:columns` entry. Column names stay unchanged.
 
 A locale tree holds only `.json` and `.md` files, and its assets point back at

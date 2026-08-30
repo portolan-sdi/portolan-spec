@@ -789,16 +789,6 @@
       "file:size": 214976,
       "file:checksum": "12200f243aeac8ac6cf26f0417285b0bd33ac47f1b5bdb719fd3e0df37d03ea37110"
     },
-    "thumbnail": {
-      "href": "./thumbnail.png",
-      "type": "image/png",
-      "title": "Preview thumbnail over a light basemap. © OpenStreetMap contributors © CARTO.",
-      "roles": [
-        "thumbnail"
-      ],
-      "file:size": 71048,
-      "file:checksum": "12205fda9e12c86f1dbc13fcf9778afd2f0895fcf2ea0826b522af2a004874ce2de2"
-    },
     "style-continents": {
       "href": "./styles/continents.json",
       "type": "application/vnd.mapbox.style+json",
@@ -854,6 +844,16 @@
       "file:size": 1372,
       "file:checksum": "1220b85d724abb9212c6f2a2049ec4c30cf111fbc7345dc83c3b77648d0348185866",
       "description": "The continent colouring with a NAME label per country."
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview thumbnail over a light basemap. © OpenStreetMap contributors © CARTO.",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 71048,
+      "file:checksum": "12205fda9e12c86f1dbc13fcf9778afd2f0895fcf2ea0826b522af2a004874ce2de2"
     }
   },
   "links": [
@@ -893,13 +893,6 @@
       "type": "application/json",
       "title": "Arabic",
       "hreflang": "ar"
-    },
-    {
-      "rel": "alternate",
-      "href": "../../ja/reference/natural-earth-countries/collection.json",
-      "type": "application/json",
-      "title": "Japanese",
-      "hreflang": "ja"
     }
   ],
   "updated": "2026-07-16T00:00:00Z",
@@ -913,11 +906,6 @@
       "name": "العربية",
       "alternate": "Arabic",
       "dir": "rtl"
-    },
-    {
-      "code": "ja",
-      "name": "日本語",
-      "alternate": "Japanese"
     }
   ]
 }

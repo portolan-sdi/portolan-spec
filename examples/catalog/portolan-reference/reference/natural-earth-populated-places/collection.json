@@ -662,16 +662,6 @@
       "file:size": 553649,
       "file:checksum": "12209022c3be867be79c44bd6fc6ff4dcc210e85ffee13b033bf4d1d87d83c9ee6b4"
     },
-    "thumbnail": {
-      "href": "./thumbnail.png",
-      "type": "image/png",
-      "title": "Preview thumbnail over a light basemap. © OpenStreetMap contributors © CARTO.",
-      "roles": [
-        "thumbnail"
-      ],
-      "file:size": 134432,
-      "file:checksum": "12200c8eae74720f9c14bb0899345884fe1be9dac78a437bd096fc4f30736e35d19a"
-    },
     "style-places": {
       "href": "./styles/places.json",
       "type": "application/vnd.mapbox.style+json",
@@ -727,6 +717,16 @@
       "file:size": 521,
       "file:checksum": "1220752fd5d3ce4c356ed3f348c8f260a6589a658c75a7e0b3aa3090fa0228031038",
       "description": "A MapLibre heatmap layer over the points, showing where the curated selection concentrates."
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview thumbnail over a light basemap. © OpenStreetMap contributors © CARTO.",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 134432,
+      "file:checksum": "12200c8eae74720f9c14bb0899345884fe1be9dac78a437bd096fc4f30736e35d19a"
     }
   },
   "links": [
@@ -766,13 +766,6 @@
       "type": "application/json",
       "title": "Arabic",
       "hreflang": "ar"
-    },
-    {
-      "rel": "alternate",
-      "href": "../../ja/reference/natural-earth-populated-places/collection.json",
-      "type": "application/json",
-      "title": "Japanese",
-      "hreflang": "ja"
     }
   ],
   "updated": "2026-07-16T00:00:00Z",
@@ -786,11 +779,6 @@
       "name": "العربية",
       "alternate": "Arabic",
       "dir": "rtl"
-    },
-    {
-      "code": "ja",
-      "name": "日本語",
-      "alternate": "Japanese"
     }
   ]
 }

@@ -25,7 +25,7 @@ the joins between Collections.
 | [Netherlands Provinces](./boundaries/netherlands-provinces/README.md) | 12 polygons | The 12 provinces from the cadastral registry, boundaries that reproduce the national statistics office's official areas to one decimal. |
 | [San Francisco Addresses (EAS)](./mirror/san-francisco-addresses/README.md) | 5,000 points | A fixed 5,000-record extract of San Francisco's 388,550-record master address database, kept small on purpose for spec demonstration. |
 | [Sample Raster COG](./raster/sample-cog/README.md) | 3-band raster | A 1 MB Landsat-derived reference COG for learning and testing cloud-optimized raster access, not for analysis. |
-| [Eurostat Electricity Prices for Household Consumers](./tabular/eurostat-electricity-prices/README.md) | 65,412 rows | 65,412 semi-annual household electricity prices for 41 European countries from 2007 on, the official record of the 2022 energy crisis. |
+| [Eurostat Electricity Prices for Household Consumers](./tabular/eurostat-electricity-prices/README.md) | 65,466 rows | 65,412 semi-annual household electricity prices for 41 European countries from 2007 on, the official record of the 2022 energy crisis. |
 
 ## Where the Data Comes From
 

@@ -49,10 +49,10 @@
     "spatial": {
       "bbox": [
         [
-          -122.51042,
-          37.708191,
-          -122.362069,
-          37.827479
+          -122.510927,
+          37.708391,
+          -122.365902,
+          37.828697
         ]
       ]
     },
@@ -153,6 +153,10 @@
       "type": "varchar"
     },
     {
+      "name": "eas_address_id",
+      "type": "varchar"
+    },
+    {
       "name": "street_type",
       "type": "varchar",
       "description": "Parsed street type, ST or AVE. Null for streets like BROADWAY that have no type."
@@ -231,8 +235,8 @@
       "roles": [
         "data"
       ],
-      "file:size": 501424,
-      "file:checksum": "12204c4f7dfe87f4ae4cf5844c5ead6f298768ef749d85d03549175c31e769bd8601",
+      "file:size": 519086,
+      "file:checksum": "12203a5a8a1e839eb670238ea0ca1ee255aec1505a8e877c8797c9999d8ea2b97403",
       "proj:code": "EPSG:4326"
     },
     "visual": {
@@ -242,18 +246,8 @@
       "roles": [
         "visual"
       ],
-      "file:size": 859881,
-      "file:checksum": "12200dea0e9eb01a74f3b0fcc4b0e915e88cb19e85571351991828478cbe012ccc23"
-    },
-    "thumbnail": {
-      "href": "./thumbnail.png",
-      "type": "image/png",
-      "title": "Preview thumbnail over a light basemap. © OpenStreetMap contributors © CARTO.",
-      "roles": [
-        "thumbnail"
-      ],
-      "file:size": 394792,
-      "file:checksum": "1220561ef9990b472b81af48d46c7e0450a9523ab919ab015c5d99f354fc241f9b9c"
+      "file:size": 882826,
+      "file:checksum": "12202389cd1c165b2eab27e54efd2f0850a2f92fde292a083ea7e45877c7b26abd96"
     },
     "style-addresses": {
       "href": "./styles/addresses.json",
@@ -296,8 +290,8 @@
       "roles": [
         "style"
       ],
-      "file:size": 2645,
-      "file:checksum": "1220cb8b03ffc514ba45d29971c08104851c3009fbf6fb580bd06955ea76be3ccc46",
+      "file:size": 2598,
+      "file:checksum": "1220528e5b370e60aecde996c7cc393ebfc075a5bf654b4c0fdabe3a697fad1c59b7",
       "description": "nhood from the cycling catalog palette, forty neighborhoods, so colours repeat, adjacency keeps them readable."
     },
     "style-density": {
@@ -310,6 +304,16 @@
       "file:size": 603,
       "file:checksum": "1220cb54b18d67e77ec5a630db226a0ff36cca1fd4516d1356a7c1ae925ee71d8eec",
       "description": "A MapLibre heatmap over the sample. Density reflects the sample's internal ordering, not San Francisco, see the README caveat."
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview thumbnail over a light basemap. © OpenStreetMap contributors © CARTO.",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 387962,
+      "file:checksum": "122055ac26345fbdd0b37c07f7682c7ee9ea72cd09310f0eb39b989af3aa098971a4"
     }
   },
   "links": [
@@ -358,13 +362,6 @@
       "type": "application/json",
       "title": "Arabic",
       "hreflang": "ar"
-    },
-    {
-      "rel": "alternate",
-      "href": "../../ja/mirror/san-francisco-addresses/collection.json",
-      "type": "application/json",
-      "title": "Japanese",
-      "hreflang": "ja"
     }
   ],
   "updated": "2026-07-21T00:00:00Z",
@@ -378,11 +375,6 @@
       "name": "العربية",
       "alternate": "Arabic",
       "dir": "rtl"
-    },
-    {
-      "code": "ja",
-      "name": "日本語",
-      "alternate": "Japanese"
     }
   ]
 }

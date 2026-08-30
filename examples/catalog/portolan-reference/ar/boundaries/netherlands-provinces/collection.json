@@ -141,16 +141,6 @@
       "file:size": 435122,
       "file:checksum": "1220a7a9d30cbd97f9a92161530a4f335aa50db1307ce24ab7d16f7de668595d519e"
     },
-    "thumbnail": {
-      "href": "../../../boundaries/netherlands-provinces/thumbnail.png",
-      "type": "image/png",
-      "title": "صورة مصغرة",
-      "roles": [
-        "thumbnail"
-      ],
-      "file:size": 188545,
-      "file:checksum": "12203e5bed76be1af81a77828cebf137805a4168848e56289de7d197eb7341ebb2b0"
-    },
     "style-provinces": {
       "href": "../../../boundaries/netherlands-provinces/styles/provinces.json",
       "type": "application/vnd.mapbox.style+json",
@@ -160,7 +150,8 @@
         "default"
       ],
       "file:size": 1181,
-      "file:checksum": "1220a4d07c4c1b065162e6f732701089d8113050b32751373bf6db58dab8afa802b6"
+      "file:checksum": "1220a4d07c4c1b065162e6f732701089d8113050b32751373bf6db58dab8afa802b6",
+      "description": "يعرض النمط المقاطعات الاثنتي عشرة بلون واحد من لوحة الألوان لكل مقاطعة."
     },
     "style-labeled": {
       "href": "../../../boundaries/netherlands-provinces/styles/labeled.json",
@@ -170,7 +161,8 @@
         "style"
       ],
       "file:size": 1621,
-      "file:checksum": "1220a43d7de872e3be3681810c1908163a861c6616309c1aa0d293bcc3c4905180e5"
+      "file:checksum": "1220a43d7de872e3be3681810c1908163a861c6616309c1aa0d293bcc3c4905180e5",
+      "description": "يعرض النمط ألوان المقاطعات مع تسمية naam لكل مقاطعة."
     },
     "style-randstad": {
       "href": "../../../boundaries/netherlands-provinces/styles/randstad.json",
@@ -180,7 +172,8 @@
         "style"
       ],
       "file:size": 888,
-      "file:checksum": "122020b1129b4287304507f1d0f5a4079c6d2aa4c4a1f789c9364e5daaa717263628"
+      "file:checksum": "122020b1129b4287304507f1d0f5a4079c6d2aa4c4a1f789c9364e5daaa717263628",
+      "description": "يبرز النمط Noord-Holland وZuid-Holland وUtrecht، وهي مقاطعات تجمع راندستاد الحضري، بالبرتقالي مقابل بقية البلاد بالأخضر الهادئ."
     },
     "style-boundaries": {
       "href": "../../../boundaries/netherlands-provinces/styles/boundaries.json",
@@ -190,7 +183,18 @@
         "style"
       ],
       "file:size": 533,
-      "file:checksum": "122013feb7c07c1c517924d55cc90603ae6e1dd9bba54aad6585abe180cdddf09db6"
+      "file:checksum": "122013feb7c07c1c517924d55cc90603ae6e1dd9bba54aad6585abe180cdddf09db6",
+      "description": "يعرض النمط حدود المقاطعات كخطوط بلا تعبئة لاستخدامها فوق طبقات أخرى."
+    },
+    "thumbnail": {
+      "href": "../../../boundaries/netherlands-provinces/thumbnail.png",
+      "type": "image/png",
+      "title": "صورة مصغرة",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 188545,
+      "file:checksum": "12203e5bed76be1af81a77828cebf137805a4168848e56289de7d197eb7341ebb2b0"
     },
     "metadata": {
       "href": "../../../boundaries/netherlands-provinces/iso19115.xml",
@@ -250,13 +254,6 @@
       "type": "application/json",
       "title": "الإنجليزية",
       "hreflang": "en"
-    },
-    {
-      "rel": "alternate",
-      "href": "../../../ja/boundaries/netherlands-provinces/collection.json",
-      "type": "application/json",
-      "title": "اليابانية",
-      "hreflang": "ja"
     }
   ],
   "attribution": "Kadaster / PDOK",
@@ -271,11 +268,6 @@
     {
       "code": "en",
       "name": "English"
-    },
-    {
-      "code": "ja",
-      "name": "日本語",
-      "alternate": "Japanese"
     }
   ]
 }

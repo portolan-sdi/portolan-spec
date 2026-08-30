@@ -6,10 +6,9 @@
 # ///
 """Check the committed language trees against the manifest that builds them.
 
-Reads the manifest and its locale overlays, so a new locale or a new node needs
-no edit here. Two things are checked. The trees must be structurally consistent
-with each other, and every translated string must equal the overlay it comes
-from, which is what catches a tree that was committed without a rebuild.
+Discovers each manifest that declares translations. A new catalog, locale, or
+node needs no test edit. The checks compare each tree with its source manifest
+and locale overlays. This comparison detects a tree that lacks a rebuild.
 """
 from __future__ import annotations
 
@@ -21,8 +20,8 @@ import yaml
 
 
 REPO = Path(__file__).resolve().parent.parent.parent.parent
-MANIFEST = REPO / "examples/manifests/portolan-reference.yaml"
-ROOT = REPO / "examples/catalog/portolan-reference"
+MANIFESTS = REPO / "examples/manifests"
+CATALOGS = REPO / "examples/catalog"
 LANGUAGE_EXT = "https://stac-extensions.github.io/language/v1.0.0/schema.json"
 ASSET_ROLES = ("data", "visual", "thumbnail", "source", "metadata", "style")
 
@@ -31,12 +30,21 @@ def _load(path: Path) -> dict:
     return json.loads(path.read_text())
 
 
-def _manifest() -> dict:
-    return yaml.safe_load(MANIFEST.read_text())
+def _translation_cases() -> list[tuple[Path, Path, dict, dict[str, dict]]]:
+    paths = sorted((*MANIFESTS.glob("*.yaml"), *MANIFESTS.glob("*.yml")))
+    cases = []
+    for manifest_path in paths:
+        manifest = yaml.safe_load(manifest_path.read_text())
+        if not manifest.get("translations"):
+            continue
+        root = CATALOGS / manifest_path.stem
+        locales = _locales(manifest_path, manifest)
+        cases.append((manifest_path, root, manifest, locales))
+    return cases
 
 
-def _locales(manifest: dict) -> dict[str, dict]:
-    locale_dir = MANIFEST.with_name(f"{MANIFEST.stem}.locales")
+def _locales(manifest_path: Path, manifest: dict) -> dict[str, dict]:
+    locale_dir = manifest_path.with_name(f"{manifest_path.stem}.locales")
     return {
         code: yaml.safe_load((locale_dir / f"{code}.yaml").read_text())
         for code in manifest.get("translations") or []
@@ -58,8 +66,8 @@ def _metadata(locale: dict, path: Path) -> dict:
     return locale[section][key]
 
 
-def _path(code: str, source_code: str, relative: Path) -> Path:
-    return ROOT / relative if code == source_code else ROOT / code / relative
+def _path(root: Path, code: str, source_code: str, relative: Path) -> Path:
+    return root / relative if code == source_code else root / code / relative
 
 
 def _local(href: str) -> bool:
@@ -84,9 +92,7 @@ def _asset_role(asset: dict) -> str:
     return "other"
 
 
-def check_language_trees() -> None:
-    manifest = _manifest()
-    locales = _locales(manifest)
+def _check_language_tree(root: Path, manifest: dict, locales: dict[str, dict]) -> None:
     translation_codes = manifest.get("translations") or []
     source_code = (manifest.get("language") or {}).get("code")
     languages = [source_code, *translation_codes] if source_code else []
@@ -96,9 +102,9 @@ def check_language_trees() -> None:
     relatives = _node_paths(manifest)
 
     on_disk = sorted(
-        path.relative_to(ROOT) for name in ("catalog.json", "collection.json")
-        for path in ROOT.rglob(name)
-        if path.relative_to(ROOT).parts[0] not in set(translation_codes)
+        path.relative_to(root) for name in ("catalog.json", "collection.json")
+        for path in root.rglob(name)
+        if path.relative_to(root).parts[0] not in set(translation_codes)
     )
     assert on_disk == sorted(relatives), (
         f"the source tree does not match the manifest. "
@@ -108,7 +114,7 @@ def check_language_trees() -> None:
 
     if not translation_codes:
         for relative in relatives:
-            path = ROOT / relative
+            path = root / relative
             obj = _load(path)
             assert LANGUAGE_EXT not in obj.get("stac_extensions", []), path
             assert "language" not in obj, path
@@ -124,9 +130,9 @@ def check_language_trees() -> None:
     }
 
     for relative in relatives:
-        source = _load(ROOT / relative)
+        source = _load(root / relative)
         for code in languages:
-            path = _path(code, source_code, relative)
+            path = _path(root, code, source_code, relative)
             assert path.is_file(), f"missing {path}"
             obj = _load(path)
             declared = manifest["language"] if code == source_code \
@@ -164,7 +170,7 @@ def check_language_trees() -> None:
                     if code == source_code
                     else locales[code]["messages"]["language_names"][target_code]
                 )
-                assert link["title"] == expected_title, (
+                assert link["title"] == expected_title.strip(), (
                     f"stale alternate title in {path}, {target_code}"
                 )
 
@@ -188,27 +194,35 @@ def check_language_trees() -> None:
                     continue
                 target = (path.parent / asset["href"]).resolve()
                 assert target.is_file(), f"broken asset in {path}: {asset['href']}"
-                assert ROOT / code not in target.parents, (
+                assert root / code not in target.parents, (
                     f"duplicated asset in {code}: {target}"
                 )
 
 
-def check_translations_match_their_overlay() -> None:
+def check_language_trees() -> None:
+    cases = _translation_cases()
+    assert cases, "no example manifest declares translations"
+    for _, root, manifest, locales in cases:
+        _check_language_tree(root, manifest, locales)
+
+
+def _check_translations_match_overlay(
+    root: Path, manifest: dict, locales: dict[str, dict]
+) -> None:
     """Every translated string must equal the overlay the build reads.
 
     Without this a hand-edited overlay stays green until somebody rebuilds, and
     the committed tree quietly disagrees with the manifest that owns it.
     """
-    manifest = _manifest()
-    locales = _locales(manifest)
     source_code = manifest["language"]["code"]
     for code, locale in locales.items():
         messages = locale["messages"]
         for relative in _node_paths(manifest):
-            path = _path(code, source_code, relative)
+            path = _path(root, code, source_code, relative)
             obj = _load(path)
+            source = _load(root / relative)
             meta = _metadata(locale, relative)
-            assert obj["title"] == meta["title"], f"stale title in {path}"
+            assert obj["title"] == meta["title"].strip(), f"stale title in {path}"
             assert obj["description"] == meta["description"].strip(), (
                 f"stale description in {path}"
             )
@@ -221,41 +235,76 @@ def check_translations_match_their_overlay() -> None:
                     for column in obj.get("table:columns", [])
                     if column.get("description")
                 }
-                assert actual_columns == (meta.get("columns") or {}), (
+                expected_columns = {
+                    name: description.strip()
+                    for name, description in (meta.get("columns") or {}).items()
+                }
+                assert actual_columns == expected_columns, (
                     f"stale column descriptions in {path}"
                 )
             overrides = meta.get("assets") or {}
             for key, asset in obj.get("assets", {}).items():
-                expected = overrides.get(key) or messages["asset_titles"][
+                override = overrides.get(key) or {}
+                expected = override.get("title") or messages["asset_titles"][
                     _asset_role(asset)
                 ]
-                assert asset["title"] == expected, (
+                assert asset["title"] == expected.strip(), (
                     f"stale asset title in {path}, {key}: "
                     f"{asset['title']!r} is not {expected!r}"
                 )
+                source_asset = source.get("assets", {})[key]
+                if "description" in source_asset:
+                    expected_description = override["description"].strip()
+                    assert asset.get("description") == expected_description, (
+                        f"stale asset description in {path}, {key}"
+                    )
+                else:
+                    assert "description" not in asset, (
+                        f"unexpected asset description in {path}, {key}"
+                    )
             titles = [asset["title"] for asset in obj.get("assets", {}).values()]
             assert len(titles) == len(set(titles)), (
                 f"two assets share one title in {path}: {sorted(titles)}"
             )
-            for link in obj["links"]:
+            source_links = [
+                link for link in source["links"] if link["rel"] != "alternate"
+            ]
+            translated_links = [
+                link for link in obj["links"] if link["rel"] != "alternate"
+            ]
+            assert len(source_links) == len(translated_links), path
+            for source_link, link in zip(source_links, translated_links, strict=True):
                 rel = link["rel"]
                 if rel in ("alternate", "child") or "title" not in link:
                     continue
-                assert link["title"] == messages["link_titles"][rel], (
+                link_override = (
+                    (meta.get("links") or {}).get(rel) or {}
+                ).get(source_link["href"])
+                expected_title = link_override or messages["link_titles"][rel]
+                assert link["title"] == expected_title.strip(), (
                     f"stale link title in {path}, rel {rel}"
                 )
 
 
+def check_translations_match_their_overlay() -> None:
+    cases = _translation_cases()
+    assert cases, "no example manifest declares translations"
+    for _, root, manifest, locales in cases:
+        _check_translations_match_overlay(root, manifest, locales)
+
+
 def check_translation_trees_hold_metadata_only() -> None:
-    manifest = _manifest()
     allowed = {".json", ".md"}
-    for code in manifest.get("translations") or []:
-        unexpected = [
-            path
-            for path in (ROOT / code).rglob("*")
-            if path.is_file() and path.suffix not in allowed
-        ]
-        assert not unexpected, f"translated tree contains data files: {unexpected}"
+    cases = _translation_cases()
+    assert cases, "no example manifest declares translations"
+    for _, root, manifest, _ in cases:
+        for code in manifest.get("translations") or []:
+            unexpected = [
+                path
+                for path in (root / code).rglob("*")
+                if path.is_file() and path.suffix not in allowed
+            ]
+            assert not unexpected, f"translated tree contains data files: {unexpected}"
 
 
 CHECKS = [

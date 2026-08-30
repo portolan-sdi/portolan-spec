@@ -124,7 +124,7 @@
       "description": "Confidentiality status, entirely null in this snapshot."
     }
   ],
-  "table:row_count": 65412,
+  "table:row_count": 65466,
   "assets": {
     "data": {
       "href": "./eurostat-electricity-prices.parquet",
@@ -133,8 +133,8 @@
       "roles": [
         "data"
       ],
-      "file:size": 163273,
-      "file:checksum": "1220106081590cd5eacab833ea121be58b7b0686fec532215d3573ac0b13e94269a2"
+      "file:size": 162919,
+      "file:checksum": "122051a96f8677c374f6b54cb6e876dcf6af33bc2982b52c9445d0c9a857240b6477"
     }
   },
   "links": [
@@ -174,13 +174,6 @@
       "type": "application/json",
       "title": "Arabic",
       "hreflang": "ar"
-    },
-    {
-      "rel": "alternate",
-      "href": "../../ja/tabular/eurostat-electricity-prices/collection.json",
-      "type": "application/json",
-      "title": "Japanese",
-      "hreflang": "ja"
     }
   ],
   "attribution": "Source, Eurostat",
@@ -195,11 +188,6 @@
       "name": "العربية",
       "alternate": "Arabic",
       "dir": "rtl"
-    },
-    {
-      "code": "ja",
-      "name": "日本語",
-      "alternate": "Japanese"
     }
   ]
 }

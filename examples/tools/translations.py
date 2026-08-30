@@ -7,6 +7,7 @@ a committed tree always matches the manifest that built it.
 """
 from __future__ import annotations
 
+from copy import deepcopy
 import json
 import os
 import re
@@ -36,6 +37,10 @@ REQUIRED_MESSAGES = frozenset({
     "detailed_english", "agent_heading", "agent_intro", "link_titles",
     "asset_titles", "crs_heading", "crs_note", "language_names",
 })
+
+
+def _has_text(value: object) -> bool:
+    return isinstance(value, str) and bool(value.strip())
 
 
 def _relative_href(start: Path, target: Path) -> str:
@@ -136,13 +141,17 @@ def _check_locale_coverage(manifest: dict, locales: list[dict]) -> None:
                 f"{path} language_names must name every other language. "
                 f"Missing: {missing_names}. Unused: {unused_names}."
             )
-        if any(not isinstance(value, str) or not value.strip()
-               for value in language_names.values()):
+        if any(not _has_text(value) for value in language_names.values()):
             raise ValueError(f"{path} has an empty language name")
-        for node in [locale.get("catalog")] + list(locale["catalogs"].values()) + list(
-            locale["collections"].values()
-        ):
-            if not node or not node.get("title") or not node.get("description"):
+        nodes = [locale.get("catalog")]
+        nodes += list(locale["catalogs"].values())
+        nodes += list(locale["collections"].values())
+        for node in nodes:
+            if (
+                not node
+                or not _has_text(node.get("title"))
+                or not _has_text(node.get("description"))
+            ):
                 raise ValueError(f"{path} has a node without title or description")
         for spec in manifest["collections"]:
             translated = locale["collections"][spec["id"]]
@@ -153,27 +162,53 @@ def _check_locale_coverage(manifest: dict, locales: list[dict]) -> None:
 def _check_node_coverage(
     source_objects: dict[Path, dict], locales: list[dict]
 ) -> None:
-    """Fail on any English title an overlay cannot translate.
+    """Fail on any source prose an overlay cannot translate.
 
     The build reads the source tree it has already written, so this sees the
-    exact link rels and asset keys the locales must cover. Two titles need an
-    overlay entry. A link rel that carries a title needs one in `link_titles`.
-    An asset that shares its role with another asset in the same Collection
-    needs a per-key one, because the role alone cannot tell them apart.
+    exact links and assets that each locale must cover. A common relation or
+    role supplies a title when it identifies one value. Per-node overrides
+    distinguish duplicate relations and assets. Every source asset description
+    needs a translated description.
     """
     titled_rels = {
         link["rel"] for obj in source_objects.values()
         for link in obj.get("links", [])
         if "title" in link and link.get("rel") not in UNTRANSLATED_RELS
     }
-    ambiguous: dict[Path, set[str]] = {}
+    ambiguous_assets: dict[Path, set[str]] = {}
+    described_assets: dict[Path, set[str]] = {}
+    ambiguous_links: dict[Path, set[tuple[str, str]]] = {}
+    titled_links: dict[Path, set[tuple[str, str]]] = {}
     for path, obj in source_objects.items():
         by_role: dict[str, set[str]] = {}
         for key, asset in (obj.get("assets") or {}).items():
             by_role.setdefault(_asset_role(asset), set()).add(key)
         keys = {key for group in by_role.values() if len(group) > 1 for key in group}
         if keys:
-            ambiguous[path] = keys
+            ambiguous_assets[path] = keys
+        described = {
+            key for key, asset in (obj.get("assets") or {}).items()
+            if "description" in asset
+        }
+        if described:
+            described_assets[path] = described
+
+        by_rel: dict[str, list[str]] = {}
+        pairs = set()
+        for link in obj.get("links", []):
+            rel = link.get("rel")
+            if "title" not in link or rel in UNTRANSLATED_RELS:
+                continue
+            href = link.get("href", "")
+            by_rel.setdefault(rel, []).append(href)
+            pairs.add((rel, href))
+        titled_links[path] = pairs
+        duplicate_pairs = {
+            (rel, href) for rel, hrefs in by_rel.items() if len(hrefs) > 1
+            for href in hrefs
+        }
+        if duplicate_pairs:
+            ambiguous_links[path] = duplicate_pairs
 
     for locale in locales:
         lp = locale["_path"]
@@ -187,18 +222,93 @@ def _check_node_coverage(
             )
         for path, obj in source_objects.items():
             meta = _metadata(locale, path)
-            overrides = set(meta.get("assets") or {})
-            unknown = overrides - set(obj.get("assets") or {})
-            if unknown:
+            asset_overrides = meta.get("assets") or {}
+            override_keys = set(asset_overrides)
+            unknown_assets = override_keys - set(obj.get("assets") or {})
+            if unknown_assets:
                 raise ValueError(
                     f"{lp} names assets the node does not carry, "
-                    f"{path.as_posix()}: {', '.join(sorted(unknown))}"
+                    f"{path.as_posix()}: {', '.join(sorted(unknown_assets))}"
                 )
-            missing = ambiguous.get(path, set()) - overrides
-            if missing:
+            for key, override in asset_overrides.items():
+                if not isinstance(override, dict):
+                    raise ValueError(
+                        f"{lp} asset override must contain title or description, "
+                        f"{path.as_posix()}: {key}"
+                    )
+                unknown_fields = set(override) - {"title", "description"}
+                if unknown_fields:
+                    raise ValueError(
+                        f"{lp} asset override has unknown fields, "
+                        f"{path.as_posix()}: {key}: "
+                        f"{', '.join(sorted(unknown_fields))}"
+                    )
+                if any(not _has_text(value) for value in override.values()):
+                    raise ValueError(
+                        f"{lp} asset override has empty text, "
+                        f"{path.as_posix()}: {key}"
+                    )
+            missing_titles = {
+                key for key in ambiguous_assets.get(path, set())
+                if not _has_text((asset_overrides.get(key) or {}).get("title"))
+            }
+            if missing_titles:
                 raise ValueError(
                     f"{lp} must give a title to every asset that shares a role, "
-                    f"{path.as_posix()}: {', '.join(sorted(missing))}"
+                    f"{path.as_posix()}: {', '.join(sorted(missing_titles))}"
+                )
+            missing_descriptions = {
+                key for key in described_assets.get(path, set())
+                if not _has_text((asset_overrides.get(key) or {}).get("description"))
+            }
+            if missing_descriptions:
+                raise ValueError(
+                    f"{lp} must translate every asset description, "
+                    f"{path.as_posix()}: {', '.join(sorted(missing_descriptions))}"
+                )
+            extra_descriptions = {
+                key for key, override in asset_overrides.items()
+                if "description" in override
+                and key not in described_assets.get(path, set())
+            }
+            if extra_descriptions:
+                raise ValueError(
+                    f"{lp} describes assets without a source description, "
+                    f"{path.as_posix()}: {', '.join(sorted(extra_descriptions))}"
+                )
+
+            link_overrides = meta.get("links") or {}
+            override_pairs = set()
+            for rel, links in link_overrides.items():
+                if not isinstance(links, dict):
+                    raise ValueError(
+                        f"{lp} link override must map hrefs to titles, "
+                        f"{path.as_posix()}: {rel}"
+                    )
+                for href, title in links.items():
+                    override_pairs.add((rel, href))
+                    if not _has_text(title):
+                        raise ValueError(
+                            f"{lp} link override has an empty title, "
+                            f"{path.as_posix()}: {rel}: {href}"
+                        )
+            unknown_links = override_pairs - titled_links.get(path, set())
+            if unknown_links:
+                unknown_text = ", ".join(
+                    f"{rel} {href}" for rel, href in sorted(unknown_links)
+                )
+                raise ValueError(
+                    f"{lp} names titled links the node does not carry, "
+                    f"{path.as_posix()}: {unknown_text}"
+                )
+            missing_links = ambiguous_links.get(path, set()) - override_pairs
+            if missing_links:
+                missing_text = ", ".join(
+                    f"{rel} {href}" for rel, href in sorted(missing_links)
+                )
+                raise ValueError(
+                    f"{lp} must give each repeated link relation a title, "
+                    f"{path.as_posix()}: {missing_text}"
                 )
             if obj.get("type") != "Collection":
                 continue
@@ -219,8 +329,7 @@ def _check_node_coverage(
                     f"{path.as_posix()}. Missing: {missing_text}. "
                     f"Unknown: {unknown_text}."
                 )
-            if any(not isinstance(value, str) or not value.strip()
-                   for value in translated.values()):
+            if any(not _has_text(value) for value in translated.values()):
                 raise ValueError(
                     f"{lp} has an empty column description in {path.as_posix()}"
                 )
@@ -285,7 +394,7 @@ def _alternate_links(
             "rel": "alternate",
             "href": _relative_href(current_path.parent, target),
             "type": JSON_TYPE,
-            "title": language_titles[code],
+            "title": language_titles[code].strip(),
             "hreflang": code,
         })
     return links
@@ -307,9 +416,16 @@ def _asset_title(key: str, asset: dict, messages: dict, overrides: dict) -> str:
     `_check_node_coverage` rejects an overlay that leans on a role two assets
     share.
     """
-    if key in overrides:
-        return overrides[key]
-    return messages["asset_titles"][_asset_role(asset)]
+    override = overrides.get(key) or {}
+    title = override.get("title") or messages["asset_titles"][_asset_role(asset)]
+    return title.strip()
+
+
+def _link_title(
+    rel: str, href: str, messages: dict, overrides: dict
+) -> str:
+    title = (overrides.get(rel) or {}).get(href)
+    return (title or messages["link_titles"][rel]).strip()
 
 
 def _localize_object(
@@ -325,10 +441,10 @@ def _localize_object(
     language_titles: dict[str, str],
     out: Path,
 ) -> dict:
-    obj = json.loads(json.dumps(source))
+    obj = deepcopy(source)
     meta = _metadata(locale, relative_path)
     messages = locale["messages"]
-    obj["title"] = meta["title"]
+    obj["title"] = meta["title"].strip()
     obj["description"] = meta["description"].strip()
     if obj["type"] == "Collection":
         obj["keywords"] = meta.get("keywords", [])
@@ -336,14 +452,15 @@ def _localize_object(
         column_overrides = meta.get("columns") or {}
         for column in obj.get("table:columns", []):
             if column.get("description"):
-                column["description"] = column_overrides[column["name"]]
+                column["description"] = column_overrides[column["name"]].strip()
         for key, asset in obj.get("assets", {}).items():
             href = asset.get("href", "")
             if _is_local(href):
                 target = (source_node.parent / href).resolve()
                 asset["href"] = _relative_href(target_node.parent, target)
             asset["title"] = _asset_title(key, asset, messages, overrides)
-            asset.pop("description", None)
+            if "description" in asset:
+                asset["description"] = overrides[key]["description"].strip()
 
     links = []
     for source_link in source.get("links", []):
@@ -362,7 +479,9 @@ def _localize_object(
             child_rel = child_source.relative_to(out.resolve())
             localized["title"] = all_titles[code][child_rel]
         elif "title" in localized:
-            localized["title"] = messages["link_titles"][rel]
+            localized["title"] = _link_title(
+                rel, href, messages, meta.get("links") or {}
+            )
         links.append(localized)
     links += _alternate_links(
         target_node, relative_path, code, source_code, languages,
@@ -527,9 +646,12 @@ def build_translations(manifest: dict, manifest_path: Path, out: Path) -> None:
         source_code: {path: source_objects[path]["title"] for path in paths}
     }
     for code, locale in locale_by_code.items():
-        all_titles[code] = {path: _metadata(locale, path)["title"] for path in paths}
+        all_titles[code] = {
+            path: _metadata(locale, path)["title"].strip() for path in paths
+        }
 
-    for path, obj in source_objects.items():
+    for path, source in source_objects.items():
+        obj = deepcopy(source)
         links = _strip_generated_links(obj, out / path, path, out)
         for link in links:
             if link.get("rel") in SIDECAR_RELS:
