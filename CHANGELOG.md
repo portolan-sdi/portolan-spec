@@ -7,6 +7,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
+## Unreleased
+
+### Changed
+
+- **GeoParquet spatial ordering is judged by pruning, not by consecutive
+  row-group overlap** (`PORTO-FMT-006`, `PORTO-FMT-044`, new `PORTO-FMT-049`,
+  [`specs/portolan/formats.md`](specs/portolan/formats.md)): the footer check
+  passed a file on either low consecutive-pair overlap or row-group boxes
+  averaging under 30% of the extent. Neither criterion does its job. A
+  space-filling-curve sort makes row groups spatially adjacent, so their boxes
+  touch and the overlap fraction runs near 1.0 for the best possible file; the
+  30% figure was calibrated at five row groups and left flat, so at several
+  hundred groups a file a hundred times worse than an ideal tiling still passed.
+  The check now estimates how many row groups a query window covering 10% of
+  each dimension lets a reader skip, and compares that against an ideal grid
+  tiling into the same number of row groups, passing at 70% of that rate. The
+  figure comes from 206 files across every catalog in the Portolan registry,
+  where the nine below it all reached 87-97% after a re-sort. The five-row-group
+  waiver stays, but for a new reason: the grid reference is unreliable at that
+  size, not the threshold unreachable. `PORTO-FMT-049` records that
+  consecutive-pair overlap MAY be reported but MUST NOT decide the verdict.
+- **The row-ordering rule names its own numbers** (`PORTO-FMT-006`,
+  [`specs/portolan/formats.md`](specs/portolan/formats.md)): the rule left both
+  the chunk count and "a small part of the file" to the implementer, and rashid
+  picked ten chunks and 30% with no spec threshold to cite. Both are now written
+  down. A flat limit is right here, unlike the footer check, because ten chunks
+  tile a perfectly sorted file at about 10% of the extent each, so the reference
+  does not move with the file.
+- **Requirements manifest**: 129 requirements, now 89 MUST, 23 SHOULD, and
+  17 MAY.
+
 ## 0.2.0 - 2026-08-28
 
 A catalog declares this version by carrying

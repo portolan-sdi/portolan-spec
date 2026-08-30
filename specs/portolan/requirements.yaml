@@ -812,27 +812,25 @@ requirements:
     file: specs/portolan/formats.md
     quote: >-
       Rows MUST be spatially ordered so nearby features are nearby in the
-      file. This rule applies to every file, no matter how many row groups it
-      has. A validator checks it by looking at the rows themselves. It splits
-      them into the groups a conforming writer would have produced, then checks
-      that each of those groups covers a small part of the file. A file with
-      five or more row groups gets a second check, using the row groups it
-      actually has. A reader can run this one from the file footer alone,
-      without reading any data. The file passes if either of these is true: -
-      **low overlap** — fewer than 30% of consecutive row-group pairs have
-      bounding boxes that overlap on their interiors; or - **high locality** —
-      row-group bounding boxes cover, on average, less than about 30% of the
-      file's total extent.
+      file. Split into ten equal chunks in file order, a chunk's bounding box
+      MUST cover less than 30% of the file's extent on average.
 
   - id: PORTO-FMT-044
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A validator MUST NOT fail a file for missing a threshold that its
-      row-group count puts out of reach. Row ordering is a separate rule and is
-      not waived here, so a file with fewer than five row groups is still
-      checked on its rows.
+      Below five row groups it does not apply, and a validator MUST NOT fail
+      a file for a threshold its row-group count puts out of reach. The row
+      rule still applies there.
+
+  - id: PORTO-FMT-049
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      The fraction of consecutive row-group pairs whose boxes overlap MAY be
+      reported as a statistic, but MUST NOT decide the verdict.
 
   - id: PORTO-FMT-007
     severity: MUST

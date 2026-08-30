@@ -31,39 +31,33 @@ Distributing GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so it can
 queried without a server. Files SHOULD be compressed to stay small, with `zstd`
 RECOMMENDED.
 
-Rows MUST be spatially ordered so nearby features are nearby in the file. This rule
-applies to every file, no matter how many row groups it has. A validator checks it
-by looking at the rows themselves. It splits them into the groups a conforming
-writer would have produced, then checks that each of those groups covers a small
-part of the file.
+Rows MUST be spatially ordered so nearby features are nearby in the file. Split into
+ten equal chunks in file order, a chunk's bounding box MUST cover less than 30% of
+the file's extent on average.[^chunks]
 
-A file with five or more row groups gets a second check, using the row groups it
-actually has. A reader can run this one from the file footer alone, without reading
-any data. The file passes if either of these is true:
+A file with five or more row groups gets a second, footer-only check: the row groups
+a query window covering 10% of each dimension lets a reader skip, against an ideal
+grid tiling of the extent into the same number of row groups. The file passes at 70%
+of that rate.[^pruning] Below five row groups it does not apply, and a validator
+MUST NOT fail a file for a threshold its row-group count puts out of reach. The row
+rule still applies there.
 
-- **low overlap** — fewer than 30% of consecutive row-group pairs have bounding
-  boxes that overlap on their interiors; or
-- **high locality** — row-group bounding boxes cover, on average, less than about
-  30% of the file's total extent.
+The fraction of consecutive row-group pairs whose boxes overlap MAY be reported as a
+statistic, but MUST NOT decide the verdict.[^overlap]
 
-Boxes that small let a reader skip about half the row groups when querying a window
-covering 10% of the extent. That is the benefit the 30% figure is meant to deliver,
-not a separate test to run.
+[^chunks]: A flat limit works here because the chunk count is fixed. Ten chunks tile
+    a perfectly sorted file at about 10% of the extent each; unsorted rows reach 100%.
 
-The 30% figure comes from measuring Hilbert-sorted data, which is how producers
-usually sort. With five row groups, Hilbert-sorted boxes cover about 27% of the
-extent, and that number drops as row groups are added. Five row groups divide the
-extent five ways, so each box covers about a fifth of it before any overlap is
-counted. A stricter limit would fail well-sorted files for having few row groups.
+[^pruning]: Pruning is the benefit spatial ordering exists to deliver, and the footer
+    boxes already carry what it takes to estimate it. The bar is relative because the
+    achievable rate rises with the row-group count: two row groups can never skip
+    more than half a file, five hundred about 98%. Below five, a grid is an
+    unreliable reference. The 70% figure is set from measurements over the Portolan
+    registry, recorded in the [changelog](../../CHANGELOG.md).
 
-Neither of these two checks applies to a file with fewer than five row groups. Both
-measure a percentage across the row groups, and with only a few groups the
-percentage cannot land on a useful value. Three row groups can only produce an
-overlap of 0%, 50%, or 100%. Two or three boxes cannot average less than 30% of the
-extent, however well the rows are sorted. A validator MUST NOT fail a file for
-missing a threshold that its row-group count puts out of reach. Row ordering is a
-separate rule and is not waived here, so a file with fewer than five row groups is
-still checked on its rows.
+[^overlap]: A space-filling-curve sort makes neighboring row groups adjacent, so
+    their boxes touch and this fraction runs near 1.0 even for a perfectly tiled
+    file.
 
 Files MUST provide per-row-group spatial statistics so readers can skip row groups
 from metadata alone — either:
