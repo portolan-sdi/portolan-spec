@@ -73,31 +73,38 @@
     },
     {
       "name": "identificatie",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "معرف المقاطعة من PV20 إلى PV31، ويتكون من PV مع رمز المقاطعة لدى CBS. وهو مفتاح الربط مع جداول CBS StatLine الإقليمية."
     },
     {
       "name": "naam",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم الرسمي للمقاطعة. تستخدم Fryslân تهجئتها الفريزية الرسمية، ولذلك لا يعيد المرشح على Friesland أي نتيجة."
     },
     {
       "name": "code",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رمز المقاطعة لدى CBS من رقمين كنص، من 20 إلى 31. يربط مع ligt_in_provincie_code في طبقة البلديات المصدرية."
     },
     {
       "name": "ligt_in_land_code",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رمز الدولة، وهو القيمة الثابتة 6030 لهولندا."
     },
     {
       "name": "ligt_in_land_naam",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "اسم الدولة، وهو القيمة الثابتة Nederland."
     },
     {
       "name": "geom",
-      "type": "geometry('epsg:28992')"
+      "type": "geometry('epsg:28992')",
+      "description": "هندسة المقاطعة، متعدد مضلعات، ضمن الشبكة الوطنية الهولندية EPSG:28992 وبالمتر."
     },
     {
       "name": "bbox",
-      "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+      "description": "بنية صندوق الإحاطة لكل معلم بوحدة أمتار RD New، وهي تغطية GeoParquet."
     }
   ],
   "table:primary_geometry": "geom",
@@ -147,28 +154,28 @@
     "style-provinces": {
       "href": "../../../boundaries/netherlands-provinces/styles/provinces.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "المقاطعات حسب الاسم",
       "roles": [
         "style",
         "default"
       ],
-      "file:size": 1185,
-      "file:checksum": "1220cf5f8ee0cd01a9d9cc9719de17497d61bff1e179649e9a267e8268d06f690f4d"
+      "file:size": 1181,
+      "file:checksum": "1220a4d07c4c1b065162e6f732701089d8113050b32751373bf6db58dab8afa802b6"
     },
     "style-labeled": {
       "href": "../../../boundaries/netherlands-provinces/styles/labeled.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "المقاطعات مع الأسماء",
       "roles": [
         "style"
       ],
-      "file:size": 1625,
-      "file:checksum": "1220ecd4e7efb630d5c84ea81ccd7c3ce7bc4125979e8569ee4f8b3e67b01cfe9e43"
+      "file:size": 1621,
+      "file:checksum": "1220a43d7de872e3be3681810c1908163a861c6616309c1aa0d293bcc3c4905180e5"
     },
     "style-randstad": {
       "href": "../../../boundaries/netherlands-provinces/styles/randstad.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "راندستاد وبقية البلاد",
       "roles": [
         "style"
       ],
@@ -178,7 +185,7 @@
     "style-boundaries": {
       "href": "../../../boundaries/netherlands-provinces/styles/boundaries.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "خطوط الحدود فقط",
       "roles": [
         "style"
       ],
@@ -241,14 +248,14 @@
       "rel": "alternate",
       "href": "../../../boundaries/netherlands-provinces/collection.json",
       "type": "application/json",
-      "title": "Netherlands Provinces",
+      "title": "الإنجليزية",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../../ja/boundaries/netherlands-provinces/collection.json",
       "type": "application/json",
-      "title": "オランダの州",
+      "title": "اليابانية",
       "hreflang": "ja"
     }
   ],

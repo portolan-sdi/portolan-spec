@@ -12,7 +12,7 @@
   ],
   "id": "boundaries/netherlands-provinces",
   "title": "オランダの州",
-  "description": "オランダ地籍局のPDOKサービスによる12州の境界です。 GeoParquet、PMTiles、地図スタイルを公開します。",
+  "description": "オランダ地籍局のPDOKサービスによる12州の境界です。GeoParquet、PMTiles、地図スタイルを公開します。",
   "license": "CC-BY-4.0",
   "keywords": [
     "境界",
@@ -73,31 +73,38 @@
     },
     {
       "name": "identificatie",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "PV20からPV31までの州識別子です。PVとCBS州コードを組み合わせます。CBS StatLine地域表との結合キーです。"
     },
     {
       "name": "naam",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "州の正式名称です。Fryslânは正式なフリジア語綴りなので、Frieslandで絞り込んでも結果はありません。"
     },
     {
       "name": "code",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "20から31までの2桁CBS州コードを文字列で保持します。元データの市町村レイヤーにあるligt_in_provincie_codeと結合できます。"
     },
     {
       "name": "ligt_in_land_code",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "国コードです。Nederlandを示す定数6030です。"
     },
     {
       "name": "ligt_in_land_naam",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "国名です。定数Nederlandです。"
     },
     {
       "name": "geom",
-      "type": "geometry('epsg:28992')"
+      "type": "geometry('epsg:28992')",
+      "description": "オランダ国家座標系EPSG:28992のメートル単位による州のマルチポリゴンです。"
     },
     {
       "name": "bbox",
-      "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+      "description": "RD Newのメートル単位による地物ごとのバウンディングボックス構造体で、GeoParquet coveringです。"
     }
   ],
   "table:primary_geometry": "geom",
@@ -147,28 +154,28 @@
     "style-provinces": {
       "href": "../../../boundaries/netherlands-provinces/styles/provinces.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "名称別の州",
       "roles": [
         "style",
         "default"
       ],
-      "file:size": 1185,
-      "file:checksum": "1220cf5f8ee0cd01a9d9cc9719de17497d61bff1e179649e9a267e8268d06f690f4d"
+      "file:size": 1181,
+      "file:checksum": "1220a4d07c4c1b065162e6f732701089d8113050b32751373bf6db58dab8afa802b6"
     },
     "style-labeled": {
       "href": "../../../boundaries/netherlands-provinces/styles/labeled.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "州と名称",
       "roles": [
         "style"
       ],
-      "file:size": 1625,
-      "file:checksum": "1220ecd4e7efb630d5c84ea81ccd7c3ce7bc4125979e8569ee4f8b3e67b01cfe9e43"
+      "file:size": 1621,
+      "file:checksum": "1220a43d7de872e3be3681810c1908163a861c6616309c1aa0d293bcc3c4905180e5"
     },
     "style-randstad": {
       "href": "../../../boundaries/netherlands-provinces/styles/randstad.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "ランドスタットとその他の地域",
       "roles": [
         "style"
       ],
@@ -178,7 +185,7 @@
     "style-boundaries": {
       "href": "../../../boundaries/netherlands-provinces/styles/boundaries.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "境界線のみ",
       "roles": [
         "style"
       ],
@@ -241,14 +248,14 @@
       "rel": "alternate",
       "href": "../../../boundaries/netherlands-provinces/collection.json",
       "type": "application/json",
-      "title": "Netherlands Provinces",
+      "title": "英語",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../../ar/boundaries/netherlands-provinces/collection.json",
       "type": "application/json",
-      "title": "مقاطعات هولندا",
+      "title": "アラビア語",
       "hreflang": "ar"
     }
   ],

@@ -68,14 +68,14 @@
       "rel": "alternate",
       "href": "./ar/catalog.json",
       "type": "application/json",
-      "title": "كتالوج بورتولان المرجعي",
+      "title": "Arabic",
       "hreflang": "ar"
     },
     {
       "rel": "alternate",
       "href": "./ja/catalog.json",
       "type": "application/json",
-      "title": "Portolan参照カタログ",
+      "title": "Japanese",
       "hreflang": "ja"
     }
   ],

@@ -1,17 +1,17 @@
 # ボストンのオープンスペース
 
-Boston GISによる公園、遊び場、運動場、保全地、墓地のデータです。 1012個のポリゴンをGeoParquetとPMTilesで公開します。
+Boston GISによる公園、遊び場、運動場、保全地、墓地のデータです。1012個のポリゴンをGeoParquetとPMTilesで公開します。
 
 ## データファイル
 
 - [データ](../../../boundaries/boston-open-space/boston-open-space.parquet)
 - [ウェブ地図タイル](../../../boundaries/boston-open-space/boston-open-space.pmtiles)
 - [サムネイル](../../../boundaries/boston-open-space/thumbnail.png)
-- [地図スタイル](../../../boundaries/boston-open-space/styles/types.json)
-- [地図スタイル](../../../boundaries/boston-open-space/styles/labeled.json)
-- [地図スタイル](../../../boundaries/boston-open-space/styles/acreage.json)
-- [地図スタイル](../../../boundaries/boston-open-space/styles/ownership.json)
-- [地図スタイル](../../../boundaries/boston-open-space/styles/protection.json)
+- [種別のオープンスペース](../../../boundaries/boston-open-space/styles/types.json)
+- [種別と敷地名](../../../boundaries/boston-open-space/styles/labeled.json)
+- [面積の四区分](../../../boundaries/boston-open-space/styles/acreage.json)
+- [所有者](../../../boundaries/boston-open-space/styles/ownership.json)
+- [恒久的な保護の有無](../../../boundaries/boston-open-space/styles/protection.json)
 
 ## ライセンス (License)
 

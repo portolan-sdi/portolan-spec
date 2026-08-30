@@ -159,8 +159,8 @@
         "style",
         "default"
       ],
-      "file:size": 1185,
-      "file:checksum": "1220cf5f8ee0cd01a9d9cc9719de17497d61bff1e179649e9a267e8268d06f690f4d",
+      "file:size": 1181,
+      "file:checksum": "1220a4d07c4c1b065162e6f732701089d8113050b32751373bf6db58dab8afa802b6",
       "description": "Twelve provinces, one palette colour each."
     },
     "style-labeled": {
@@ -170,8 +170,8 @@
       "roles": [
         "style"
       ],
-      "file:size": 1625,
-      "file:checksum": "1220ecd4e7efb630d5c84ea81ccd7c3ce7bc4125979e8569ee4f8b3e67b01cfe9e43",
+      "file:size": 1621,
+      "file:checksum": "1220a43d7de872e3be3681810c1908163a861c6616309c1aa0d293bcc3c4905180e5",
       "description": "The province colouring with a naam label on each."
     },
     "style-randstad": {
@@ -252,14 +252,14 @@
       "rel": "alternate",
       "href": "../../ar/boundaries/netherlands-provinces/collection.json",
       "type": "application/json",
-      "title": "مقاطعات هولندا",
+      "title": "Arabic",
       "hreflang": "ar"
     },
     {
       "rel": "alternate",
       "href": "../../ja/boundaries/netherlands-provinces/collection.json",
       "type": "application/json",
-      "title": "オランダの州",
+      "title": "Japanese",
       "hreflang": "ja"
     }
   ],

@@ -65,59 +65,73 @@
     },
     {
       "name": "STATEFP",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رمز FIPS للولاية أو الإقليم من رقمين، محفوظ كنص مع صفر بادئ."
     },
     {
       "name": "COUNTYFP",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رمز FIPS للمقاطعة من ثلاثة أرقام، وهو فريد داخل الولاية."
     },
     {
       "name": "COUNTYNS",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رمز ANSI ‏(GNIS) من ثمانية أرقام، وهو المعرف الدائم الذي يبقى بعد إعادة تعيين FIPS."
     },
     {
       "name": "GEOIDFQ",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "معرف GEOID كامل التأهيل، ويتكون من 0500000US متبوعا بـ GEOID. يطابق مباشرة عمود GEO_ID في تنزيلات data.census.gov، وكان يسمى AFFGEOID قبل إصدار 2023."
     },
     {
       "name": "GEOID",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "مفتاح الربط القياسي لإحصاءات المقاطعات الأمريكية، وهو دمج STATEFP وCOUNTYFP في خمسة أرقام. احتفظ به كنص لأن التحويل إلى عدد صحيح يحذف الصفر البادئ."
     },
     {
       "name": "NAME",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم الأساسي فقط، مثل Denver. تحمل 31 صفا اسم Washington، لذلك لا تستخدمه مفتاحا."
     },
     {
       "name": "NAMELSAD",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم مع وصفه القانوني أو الإحصائي، مثل St. Louis city. وهو اسم العرض."
     },
     {
       "name": "STUSPS",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "اختصار USPS للولاية أو الإقليم من حرفين."
     },
     {
       "name": "STATE_NAME",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم الكامل للولاية أو الإقليم."
     },
     {
       "name": "LSAD",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رمز وصف المنطقة القانوني أو الإحصائي. يظهر في هذا الملف اثنا عشر نوعا من الوحدات المكافئة للمقاطعة."
     },
     {
       "name": "ALAND",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "مساحة اليابسة بالمتر المربع، محسوبة من الحدود القانونية كاملة الدقة لا من هذه الهندسة المعممة."
     },
     {
       "name": "AWATER",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "مساحة المياه بالمتر المربع، وتشمل المياه الإقليمية الواقعة خارج هندسة الساحل المقصوصة."
     },
     {
       "name": "geom",
-      "type": "geometry('epsg:4269')"
+      "type": "geometry('epsg:4269')",
+      "description": "هندسة المقاطعة مقصوصة عند الساحل، بخطي الطول والعرض وفق NAD83."
     },
     {
       "name": "bbox",
-      "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+      "description": "بنية صندوق الإحاطة لكل معلم، وهي تغطية GeoParquet."
     }
   ],
   "table:primary_geometry": "geom",
@@ -167,7 +181,7 @@
     "style-states": {
       "href": "../../../boundaries/us-counties/styles/states.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "المقاطعات حسب الولاية",
       "roles": [
         "style",
         "default"
@@ -178,7 +192,7 @@
     "style-labeled": {
       "href": "../../../boundaries/us-counties/styles/labeled.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "ألوان الولايات مع أسماء المقاطعات",
       "roles": [
         "style"
       ],
@@ -188,7 +202,7 @@
     "style-land-area": {
       "href": "../../../boundaries/us-counties/styles/land-area.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "مساحة اليابسة في أربع فئات",
       "roles": [
         "style"
       ],
@@ -198,7 +212,7 @@
     "style-water-share": {
       "href": "../../../boundaries/us-counties/styles/water-share.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "نسبة المياه",
       "roles": [
         "style"
       ],
@@ -208,7 +222,7 @@
     "style-county-types": {
       "href": "../../../boundaries/us-counties/styles/county-types.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "أنواع ما يعادل المقاطعة",
       "roles": [
         "style"
       ],
@@ -260,14 +274,14 @@
       "rel": "alternate",
       "href": "../../../boundaries/us-counties/collection.json",
       "type": "application/json",
-      "title": "United States Counties (2023, 1:500k)",
+      "title": "الإنجليزية",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../../ja/boundaries/us-counties/collection.json",
       "type": "application/json",
-      "title": "米国の郡（2023年、1:50万）",
+      "title": "اليابانية",
       "hreflang": "ja"
     }
   ],

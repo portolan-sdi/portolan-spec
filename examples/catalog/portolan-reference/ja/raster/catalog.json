@@ -43,14 +43,14 @@
       "rel": "alternate",
       "href": "../../raster/catalog.json",
       "type": "application/json",
-      "title": "Raster Data",
+      "title": "英語",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../ar/raster/catalog.json",
       "type": "application/json",
-      "title": "البيانات النقطية",
+      "title": "アラビア語",
       "hreflang": "ar"
     }
   ],

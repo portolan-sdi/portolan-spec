@@ -786,7 +786,7 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
     if prov.get("updated"):
         coll["updated"] = prov["updated"]
 
-    (coll_dir / "collection.json").write_text(json.dumps(coll, indent=2) + "\n")
+    (coll_dir / "collection.json").write_text(json.dumps(coll, ensure_ascii=False, indent=2) + "\n")
 
     # sidecars, structure and prose from the manifest docs templates
     join = dict(spec.get("join") or {})
@@ -833,7 +833,7 @@ def regen_styles(manifest: dict, out: Path) -> None:
                       else f"../{stem}.parquet")
         add_style_assets(coll["assets"], coll_dir, stem, source_url,
                          coll_dir / f"{stem}.parquet", spec)
-        coll_path.write_text(json.dumps(coll, indent=2) + "\n")
+        coll_path.write_text(json.dumps(coll, ensure_ascii=False, indent=2) + "\n")
         print(f"[{spec['id']}] styles re-authored", file=sys.stderr)
 
 
@@ -1055,7 +1055,7 @@ def build_catalog(manifest: dict, out: Path, cache: Path, only: str | None) -> N
         gupdates = [c["updated"] for c in colls if c.get("updated")]
         if gupdates:
             cat["updated"] = max(gupdates)
-        (gdir / "catalog.json").write_text(json.dumps(cat, indent=2) + "\n")
+        (gdir / "catalog.json").write_text(json.dumps(cat, ensure_ascii=False, indent=2) + "\n")
         templates = (manifest.get("catalogs", {}) or {}).get(gseg, {}) or {}
         readme, agents = catalog_sidecar_bodies(
             gtitle, gdesc, colls, nested=False, templates=templates,
@@ -1080,7 +1080,7 @@ def build_catalog(manifest: dict, out: Path, cache: Path, only: str | None) -> N
         }
         if catalog_updated:
             root["updated"] = catalog_updated
-        (out / "catalog.json").write_text(json.dumps(root, indent=2) + "\n")
+        (out / "catalog.json").write_text(json.dumps(root, ensure_ascii=False, indent=2) + "\n")
         readme, agents = catalog_sidecar_bodies(
             manifest["title"], manifest["description"].strip(), built,
             nested=True, templates=manifest.get("docs") or {}, where="docs")
@@ -1135,7 +1135,7 @@ def regen_docs(manifest: dict, out: Path, cache: Path) -> None:
         if spec.get("temporal"):
             coll.setdefault("extent", {})["temporal"] = {"interval": [spec["temporal"]]}
         add_metadata_asset(coll["assets"], spec, coll_dir, cache)
-        coll_path.write_text(json.dumps(coll, indent=2) + "\n")
+        coll_path.write_text(json.dumps(coll, ensure_ascii=False, indent=2) + "\n")
         facts = _facts_from_collection(spec, coll)
         write_sidecars(coll_dir, spec["title"], spec["description"].strip(),
                        collection_readme_extra(spec, facts),

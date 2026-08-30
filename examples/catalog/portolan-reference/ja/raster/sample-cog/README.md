@@ -1,6 +1,6 @@
 # COGラスターのサンプル
 
-rasterioのテストデータを使う、小さな3バンドのCloud Optimized GeoTIFFです。 UTM 18Nでバハマのアンドロス島を表示します。
+rasterioのテストデータを使う、小さな3バンドのCloud Optimized GeoTIFFです。UTM 18Nでバハマのアンドロス島を表示します。
 
 ## データファイル
 

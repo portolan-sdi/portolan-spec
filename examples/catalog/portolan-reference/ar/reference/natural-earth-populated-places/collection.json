@@ -64,7 +64,8 @@
     },
     {
       "name": "SCALERANK",
-      "type": "integer"
+      "type": "integer",
+      "description": "رتبة الأهمية من 0 إلى 10، و0 هي الأهم. استخدمها لتقليل التسميات حسب مستوى التكبير."
     },
     {
       "name": "NATSCALE",
@@ -76,11 +77,13 @@
     },
     {
       "name": "FEATURECLA",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "نوع المكان: عاصمة من المستوى الإداري 0، أو عاصمة من المستوى 1، أو مكان مأهول، أو محطة علمية، أو إحدى أربع فئات أقل شيوعا."
     },
     {
       "name": "NAME",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "اسم العرض مع علامات التشكيل، مثل Neuquén. ليس فريدا، إذ تتكرر أسماء مدن عدة بين الدول."
     },
     {
       "name": "NAMEPAR",
@@ -92,11 +95,13 @@
     },
     {
       "name": "NAMEASCII",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "التهجئة الاحتياطية للاسم بأحرف ASCII."
     },
     {
       "name": "ADM0CAP",
-      "type": "integer"
+      "type": "integer",
+      "description": "تشير القيمة 1 إلى عاصمة وطنية، ويوجد 200 صف من هذا النوع في الملف."
     },
     {
       "name": "CAPIN",
@@ -104,11 +109,13 @@
     },
     {
       "name": "WORLDCITY",
-      "type": "integer"
+      "type": "integer",
+      "description": "تشير القيمة 1 إلى 70 مدينة بارزة عالميا."
     },
     {
       "name": "MEGACITY",
-      "type": "integer"
+      "type": "integer",
+      "description": "تشير القيمة 1 إلى 462 مكانا تعدها Natural Earth مدنا ضخمة."
     },
     {
       "name": "SOV0NAME",
@@ -120,15 +127,18 @@
     },
     {
       "name": "ADM0NAME",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "اسم الدولة التي تقع فيها النقطة."
     },
     {
       "name": "ADM0_A3",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رمز الدولة في Natural Earth، وهو مفتاح الربط مع مجموعة الدول."
     },
     {
       "name": "ADM1NAME",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "اسم المنطقة الإدارية من المستوى الأول التي تقع فيها النقطة."
     },
     {
       "name": "ISO_A2",
@@ -148,11 +158,13 @@
     },
     {
       "name": "POP_MAX",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "عدد سكان المنطقة الحضرية، مشتق من LandScan. تحمل طوكيو القيمة 35,676,000."
     },
     {
       "name": "POP_MIN",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "عدد سكان المدينة داخل حدودها. تحمل طوكيو القيمة 8,336,599."
     },
     {
       "name": "POP_OTHER",
@@ -272,7 +284,8 @@
     },
     {
       "name": "TIMEZONE",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "اسم المنطقة الزمنية حسب IANA، وهو فارغ في 114 صفا."
     },
     {
       "name": "UN_FID",
@@ -348,11 +361,13 @@
     },
     {
       "name": "MIN_ZOOM",
-      "type": "double"
+      "type": "double",
+      "description": "أدنى مستوى تكبير مقترح لإظهار المكان على خريطة ويب."
     },
     {
       "name": "WIKIDATAID",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "معرف QID في Wikidata، وهو مفقود في 7 صفوف."
     },
     {
       "name": "WOF_ID",
@@ -452,7 +467,8 @@
     },
     {
       "name": "NE_ID",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "معرف معلم ثابت من Natural Earth وفريد في هذا الملف."
     },
     {
       "name": "NAME_FA",
@@ -476,7 +492,8 @@
     },
     {
       "name": "GEONAMESID",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "معرف GeoNames، وهو مفقود في 43 صفا."
     },
     {
       "name": "FCLASS_ISO",
@@ -612,11 +629,13 @@
     },
     {
       "name": "geom",
-      "type": "geometry"
+      "type": "geometry",
+      "description": "هندسة نقطية بخطي الطول والعرض وفق WGS84. استخدمها بدلا من عمودي LATITUDE وLONGITUDE القديمين."
     },
     {
       "name": "bbox",
-      "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+      "description": "بنية صندوق الإحاطة لكل معلم، وهي تغطية GeoParquet."
     }
   ],
   "table:primary_geometry": "geom",
@@ -656,7 +675,7 @@
     "style-places": {
       "href": "../../../reference/natural-earth-populated-places/styles/places.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "الأماكن المأهولة",
       "roles": [
         "style",
         "default"
@@ -667,7 +686,7 @@
     "style-population": {
       "href": "../../../reference/natural-earth-populated-places/styles/population.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "سكان المنطقة الحضرية، بالحجم واللون",
       "roles": [
         "style"
       ],
@@ -677,7 +696,7 @@
     "style-feature-class": {
       "href": "../../../reference/natural-earth-populated-places/styles/feature-class.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "الأماكن حسب فئة المعلم",
       "roles": [
         "style"
       ],
@@ -687,7 +706,7 @@
     "style-capitals": {
       "href": "../../../reference/natural-earth-populated-places/styles/capitals.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "العواصم الوطنية مميزة",
       "roles": [
         "style"
       ],
@@ -697,7 +716,7 @@
     "style-density": {
       "href": "../../../reference/natural-earth-populated-places/styles/density.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "خريطة حرارية لكثافة الأماكن",
       "roles": [
         "style"
       ],
@@ -740,14 +759,14 @@
       "rel": "alternate",
       "href": "../../../reference/natural-earth-populated-places/collection.json",
       "type": "application/json",
-      "title": "Natural Earth Populated Places (1:50m)",
+      "title": "الإنجليزية",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../../ja/reference/natural-earth-populated-places/collection.json",
       "type": "application/json",
-      "title": "Natural Earthの居住地（1:5000万）",
+      "title": "اليابانية",
       "hreflang": "ja"
     }
   ],

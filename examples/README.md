@@ -61,6 +61,11 @@ Catalog and Collection IDs. The build fails when an overlay omits a node. It
 publishes each language as a separate STAC tree with `alternate` links and
 `hreflang`. It does not publish fields such as `title_ar`.
 
+A language tree translates every title, description, keyword, asset title, link
+title, and `table:columns` description. It also carries concise localized README
+and AGENTS.md files. The detailed technical guidance stays in English, and each
+localized node links to it.
+
 ```bash
 uv run examples/tools/build.py                              # build every manifest
 uv run examples/tools/build.py --catalog portolan-reference   # one catalog

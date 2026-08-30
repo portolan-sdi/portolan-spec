@@ -11,7 +11,7 @@
   ],
   "id": "boundaries/boston-open-space",
   "title": "ボストンのオープンスペース",
-  "description": "Boston GISによる公園、遊び場、運動場、保全地、墓地のデータです。 1012個のポリゴンをGeoParquetとPMTilesで公開します。",
+  "description": "Boston GISによる公園、遊び場、運動場、保全地、墓地のデータです。1012個のポリゴンをGeoParquetとPMTilesで公開します。",
   "license": "PDDL-1.0",
   "keywords": [
     "オープンスペース",
@@ -69,79 +69,98 @@
     },
     {
       "name": "SITE_NAME",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "最もよく知られた名称または正式名称です。複数区画の場所にはStony Brook Reservation I、IIのようにローマ数字が付きます。"
     },
     {
       "name": "OWNERSHIP",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "判明している場合の所有者です。ボストン市、マサチューセッツ州、民間所有者、BRAやBNANなどの機関略称があります。"
     },
     {
       "name": "PROTECTION",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "スラッシュ区切りの法的保護制度です。A97は最も強いマサチューセッツ州憲法第97条です。自由記述なのでLIKEで照合します。"
     },
     {
       "name": "TYPECODE",
-      "type": "integer"
+      "type": "integer",
+      "description": "1から7の数値オープンスペース種別です。約13行でTypeLongと一致しないため、意図にはTypeLongのほうが近いと考えます。"
     },
     {
       "name": "DISTRICT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "市のオープンスペース計画による計画地区です。正式な近隣地区境界ではありません。非空間値Multi-Districtを含みます。"
     },
     {
       "name": "ACRES",
-      "type": "double"
+      "type": "double",
+      "description": "オープンスペース部分の公式面積（エーカー）です。形状から面積を計算せず、この値を使います。"
     },
     {
       "name": "ADDRESS",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "判明している場合の住所です。589行ではnullです。"
     },
     {
       "name": "ZonAgg",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "集約ゾーニング地区です。例: Open Space District。"
     },
     {
       "name": "TypeLong",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "文字列のオープンスペース種別です。集計前に正規化すべき軽微な綴りの違いがあります。"
     },
     {
       "name": "OS_Own_Jur",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "オープンスペース権を持つ組織です。BPRD、DCR、Boston Conservation Commission、Noneがあります。"
     },
     {
       "name": "OS_Mngmnt",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "OS_Own_Jurと異なる場合だけ記載する管理組織です。nullは管理者自身が運営する意味で、欠損ではありません。"
     },
     {
       "name": "POS",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "保護オープンスペースフラグです。Xは恒久保護、Nは未保護です。"
     },
     {
       "name": "PA",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "一般利用フラグです。Xは利用可、Aは予約制、Nは利用不可または不明です。"
     },
     {
       "name": "ALT_NAME",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "正式名、旧名、通称などの別名です。"
     },
     {
       "name": "AgncyJuris",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "政府所有の未保護地を管轄する機関です。意図的に値が少ない列です。"
     },
     {
       "name": "ShapeSTAre",
-      "type": "double"
+      "type": "double",
+      "description": "元のState Plane形状からArcGISが算出した面積（平方メートル）です。"
     },
     {
       "name": "ShapeSTLen",
-      "type": "double"
+      "type": "double",
+      "description": "ArcGISが算出した周長（メートル）です。"
     },
     {
       "name": "geom",
-      "type": "geometry"
+      "type": "geometry",
+      "description": "WGS84の経度・緯度による敷地形状です。"
     },
     {
       "name": "bbox",
-      "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+      "description": "地物ごとのバウンディングボックス構造体で、GeoParquet coveringです。"
     }
   ],
   "table:primary_geometry": "geom",
@@ -181,7 +200,7 @@
     "style-types": {
       "href": "../../../boundaries/boston-open-space/styles/types.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "種別のオープンスペース",
       "roles": [
         "style",
         "default"
@@ -192,7 +211,7 @@
     "style-labeled": {
       "href": "../../../boundaries/boston-open-space/styles/labeled.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "種別と敷地名",
       "roles": [
         "style"
       ],
@@ -202,7 +221,7 @@
     "style-acreage": {
       "href": "../../../boundaries/boston-open-space/styles/acreage.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "面積の四区分",
       "roles": [
         "style"
       ],
@@ -212,7 +231,7 @@
     "style-ownership": {
       "href": "../../../boundaries/boston-open-space/styles/ownership.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "所有者",
       "roles": [
         "style"
       ],
@@ -222,7 +241,7 @@
     "style-protection": {
       "href": "../../../boundaries/boston-open-space/styles/protection.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "恒久的な保護の有無",
       "roles": [
         "style"
       ],
@@ -274,14 +293,14 @@
       "rel": "alternate",
       "href": "../../../boundaries/boston-open-space/collection.json",
       "type": "application/json",
-      "title": "Boston Open Space",
+      "title": "英語",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../../ar/boundaries/boston-open-space/collection.json",
       "type": "application/json",
-      "title": "المساحات المفتوحة في بوسطن",
+      "title": "アラビア語",
       "hreflang": "ar"
     }
   ],

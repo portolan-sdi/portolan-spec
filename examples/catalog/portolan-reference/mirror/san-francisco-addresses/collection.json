@@ -356,14 +356,14 @@
       "rel": "alternate",
       "href": "../../ar/mirror/san-francisco-addresses/collection.json",
       "type": "application/json",
-      "title": "عناوين سان فرانسيسكو من EAS",
+      "title": "Arabic",
       "hreflang": "ar"
     },
     {
       "rel": "alternate",
       "href": "../../ja/mirror/san-francisco-addresses/collection.json",
       "type": "application/json",
-      "title": "サンフランシスコの住所（EAS）",
+      "title": "Japanese",
       "hreflang": "ja"
     }
   ],

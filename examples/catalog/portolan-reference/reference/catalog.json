@@ -49,14 +49,14 @@
       "rel": "alternate",
       "href": "../ar/reference/catalog.json",
       "type": "application/json",
-      "title": "خرائط الأساس المرجعية",
+      "title": "Arabic",
       "hreflang": "ar"
     },
     {
       "rel": "alternate",
       "href": "../ja/reference/catalog.json",
       "type": "application/json",
-      "title": "参照用ベースマップ",
+      "title": "Japanese",
       "hreflang": "ja"
     }
   ],

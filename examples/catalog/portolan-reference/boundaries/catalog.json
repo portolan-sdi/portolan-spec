@@ -55,14 +55,14 @@
       "rel": "alternate",
       "href": "../ar/boundaries/catalog.json",
       "type": "application/json",
-      "title": "الحدود الإدارية",
+      "title": "Arabic",
       "hreflang": "ar"
     },
     {
       "rel": "alternate",
       "href": "../ja/boundaries/catalog.json",
       "type": "application/json",
-      "title": "行政界",
+      "title": "Japanese",
       "hreflang": "ja"
     }
   ],

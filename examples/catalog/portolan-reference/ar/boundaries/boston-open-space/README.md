@@ -7,11 +7,11 @@
 - [البيانات](../../../boundaries/boston-open-space/boston-open-space.parquet)
 - [بلاطات خريطة الويب](../../../boundaries/boston-open-space/boston-open-space.pmtiles)
 - [صورة مصغرة](../../../boundaries/boston-open-space/thumbnail.png)
-- [نمط الخريطة](../../../boundaries/boston-open-space/styles/types.json)
-- [نمط الخريطة](../../../boundaries/boston-open-space/styles/labeled.json)
-- [نمط الخريطة](../../../boundaries/boston-open-space/styles/acreage.json)
-- [نمط الخريطة](../../../boundaries/boston-open-space/styles/ownership.json)
-- [نمط الخريطة](../../../boundaries/boston-open-space/styles/protection.json)
+- [المساحات المفتوحة حسب النوع](../../../boundaries/boston-open-space/styles/types.json)
+- [الأنواع مع أسماء المواقع](../../../boundaries/boston-open-space/styles/labeled.json)
+- [المساحة في أربع فئات](../../../boundaries/boston-open-space/styles/acreage.json)
+- [جهة الملكية](../../../boundaries/boston-open-space/styles/ownership.json)
+- [محمية بشكل دائم أو غير محمية](../../../boundaries/boston-open-space/styles/protection.json)
 
 ## الرخصة (License)
 

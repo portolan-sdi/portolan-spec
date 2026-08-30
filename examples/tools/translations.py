@@ -1,4 +1,10 @@
-"""Generate alternate-language STAC trees from locale overlay manifests."""
+"""Generate alternate-language STAC trees from locale overlay manifests.
+
+This module owns the Language extension for the whole catalog. It writes the
+`language` and `languages` fields, the `alternate` links, and one subtree per
+declared locale. It also removes them again when a manifest drops a locale, so
+a committed tree always matches the manifest that built it.
+"""
 from __future__ import annotations
 
 import json
@@ -16,7 +22,20 @@ from config import LANGUAGE_EXT
 JSON_TYPE = "application/json"
 STRUCTURAL_RELS = frozenset({"root", "parent", "child"})
 SIDECAR_RELS = frozenset({"agents", "describedby"})
+# `child` takes its title from the target node and `alternate` from the locale
+# it points at, so neither is translated through the `link_titles` table.
+UNTRANSLATED_RELS = frozenset({"alternate", "child"})
+# Asset roles in the order a title is chosen from, most specific first.
+ASSET_ROLES = ("data", "visual", "thumbnail", "source", "metadata", "style")
+# Directories the source tree owns at the root of a catalog, beside the group
+# directories the manifest names.
+RESERVED_DIRS = frozenset({"_assets"})
 LOCALE_CODE = re.compile(r"^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$")
+REQUIRED_MESSAGES = frozenset({
+    "collections", "data_files", "license", "source", "last_synced",
+    "detailed_english", "agent_heading", "agent_intro", "link_titles",
+    "asset_titles", "crs_heading", "crs_note", "language_names",
+})
 
 
 def _relative_href(start: Path, target: Path) -> str:
@@ -50,6 +69,13 @@ def _metadata(locale: dict, path: Path) -> dict:
     return locale[section][key]
 
 
+def _reserved_names(manifest: dict) -> set[str]:
+    """Return the top-level directory names the source tree already owns."""
+    names = set(RESERVED_DIRS) | set(manifest["catalogs"])
+    names |= {Path(spec["id"]).parts[0] for spec in manifest["collections"]}
+    return names
+
+
 def _load_locales(manifest: dict, manifest_path: Path) -> list[dict]:
     codes = manifest.get("translations") or []
     if not codes:
@@ -57,12 +83,20 @@ def _load_locales(manifest: dict, manifest_path: Path) -> list[dict]:
     if not manifest.get("language"):
         raise ValueError("a manifest with translations must declare language")
 
+    reserved = _reserved_names(manifest)
     locale_dir = manifest_path.with_suffix("")
     locale_dir = locale_dir.with_name(f"{locale_dir.name}.locales")
     locales = []
     for code in codes:
         if not isinstance(code, str) or not LOCALE_CODE.fullmatch(code):
             raise ValueError(f"invalid translation code: {code!r}")
+        # A locale writes its whole tree to <out>/<code>, so a code that matches
+        # a group directory would delete that group and the data under it.
+        if code in reserved:
+            raise ValueError(
+                f"translation code {code!r} collides with the catalog directory "
+                f"of the same name. Rename the catalog or drop the locale."
+            )
         path = locale_dir / f"{code}.yaml"
         if not path.is_file():
             raise ValueError(f"translation overlay not found: {path}")
@@ -79,10 +113,9 @@ def _load_locales(manifest: dict, manifest_path: Path) -> list[dict]:
 def _check_locale_coverage(manifest: dict, locales: list[dict]) -> None:
     catalog_ids = set(manifest["catalogs"])
     collection_ids = {spec["id"] for spec in manifest["collections"]}
-    required_messages = {
-        "collections", "data_files", "license", "source", "last_synced",
-        "detailed_english", "agent_heading", "agent_intro", "link_titles",
-        "asset_titles",
+    language_codes = {
+        manifest["language"]["code"],
+        *(locale["language"]["code"] for locale in locales),
     }
     for locale in locales:
         path = locale["_path"]
@@ -90,9 +123,22 @@ def _check_locale_coverage(manifest: dict, locales: list[dict]) -> None:
             raise ValueError(f"{path} must translate every catalog ID")
         if set(locale.get("collections") or {}) != collection_ids:
             raise ValueError(f"{path} must translate every collection ID")
-        missing = required_messages - set(locale.get("messages") or {})
+        missing = REQUIRED_MESSAGES - set(locale.get("messages") or {})
         if missing:
             raise ValueError(f"{path} lacks messages: {', '.join(sorted(missing))}")
+        current_code = locale["language"]["code"]
+        language_names = locale["messages"].get("language_names") or {}
+        expected_names = language_codes - {current_code}
+        if set(language_names) != expected_names:
+            missing_names = ", ".join(sorted(expected_names - set(language_names))) or "none"
+            unused_names = ", ".join(sorted(set(language_names) - expected_names)) or "none"
+            raise ValueError(
+                f"{path} language_names must name every other language. "
+                f"Missing: {missing_names}. Unused: {unused_names}."
+            )
+        if any(not isinstance(value, str) or not value.strip()
+               for value in language_names.values()):
+            raise ValueError(f"{path} has an empty language name")
         for node in [locale.get("catalog")] + list(locale["catalogs"].values()) + list(
             locale["collections"].values()
         ):
@@ -102,6 +148,82 @@ def _check_locale_coverage(manifest: dict, locales: list[dict]) -> None:
             translated = locale["collections"][spec["id"]]
             if spec.get("keywords") and not translated.get("keywords"):
                 raise ValueError(f"{path} lacks keywords for {spec['id']}")
+
+
+def _check_node_coverage(
+    source_objects: dict[Path, dict], locales: list[dict]
+) -> None:
+    """Fail on any English title an overlay cannot translate.
+
+    The build reads the source tree it has already written, so this sees the
+    exact link rels and asset keys the locales must cover. Two titles need an
+    overlay entry. A link rel that carries a title needs one in `link_titles`.
+    An asset that shares its role with another asset in the same Collection
+    needs a per-key one, because the role alone cannot tell them apart.
+    """
+    titled_rels = {
+        link["rel"] for obj in source_objects.values()
+        for link in obj.get("links", [])
+        if "title" in link and link.get("rel") not in UNTRANSLATED_RELS
+    }
+    ambiguous: dict[Path, set[str]] = {}
+    for path, obj in source_objects.items():
+        by_role: dict[str, set[str]] = {}
+        for key, asset in (obj.get("assets") or {}).items():
+            by_role.setdefault(_asset_role(asset), set()).add(key)
+        keys = {key for group in by_role.values() if len(group) > 1 for key in group}
+        if keys:
+            ambiguous[path] = keys
+
+    for locale in locales:
+        lp = locale["_path"]
+        rels = set(locale["messages"]["link_titles"])
+        if rels != titled_rels:
+            missing = ", ".join(sorted(titled_rels - rels)) or "none"
+            unused = ", ".join(sorted(rels - titled_rels)) or "none"
+            raise ValueError(
+                f"{lp} link_titles must name every link rel that carries a "
+                f"title. Missing: {missing}. Unused: {unused}."
+            )
+        for path, obj in source_objects.items():
+            meta = _metadata(locale, path)
+            overrides = set(meta.get("assets") or {})
+            unknown = overrides - set(obj.get("assets") or {})
+            if unknown:
+                raise ValueError(
+                    f"{lp} names assets the node does not carry, "
+                    f"{path.as_posix()}: {', '.join(sorted(unknown))}"
+                )
+            missing = ambiguous.get(path, set()) - overrides
+            if missing:
+                raise ValueError(
+                    f"{lp} must give a title to every asset that shares a role, "
+                    f"{path.as_posix()}: {', '.join(sorted(missing))}"
+                )
+            if obj.get("type") != "Collection":
+                continue
+            columns = obj.get("table:columns") or []
+            described = {
+                column["name"] for column in columns if column.get("description")
+            }
+            known = {column["name"] for column in columns}
+            translated = meta.get("columns") or {}
+            translated_names = set(translated)
+            missing_columns = described - translated_names
+            unknown_columns = translated_names - known
+            if missing_columns or unknown_columns:
+                missing_text = ", ".join(sorted(missing_columns)) or "none"
+                unknown_text = ", ".join(sorted(unknown_columns)) or "none"
+                raise ValueError(
+                    f"{lp} columns must translate every described column in "
+                    f"{path.as_posix()}. Missing: {missing_text}. "
+                    f"Unknown: {unknown_text}."
+                )
+            if any(not isinstance(value, str) or not value.strip()
+                   for value in translated.values()):
+                raise ValueError(
+                    f"{lp} has an empty column description in {path.as_posix()}"
+                )
 
 
 def _language_objects(manifest: dict, locales: list[dict]) -> dict[str, dict]:
@@ -120,13 +242,38 @@ def _set_language_fields(obj: dict, code: str, languages: dict[str, dict]) -> No
     obj["languages"] = [dict(value) for key, value in languages.items() if key != code]
 
 
+def _strip_generated_links(
+    obj: dict, current_path: Path, relative_path: Path, out: Path
+) -> list[dict]:
+    """Drop every `alternate` link this module wrote on an earlier build.
+
+    Match the exact local href this module generated for each previously declared
+    language. Preserve authored alternates, including external language links.
+    """
+    previous_codes = {
+        language.get("code") for language in obj.get("languages", [])
+        if language.get("code")
+    }
+    generated = {
+        (code, _relative_href(current_path.parent, out / code / relative_path))
+        for code in previous_codes
+    }
+    return [
+        dict(link) for link in obj.get("links", [])
+        if not (
+            link.get("rel") == "alternate"
+            and (link.get("hreflang"), link.get("href")) in generated
+        )
+    ]
+
+
 def _alternate_links(
     current_path: Path,
     relative_path: Path,
     current_code: str,
     source_code: str,
     languages: dict[str, dict],
-    titles: dict[str, dict[Path, str]],
+    language_titles: dict[str, str],
     out: Path,
 ) -> list[dict]:
     links = []
@@ -138,19 +285,31 @@ def _alternate_links(
             "rel": "alternate",
             "href": _relative_href(current_path.parent, target),
             "type": JSON_TYPE,
-            "title": titles[code][relative_path],
+            "title": language_titles[code],
             "hreflang": code,
         })
     return links
 
 
-def _asset_title(asset: dict, messages: dict) -> str:
+def _asset_role(asset: dict) -> str:
     roles = asset.get("roles") or []
-    titles = messages["asset_titles"]
-    for role in ("data", "visual", "thumbnail", "source", "metadata", "style"):
+    for role in ASSET_ROLES:
         if role in roles:
-            return titles[role]
-    return titles["other"]
+            return role
+    return "other"
+
+
+def _asset_title(key: str, asset: dict, messages: dict, overrides: dict) -> str:
+    """Return the translated title of one asset.
+
+    A per-key title in the overlay wins. Without one the role carries the
+    title, which reads correctly only while the role is unique in the node.
+    `_check_node_coverage` rejects an overlay that leans on a role two assets
+    share.
+    """
+    if key in overrides:
+        return overrides[key]
+    return messages["asset_titles"][_asset_role(asset)]
 
 
 def _localize_object(
@@ -163,6 +322,7 @@ def _localize_object(
     locale: dict,
     languages: dict[str, dict],
     all_titles: dict[str, dict[Path, str]],
+    language_titles: dict[str, str],
     out: Path,
 ) -> dict:
     obj = json.loads(json.dumps(source))
@@ -172,14 +332,17 @@ def _localize_object(
     obj["description"] = meta["description"].strip()
     if obj["type"] == "Collection":
         obj["keywords"] = meta.get("keywords", [])
+        overrides = meta.get("assets") or {}
+        column_overrides = meta.get("columns") or {}
         for column in obj.get("table:columns", []):
-            column.pop("description", None)
-        for asset in obj.get("assets", {}).values():
+            if column.get("description"):
+                column["description"] = column_overrides[column["name"]]
+        for key, asset in obj.get("assets", {}).items():
             href = asset.get("href", "")
             if _is_local(href):
                 target = (source_node.parent / href).resolve()
                 asset["href"] = _relative_href(target_node.parent, target)
-            asset["title"] = _asset_title(asset, messages)
+            asset["title"] = _asset_title(key, asset, messages, overrides)
             asset.pop("description", None)
 
     links = []
@@ -198,12 +361,12 @@ def _localize_object(
             child_source = (source_node.parent / href).resolve()
             child_rel = child_source.relative_to(out.resolve())
             localized["title"] = all_titles[code][child_rel]
-        translated_title = messages["link_titles"].get(rel)
-        if translated_title:
-            localized["title"] = translated_title
+        elif "title" in localized:
+            localized["title"] = messages["link_titles"][rel]
         links.append(localized)
     links += _alternate_links(
-        target_node, relative_path, code, source_code, languages, all_titles, out
+        target_node, relative_path, code, source_code, languages,
+        language_titles, out
     )
     obj["links"] = links
     _set_language_fields(obj, code, languages)
@@ -212,6 +375,19 @@ def _localize_object(
 
 def _english_sidecar_href(target_node: Path, source_node: Path, name: str) -> str:
     return _relative_href(target_node.parent, source_node.with_name(name))
+
+
+def _crs_lines(source: dict, messages: dict) -> list[str]:
+    """Return the CRS section of a localized AGENTS.md.
+
+    The code comes from the `data` asset, so the section cannot drift from the
+    data. The full explanation stays in the English AGENTS.md, which the reader
+    reaches through the link at the end of the file.
+    """
+    code = ((source.get("assets") or {}).get("data") or {}).get("proj:code")
+    if not code:
+        return []
+    return ["", f"## {messages['crs_heading']}", "", code, "", messages["crs_note"]]
 
 
 def _write_sidecars(
@@ -266,22 +442,85 @@ def _write_sidecars(
         f"# {messages['agent_heading']}: {obj['title']}",
         "",
         messages["agent_intro"],
-        "",
-        f"[{messages['detailed_english']}]({english_agents})",
-        "",
     ]
+    agent_lines += _crs_lines(source, messages)
+    agent_lines += ["", f"[{messages['detailed_english']}]({english_agents})", ""]
     target_node.with_name("AGENTS.md").write_text("\n".join(agent_lines))
+
+
+def _write_json(path: Path, obj: dict) -> None:
+    """Write a node, and leave the file alone when nothing changed."""
+    text = json.dumps(obj, ensure_ascii=False, indent=2) + "\n"
+    if not path.is_file() or path.read_text() != text:
+        path.write_text(text)
+
+
+def _prune_stale_locales(out: Path, manifest: dict, keep: set[str]) -> None:
+    """Delete a locale tree the manifest no longer declares.
+
+    A directory is a locale tree only when its own `catalog.json` declares the
+    language the directory is named for. That test never matches a group
+    directory of the source tree, so a wrong manifest cannot delete data.
+    """
+    if not out.is_dir():
+        return
+    reserved = _reserved_names(manifest)
+    for child in sorted(out.iterdir()):
+        name = child.name
+        if not child.is_dir() or name in keep or name in reserved:
+            continue
+        if not LOCALE_CODE.fullmatch(name):
+            continue
+        node = child / "catalog.json"
+        if not node.is_file():
+            continue
+        try:
+            obj = json.loads(node.read_text())
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            continue
+        if (obj.get("language") or {}).get("code") == name:
+            shutil.rmtree(child)
+
+
+def _clear_language_fields(out: Path, paths: list[Path]) -> None:
+    """Return the source tree to the state a build without locales writes."""
+    for path in paths:
+        node = out / path
+        if not node.is_file():
+            continue
+        obj = json.loads(node.read_text())
+        source_code = (obj.get("language") or {}).get("code")
+        links = []
+        for link in _strip_generated_links(obj, node, path, out):
+            if (link.get("rel") in SIDECAR_RELS
+                    and link.get("hreflang") == source_code):
+                link.pop("hreflang", None)
+            links.append(link)
+        obj["links"] = links
+        obj.pop("language", None)
+        obj.pop("languages", None)
+        obj["stac_extensions"] = [
+            ext for ext in obj.get("stac_extensions", []) if ext != LANGUAGE_EXT
+        ]
+        _write_json(node, obj)
 
 
 def build_translations(manifest: dict, manifest_path: Path, out: Path) -> None:
     """Update the source tree and generate every declared language tree."""
     locales = _load_locales(manifest, manifest_path)
+    paths = _node_paths(manifest)
+    keep = {locale["language"]["code"] for locale in locales}
+    if manifest.get("language"):
+        keep.add(manifest["language"]["code"])
+    source_objects = {path: json.loads((out / path).read_text()) for path in paths}
     if not locales:
+        _prune_stale_locales(out, manifest, keep)
+        _clear_language_fields(out, paths)
         return
     source_code = manifest["language"]["code"]
     languages = _language_objects(manifest, locales)
-    paths = _node_paths(manifest)
-    source_objects = {path: json.loads((out / path).read_text()) for path in paths}
+    _check_node_coverage(source_objects, locales)
+    _prune_stale_locales(out, manifest, keep)
 
     locale_by_code = {locale["language"]["code"]: locale for locale in locales}
     all_titles: dict[str, dict[Path, str]] = {
@@ -291,19 +530,21 @@ def build_translations(manifest: dict, manifest_path: Path, out: Path) -> None:
         all_titles[code] = {path: _metadata(locale, path)["title"] for path in paths}
 
     for path, obj in source_objects.items():
-        links = [
-            dict(link) for link in obj.get("links", [])
-            if not (link.get("rel") == "alternate" and link.get("hreflang") in languages)
-        ]
+        links = _strip_generated_links(obj, out / path, path, out)
         for link in links:
             if link.get("rel") in SIDECAR_RELS:
                 link["hreflang"] = source_code
         links += _alternate_links(
-            out / path, path, source_code, source_code, languages, all_titles, out
+            out / path, path, source_code, source_code, languages,
+            {
+                code: language.get("alternate") or language["name"]
+                for code, language in languages.items() if code != source_code
+            },
+            out,
         )
         obj["links"] = links
         _set_language_fields(obj, source_code, languages)
-        (out / path).write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n")
+        _write_json(out / path, obj)
 
     for code, locale in locale_by_code.items():
         locale_root = out / code
@@ -323,7 +564,8 @@ def build_translations(manifest: dict, manifest_path: Path, out: Path) -> None:
                 locale,
                 languages,
                 all_titles,
+                locale["messages"]["language_names"],
                 out,
             )
-            target_node.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n")
+            _write_json(target_node, obj)
             _write_sidecars(obj, source_objects[path], target_node, source_node, locale)

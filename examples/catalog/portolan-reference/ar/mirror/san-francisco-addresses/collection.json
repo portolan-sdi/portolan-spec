@@ -72,19 +72,23 @@
     },
     {
       "name": "street_full_street_name",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "اسم الشارع ونوعه معا."
     },
     {
       "name": "zip_code",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الرمز البريدي ZIP من خمسة أرقام كنص."
     },
     {
       "name": "latitude",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "خط العرض كنص. يفضل استخدام عمود الهندسة."
     },
     {
       "name": "address_number_suffix",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "لاحقة رقم الشارع مثل A، وهي فارغة في معظم الصفوف تقريبا."
     },
     {
       "name": "supdistpad",
@@ -92,31 +96,38 @@
     },
     {
       "name": "complete_landmark_name",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "اسم المعلم للصفوف القليلة التي تحمله، مثل Millennium Tower."
     },
     {
       "name": "eas_fullid",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "معرف صف فريد يتكون من المعرف الأساسي والفرعي ومعرف رابط القطعة مفصولة بشرطات. وهو العمود الوحيد الفريد لكل صف."
     },
     {
       "name": "direct_source",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "المصدر الذي دخل منه السجل إلى EAS: ‏SF DBI أو State of CA أو The Presidio Trust."
     },
     {
       "name": "cnn",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رقم شبكة خط الوسط، وهو مفتاح مقطع الشارع في خريطة المدينة الأساسية ويربط مع خطوط وسط الشوارع في DataSF."
     },
     {
       "name": "data_loaded_at",
-      "type": "timestamp with time zone"
+      "type": "timestamp with time zone",
+      "description": "وقت تحميل البوابة للسجل."
     },
     {
       "name": "longitude",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "خط الطول كنص. يفضل استخدام عمود الهندسة."
     },
     {
       "name": "street_name",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "اسم الشارع بعد التحليل."
     },
     {
       "name": "supdist",
@@ -124,15 +135,18 @@
     },
     {
       "name": "eas_baseid",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "معرف العنوان الأساسي، أي المبنى. تشترك الوحدات فيه، لذلك احسب القيم المميزة في eas_baseid لعد المباني."
     },
     {
       "name": "nhood",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "اسم حي التحليل في DataSF، ويربط بالاسم مع مجموعة بيانات Analysis Neighborhoods."
     },
     {
       "name": "block",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رقم كتلة المقيم العقاري كنص."
     },
     {
       "name": "supname",
@@ -140,39 +154,48 @@
     },
     {
       "name": "street_type",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "نوع الشارع بعد التحليل، مثل ST أو AVE. يكون فارغا لشوارع مثل BROADWAY التي لا تحمل نوعا."
     },
     {
       "name": "eas_subid",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "معرف العنوان الفرعي، أي الوحدة أو الشقة، داخل عنوانه الأساسي."
     },
     {
       "name": "lot",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رقم قطعة المقيم العقاري كنص."
     },
     {
       "name": "address",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "نص العنوان الكامل، مع الوحدة كلحقة تبدأ بعلامة # عند وجودها."
     },
     {
       "name": "unit_number",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "معرف الوحدة، وهو فارغ في صفوف العنوان الأساسي."
     },
     {
       "name": "supervisor",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رقم دائرة المشرف كنص."
     },
     {
       "name": "data_updated_at",
-      "type": "timestamp with time zone"
+      "type": "timestamp with time zone",
+      "description": "الطابع الزمني لتحديث السجل، مع قيمة حارسة من حقبة 1970 للصفوف التي لم تحدث قط."
     },
     {
       "name": "address_number",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رقم الشارع."
     },
     {
       "name": "parcel_number",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رقم قطعة المقيم العقاري، ويتكون من الكتلة والقطعة. يكون فارغا في 32 بالمئة من الصفوف، ولذلك يسقطها ربط القطع دون تنبيه."
     },
     {
       "name": "numbertext",
@@ -180,7 +203,8 @@
     },
     {
       "name": "data_as_of",
-      "type": "timestamp with time zone"
+      "type": "timestamp with time zone",
+      "description": "الطابع الزمني للنسخة المصدرية، وهو 24 يوليو 2026 لكل صف هنا."
     },
     {
       "name": "landmark_aliases",
@@ -188,11 +212,13 @@
     },
     {
       "name": "geom",
-      "type": "geometry"
+      "type": "geometry",
+      "description": "نقطة العنوان بخطي الطول والعرض وفق WGS84. تتراص الوحدات على النقطة الواحدة لمبناها."
     },
     {
       "name": "bbox",
-      "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+      "description": "بنية صندوق الإحاطة لكل معلم، وهي تغطية GeoParquet."
     }
   ],
   "table:primary_geometry": "geom",
@@ -232,7 +258,7 @@
     "style-addresses": {
       "href": "../../../mirror/san-francisco-addresses/styles/addresses.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "نقاط العناوين",
       "roles": [
         "style",
         "default"
@@ -243,7 +269,7 @@
     "style-sources": {
       "href": "../../../mirror/san-francisco-addresses/styles/sources.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "مصدر إدخال كل سجل في EAS",
       "roles": [
         "style"
       ],
@@ -253,7 +279,7 @@
     "style-units": {
       "href": "../../../mirror/san-francisco-addresses/styles/units.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "سجلات الوحدات مقابل العناوين الأساسية",
       "roles": [
         "style"
       ],
@@ -263,7 +289,7 @@
     "style-neighborhoods": {
       "href": "../../../mirror/san-francisco-addresses/styles/neighborhoods.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "أحياء التحليل",
       "roles": [
         "style"
       ],
@@ -273,7 +299,7 @@
     "style-density": {
       "href": "../../../mirror/san-francisco-addresses/styles/density.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "خريطة حرارية لكثافة العناوين",
       "roles": [
         "style"
       ],
@@ -325,14 +351,14 @@
       "rel": "alternate",
       "href": "../../../mirror/san-francisco-addresses/collection.json",
       "type": "application/json",
-      "title": "San Francisco Addresses (EAS)",
+      "title": "الإنجليزية",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../../ja/mirror/san-francisco-addresses/collection.json",
       "type": "application/json",
-      "title": "サンフランシスコの住所（EAS）",
+      "title": "اليابانية",
       "hreflang": "ja"
     }
   ],

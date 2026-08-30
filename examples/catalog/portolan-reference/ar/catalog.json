@@ -68,14 +68,14 @@
       "rel": "alternate",
       "href": "../catalog.json",
       "type": "application/json",
-      "title": "Portolan Reference Catalog",
+      "title": "الإنجليزية",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../ja/catalog.json",
       "type": "application/json",
-      "title": "Portolan参照カタログ",
+      "title": "اليابانية",
       "hreflang": "ja"
     }
   ],

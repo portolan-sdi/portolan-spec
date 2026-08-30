@@ -9,7 +9,7 @@
   ],
   "id": "raster/sample-cog",
   "title": "COGラスターのサンプル",
-  "description": "rasterioのテストデータを使う、小さな3バンドのCloud Optimized GeoTIFFです。 UTM 18Nでバハマのアンドロス島を表示します。",
+  "description": "rasterioのテストデータを使う、小さな3バンドのCloud Optimized GeoTIFFです。UTM 18Nでバハマのアンドロス島を表示します。",
   "license": "CC0-1.0",
   "keywords": [
     "ラスター",
@@ -156,14 +156,14 @@
       "rel": "alternate",
       "href": "../../../raster/sample-cog/collection.json",
       "type": "application/json",
-      "title": "Sample Raster COG",
+      "title": "英語",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../../ar/raster/sample-cog/collection.json",
       "type": "application/json",
-      "title": "نموذج بيانات نقطية بصيغة COG",
+      "title": "アラビア語",
       "hreflang": "ar"
     }
   ],

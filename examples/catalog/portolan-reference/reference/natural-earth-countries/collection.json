@@ -891,14 +891,14 @@
       "rel": "alternate",
       "href": "../../ar/reference/natural-earth-countries/collection.json",
       "type": "application/json",
-      "title": "دول Natural Earth بمقياس 1:110 مليون",
+      "title": "Arabic",
       "hreflang": "ar"
     },
     {
       "rel": "alternate",
       "href": "../../ja/reference/natural-earth-countries/collection.json",
       "type": "application/json",
-      "title": "Natural Earthの国境（1:1億1000万）",
+      "title": "Japanese",
       "hreflang": "ja"
     }
   ],

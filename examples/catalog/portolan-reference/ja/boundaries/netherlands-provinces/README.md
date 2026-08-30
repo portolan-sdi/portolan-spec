@@ -1,6 +1,6 @@
 # オランダの州
 
-オランダ地籍局のPDOKサービスによる12州の境界です。 GeoParquet、PMTiles、地図スタイルを公開します。
+オランダ地籍局のPDOKサービスによる12州の境界です。GeoParquet、PMTiles、地図スタイルを公開します。
 
 ## データファイル
 
@@ -8,10 +8,10 @@
 - [元のソースファイル](https://service.pdok.nl/kadaster/brk-bestuurlijke-gebieden/atom/downloads/BestuurlijkeGebieden_2026.gpkg)
 - [ウェブ地図タイル](../../../boundaries/netherlands-provinces/netherlands-provinces.pmtiles)
 - [サムネイル](../../../boundaries/netherlands-provinces/thumbnail.png)
-- [地図スタイル](../../../boundaries/netherlands-provinces/styles/provinces.json)
-- [地図スタイル](../../../boundaries/netherlands-provinces/styles/labeled.json)
-- [地図スタイル](../../../boundaries/netherlands-provinces/styles/randstad.json)
-- [地図スタイル](../../../boundaries/netherlands-provinces/styles/boundaries.json)
+- [名称別の州](../../../boundaries/netherlands-provinces/styles/provinces.json)
+- [州と名称](../../../boundaries/netherlands-provinces/styles/labeled.json)
+- [ランドスタットとその他の地域](../../../boundaries/netherlands-provinces/styles/randstad.json)
+- [境界線のみ](../../../boundaries/netherlands-provinces/styles/boundaries.json)
 - [上流のメタデータ](../../../boundaries/netherlands-provinces/iso19115.xml)
 
 ## ライセンス (License)

@@ -10,7 +10,7 @@
   ],
   "id": "reference/natural-earth-populated-places",
   "title": "Natural Earthの居住地（1:5000万）",
-  "description": "Natural Earthによる都市、町、居住地のポイントです。縮尺は1:5000万です。 GeoParquetと元データを公開します。",
+  "description": "Natural Earthによる都市、町、居住地のポイントです。縮尺は1:5000万です。GeoParquetと元データを公開します。",
   "license": "CC0-1.0",
   "keywords": [
     "場所",
@@ -64,7 +64,8 @@
     },
     {
       "name": "SCALERANK",
-      "type": "integer"
+      "type": "integer",
+      "description": "重要度ランクは0から10です。0が最重要です。ズームごとのラベル間引きに使います。"
     },
     {
       "name": "NATSCALE",
@@ -76,11 +77,13 @@
     },
     {
       "name": "FEATURECLA",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "場所の種類です。国家首都、第一行政区首都、居住地、科学基地、および4つの希少クラスがあります。"
     },
     {
       "name": "NAME",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "ダイアクリティカルマークを含む表示名です。例: Neuquén。一意ではなく、複数国で同じ都市名があります。"
     },
     {
       "name": "NAMEPAR",
@@ -92,11 +95,13 @@
     },
     {
       "name": "NAMEASCII",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "名称のASCII代替表記です。"
     },
     {
       "name": "ADM0CAP",
-      "type": "integer"
+      "type": "integer",
+      "description": "1は国家首都を示します。このファイルには200行あります。"
     },
     {
       "name": "CAPIN",
@@ -104,11 +109,13 @@
     },
     {
       "name": "WORLDCITY",
-      "type": "integer"
+      "type": "integer",
+      "description": "1は世界的に著名な70都市を示します。"
     },
     {
       "name": "MEGACITY",
-      "type": "integer"
+      "type": "integer",
+      "description": "1はNatural Earthが巨大都市とする462地点を示します。"
     },
     {
       "name": "SOV0NAME",
@@ -120,15 +127,18 @@
     },
     {
       "name": "ADM0NAME",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "地点が属する国名です。"
     },
     {
       "name": "ADM0_A3",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Natural Earthの国コードです。国コレクションとの結合キーです。"
     },
     {
       "name": "ADM1NAME",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "地点が属する第一行政区の名称です。"
     },
     {
       "name": "ISO_A2",
@@ -148,11 +158,13 @@
     },
     {
       "name": "POP_MAX",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "LandScan由来の都市圏人口です。東京は35,676,000です。"
     },
     {
       "name": "POP_MIN",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "市域内人口です。東京は8,336,599です。"
     },
     {
       "name": "POP_OTHER",
@@ -272,7 +284,8 @@
     },
     {
       "name": "TIMEZONE",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "IANAタイムゾーン名です。114行では空です。"
     },
     {
       "name": "UN_FID",
@@ -348,11 +361,13 @@
     },
     {
       "name": "MIN_ZOOM",
-      "type": "double"
+      "type": "double",
+      "description": "ウェブ地図で地点を表示する推奨最小ズームです。"
     },
     {
       "name": "WIKIDATAID",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "WikidataのQIDです。7行で欠損しています。"
     },
     {
       "name": "WOF_ID",
@@ -452,7 +467,8 @@
     },
     {
       "name": "NE_ID",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "Natural Earthの安定した地物IDです。このファイル内で一意です。"
     },
     {
       "name": "NAME_FA",
@@ -476,7 +492,8 @@
     },
     {
       "name": "GEONAMESID",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "GeoNames IDです。43行で欠損しています。"
     },
     {
       "name": "FCLASS_ISO",
@@ -612,11 +629,13 @@
     },
     {
       "name": "geom",
-      "type": "geometry"
+      "type": "geometry",
+      "description": "WGS84の経度・緯度によるポイントです。旧LATITUDE列とLONGITUDE列ではなく、こちらを使います。"
     },
     {
       "name": "bbox",
-      "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+      "description": "地物ごとのバウンディングボックス構造体で、GeoParquet coveringです。"
     }
   ],
   "table:primary_geometry": "geom",
@@ -656,7 +675,7 @@
     "style-places": {
       "href": "../../../reference/natural-earth-populated-places/styles/places.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "居住地",
       "roles": [
         "style",
         "default"
@@ -667,7 +686,7 @@
     "style-population": {
       "href": "../../../reference/natural-earth-populated-places/styles/population.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "都市圏人口、大きさと色",
       "roles": [
         "style"
       ],
@@ -677,7 +696,7 @@
     "style-feature-class": {
       "href": "../../../reference/natural-earth-populated-places/styles/feature-class.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "地物クラス別の地点",
       "roles": [
         "style"
       ],
@@ -687,7 +706,7 @@
     "style-capitals": {
       "href": "../../../reference/natural-earth-populated-places/styles/capitals.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "首都の強調",
       "roles": [
         "style"
       ],
@@ -697,7 +716,7 @@
     "style-density": {
       "href": "../../../reference/natural-earth-populated-places/styles/density.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "地点密度のヒートマップ",
       "roles": [
         "style"
       ],
@@ -740,14 +759,14 @@
       "rel": "alternate",
       "href": "../../../reference/natural-earth-populated-places/collection.json",
       "type": "application/json",
-      "title": "Natural Earth Populated Places (1:50m)",
+      "title": "英語",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../../ar/reference/natural-earth-populated-places/collection.json",
       "type": "application/json",
-      "title": "الأماكن المأهولة في Natural Earth بمقياس 1:50 مليون",
+      "title": "アラビア語",
       "hreflang": "ar"
     }
   ],

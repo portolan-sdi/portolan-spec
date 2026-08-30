@@ -156,14 +156,14 @@
       "rel": "alternate",
       "href": "../../../raster/sample-cog/collection.json",
       "type": "application/json",
-      "title": "Sample Raster COG",
+      "title": "الإنجليزية",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../../ja/raster/sample-cog/collection.json",
       "type": "application/json",
-      "title": "COGラスターのサンプル",
+      "title": "اليابانية",
       "hreflang": "ja"
     }
   ],

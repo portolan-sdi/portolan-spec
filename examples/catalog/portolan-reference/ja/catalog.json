@@ -7,7 +7,7 @@
   ],
   "id": "portolan-reference",
   "title": "Portolan参照カタログ",
-  "description": "Portolan 0.1仕様の主な事例を示す参照カタログです。 元の提供元から取得した、オープンライセンスの実データを使います。",
+  "description": "Portolan 0.1仕様の主な事例を示す参照カタログです。元の提供元から取得した、オープンライセンスの実データを使います。",
   "links": [
     {
       "rel": "root",
@@ -68,14 +68,14 @@
       "rel": "alternate",
       "href": "../catalog.json",
       "type": "application/json",
-      "title": "Portolan Reference Catalog",
+      "title": "英語",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../ar/catalog.json",
       "type": "application/json",
-      "title": "كتالوج بورتولان المرجعي",
+      "title": "アラビア語",
       "hreflang": "ar"
     }
   ],

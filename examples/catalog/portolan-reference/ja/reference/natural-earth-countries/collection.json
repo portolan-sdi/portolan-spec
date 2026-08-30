@@ -10,7 +10,7 @@
   ],
   "id": "reference/natural-earth-countries",
   "title": "Natural Earthの国境（1:1億1000万）",
-  "description": "Natural Earthによる世界の国境データです。縮尺は1:1億1000万です。 GeoParquetと元の圧縮Shapefileを公開します。",
+  "description": "Natural Earthによる世界の国境データです。縮尺は1:1億1000万です。GeoParquetと元の圧縮Shapefileを公開します。",
   "license": "CC0-1.0",
   "keywords": [
     "境界",
@@ -76,7 +76,8 @@
     },
     {
       "name": "SOVEREIGNT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "領有する主権国家。グリーンランド（デンマーク）のような領域ではADMINと異なります。"
     },
     {
       "name": "SOV_A3",
@@ -92,7 +93,8 @@
     },
     {
       "name": "TYPE",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "単位の種類。主権国家、国、属領、係争地、未確定、主権領域のいずれかです。"
     },
     {
       "name": "TLC",
@@ -104,7 +106,8 @@
     },
     {
       "name": "ADM0_A3",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Natural Earth独自の3文字国コードです。番兵値はなく、居住地コレクションとの結合キーです。"
     },
     {
       "name": "GEOU_DIF",
@@ -136,11 +139,13 @@
     },
     {
       "name": "NAME",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "地図用の短い名称です。例: Dem. Rep. Congo。"
     },
     {
       "name": "NAME_LONG",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "正式な長い名称です。例: Democratic Republic of the Congo。21行でNAMEと異なります。"
     },
     {
       "name": "BRK_A3",
@@ -208,7 +213,8 @@
     },
     {
       "name": "POP_EST",
-      "type": "double"
+      "type": "double",
+      "description": "人口推計値です。大部分は2019年時点です。POP_YEARも参照してください。"
     },
     {
       "name": "POP_RANK",
@@ -216,15 +222,18 @@
     },
     {
       "name": "POP_YEAR",
-      "type": "integer"
+      "type": "integer",
+      "description": "人口推計値の対象年です。"
     },
     {
       "name": "GDP_MD",
-      "type": "integer"
+      "type": "integer",
+      "description": "GDP（百万米ドル）です。大部分は2019年時点です。GDP_YEARも参照してください。"
     },
     {
       "name": "GDP_YEAR",
-      "type": "integer"
+      "type": "integer",
+      "description": "GDP値の対象年です。"
     },
     {
       "name": "ECONOMY",
@@ -240,19 +249,23 @@
     },
     {
       "name": "ISO_A2",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "ISO 3166-1 alpha-2コードです。ISO_A3と同じ5か国では-99です。"
     },
     {
       "name": "ISO_A2_EH",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "フランス、ノルウェー、コソボ（XK）を修正したISO alpha-2コードです。"
     },
     {
       "name": "ISO_A3",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "ISO 3166-1 alpha-3コードです。フランス、ノルウェー、コソボ、北キプロス、ソマリランドでは番兵値-99です。ISO_A3_EHを推奨します。"
     },
     {
       "name": "ISO_A3_EH",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "フランスとノルウェーを修正したISO alpha-3コードです。外部のISOコード統計との結合に使います。"
     },
     {
       "name": "ISO_N3",
@@ -432,15 +445,18 @@
     },
     {
       "name": "CONTINENT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "大陸区分です。Seven seas (open ocean)を含むため、GROUP BYでは8グループになります。"
     },
     {
       "name": "REGION_UN",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "国際連合の大地域区分です。"
     },
     {
       "name": "SUBREGION",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "国際連合の小地域区分です。"
     },
     {
       "name": "REGION_WB",
@@ -480,19 +496,23 @@
     },
     {
       "name": "LABEL_X",
-      "type": "double"
+      "type": "double",
+      "description": "推奨ラベル位置の経度です。"
     },
     {
       "name": "LABEL_Y",
-      "type": "double"
+      "type": "double",
+      "description": "推奨ラベル位置の緯度です。"
     },
     {
       "name": "NE_ID",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "Natural Earthの安定した地物IDです。このファイル内で一意です。"
     },
     {
       "name": "WIKIDATAID",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "WikidataのQIDです。177行すべてに存在します。"
     },
     {
       "name": "NAME_AR",
@@ -736,11 +756,13 @@
     },
     {
       "name": "geom",
-      "type": "geometry"
+      "type": "geometry",
+      "description": "国のポリゴンまたはマルチポリゴンです。WGS84の経度・緯度を使います。"
     },
     {
       "name": "bbox",
-      "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+      "description": "地物ごとのバウンディングボックス構造体です。空間述語のプッシュダウンに使うGeoParquet coveringです。"
     }
   ],
   "table:primary_geometry": "geom",
@@ -780,7 +802,7 @@
     "style-continents": {
       "href": "../../../reference/natural-earth-countries/styles/continents.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "大陸別の国",
       "roles": [
         "style",
         "default"
@@ -791,7 +813,7 @@
     "style-map-colors": {
       "href": "../../../reference/natural-earth-countries/styles/map-colors.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "古典的な七色の政治地図",
       "roles": [
         "style"
       ],
@@ -801,7 +823,7 @@
     "style-income-groups": {
       "href": "../../../reference/natural-earth-countries/styles/income-groups.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "世界銀行の所得グループ",
       "roles": [
         "style"
       ],
@@ -811,7 +833,7 @@
     "style-population": {
       "href": "../../../reference/natural-earth-countries/styles/population.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "人口の四区分",
       "roles": [
         "style"
       ],
@@ -821,7 +843,7 @@
     "style-labeled": {
       "href": "../../../reference/natural-earth-countries/styles/labeled.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "大陸の色分けと国名",
       "roles": [
         "style"
       ],
@@ -864,14 +886,14 @@
       "rel": "alternate",
       "href": "../../../reference/natural-earth-countries/collection.json",
       "type": "application/json",
-      "title": "Natural Earth Countries (1:110m)",
+      "title": "英語",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../../ar/reference/natural-earth-countries/collection.json",
       "type": "application/json",
-      "title": "دول Natural Earth بمقياس 1:110 مليون",
+      "title": "アラビア語",
       "hreflang": "ar"
     }
   ],

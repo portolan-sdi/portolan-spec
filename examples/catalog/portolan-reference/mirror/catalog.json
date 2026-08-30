@@ -43,14 +43,14 @@
       "rel": "alternate",
       "href": "../ar/mirror/catalog.json",
       "type": "application/json",
-      "title": "المجموعات المنسوخة",
+      "title": "Arabic",
       "hreflang": "ar"
     },
     {
       "rel": "alternate",
       "href": "../ja/mirror/catalog.json",
       "type": "application/json",
-      "title": "ミラーコレクション",
+      "title": "Japanese",
       "hreflang": "ja"
     }
   ],

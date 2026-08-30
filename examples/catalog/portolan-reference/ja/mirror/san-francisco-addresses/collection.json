@@ -11,7 +11,7 @@
   ],
   "id": "mirror/san-francisco-addresses",
   "title": "サンフランシスコの住所（EAS）",
-  "description": "サンフランシスコのEnterprise Addressing Systemによる住所ポイントです。 5000件の抽出データをGeoParquetとPMTilesで公開します。",
+  "description": "サンフランシスコのEnterprise Addressing Systemによる住所ポイントです。5000件の抽出データをGeoParquetとPMTilesで公開します。",
   "license": "PDDL-1.0",
   "keywords": [
     "住所",
@@ -72,19 +72,23 @@
     },
     {
       "name": "street_full_street_name",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "道路名と道路種別を結合した値です。"
     },
     {
       "name": "zip_code",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "5桁のZIPコードを文字列で保持します。"
     },
     {
       "name": "latitude",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "文字列の緯度です。形状列を推奨します。"
     },
     {
       "name": "address_number_suffix",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Aなどの番地接尾辞です。ほぼすべての行でnullです。"
     },
     {
       "name": "supdistpad",
@@ -92,31 +96,38 @@
     },
     {
       "name": "complete_landmark_name",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "一部の行にあるランドマーク名です。例: Millennium Tower。"
     },
     {
       "name": "eas_fullid",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "基本ID、サブID、区画リンクIDをハイフンで連結した一意の行識別子です。行ごとに一意な唯一の列です。"
     },
     {
       "name": "direct_source",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "レコードがEASに入った提供元です。SF DBI、State of CA、The Presidio Trustがあります。"
     },
     {
       "name": "cnn",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Centerline Network Numberです。市のベースマップにある道路区間キーで、DataSF道路中心線と結合できます。"
     },
     {
       "name": "data_loaded_at",
-      "type": "timestamp with time zone"
+      "type": "timestamp with time zone",
+      "description": "ポータルがレコードを読み込んだ時刻です。"
     },
     {
       "name": "longitude",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "文字列の経度です。形状列を推奨します。"
     },
     {
       "name": "street_name",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "解析済み道路名です。"
     },
     {
       "name": "supdist",
@@ -124,15 +135,18 @@
     },
     {
       "name": "eas_baseid",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "建物を表す基本住所の識別子です。住戸で共有するため、建物数にはeas_baseidの一意数を使います。"
     },
     {
       "name": "nhood",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "DataSFの分析用近隣地区名です。Analysis Neighborhoodsデータセットと名称で結合できます。"
     },
     {
       "name": "block",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "査定ブロック番号を文字列で保持します。"
     },
     {
       "name": "supname",
@@ -140,39 +154,48 @@
     },
     {
       "name": "street_type",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "STやAVEなどの解析済み道路種別です。BROADWAYのように種別がない道路ではnullです。"
     },
     {
       "name": "eas_subid",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "基本住所内の住戸または部屋を示すサブ住所識別子です。"
     },
     {
       "name": "lot",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "査定区画番号を文字列で保持します。"
     },
     {
       "name": "address",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "完全な住所文字列です。住戸がある場合はハッシュ記号付きの接尾辞を含みます。"
     },
     {
       "name": "unit_number",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "住戸識別子です。基本住所の行ではnullです。"
     },
     {
       "name": "supervisor",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "監督委員地区番号を文字列で保持します。"
     },
     {
       "name": "data_updated_at",
-      "type": "timestamp with time zone"
+      "type": "timestamp with time zone",
+      "description": "レコード更新時刻です。未更新の行には1970年エポックの番兵値があります。"
     },
     {
       "name": "address_number",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "番地です。"
     },
     {
       "name": "parcel_number",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "ブロックと区画を連結した査定区画番号です。32パーセントの行でnullなので、区画結合ではそれらが暗黙に落ちます。"
     },
     {
       "name": "numbertext",
@@ -180,7 +203,8 @@
     },
     {
       "name": "data_as_of",
-      "type": "timestamp with time zone"
+      "type": "timestamp with time zone",
+      "description": "上流エクスポートのスナップショット時刻です。ここでは全行が2026年7月24日です。"
     },
     {
       "name": "landmark_aliases",
@@ -188,11 +212,13 @@
     },
     {
       "name": "geom",
-      "type": "geometry"
+      "type": "geometry",
+      "description": "WGS84の経度・緯度による住所ポイントです。住戸は建物の単一ポイント上に重なります。"
     },
     {
       "name": "bbox",
-      "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+      "description": "地物ごとのバウンディングボックス構造体で、GeoParquet coveringです。"
     }
   ],
   "table:primary_geometry": "geom",
@@ -232,7 +258,7 @@
     "style-addresses": {
       "href": "../../../mirror/san-francisco-addresses/styles/addresses.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "住所ポイント",
       "roles": [
         "style",
         "default"
@@ -243,7 +269,7 @@
     "style-sources": {
       "href": "../../../mirror/san-francisco-addresses/styles/sources.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "各レコードが EAS に入った経路",
       "roles": [
         "style"
       ],
@@ -253,7 +279,7 @@
     "style-units": {
       "href": "../../../mirror/san-francisco-addresses/styles/units.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "基準住所に対する住戸レコード",
       "roles": [
         "style"
       ],
@@ -263,7 +289,7 @@
     "style-neighborhoods": {
       "href": "../../../mirror/san-francisco-addresses/styles/neighborhoods.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "分析用近隣地区",
       "roles": [
         "style"
       ],
@@ -273,7 +299,7 @@
     "style-density": {
       "href": "../../../mirror/san-francisco-addresses/styles/density.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "地図スタイル",
+      "title": "住所密度のヒートマップ",
       "roles": [
         "style"
       ],
@@ -325,14 +351,14 @@
       "rel": "alternate",
       "href": "../../../mirror/san-francisco-addresses/collection.json",
       "type": "application/json",
-      "title": "San Francisco Addresses (EAS)",
+      "title": "英語",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../../ar/mirror/san-francisco-addresses/collection.json",
       "type": "application/json",
-      "title": "عناوين سان فرانسيسكو من EAS",
+      "title": "アラビア語",
       "hreflang": "ar"
     }
   ],

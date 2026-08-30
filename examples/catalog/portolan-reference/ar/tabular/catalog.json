@@ -43,14 +43,14 @@
       "rel": "alternate",
       "href": "../../tabular/catalog.json",
       "type": "application/json",
-      "title": "Tabular Data",
+      "title": "الإنجليزية",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../ja/tabular/catalog.json",
       "type": "application/json",
-      "title": "表形式データ",
+      "title": "اليابانية",
       "hreflang": "ja"
     }
   ],

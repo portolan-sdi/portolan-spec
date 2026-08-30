@@ -100,8 +100,14 @@ def main() -> int:
             build_translations(manifest, mf, cat_out)
             continue
         build_catalog(manifest, cat_out, args.cache, args.only)
+        if args.only:
+            # --only rebuilds one Collection and leaves the group and root
+            # catalogs alone, so the whole-tree steps have nothing complete to
+            # read. Run a full build to refresh the language trees.
+            print(f"--only skips the language trees for {mf.stem}", file=sys.stderr)
+            continue
         build_translations(manifest, mf, cat_out)
-        if not args.no_validate and not args.only:
+        if not args.no_validate:
             validate(cat_out, args.schema)
     print("done", file=sys.stderr)
     return 0

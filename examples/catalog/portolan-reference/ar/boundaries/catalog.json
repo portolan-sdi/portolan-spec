@@ -55,14 +55,14 @@
       "rel": "alternate",
       "href": "../../boundaries/catalog.json",
       "type": "application/json",
-      "title": "Administrative Boundaries",
+      "title": "الإنجليزية",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../ja/boundaries/catalog.json",
       "type": "application/json",
-      "title": "行政界",
+      "title": "اليابانية",
       "hreflang": "ja"
     }
   ],

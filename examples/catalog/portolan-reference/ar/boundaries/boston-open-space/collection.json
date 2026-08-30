@@ -69,79 +69,98 @@
     },
     {
       "name": "SITE_NAME",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم الرسمي أو الأشهر للموقع. تحمل المواقع متعددة القطع لواحق بأرقام رومانية، مثل Stony Brook Reservation I وII."
     },
     {
       "name": "OWNERSHIP",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "مالك العقار حيث يكون معروفا: مدينة بوسطن، أو كومنولث ماساتشوستس، أو مالكون خاصون، أو اختصارات جهات مثل BRA وBNAN."
     },
     {
       "name": "PROTECTION",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "أدوات الحماية القانونية مفصولة بشرطات مائلة. يمثل A97 المادة 97 من دستور ماساتشوستس، وهي الأقوى. هذا نص حر، فطابقه باستخدام LIKE."
     },
     {
       "name": "TYPECODE",
-      "type": "integer"
+      "type": "integer",
+      "description": "نوع رقمي للمساحة المفتوحة من 1 إلى 7. يختلف عن TypeLong في نحو 13 صفا، فاعتبر TypeLong أقرب إلى المعنى المقصود."
     },
     {
       "name": "DISTRICT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "منطقة التخطيط حسب خطة المساحات المفتوحة للمدينة، وليست حدود الأحياء الرسمية. تشمل القيمة غير المكانية Multi-District."
     },
     {
       "name": "ACRES",
-      "type": "double"
+      "type": "double",
+      "description": "المساحة الرسمية بالأفدنة لجزء المساحة المفتوحة. استخدمها بدلا من حساب مساحة الهندسة."
     },
     {
       "name": "ADDRESS",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "عنوان الشارع إن كان معروفا، وهو فارغ في 589 صفا."
     },
     {
       "name": "ZonAgg",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "منطقة تقسيم استعمالات مجمعة، مثل Open Space District."
     },
     {
       "name": "TypeLong",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "نوع المساحة المفتوحة كنص، مع اختلافات إملائية طفيفة يستحسن توحيدها قبل التجميع."
     },
     {
       "name": "OS_Own_Jur",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الجهة التي تملك حقوق المساحة المفتوحة: BPRD أو DCR أو لجنة بوسطن للحفظ أو None."
     },
     {
       "name": "OS_Mngmnt",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الجهة المديرة فقط عندما تختلف عن OS_Own_Jur. تعني القيمة الفارغة أن الجهة الحارسة تدير الموقع، لا أن البيانات مفقودة."
     },
     {
       "name": "POS",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "علامة المساحة المفتوحة المحمية. تعني X حماية دائمة، وتعني N أنها غير محمية."
     },
     {
       "name": "PA",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "علامة وصول الجمهور. تعني X متاحة، وA بموعد، وN عدم الوصول أو عدم معرفته."
     },
     {
       "name": "ALT_NAME",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "أسماء بديلة رسمية أو سابقة أو دارجة."
     },
     {
       "name": "AgncyJuris",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "جهة الاختصاص للمواقع الحكومية غير المحمية. العمود قليل القيم عمدا."
     },
     {
       "name": "ShapeSTAre",
-      "type": "double"
+      "type": "double",
+      "description": "المساحة التي حسبها ArcGIS بالمتر المربع من هندسة State Plane المصدرية."
     },
     {
       "name": "ShapeSTLen",
-      "type": "double"
+      "type": "double",
+      "description": "المحيط الذي حسبه ArcGIS بالأمتار."
     },
     {
       "name": "geom",
-      "type": "geometry"
+      "type": "geometry",
+      "description": "هندسة الموقع بخطي الطول والعرض وفق WGS84."
     },
     {
       "name": "bbox",
-      "type": "struct(xmin double, ymin double, xmax double, ymax double)"
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+      "description": "بنية صندوق الإحاطة لكل معلم، وهي تغطية GeoParquet."
     }
   ],
   "table:primary_geometry": "geom",
@@ -181,7 +200,7 @@
     "style-types": {
       "href": "../../../boundaries/boston-open-space/styles/types.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "المساحات المفتوحة حسب النوع",
       "roles": [
         "style",
         "default"
@@ -192,7 +211,7 @@
     "style-labeled": {
       "href": "../../../boundaries/boston-open-space/styles/labeled.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "الأنواع مع أسماء المواقع",
       "roles": [
         "style"
       ],
@@ -202,7 +221,7 @@
     "style-acreage": {
       "href": "../../../boundaries/boston-open-space/styles/acreage.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "المساحة في أربع فئات",
       "roles": [
         "style"
       ],
@@ -212,7 +231,7 @@
     "style-ownership": {
       "href": "../../../boundaries/boston-open-space/styles/ownership.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "جهة الملكية",
       "roles": [
         "style"
       ],
@@ -222,7 +241,7 @@
     "style-protection": {
       "href": "../../../boundaries/boston-open-space/styles/protection.json",
       "type": "application/vnd.mapbox.style+json",
-      "title": "نمط الخريطة",
+      "title": "محمية بشكل دائم أو غير محمية",
       "roles": [
         "style"
       ],
@@ -274,14 +293,14 @@
       "rel": "alternate",
       "href": "../../../boundaries/boston-open-space/collection.json",
       "type": "application/json",
-      "title": "Boston Open Space",
+      "title": "الإنجليزية",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../../ja/boundaries/boston-open-space/collection.json",
       "type": "application/json",
-      "title": "ボストンのオープンスペース",
+      "title": "اليابانية",
       "hreflang": "ja"
     }
   ],

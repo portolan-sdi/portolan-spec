@@ -49,14 +49,14 @@
       "rel": "alternate",
       "href": "../../reference/catalog.json",
       "type": "application/json",
-      "title": "Reference Basemaps",
+      "title": "الإنجليزية",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../ja/reference/catalog.json",
       "type": "application/json",
-      "title": "参照用ベースマップ",
+      "title": "اليابانية",
       "hreflang": "ja"
     }
   ],

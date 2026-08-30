@@ -172,14 +172,14 @@
       "rel": "alternate",
       "href": "../../ar/tabular/eurostat-electricity-prices/collection.json",
       "type": "application/json",
-      "title": "أسعار كهرباء الأسر من Eurostat",
+      "title": "Arabic",
       "hreflang": "ar"
     },
     {
       "rel": "alternate",
       "href": "../../ja/tabular/eurostat-electricity-prices/collection.json",
       "type": "application/json",
-      "title": "Eurostatの家庭向け電力価格",
+      "title": "Japanese",
       "hreflang": "ja"
     }
   ],

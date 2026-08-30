@@ -764,14 +764,14 @@
       "rel": "alternate",
       "href": "../../ar/reference/natural-earth-populated-places/collection.json",
       "type": "application/json",
-      "title": "الأماكن المأهولة في Natural Earth بمقياس 1:50 مليون",
+      "title": "Arabic",
       "hreflang": "ar"
     },
     {
       "rel": "alternate",
       "href": "../../ja/reference/natural-earth-populated-places/collection.json",
       "type": "application/json",
-      "title": "Natural Earthの居住地（1:5000万）",
+      "title": "Japanese",
       "hreflang": "ja"
     }
   ],

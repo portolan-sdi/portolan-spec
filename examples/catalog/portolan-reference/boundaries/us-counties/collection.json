@@ -279,14 +279,14 @@
       "rel": "alternate",
       "href": "../../ar/boundaries/us-counties/collection.json",
       "type": "application/json",
-      "title": "مقاطعات الولايات المتحدة لعام 2023 بمقياس 1:500 ألف",
+      "title": "Arabic",
       "hreflang": "ar"
     },
     {
       "rel": "alternate",
       "href": "../../ja/boundaries/us-counties/collection.json",
       "type": "application/json",
-      "title": "米国の郡（2023年、1:50万）",
+      "title": "Japanese",
       "hreflang": "ja"
     }
   ],

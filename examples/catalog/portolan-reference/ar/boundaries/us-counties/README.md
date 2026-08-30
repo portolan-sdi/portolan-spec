@@ -8,11 +8,11 @@
 - [ملف المصدر الأصلي](https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_500k.zip)
 - [بلاطات خريطة الويب](../../../boundaries/us-counties/us-counties.pmtiles)
 - [صورة مصغرة](../../../boundaries/us-counties/thumbnail.png)
-- [نمط الخريطة](../../../boundaries/us-counties/styles/states.json)
-- [نمط الخريطة](../../../boundaries/us-counties/styles/labeled.json)
-- [نمط الخريطة](../../../boundaries/us-counties/styles/land-area.json)
-- [نمط الخريطة](../../../boundaries/us-counties/styles/water-share.json)
-- [نمط الخريطة](../../../boundaries/us-counties/styles/county-types.json)
+- [المقاطعات حسب الولاية](../../../boundaries/us-counties/styles/states.json)
+- [ألوان الولايات مع أسماء المقاطعات](../../../boundaries/us-counties/styles/labeled.json)
+- [مساحة اليابسة في أربع فئات](../../../boundaries/us-counties/styles/land-area.json)
+- [نسبة المياه](../../../boundaries/us-counties/styles/water-share.json)
+- [أنواع ما يعادل المقاطعة](../../../boundaries/us-counties/styles/county-types.json)
 
 ## الرخصة (License)
 

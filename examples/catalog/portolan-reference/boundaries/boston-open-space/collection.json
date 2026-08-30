@@ -298,14 +298,14 @@
       "rel": "alternate",
       "href": "../../ar/boundaries/boston-open-space/collection.json",
       "type": "application/json",
-      "title": "المساحات المفتوحة في بوسطن",
+      "title": "Arabic",
       "hreflang": "ar"
     },
     {
       "rel": "alternate",
       "href": "../../ja/boundaries/boston-open-space/collection.json",
       "type": "application/json",
-      "title": "ボストンのオープンスペース",
+      "title": "Japanese",
       "hreflang": "ja"
     }
   ],

@@ -43,14 +43,14 @@
       "rel": "alternate",
       "href": "../../mirror/catalog.json",
       "type": "application/json",
-      "title": "Mirrored Collections",
+      "title": "英語",
       "hreflang": "en"
     },
     {
       "rel": "alternate",
       "href": "../../ar/mirror/catalog.json",
       "type": "application/json",
-      "title": "المجموعات المنسوخة",
+      "title": "アラビア語",
       "hreflang": "ar"
     }
   ],
