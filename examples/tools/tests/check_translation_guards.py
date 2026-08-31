@@ -213,7 +213,7 @@ def check_unknown_column_fails() -> None:
         )
 
 
-def _asset_case(asset_override: dict):
+def _asset_case(asset_override: dict, description: str = "عنصر."):
     manifest = {
         "language": {"code": "en", "name": "English"},
         "translations": ["ar"],
@@ -225,8 +225,9 @@ def _asset_case(asset_override: dict):
         collections={
             "group/item": {
                 "title": "  عنصر  ",
-                "description": "عنصر.",
+                "description": description,
                 "assets": {"style-main": asset_override},
+                "columns": {"code": description},
             }
         },
     )
@@ -237,6 +238,7 @@ def _asset_case(asset_override: dict):
         "Collection",
         id="item",
         license="CC0-1.0",
+        **{"table:columns": [{"name": "code", "description": "Code."}]},
         assets={
             "style-main": {
                 "href": "https://example.com/style.json",
@@ -260,17 +262,20 @@ def check_missing_asset_description_fails() -> None:
 
 
 def check_asset_description_and_titles_are_localized() -> None:
+    markdown = "    نص برمجي.\n"
     stack, out, path = _asset_case({
         "title": "  النمط الرئيسي  ",
-        "description": "  النمط الرئيسي.  ",
-    })
+        "description": markdown,
+    }, description=markdown)
     with stack:
         manifest = yaml.safe_load(path.read_text())
         build_translations(manifest, path, out)
         result = json.loads((out / "ar/group/item/collection.json").read_text())
         assert result["title"] == "عنصر"
+        assert result["description"] == markdown
         assert result["assets"]["style-main"]["title"] == "النمط الرئيسي"
-        assert result["assets"]["style-main"]["description"] == "النمط الرئيسي."
+        assert result["assets"]["style-main"]["description"] == markdown
+        assert result["table:columns"][0]["description"] == markdown
 
 
 def _link_case(link_overrides: dict | None):

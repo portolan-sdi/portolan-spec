@@ -445,14 +445,14 @@ def _localize_object(
     meta = _metadata(locale, relative_path)
     messages = locale["messages"]
     obj["title"] = meta["title"].strip()
-    obj["description"] = meta["description"].strip()
+    obj["description"] = meta["description"]
     if obj["type"] == "Collection":
         obj["keywords"] = meta.get("keywords", [])
         overrides = meta.get("assets") or {}
         column_overrides = meta.get("columns") or {}
         for column in obj.get("table:columns", []):
             if column.get("description"):
-                column["description"] = column_overrides[column["name"]].strip()
+                column["description"] = column_overrides[column["name"]]
         for key, asset in obj.get("assets", {}).items():
             href = asset.get("href", "")
             if _is_local(href):
@@ -460,7 +460,7 @@ def _localize_object(
                 asset["href"] = _relative_href(target_node.parent, target)
             asset["title"] = _asset_title(key, asset, messages, overrides)
             if "description" in asset:
-                asset["description"] = overrides[key]["description"].strip()
+                asset["description"] = overrides[key]["description"]
 
     links = []
     for source_link in source.get("links", []):
