@@ -1,0 +1,193 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json",
+    "https://stac-extensions.github.io/attribution/v0.1.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
+  ],
+  "id": "tabular/eurostat-electricity-prices",
+  "title": "أسعار كهرباء الأسر من Eurostat",
+  "description": "أسعار كهرباء نصف سنوية للأسر حسب البلد وفئة الاستهلاك والضريبة والعملة. تنشر المجموعة جدول nrg_pc_204 بصيغة Parquet للربط مع خريطة NUTS 0.",
+  "license": "CC-BY-4.0",
+  "keywords": [
+    "طاقة",
+    "كهرباء",
+    "أسعار",
+    "Eurostat",
+    "بيانات جدولية"
+  ],
+  "providers": [
+    {
+      "name": "Eurostat",
+      "url": "https://ec.europa.eu/eurostat",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -31.5,
+          34.0,
+          46.5,
+          71.5
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2007-01-01T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "table:columns": [
+    {
+      "name": "DATAFLOW",
+      "type": "varchar",
+      "description": "معرف تدفق البيانات في Eurostat، وهو القيمة الثابتة ESTAT nrg_pc_204 بالإصدار 1.0."
+    },
+    {
+      "name": "LAST UPDATE",
+      "type": "timestamp",
+      "description": "قيمة ثابتة عند طابع زمني واحد من عام 2019 لكل صف في هذه النسخة، رغم امتداد البيانات إلى 2025. لا يعتمد عليها، فلا تستخرج منها حداثة البيانات."
+    },
+    {
+      "name": "freq",
+      "type": "varchar",
+      "description": "تكرار الرصد، وهو القيمة الثابتة S لنصف سنوي. تمثل S1 الفترة من يناير إلى يونيو، وتمثل S2 الفترة من يوليو إلى ديسمبر."
+    },
+    {
+      "name": "siec",
+      "type": "varchar",
+      "description": "رمز منتج الطاقة، وهو القيمة الثابتة E7000 للكهرباء."
+    },
+    {
+      "name": "nrg_cons",
+      "type": "varchar",
+      "description": "فئة الاستهلاك السنوي: KWH_LT1000 وKWH1000-2499 وKWH2500-4999، وهي الفئة المنزلية الرئيسية، وKWH5000-14999 وKWH_GE15000 وTOT_KWH، وهو المتوسط المرجح لكل الفئات والمتاح فقط منذ 2017-S2."
+    },
+    {
+      "name": "unit",
+      "type": "varchar",
+      "description": "وحدة القياس، وهي القيمة الثابتة KWH. الأسعار لكل كيلوواط ساعة."
+    },
+    {
+      "name": "tax",
+      "type": "varchar",
+      "description": "مستوى الضريبة. تستبعد X_TAX جميع الضرائب والرسوم، وتستبعد X_VAT ضريبة القيمة المضافة والضرائب القابلة للاسترداد، وتشمل I_TAX كل ما تدفعه الأسرة."
+    },
+    {
+      "name": "currency",
+      "type": "varchar",
+      "description": "EUR أو NAC للعملة الوطنية أو PPS لمعيار القوة الشرائية. تساوي NAC اليورو في منطقة اليورو."
+    },
+    {
+      "name": "geo",
+      "type": "varchar",
+      "description": "الدولة المبلغة كرمز Eurostat ‏NUTS-0، وهو ISO 3166-1 alpha-2 باستثناء EL لليونان وUK للمملكة المتحدة، مع التجميعين EU27_2020 وEA. وهو مفتاح الربط مع مجموعة هندسية."
+    },
+    {
+      "name": "TIME_PERIOD",
+      "type": "varchar",
+      "description": "الفصل المرجعي كنص، مثل 2025-S2. التنسيق ثابت، ولذلك يعمل الترتيب النصي والدالة MAX."
+    },
+    {
+      "name": "OBS_VALUE",
+      "type": "double",
+      "description": "سعر الكهرباء المرصود بالعملة المحددة لكل كيلوواط ساعة."
+    },
+    {
+      "name": "OBS_FLAG",
+      "type": "varchar",
+      "description": "حالة الرصد: e تقديري، وp مؤقت، وd اختلاف في التعريف، وقيمة فارغة في 98 بالمئة من الصفوف."
+    },
+    {
+      "name": "CONF_STATUS",
+      "type": "varchar",
+      "description": "حالة السرية، وهي فارغة بالكامل في هذه النسخة."
+    }
+  ],
+  "table:row_count": 65466,
+  "assets": {
+    "data": {
+      "href": "../../../tabular/eurostat-electricity-prices/eurostat-electricity-prices.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "البيانات",
+      "roles": [
+        "data"
+      ],
+      "file:size": 162919,
+      "file:checksum": "122051a96f8677c374f6b54cb6e876dcf6af33bc2982b52c9445d0c9a857240b6477"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "via",
+      "href": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table",
+      "type": "text/html",
+      "title": "المصدر الأصلي"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "إرشادات للوكلاء",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "وثائق قابلة للقراءة",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../../tabular/eurostat-electricity-prices/collection.json",
+      "type": "application/json",
+      "title": "الإنجليزية",
+      "hreflang": "en"
+    }
+  ],
+  "attribution": "Source, Eurostat",
+  "updated": "2026-07-21T00:00:00Z",
+  "language": {
+    "code": "ar",
+    "name": "العربية",
+    "alternate": "Arabic",
+    "dir": "rtl"
+  },
+  "languages": [
+    {
+      "code": "en",
+      "name": "English"
+    }
+  ]
+}

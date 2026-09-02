@@ -6,7 +6,8 @@
     "https://stac-extensions.github.io/file/v2.1.0/schema.json",
     "https://stac-extensions.github.io/table/v1.2.0/schema.json",
     "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
-    "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json"
+    "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
   ],
   "id": "boundaries/us-counties",
   "title": "United States Counties (2023, 1:500k)",
@@ -167,16 +168,6 @@
       "file:size": 4564130,
       "file:checksum": "12207b1ded32a1575ad3c27432aba77c3dac2697c9a4bcd2cdf448b4cb7c03dca318"
     },
-    "thumbnail": {
-      "href": "./thumbnail.png",
-      "type": "image/png",
-      "title": "Preview thumbnail over a light basemap. \u00a9 OpenStreetMap contributors \u00a9 CARTO.",
-      "roles": [
-        "thumbnail"
-      ],
-      "file:size": 73106,
-      "file:checksum": "1220820dc6da8d8576602a5e7f69f8272ee3e6a1264c2938d1640292eb14f329918b"
-    },
     "style-states": {
       "href": "./styles/states.json",
       "type": "application/vnd.mapbox.style+json",
@@ -232,6 +223,16 @@
       "file:size": 1203,
       "file:checksum": "1220c844bce21f7dc4b604eb3a20c5adc58ccfbb08050f1a157519c069417e619f29",
       "description": "The LSAD code, separating counties from Louisiana parishes, Alaska boroughs and census areas, Puerto Rico municipios, independent cities, and Connecticut's planning regions."
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview thumbnail over a light basemap. © OpenStreetMap contributors © CARTO.",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 73106,
+      "file:checksum": "1220820dc6da8d8576602a5e7f69f8272ee3e6a1264c2938d1640292eb14f329918b"
     }
   },
   "links": [
@@ -264,14 +265,35 @@
       "rel": "agents",
       "href": "./AGENTS.md",
       "type": "text/markdown",
-      "title": "Guidance for AI agents"
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
     },
     {
       "rel": "describedby",
       "href": "./README.md",
       "type": "text/markdown",
-      "title": "Human-readable documentation"
+      "title": "Human-readable documentation",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../ar/boundaries/us-counties/collection.json",
+      "type": "application/json",
+      "title": "Arabic",
+      "hreflang": "ar"
     }
   ],
-  "updated": "2026-07-16T00:00:00Z"
+  "updated": "2026-07-16T00:00:00Z",
+  "language": {
+    "code": "en",
+    "name": "English"
+  },
+  "languages": [
+    {
+      "code": "ar",
+      "name": "العربية",
+      "alternate": "Arabic",
+      "dir": "rtl"
+    }
+  ]
 }

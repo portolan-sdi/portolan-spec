@@ -1,0 +1,10 @@
+{
+  "$comment": "Third-party STAC extension schemas cached for deterministic tests. Each source uses an immutable commit and must keep its canonical $id.",
+  "https://stac-extensions.github.io/table/v1.2.0/schema.json": {
+    "name": "table",
+    "version": "v1.2.0",
+    "repo": "stac-extensions/table",
+    "ref": "f962838a51c0ce78c9aa180b7973e538e6ef900e",
+    "path": "json-schema/schema.json"
+  }
+}

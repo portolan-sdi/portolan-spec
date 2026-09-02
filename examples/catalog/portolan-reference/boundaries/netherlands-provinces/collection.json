@@ -7,7 +7,8 @@
     "https://stac-extensions.github.io/table/v1.2.0/schema.json",
     "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
     "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json",
-    "https://stac-extensions.github.io/attribution/v0.1.0/schema.json"
+    "https://stac-extensions.github.io/attribution/v0.1.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
   ],
   "id": "boundaries/netherlands-provinces",
   "title": "Netherlands Provinces",
@@ -78,7 +79,7 @@
     {
       "name": "naam",
       "type": "varchar",
-      "description": "Official province name. Frysl\u00e2n carries its official Frisian spelling, a filter on Friesland returns nothing."
+      "description": "Official province name. Fryslân carries its official Frisian spelling, a filter on Friesland returns nothing."
     },
     {
       "name": "code",
@@ -140,16 +141,6 @@
       "file:size": 435122,
       "file:checksum": "1220a7a9d30cbd97f9a92161530a4f335aa50db1307ce24ab7d16f7de668595d519e"
     },
-    "thumbnail": {
-      "href": "./thumbnail.png",
-      "type": "image/png",
-      "title": "Preview thumbnail over a light basemap. \u00a9 OpenStreetMap contributors \u00a9 CARTO.",
-      "roles": [
-        "thumbnail"
-      ],
-      "file:size": 188545,
-      "file:checksum": "12203e5bed76be1af81a77828cebf137805a4168848e56289de7d197eb7341ebb2b0"
-    },
     "style-provinces": {
       "href": "./styles/provinces.json",
       "type": "application/vnd.mapbox.style+json",
@@ -158,8 +149,8 @@
         "style",
         "default"
       ],
-      "file:size": 1185,
-      "file:checksum": "1220cf5f8ee0cd01a9d9cc9719de17497d61bff1e179649e9a267e8268d06f690f4d",
+      "file:size": 1181,
+      "file:checksum": "1220a4d07c4c1b065162e6f732701089d8113050b32751373bf6db58dab8afa802b6",
       "description": "Twelve provinces, one palette colour each."
     },
     "style-labeled": {
@@ -169,8 +160,8 @@
       "roles": [
         "style"
       ],
-      "file:size": 1625,
-      "file:checksum": "1220ecd4e7efb630d5c84ea81ccd7c3ce7bc4125979e8569ee4f8b3e67b01cfe9e43",
+      "file:size": 1621,
+      "file:checksum": "1220a43d7de872e3be3681810c1908163a861c6616309c1aa0d293bcc3c4905180e5",
       "description": "The province colouring with a naam label on each."
     },
     "style-randstad": {
@@ -194,6 +185,16 @@
       "file:size": 533,
       "file:checksum": "122013feb7c07c1c517924d55cc90603ae6e1dd9bba54aad6585abe180cdddf09db6",
       "description": "Province borders as bare lines with no fill, for use over other layers."
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview thumbnail over a light basemap. © OpenStreetMap contributors © CARTO.",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 188545,
+      "file:checksum": "12203e5bed76be1af81a77828cebf137805a4168848e56289de7d197eb7341ebb2b0"
     },
     "metadata": {
       "href": "./iso19115.xml",
@@ -237,15 +238,36 @@
       "rel": "agents",
       "href": "./AGENTS.md",
       "type": "text/markdown",
-      "title": "Guidance for AI agents"
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
     },
     {
       "rel": "describedby",
       "href": "./README.md",
       "type": "text/markdown",
-      "title": "Human-readable documentation"
+      "title": "Human-readable documentation",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../ar/boundaries/netherlands-provinces/collection.json",
+      "type": "application/json",
+      "title": "Arabic",
+      "hreflang": "ar"
     }
   ],
   "attribution": "Kadaster / PDOK",
-  "updated": "2026-07-16T00:00:00Z"
+  "updated": "2026-07-16T00:00:00Z",
+  "language": {
+    "code": "en",
+    "name": "English"
+  },
+  "languages": [
+    {
+      "code": "ar",
+      "name": "العربية",
+      "alternate": "Arabic",
+      "dir": "rtl"
+    }
+  ]
 }

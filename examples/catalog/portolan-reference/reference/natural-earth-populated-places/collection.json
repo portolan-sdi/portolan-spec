@@ -5,7 +5,8 @@
     "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
     "https://stac-extensions.github.io/file/v2.1.0/schema.json",
     "https://stac-extensions.github.io/table/v1.2.0/schema.json",
-    "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
   ],
   "id": "reference/natural-earth-populated-places",
   "title": "Natural Earth Populated Places (1:50m)",
@@ -82,7 +83,7 @@
     {
       "name": "NAME",
       "type": "varchar",
-      "description": "Display name with diacritics, for example Neuqu\u00e9n. Not unique, several city names repeat across countries."
+      "description": "Display name with diacritics, for example Neuquén. Not unique, several city names repeat across countries."
     },
     {
       "name": "NAMEPAR",
@@ -661,16 +662,6 @@
       "file:size": 553649,
       "file:checksum": "12209022c3be867be79c44bd6fc6ff4dcc210e85ffee13b033bf4d1d87d83c9ee6b4"
     },
-    "thumbnail": {
-      "href": "./thumbnail.png",
-      "type": "image/png",
-      "title": "Preview thumbnail over a light basemap. \u00a9 OpenStreetMap contributors \u00a9 CARTO.",
-      "roles": [
-        "thumbnail"
-      ],
-      "file:size": 134432,
-      "file:checksum": "12200c8eae74720f9c14bb0899345884fe1be9dac78a437bd096fc4f30736e35d19a"
-    },
     "style-places": {
       "href": "./styles/places.json",
       "type": "application/vnd.mapbox.style+json",
@@ -726,6 +717,16 @@
       "file:size": 521,
       "file:checksum": "1220752fd5d3ce4c356ed3f348c8f260a6589a658c75a7e0b3aa3090fa0228031038",
       "description": "A MapLibre heatmap layer over the points, showing where the curated selection concentrates."
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview thumbnail over a light basemap. © OpenStreetMap contributors © CARTO.",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 134432,
+      "file:checksum": "12200c8eae74720f9c14bb0899345884fe1be9dac78a437bd096fc4f30736e35d19a"
     }
   },
   "links": [
@@ -749,14 +750,35 @@
       "rel": "agents",
       "href": "./AGENTS.md",
       "type": "text/markdown",
-      "title": "Guidance for AI agents"
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
     },
     {
       "rel": "describedby",
       "href": "./README.md",
       "type": "text/markdown",
-      "title": "Human-readable documentation"
+      "title": "Human-readable documentation",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../ar/reference/natural-earth-populated-places/collection.json",
+      "type": "application/json",
+      "title": "Arabic",
+      "hreflang": "ar"
     }
   ],
-  "updated": "2026-07-16T00:00:00Z"
+  "updated": "2026-07-16T00:00:00Z",
+  "language": {
+    "code": "en",
+    "name": "English"
+  },
+  "languages": [
+    {
+      "code": "ar",
+      "name": "العربية",
+      "alternate": "Arabic",
+      "dir": "rtl"
+    }
+  ]
 }

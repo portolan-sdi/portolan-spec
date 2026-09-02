@@ -49,6 +49,13 @@ description: >-
   upstream sources, vector polygons and points, raster, tabular, mirror
   provenance, nested catalogs and flat collections.
 schema_uri: https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json
+# English is the source tree. Each code in translations loads a complete locale
+# overlay from portolan-reference.locales/<code>.yaml. Overlays use stable
+# Catalog and Collection IDs, so list order cannot attach text to the wrong node.
+language:
+  code: en
+  name: English
+translations: [ar]
 
 host:
   name: Portolan SDI
@@ -140,6 +147,32 @@ docs:
     match scales before spatial joins.
 
     {{agents_index}}
+
+    ## Translation
+
+    English (`en`) is the source language. The manifest stores the English
+    metadata. The locale YAML file stores the Arabic metadata.
+
+    Do not edit the generated `ar/` tree directly. Run this command after each
+    source or locale change:
+
+    ```console
+    uv run examples/tools/build.py --catalog portolan-reference
+    ```
+
+    Use these terms. Do not substitute a synonym.
+
+    | Concept | English | Arabic |
+    | --- | --- | --- |
+    | catalog | catalog | كتالوج |
+    | Collection | Collection | مجموعة |
+    | asset | asset | أصل |
+    | source | source | مصدر |
+    | mirror | mirror | نسخة |
+    | boundary | boundary | حدود |
+    | county | county | مقاطعة أمريكية |
+    | province | province | مقاطعة هولندية |
+    | open space | open space | مساحة مفتوحة |
 
 collections:
   # ---------------------------------------------------------------- reference/

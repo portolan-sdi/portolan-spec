@@ -237,6 +237,6 @@ def author_styles(styles_dir: Path, layer: str, source_url: str, vector_src: Pat
             # styling.md asks each style to explain what its colours represent.
             style["metadata"] = {"description": v["description"]}
         pth = styles_dir / f"{v['name']}.json"
-        pth.write_text(json.dumps(style, indent=2) + "\n")
+        pth.write_text(json.dumps(style, ensure_ascii=False, indent=2) + "\n")
         written.append((pth, v))
     return written
