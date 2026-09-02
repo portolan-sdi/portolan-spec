@@ -6,18 +6,18 @@ understand the data and query it directly. Publishing works the same way whether
 you are a satellite company releasing a planetary archive or a city publishing
 local cadastral data. There are no servers, no databases, and no accounts.
 
-Under the hood, Portolan is an opinionated standard for cloud-native geospatial
-catalogs, plus the tooling around it. A catalog is a directory of open-format
-data on any S3-compatible bucket, described by structured
+Under the hood, Portolan is an opinionated specification for cloud-native
+geospatial catalogs, plus the tooling around it. A catalog is a directory of
+open-format data on any S3-compatible bucket, described by structured
 [STAC](https://stacspec.org/) metadata and built on
 [COG](https://cogeo.org/), [GeoParquet](https://geoparquet.org/),
 [PMTiles](https://github.com/protomaps/pmtiles), [COPC](https://copc.io/), and
 [GeoZarr](https://geozarr.org/). Each part of the tooling raises the value of the
 others:
 
-- **The standard** defines what a great catalog looks like. It lives here.
+- **The specification** defines what a great catalog looks like. It lives here.
 - **[rashid](https://github.com/portolan-sdi/rashid)**, the validator, proves a
-  catalog meets the standard.
+  catalog meets the specification.
 - **[portolan-cli](https://github.com/portolan-sdi/portolan-cli)** makes catalogs
   easy to build.
 - **[The registry](https://github.com/portolan-sdi/portolan-registry)** connects
@@ -27,9 +27,9 @@ If Portolan disappeared tomorrow, every file in a catalog would still work in th
 tools people already use.
 
 Portolan is not a platform. There is nothing to log into and nothing to depend
-on. It is not a paid product either. The standard and the tools are open source
-under Apache-2.0, and your only costs are storage and egress, paid to your cloud
-provider.
+on. It is not a paid product either. The specification and the tools are open
+source under Apache-2.0, and your only costs are storage and egress, paid to
+your cloud provider.
 
 This repository holds the specification. It is pre-1.0 and under active
 development, and contributions are welcome.
@@ -73,7 +73,7 @@ and documentation, so people and agents can use a catalog directly from storage
 with no server in between. The point is a higher quality bar. Working with any
 Portolan catalog should be a good experience.
 
-The standard is prescriptive where that supports interoperability, and it is
+The specification is prescriptive where that supports interoperability, and it is
 meant to evolve as cloud-native tooling matures. Core standards like STAC and
 GeoParquet were built for long-term stability. Portolan sits on top of them and
 moves faster. Each version states what the community currently believes a great
@@ -84,21 +84,21 @@ Every normative statement carries a stable ID in
 [`requirements.yaml`](specs/portolan/requirements.yaml), and CI proves that
 rashid enforces each one.
 
-Where the current landscape has gaps, Portolan will incubate new standards or
-write down practices that until now have been informal. Usually that means
+Where the current landscape has gaps, Portolan will incubate new specifications
+or write down practices that until now have been informal. Usually that means
 contributing to STAC extensions or adding new ones. It can also mean small,
 independent specifications that capture current practice, which live in
 [`specs/incubating/`](specs/incubating/) until they stabilize.
 
 People and agents are treated as equals throughout. The best practices for
-guiding agents are moving fast, so this part of the standard will keep changing,
-but the aim is constant. A Portolan catalog should be low-friction for a human
-analyst and an automated one alike. Building or mirroring a catalog should be
-easy too, including with AI tools, because lowering the effort to publish is how
-more good data gets published.
+guiding agents are moving fast, so this part of the specification will keep
+changing, but the aim is constant. A Portolan catalog should be low-friction for
+a human analyst and an automated one alike. Building or mirroring a catalog
+should be easy too, including with AI tools, because lowering the effort to
+publish is how more good data gets published.
 
-The standard leaves some judgment calls open, such as what one catalog should
-contain and how to organize it.
+The specification leaves some judgment calls open, such as what one catalog
+should contain and how to organize it.
 [`specs/best-practices/philosophy.md`](specs/best-practices/philosophy.md) covers
 those.
 
