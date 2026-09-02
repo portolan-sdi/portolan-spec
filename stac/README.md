@@ -47,6 +47,7 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 | [Web Map Links][] | `https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json`        | **MUST**    | When PMTiles are provided: the `rel: "pmtiles"` link |
 | [Version][] | `https://stac-extensions.github.io/version/v1.2.0/schema.json`              | **MUST**    | When dataset versioning is used (never `portolan:` fields) |
 | [Raster][] | `https://stac-extensions.github.io/raster/v2.0.0/schema.json`               | **MUST**    | When band-level detail is provided |
+| [Language][] | `https://stac-extensions.github.io/language/v1.0.0/schema.json`             | **MUST**    | When alternate-language trees are published: the `alternate` links, `language`, and `languages` (spec: Alternate-Language Trees) |
 | [Vector][] | `https://stac-extensions.github.io/vector/v0.1.0/schema.json`               | **MUST**    | When layer-level detail is provided |
 | [Partition][] | `https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json`              | **MUST**    | Partitioned collections: `partition:scheme`, `partition:keys`, `partition:glob` (spec: Partitioned Collections) |
 | [Table][] | `https://stac-extensions.github.io/table/v1.2.0/schema.json`                | SHOULD      | Vector and tabular collections: document columns with `table:columns` |
@@ -77,6 +78,7 @@ As the profile grows, per-format requirement sets (vector, raster, tabular) may 
 [Contacts]: https://github.com/stac-extensions/contacts
 [Attribution]: https://github.com/stac-extensions/attribution
 [Themes]: https://github.com/stac-extensions/themes
+[Language]: https://github.com/stac-extensions/language
 
 ## Profile
 
