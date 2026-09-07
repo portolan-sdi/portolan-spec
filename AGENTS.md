@@ -19,7 +19,7 @@ Write commits in conventional form. Squash-merge makes the pull request title be
 
 ## Pull requests and issues
 
-Write every issue and pull request in two layers. The human layer comes first: what is wrong or missing, why it matters, and what should happen instead. Someone who did not follow your investigation should understand it in about a minute. The agent layer comes after: evidence, implementation detail, constraints, edge cases, and verification.
+Write every issue and pull request in two layers. The human layer first states what is wrong or missing. It explains why the problem matters and what should happen instead. Someone who did not follow your investigation should understand it in about a minute. The agent layer then provides evidence and implementation detail. It also records constraints, edge cases, and verification.
 
 There is no word limit. A 700-word issue is good when its first 150 words make the outcome obvious. A 150-word issue is bad when it compresses the meaning into prose the reader has to unpack. Optimize for fast comprehension, not for short tickets.
 
@@ -38,7 +38,7 @@ Issues follow the same shape. A bug report shows the failure and names the data.
 
 Every repo uses the org issue template. The language itself is checked before a body is ever filed: `.claude/hooks/writing_check.py` runs on `gh issue create` and `gh pr create`, and reports the specific problems it found. Run `writing_check.py --print-rules` to read the rules. When it is wrong about a line, say so in the body with `<!-- ste-ok: RULE_ID why this is correct -->`. Dependabot is exempt from the CI check.
 
-That check matches words and punctuation. It cannot see tone, padding, or prose that spends its length arguing for the work it describes, so passing it proves nothing about how the body reads. Read what you wrote before you file it, and cut the sentences that exist to make the change sound good.
+That check matches words and punctuation, but cannot assess tone or padding. It also cannot assess prose that argues for its own value. Passing proves nothing about how the body reads. Read what you wrote before you file it. Cut sentences that only make the change sound good.
 
 ## Documentation
 
