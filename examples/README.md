@@ -25,6 +25,8 @@ It exercises every major case in the spec.
 - Attributed Collections that carry the attribution extension.
 - Both render paths, a PMTiles `visual` derivative on most vector Collections
   and render-from-source on the two small Natural Earth Collections.
+- English and Arabic metadata trees. Arabic declares right-to-left text. Both
+  trees share the same data Assets.
 
 Every Collection is a mirror. The spec derives that from who hosts the copy, and
 an organization hosting data it did not produce is a mirror even when it is the
@@ -52,6 +54,17 @@ declares, so the manifest, the build directory, and the published prefix all
 read the same. It is a small set of plain modules under
 `tools/` run through the [`build.py`](tools/build.py) entrypoint, which carries a
 PEP 723 dependency header, so `uv` resolves its Python dependencies on the fly.
+
+The main manifest is the English source. Its `translations` list selects locale
+overlays under `manifests/portolan-reference.locales/`. Each overlay uses stable
+Catalog and Collection IDs. The build fails when an overlay omits a node. It
+publishes each language as a separate STAC tree with `alternate` links and
+`hreflang`. It does not publish fields such as `title_ar`.
+
+A language tree translates every title, description, keyword, asset title, link
+title, and `table:columns` description. It also carries concise localized README
+and AGENTS.md files. The detailed technical guidance stays in English, and each
+localized node links to it.
 
 ```bash
 uv run examples/tools/build.py                              # build every manifest

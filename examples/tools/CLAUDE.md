@@ -26,10 +26,11 @@ from the modules beside them, so they stay runnable on their own.
 | `thumbnails.py` | Web Mercator preview rendering over the tile basemap fetched by `tiles.py` |
 | `tiles.py` | XYZ basemap tile fetch and mosaic for thumbnails |
 | `stacio.py` | STAC assembly, manifest, providers, assets, links, sidecars, catalog builders |
+| `translations.py` | Alternate-language trees. Owns the Language extension, the `alternate` links, and one subtree per locale |
 | `validate.py` | Thin adapter over rashid, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
 | `check_catalogs.py` | Entrypoint. Runs rashid over every committed catalog with the data pass on, reading the rashid pin out of `build.py`'s PEP 723 header |
 | `publish_catalogs.py` | Entrypoint. Uploads a built catalog to Source Cooperative, and tears a pull request's preview down |
-| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_docs.py`, `check_fetch.py`, and `check_styles.py`, plus `run_all.py` which runs the lot |
+| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_docs.py`, `check_fetch.py`, `check_styles.py`, `check_multilingual.py`, and `check_translation_guards.py`, plus `run_all.py` which runs the lot |
 
 Inputs and outputs live under `examples/`, not here.
 
@@ -44,7 +45,7 @@ Inputs and outputs live under `examples/`, not here.
 ```bash
 uv run examples/tools/build.py                                # build every manifest
 uv run examples/tools/build.py --catalog portolan-reference   # one manifest by stem
-uv run examples/tools/build.py --only boundaries/us-counties  # one Collection, skips validation
+uv run examples/tools/build.py --only boundaries/us-counties  # one Collection, skips the whole-tree steps
 uv run examples/tools/build.py --styles-only                  # re-author styles only
 uv run examples/tools/build.py --docs-only                    # regenerate README/AGENTS only
 ```
@@ -83,6 +84,8 @@ uv run examples/tools/tests/check_cog.py
 uv run examples/tools/tests/check_docs.py
 uv run examples/tools/tests/check_fetch.py
 uv run examples/tools/tests/check_styles.py
+uv run examples/tools/tests/check_multilingual.py
+uv run examples/tools/tests/check_translation_guards.py
 ```
 
 `check_docs.py` executes every ```sql and ```python fence in the committed
@@ -132,6 +135,8 @@ Top level of each file in `manifests/`.
 - `catalogs`. Map from the first id segment to `{title, description, readme?, agents?}` for each nested Catalog. The optional `readme` and `agents` are markdown templates like the per-collection `docs` below.
 - `docs?`. `{readme?, agents?}` markdown templates for the root Catalog sidecars. Catalog-level templates may use `{{collections}}` (the table of contents the best-practices page asks for), `{{sources}}` (licenses, provenance, upstream list), and `{{agents_index}}` (per-child pointers to each AGENTS.md). Without a template a default skeleton with those blocks is emitted.
 - `logo?`. `{source, type, title?}`. The catalog logo, emitted as the root `rel: icon` link core.md's Catalog Logo section describes. `source` is a path relative to the manifest file, and the image is copied into `_assets/` beside the root `catalog.json` so the href stays relative. `type` must be one a browser renders in an `<img>` element (`config.ICON_TYPES`), and the build raises on one that is not. `title` becomes the image's accessible label. Omit the block and the catalog ships no logo.
+- `language?`. `{code, name, alternate?, dir?}`. The language of the source tree. Required when `translations` is set.
+- `translations?`. A list of language codes. Each code loads `<manifest stem>.locales/<code>.yaml` and builds one more tree. See Language Trees below.
 - `thumbnails`. `{size, ocean_color, pad_vector?, pad_raster?, basemap: {url, attribution?}}`. The basemap is an XYZ raster tile URL template with `{z}/{x}/{y}` placeholders, CARTO light by default.
 - `output_crs?`. Optional output CRS for the canonical assets, for example `EPSG:4326`. Source-preserving by default, set at the top level for the whole catalog, or per collection to override just that one.
 - `collections`. The list below.
@@ -212,6 +217,32 @@ Per manifest, the tree is `catalog/<stem>/`.
 - `_assets/` beside the root `catalog.json` when the manifest declares a `logo`, holding the copied image the root `rel: icon` link points at. Root only, nested Catalogs and Collections get no logo.
 - Links are relative for structure (`root`, `parent`, `child`) and absolute https for upstream. Child links are titled. There are no `self` links.
 - Every node carries an `agents` link to its `AGENTS.md` and a `describedby` link to its `README.md`, both generated. The Collection README includes runnable open-it code chosen by kind, GeoPandas or DuckDB for GeoParquet, pandas or DuckDB for Parquet, rioxarray or rasterio for the COG.
+
+## Language Trees
+
+`translations.py` owns the Language extension for the whole catalog. It writes
+the `language` and `languages` fields, the `alternate` links, and one subtree
+per locale under `catalog/<stem>/<code>/`. It also removes them again when a
+manifest drops a locale, so a committed tree always matches the manifest that
+built it. The source tree stays at the root, and no locale may take a code that
+matches a group directory, because the locale tree would replace that group.
+
+Each locale overlay is one YAML file with the same node IDs as the manifest.
+
+- `language`. `{code, name, alternate?, dir?}`. The `code` must equal the file stem. Arabic sets `dir: rtl`.
+- `messages`. The strings the generator writes rather than the manifest. `collections`, `data_files`, `license`, `source`, `last_synced`, `detailed_english`, `agent_heading`, `agent_intro`, `crs_heading`, `crs_note`, plus the three tables below.
+- `messages.link_titles`. `{rel: title}`. Must name every link rel that carries a title, and no other. A missing rel fails the build rather than ships an English title.
+- `messages.asset_titles`. `{role: title}`. The title of an asset whose role is unique in its node.
+- `messages.language_names`. `{code: name}`. Names every other language in the current locale. Alternate links use these names.
+- `catalog`, `catalogs`, `collections`. `{title, description, keywords?, assets?, links?, columns?}` per node. Every node the manifest declares needs an entry.
+- `collections.<id>.assets`. `{asset key: {title?, description?}}`. A shared role requires a per-key title. Each source asset description requires a translated description.
+- `<node>.links`. `{rel: {source href: title}}`. Repeated titled links with one relation require per-link titles.
+- `collections.<id>.columns`. `{column name: description}`. Required for every described `table:columns` entry. Column names stay unchanged.
+
+A locale tree holds only `.json` and `.md` files, and its assets point back at
+the data beside the English node. It translates `table:columns` descriptions and
+concise sidecars. Each localized AGENTS.md names the CRS its `data` asset carries
+and links the detailed English guidance.
 
 ## Thumbnails
 

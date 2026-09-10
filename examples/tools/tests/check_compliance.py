@@ -389,7 +389,10 @@ def check_committed_agents_docs_state_their_crs() -> None:
     # The drift guard. Every geospatial Collection's AGENTS.md must name the
     # exact code its data asset carries, and a Collection with no proj:code
     # must not claim one. This is what issue #138 found missing.
-    colls = sorted(glob.glob(str(ROOT / "examples/catalog/*/*/*/collection.json")))
+    # Recursive, so a language tree is held to the same rule. A localized
+    # Collection sits one level deeper than the English one it translates.
+    colls = sorted(glob.glob(
+        str(ROOT / "examples/catalog/**/collection.json"), recursive=True))
     assert colls, "no committed collections found"
     for path in colls:
         coll = json.loads(Path(path).read_text())

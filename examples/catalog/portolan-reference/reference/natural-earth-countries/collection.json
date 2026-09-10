@@ -5,7 +5,8 @@
     "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
     "https://stac-extensions.github.io/file/v2.1.0/schema.json",
     "https://stac-extensions.github.io/table/v1.2.0/schema.json",
-    "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
   ],
   "id": "reference/natural-earth-countries",
   "title": "Natural Earth Countries (1:110m)",
@@ -788,16 +789,6 @@
       "file:size": 214976,
       "file:checksum": "12200f243aeac8ac6cf26f0417285b0bd33ac47f1b5bdb719fd3e0df37d03ea37110"
     },
-    "thumbnail": {
-      "href": "./thumbnail.png",
-      "type": "image/png",
-      "title": "Preview thumbnail over a light basemap. \u00a9 OpenStreetMap contributors \u00a9 CARTO.",
-      "roles": [
-        "thumbnail"
-      ],
-      "file:size": 71048,
-      "file:checksum": "12205fda9e12c86f1dbc13fcf9778afd2f0895fcf2ea0826b522af2a004874ce2de2"
-    },
     "style-continents": {
       "href": "./styles/continents.json",
       "type": "application/vnd.mapbox.style+json",
@@ -853,6 +844,16 @@
       "file:size": 1372,
       "file:checksum": "1220b85d724abb9212c6f2a2049ec4c30cf111fbc7345dc83c3b77648d0348185866",
       "description": "The continent colouring with a NAME label per country."
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview thumbnail over a light basemap. © OpenStreetMap contributors © CARTO.",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 71048,
+      "file:checksum": "12205fda9e12c86f1dbc13fcf9778afd2f0895fcf2ea0826b522af2a004874ce2de2"
     }
   },
   "links": [
@@ -876,14 +877,35 @@
       "rel": "agents",
       "href": "./AGENTS.md",
       "type": "text/markdown",
-      "title": "Guidance for AI agents"
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
     },
     {
       "rel": "describedby",
       "href": "./README.md",
       "type": "text/markdown",
-      "title": "Human-readable documentation"
+      "title": "Human-readable documentation",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../ar/reference/natural-earth-countries/collection.json",
+      "type": "application/json",
+      "title": "Arabic",
+      "hreflang": "ar"
     }
   ],
-  "updated": "2026-07-16T00:00:00Z"
+  "updated": "2026-07-16T00:00:00Z",
+  "language": {
+    "code": "en",
+    "name": "English"
+  },
+  "languages": [
+    {
+      "code": "ar",
+      "name": "العربية",
+      "alternate": "Arabic",
+      "dir": "rtl"
+    }
+  ]
 }

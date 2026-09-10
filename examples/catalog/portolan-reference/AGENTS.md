@@ -16,4 +16,30 @@ match scales before spatial joins.
 - Netherlands Provinces, 12 polygons, guide at ./boundaries/netherlands-provinces/AGENTS.md
 - San Francisco Addresses (EAS), 5,000 points, guide at ./mirror/san-francisco-addresses/AGENTS.md
 - Sample Raster COG, 3-band raster, guide at ./raster/sample-cog/AGENTS.md
-- Eurostat Electricity Prices for Household Consumers, 65,412 rows, guide at ./tabular/eurostat-electricity-prices/AGENTS.md
+- Eurostat Electricity Prices for Household Consumers, 65,466 rows, guide at ./tabular/eurostat-electricity-prices/AGENTS.md
+
+## Translation
+
+English (`en`) is the source language. The manifest stores the English
+metadata. The locale YAML file stores the Arabic metadata.
+
+Do not edit the generated `ar/` tree directly. Run this command after each
+source or locale change:
+
+```console
+uv run examples/tools/build.py --catalog portolan-reference
+```
+
+Use these terms. Do not substitute a synonym.
+
+| Concept | English | Arabic |
+| --- | --- | --- |
+| catalog | catalog | كتالوج |
+| Collection | Collection | مجموعة |
+| asset | asset | أصل |
+| source | source | مصدر |
+| mirror | mirror | نسخة |
+| boundary | boundary | حدود |
+| county | county | مقاطعة أمريكية |
+| province | province | مقاطعة هولندية |
+| open space | open space | مساحة مفتوحة |
