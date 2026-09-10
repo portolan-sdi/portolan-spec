@@ -116,6 +116,9 @@ media type `application/vnd.mapbox.style+json`, a complete, self-contained JSON
 loadable directly by MapLibre GL JS. By convention such a file sets `version` 8, a
 human-readable `name`, `sources.data.url` as the relative path from `styles/` to the
 PMTiles file (typically `../filename.pmtiles`), and `layers[].source` to `"data"`.
+How such a style carries its legend titles and labels, under
+`layers[].metadata.legend`, is an open convention described in
+[`specs/incubating/maplibre-legend.md`](../incubating/maplibre-legend.md).
 
 ### Partitioned Collections
 

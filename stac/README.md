@@ -141,6 +141,7 @@ Hosting requirements (HTTP Range support, CORS on all metadata and asset files) 
 Tracked in the specification and deliberately **not** settled by this schema:
 
 1. **Raster styling** — how raster styles are expressed (colormaps, legends, continuous vs. categorical vs. multiband) is under discussion in [`specs/incubating/raster-styling.md`](../specs/incubating/raster-styling.md); the MapLibre style requirements are vector-only for now.
+2. **Legend metadata** — how a MapLibre style carries its legend titles and labels, under `layers[].metadata.legend`, is a proposed convention in [`specs/incubating/maplibre-legend.md`](../specs/incubating/maplibre-legend.md). It lives inside the style file, so this schema neither checks it nor needs to.
 
 ## Examples
 
