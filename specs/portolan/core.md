@@ -97,7 +97,10 @@ Declaring the Portolan extension is a claim of conformance, not proof of it. An
 object conforms to this specification only by passing the Portolan validator.
 Validation runs in separable passes:
 
-- **Structural validation** against the STAC 1.1.0 schemas.
+- **Structural validation** against the STAC 1.1.0 schemas, and against the
+  schemas of the STAC extensions each object declares. An object that declares
+  an extension makes a claim about its own shape; this pass checks the claim.
+  The extension registry governs which version's schema applies.
 - **Portolan metadata validation**, covering every requirement checkable from
   metadata alone.
 - **Portolan data validation**, covering requirements that require reading asset
@@ -311,7 +314,8 @@ Provenance (`via`) links are covered under [Source Provenance](#source-provenanc
 
 A catalog MAY publish one STAC object tree for each language. The root catalog links
 to each translated root with an `alternate` link, as defined by the STAC
-[Language](https://github.com/stac-extensions/language) extension.
+[Language](https://github.com/stac-extensions/language) extension. The profile's
+extension registry pins the version of that extension to declare.
 
 A translated tree represents the same catalog in another language. It is not part of
 the containment tree. A catalog MUST NOT link to a translated root with `child` or
