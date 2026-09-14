@@ -31,29 +31,93 @@ Distributing GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so it can
 queried without a server. Files SHOULD be compressed to stay small, with `zstd`
 RECOMMENDED.
 
-Rows MUST be spatially ordered so nearby features are nearby in the file. Split into
-ten equal chunks in file order, a chunk's bounding box MUST cover less than 30% of
-the file's extent on average.[^chunks]
+Rows MUST be spatially ordered so nearby features are nearby in the file.[^rowrule]
+Order is judged by pruning efficiency, defined next, on the row groups where the
+footer check below applies and on the rows otherwise.
 
-A file with five or more row groups gets a second, footer-only check: the row groups
-a query window covering 10% of each dimension lets a reader skip, against an ideal
-grid tiling of the extent into the same number of row groups. The file passes at 70%
-of that rate.[^pruning] Below five row groups it does not apply, and a validator
-MUST NOT fail a file for a threshold its row-group count puts out of reach. The row
-rule still applies there.
+**Pruning efficiency.** The input is a set of `n` bounding boxes
+`B_i = (bx0, by0, bx1, by1)`. The extent `E = (X0, Y0, X1, Y1)` is the union of
+those boxes, not the bbox the file declares. A query window is `w = 0.10 (X1 − X0)`
+wide and `h = 0.10 (Y1 − Y0)` tall, and its lower-left corner is uniformly
+distributed on `[X0, X1 − w] × [Y0, Y1 − h]`. The window hits box `B_i` with
+probability
+
+```
+Px = max(0, min(bx1, X1 − w) − max(bx0 − w, X0)) / (X1 − X0 − w)
+Py = max(0, min(by1, Y1 − h) − max(by0 − h, Y0)) / (Y1 − Y0 − h)
+P  = Px · Py
+```
+
+A factor whose denominator is zero or less is 1: the extent has no width on that
+axis, so every window hits every box there. The expected skip rate of a layout is
+the share of its boxes a window misses:[^expectation]
+
+```
+skip = 1 − mean(P_i)
+```
+
+The reference layout is a full tiling of the extent into `n` cells, so it covers the
+whole extent with no empty cells. With `cols = ceil(sqrt(n))` and
+`rows = ceil(n / cols)`, every row is `(Y1 − Y0) / rows` tall; every row but the
+last holds `cols` cells, each `(X1 − X0) / cols` wide; the last row holds the
+remaining `n − cols · (rows − 1)` cells, each `(X1 − X0) / (n − cols · (rows − 1))`
+wide, so it too spans the full width. Efficiency is the ratio of the two skip rates,
+clipped at 1:
+
+```
+efficiency = min(1, skip(layout) / skip(reference))
+```
+
+A layout passes when its efficiency is 0.70 or more. When the reference skip rate is
+0, which takes an extent with no area, the efficiency is undefined and the layout is
+not judged.
+
+Efficiency measures order relative to the extent, not relative to where the data
+lies. When a few far features stretch the extent so that most of it is empty, every
+box is small against it, and a shuffled file can pass. When features are large
+against the extent, no order makes their boxes small, and a sorted file can fail.
+Both are properties of the data, not of the sort, and the area sum
+`Σ area(B_i) / area(E)` shows them: it is the same expectation with a window of
+zero size, and a re-sort that leaves the verdict unchanged can still shrink it
+several times over.
+
+**Footer check.** A file with eight or more row groups MUST pass on its row-group
+boxes, read from the per-row-group spatial statistics.[^pruning] Below that floor
+the rule is not judged from the footer: a validator MUST NOT report a pass or a fail
+from the row groups, and MAY report the numbers.[^floor] Wherever it reports
+a verdict, a validator MUST also report the area sum, as a statistic and not as a
+verdict.
+
+**Row check.** Where the footer check is not judged, the rows are judged by the
+abstract test recorded with `PORTO-FMT-006` in the [requirements
+manifest](requirements.yaml): the same efficiency, applied to ten equal chunks of
+the rows in file order. That test needs 200 rows. Below that a validator MUST
+report that the file has too few rows to judge, and MUST NOT stay silent.
 
 The fraction of consecutive row-group pairs whose boxes overlap MAY be reported as a
 statistic, but MUST NOT decide the verdict.[^overlap]
 
-[^chunks]: A flat limit works here because the chunk count is fixed. Ten chunks tile
-    a perfectly sorted file at about 10% of the extent each; unsorted rows reach 100%.
+[^rowrule]: On a file with one row group, order does not change read performance,
+    because a reader fetches the whole file either way. The row rule buys
+    consistency across a catalog, and correct pruning on the day a publisher repacks
+    the file into more row groups.
+
+[^expectation]: The skip rate is an expectation, not a sample. Drawing query windows
+    at random and counting the boxes each one misses converges to this number, and a
+    rule written that way — twenty windows from a fixed seed — moved its verdict with
+    the seed on real files. The closed form is that sample's limit, so no seed,
+    window count, or draw order is part of the rule.
 
 [^pruning]: Pruning is the benefit spatial ordering exists to deliver, and the footer
     boxes already carry what it takes to estimate it. The bar is relative because the
     achievable rate rises with the row-group count: two row groups can never skip
-    more than half a file, five hundred about 98%. Below five, a grid is an
-    unreliable reference. The 70% figure is set from measurements over the Portolan
-    registry, recorded in the [changelog](../../CHANGELOG.md).
+    more than half a file, five hundred about 98%. The bar is set from
+    measurements over the Portolan registry and four further catalogs, recorded in
+    the [changelog](../../CHANGELOG.md).
+
+[^floor]: A grid is a poor model of a curve sort at small counts. Well-sorted files
+    from several catalogs score 0.60 to 0.88 at five row groups and 0.76 to 0.94 at
+    eight, so the verdict starts at eight.
 
 [^overlap]: A space-filling-curve sort makes neighboring row groups adjacent, so
     their boxes touch and this fraction runs near 1.0 even for a perfectly tiled

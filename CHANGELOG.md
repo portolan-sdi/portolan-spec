@@ -11,31 +11,47 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
-- **GeoParquet spatial ordering is judged by pruning, not by consecutive
-  row-group overlap** (`PORTO-FMT-006`, `PORTO-FMT-044`, new `PORTO-FMT-049`,
-  [`specs/portolan/formats.md`](specs/portolan/formats.md)): the footer check
-  passed a file on either low consecutive-pair overlap or row-group boxes
-  averaging under 30% of the extent. Neither criterion does its job. A
-  space-filling-curve sort makes row groups spatially adjacent, so their boxes
-  touch and the overlap fraction runs near 1.0 for the best possible file; the
-  30% figure was calibrated at five row groups and left flat, so at several
+- **GeoParquet spatial ordering is judged by pruning efficiency, a closed-form
+  expectation** (`PORTO-FMT-006`, `PORTO-FMT-044`, new `PORTO-FMT-049` to
+  `PORTO-FMT-052`, [`specs/portolan/formats.md`](specs/portolan/formats.md)):
+  the footer check passed a file on either low consecutive-pair overlap or
+  row-group boxes averaging under 30% of the extent. Neither criterion does its
+  job. A space-filling-curve sort makes row groups spatially adjacent, so their
+  boxes touch and the overlap fraction runs near 1.0 for the best possible file;
+  the 30% figure was calibrated at five row groups and left flat, so at several
   hundred groups a file a hundred times worse than an ideal tiling still passed.
-  The check now estimates how many row groups a query window covering 10% of
-  each dimension lets a reader skip, and compares that against an ideal grid
-  tiling into the same number of row groups, passing at 70% of that rate. The
-  figure comes from 206 files across every catalog in the Portolan registry,
-  where the nine below it all reached 87-97% after a re-sort. The five-row-group
-  waiver stays, but for a new reason: the grid reference is unreliable at that
-  size, not the threshold unreachable. `PORTO-FMT-049` records that
-  consecutive-pair overlap MAY be reported but MUST NOT decide the verdict.
-- **The row-ordering rule names its own numbers** (`PORTO-FMT-006`,
-  [`specs/portolan/formats.md`](specs/portolan/formats.md)): the rule left both
-  the chunk count and "a small part of the file" to the implementer, and rashid
-  picked ten chunks and 30% with no spec threshold to cite. Both are now written
-  down. A flat limit is right here, unlike the footer check, because ten chunks
-  tile a perfectly sorted file at about 10% of the extent each, so the reference
-  does not move with the file.
-- **Requirements manifest**: 129 requirements, now 89 MUST, 23 SHOULD, and
+  The rule now defines the expected share of row groups a query window covering
+  10% of each dimension lets a reader skip, as a closed form over the footer
+  boxes with no seed and no sample, and divides it by the same figure for a
+  reference that tiles the extent into the same number of cells with no empty
+  cell. A file passes at 0.70 of the reference. The verdict starts at eight row
+  groups: a well-sorted file scores 0.60 to 0.88 at five and 0.76 to 0.94 at
+  eight, because a grid is a poor model of a curve sort at small counts. Below
+  eight a validator MUST NOT report a pass or a fail from the footer, and MAY
+  report the numbers. Beside every verdict a validator MUST report the area sum,
+  the row-group box areas over the extent area, as a statistic: at high counts
+  the efficiency saturates, and a 94-group file at 0.94 still shrank its boxes
+  2.9 times under a re-sort. The spec states that the metric measures order
+  relative to the extent, so a sparse extent can pass a shuffled file and large
+  features can fail a sorted one. `PORTO-FMT-049` records that consecutive-pair
+  overlap MAY be reported but MUST NOT decide the verdict. The 0.70 figure comes
+  from 206 files across every catalog in the Portolan registry, where the nine
+  below it all reached 0.87 to 0.97 after a re-sort, and from a review across
+  four further catalogs, three single files, and 1.27 million AIS tracks.
+- **The row rule reuses the same metric, and its numbers are an abstract test**
+  (`PORTO-FMT-006`, new `PORTO-FMT-052`,
+  [`specs/portolan/requirements.yaml`](specs/portolan/requirements.yaml)): the
+  rule left both the chunk count and "a small part of the file" to the
+  implementer. The requirement stays in the spec. The procedure is now a `test`
+  entry on `PORTO-FMT-006` in the manifest: ten equal chunks of the rows in file
+  order, scored by the same efficiency against a ten-cell reference, passing at
+  the same 0.70. The flat 30% predicate is retired. The test needs 200 rows, and
+  below that a validator MUST say the file is too small to judge rather than
+  stay silent. The rule applies where the footer check is not judged, and the
+  spec says what it buys there: on a single row group order does not change
+  read performance, so the row rule buys catalog consistency and correct pruning
+  when a publisher repacks the file.
+- **Requirements manifest**: 132 requirements, now 92 MUST, 23 SHOULD, and
   17 MAY.
 
 ## 0.2.0 - 2026-08-28

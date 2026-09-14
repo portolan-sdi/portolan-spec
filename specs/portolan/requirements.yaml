@@ -11,6 +11,10 @@
 #   process   - not machine-checkable from the catalog or its bytes
 #               (publish-time behavior, upstream knowledge, guidance).
 #
+# test is optional and comes after quote. It is the abstract test for the
+# requirement: the procedure and the numbers a validator runs, which the spec
+# prose names but does not spell out. check_requirements.py does not read it.
+#
 # Run `uv run specs/tools/check_requirements.py` after editing the spec or this
 # file; it fails when a quote no longer anchors or a keyword occurrence is
 # not covered by a requirement or exclusion.
@@ -812,17 +816,54 @@ requirements:
     file: specs/portolan/formats.md
     quote: >-
       Rows MUST be spatially ordered so nearby features are nearby in the
-      file. Split into ten equal chunks in file order, a chunk's bounding box
-      MUST cover less than 30% of the file's extent on average.
+      file.
+    # The abstract test for the row check. The requirement above is the rule;
+    # this is the procedure a validator runs where the footer check is not
+    # judged, and its numbers live here, not in the spec prose.
+    test: >-
+      Take the N rows in file order and split them into ten chunks: chunk k,
+      for k from 0 to 9, holds the rows with index i, counted from 0, such
+      that floor(k * N / 10) <= i < floor((k + 1) * N / 10). A chunk's box is
+      the union of the bounding boxes of its rows; a row without a bounding
+      box stays in its chunk but does not extend the box. Compute the pruning
+      efficiency defined in formats.md with these ten boxes as the layout and
+      n = 10, so the reference is the full tiling of the chunks' extent into
+      4 + 4 + 2 cells. The rows pass at the same bar as any layout. Below the
+      row floor formats.md names, ten chunks of twenty rows, the validator
+      reports that the file has too few rows to judge and gives no verdict.
+
+  - id: PORTO-FMT-050
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A file with eight or more row groups MUST pass on its row-group boxes,
+      read from the per-row-group spatial statistics.
 
   - id: PORTO-FMT-044
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Below five row groups it does not apply, and a validator MUST NOT fail
-      a file for a threshold its row-group count puts out of reach. The row
-      rule still applies there.
+      Below that floor the rule is not judged from the footer: a validator
+      MUST NOT report a pass or a fail from the row groups, and MAY report
+      the numbers.
+
+  - id: PORTO-FMT-051
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Wherever it reports a verdict, a validator MUST also report the area
+      sum, as a statistic and not as a verdict.
+
+  - id: PORTO-FMT-052
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      That test needs 200 rows. Below that a validator MUST report that the
+      file has too few rows to judge, and MUST NOT stay silent.
 
   - id: PORTO-FMT-049
     severity: MUST
