@@ -1,7 +1,7 @@
 {
  "_comment": [
   "Abstract test vectors for the pruning-efficiency metric in specs/portolan/formats.md (GeoParquet, Pruning efficiency).",
-  "PORTO-FMT-054: an implementation MUST reproduce every expected value here. rashid and geoparquet-io vendor this file verbatim.",
+  "PORTO-FMT-054: a validator MUST reproduce every expected value here. rashid and geoparquet-io vendor this file verbatim.",
   "Boxes are [xmin, ymin, xmax, ymax]; query fraction 0.10; bar 0.70. Values are rounded to six decimals.",
   "efficiency is null when the reference skip rate is zero (n = 1, or an extent with no width and no height).",
   "area_sum is null when the extent has no area (0/0), never 0.0. below_bar is null wherever efficiency is null.",

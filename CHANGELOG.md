@@ -55,8 +55,8 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   when a publisher repacks the file.
 - **Abstract test vectors for the metric** (new `PORTO-FMT-054`,
   [`specs/portolan/abstract-tests/spatial-metric-vectors.json`](specs/portolan/abstract-tests/spatial-metric-vectors.json)):
-  eight layouts and two row-level cases with their expected numbers, which an
-  implementation MUST reproduce. They pin the one-axis guard (`line-n8` is
+  eight layouts and two row-level cases with their expected numbers, which a
+  validator MUST reproduce. They pin the one-axis guard (`line-n8` is
   judged, at efficiency 1.0), the undefined efficiency at `n = 1`, the strip
   and empty-cell references, and the chunk rules for null rows. The area sum
   is undefined on an extent with no area, and a validator MUST report it as

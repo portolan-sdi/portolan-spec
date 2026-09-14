@@ -77,14 +77,14 @@ efficiency = min(1, skip(layout) / skip(reference))
 
 A layout passes when its efficiency is 0.70 or more. When the reference skip rate is
 0, the efficiency is undefined and the layout is not judged. That happens for
-`n = 1`, and for an extent with no width and no height, where every factor is 1. An
-extent with no width or no height on one axis alone is judged: the guard above sets
-that axis factor to 1, and the other axis decides.
+`n = 1`, and for an extent whose width and height are both zero, where every factor
+is 1. An extent that is zero on one axis only is judged: the guard above sets that
+axis factor to 1, and the other axis decides.
 
 The abstract test vectors in
 [`abstract-tests/spatial-metric-vectors.json`](abstract-tests/spatial-metric-vectors.json)
-give the expected numbers for these definitions, and an implementation MUST
-reproduce them.
+give the expected numbers for these definitions, and a validator MUST reproduce
+them.
 
 Efficiency measures order relative to the extent, not relative to where the data
 lies. When a few far features stretch the extent so that most of it is empty, every

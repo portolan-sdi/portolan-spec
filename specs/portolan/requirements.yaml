@@ -855,10 +855,10 @@ requirements:
     quote: >-
       The abstract test vectors in
       [`abstract-tests/spatial-metric-vectors.json`](abstract-tests/spatial-metric-vectors.json)
-      give the expected numbers for these definitions, and an implementation
-      MUST reproduce them.
+      give the expected numbers for these definitions, and a validator MUST
+      reproduce them.
     test: >-
-      Every entry under layouts and rows in that file. An implementation
+      Every entry under layouts and rows in that file. A validator
       reproduces count, achieved, achievable, efficiency and area_sum to six
       decimals, and reports efficiency, area_sum and below_bar as absent
       where the file holds null. line-n8 pins the one-axis guard, with
