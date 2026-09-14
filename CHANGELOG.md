@@ -13,7 +13,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 - **GeoParquet spatial ordering is judged by pruning efficiency, a closed-form
   expectation** (`PORTO-FMT-006`, `PORTO-FMT-044`, new `PORTO-FMT-049` to
-  `PORTO-FMT-052`, [`specs/portolan/formats.md`](specs/portolan/formats.md)):
+  `PORTO-FMT-053`, [`specs/portolan/formats.md`](specs/portolan/formats.md)):
   the footer check passed a file on either low consecutive-pair overlap or
   row-group boxes averaging under 30% of the extent. Neither criterion does its
   job. A space-filling-curve sort makes row groups spatially adjacent, so their
@@ -23,8 +23,10 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   The rule now defines the expected share of row groups a reader skips for a
   query window covering 10% of each dimension. It is a closed form over the
   footer boxes, so no random sample is part of the rule. The rule divides it by the same
-  figure for a reference that tiles the extent into the same number of cells,
-  every cell filled. A file passes at 0.70 of the reference. The verdict starts at eight row
+  figure for a reference, and the reference is one pinned construction: the
+  near-square grid of `cols = ceil(sqrt(n))` columns, every cell filled. Other
+  tilings that also cover the extent, such as `n` strips, inflate the ratio by
+  5% to 9% and change verdicts, so `PORTO-FMT-053` names the grid. A file passes at 0.70 of the reference. The verdict starts at eight row
   groups: a well-sorted file scores 0.60 to 0.88 at five and 0.76 to 0.94 at
   eight, because a grid is a poor model of a curve sort at small counts. Below
   eight a validator MUST NOT report a pass or a fail from the footer, and MAY
@@ -51,7 +53,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   spec says what it buys there: on one row group order does not change read
   performance, so the row rule buys catalog consistency and correct pruning
   when a publisher repacks the file.
-- **Requirements manifest**: 132 requirements, now 92 MUST, 23 SHOULD, and
+- **Requirements manifest**: 133 requirements, now 93 MUST, 23 SHOULD, and
   17 MAY.
 
 ## 0.2.0 - 2026-08-28

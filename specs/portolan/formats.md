@@ -56,12 +56,19 @@ the share of its boxes a window misses:[^expectation]
 skip = 1 − mean(P_i)
 ```
 
-The reference layout is a full tiling of the extent into `n` cells, so it covers the
-whole extent with no empty cells. With `cols = ceil(sqrt(n))` and
-`rows = ceil(n / cols)`, every row is `(Y1 − Y0) / rows` tall; every row but the
-last holds `cols` cells, each `(X1 − X0) / cols` wide; the last row holds the
-remaining `n − cols · (rows − 1)` cells, each `(X1 − X0) / (n − cols · (rows − 1))`
-wide, so it too spans the full width. Efficiency is the ratio of the two skip rates,
+The reference layout MUST be the near-square grid of `n` cells that this
+construction gives, and no other tiling:[^grid]
+
+```
+cols = ceil(sqrt(n))
+rows = ceil(n / cols)
+last = n − cols · (rows − 1)
+```
+
+Every row is `(Y1 − Y0) / rows` tall. Every row but the last is split into `cols`
+cells, each `(X1 − X0) / cols` wide. The last row is split into `last` cells, each
+`(X1 − X0) / last` wide, so it too spans the full width. The grid covers the whole
+extent, every cell filled. Efficiency is the ratio of the two skip rates,
 clipped at 1:
 
 ```
@@ -107,6 +114,13 @@ statistic, but MUST NOT decide the verdict.[^overlap]
     this number. A rule written that way, with twenty windows from a fixed seed,
     moved its verdict with the seed on real files. The closed form is that sample's
     limit, so the rule has no seed, window count, or draw order.
+
+[^grid]: The construction is pinned because other tilings that also cover the
+    extent give a different verdict. `n` vertical strips leave one axis unpruned,
+    so their skip rate caps near 0.90 and a file measured against them scores 5% to
+    9% higher than against the grid: on the unit extent the grid skips 0.818 at
+    n = 8, 0.889 at 16, 0.948 at 59 and 0.980 at 589, where strips skip 0.778,
+    0.839, 0.883 and 0.898. A file at 0.65 against the grid passes against strips.
 
 [^pruning]: Pruning is the benefit spatial ordering exists to deliver, and the footer
     boxes already carry what it takes to estimate it. The bar is relative because the

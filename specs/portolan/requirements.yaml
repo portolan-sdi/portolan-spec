@@ -824,13 +824,24 @@ requirements:
       Take the N rows in file order and split them into ten chunks: chunk k,
       for k from 0 to 9, holds the rows with index i, counted from 0, such
       that floor(k * N / 10) <= i < floor((k + 1) * N / 10). A chunk's box is
-      the union of the bounding boxes of its rows; a row without a bounding
-      box stays in its chunk but does not extend the box. Compute the pruning
-      efficiency defined in formats.md with these ten boxes as the layout and
-      n = 10, so the reference is the full tiling of the chunks' extent into
-      4 + 4 + 2 cells. The rows pass at the same bar as any layout. Below the
-      row floor formats.md names, ten chunks of twenty rows, the validator
-      reports that the file has too few rows to judge and gives no verdict.
+      the union of the bounding boxes of its rows. A row whose bbox covering
+      is null stays in its file-order chunk and does not extend the chunk's
+      box. A chunk with no boxed rows contributes no box: it is left out of
+      the mean, and n is the number of chunks that have a box. Compute the
+      pruning efficiency defined in formats.md with the chunk boxes as the
+      layout, so with all ten present the reference is the near-square grid
+      of the chunks' extent into 4 + 4 + 2 cells. The rows pass at the same
+      bar as any layout. Below the row floor formats.md names, ten chunks of
+      twenty rows, the validator reports that the file has too few rows to
+      judge and gives no verdict.
+
+  - id: PORTO-FMT-053
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      The reference layout MUST be the near-square grid of `n` cells that
+      this construction gives, and no other tiling:
 
   - id: PORTO-FMT-050
     severity: MUST
