@@ -76,15 +76,15 @@ Efficiency measures order relative to the extent, not relative to where the data
 lies. When a few far features stretch the extent so that most of it is empty, every
 box is small against it, and a shuffled file can pass. When features are large
 against the extent, no order makes their boxes small, and a sorted file can fail.
-Both are properties of the data, not of the sort, and the area sum
+Both belong to the data, and no sort changes them. The area sum
 `Σ area(B_i) / area(E)` shows them: it is the same expectation with a window of
 zero size, and a re-sort that leaves the verdict unchanged can still shrink it
 several times over.
 
 **Footer check.** A file with eight or more row groups MUST pass on its row-group
 boxes, read from the per-row-group spatial statistics.[^pruning] Below that floor
-the rule is not judged from the footer: a validator MUST NOT report a pass or a fail
-from the row groups, and MAY report the numbers.[^floor] Wherever it reports
+the footer check does not decide. A validator MUST NOT report a pass or a fail from
+the row groups, and MAY report the numbers.[^floor] Wherever it reports
 a verdict, a validator MUST also report the area sum, as a statistic and not as a
 verdict.
 
@@ -92,7 +92,7 @@ verdict.
 abstract test recorded with `PORTO-FMT-006` in the [requirements
 manifest](requirements.yaml): the same efficiency, applied to ten equal chunks of
 the rows in file order. That test needs 200 rows. Below that a validator MUST
-report that the file has too few rows to judge, and MUST NOT stay silent.
+report that the file has too few rows to judge, and MUST NOT withhold that message.
 
 The fraction of consecutive row-group pairs whose boxes overlap MAY be reported as a
 statistic, but MUST NOT decide the verdict.[^overlap]
@@ -102,11 +102,11 @@ statistic, but MUST NOT decide the verdict.[^overlap]
     consistency across a catalog, and correct pruning on the day a publisher repacks
     the file into more row groups.
 
-[^expectation]: The skip rate is an expectation, not a sample. Drawing query windows
-    at random and counting the boxes each one misses converges to this number, and a
-    rule written that way — twenty windows from a fixed seed — moved its verdict with
-    the seed on real files. The closed form is that sample's limit, so no seed,
-    window count, or draw order is part of the rule.
+[^expectation]: The skip rate is the expectation of a sampled quantity. Draw query
+    windows at random and count the boxes each one misses, and the mean converges to
+    this number. A rule written that way, with twenty windows from a fixed seed,
+    moved its verdict with the seed on real files. The closed form is that sample's
+    limit, so the rule has no seed, window count, or draw order.
 
 [^pruning]: Pruning is the benefit spatial ordering exists to deliver, and the footer
     boxes already carry what it takes to estimate it. The bar is relative because the

@@ -20,11 +20,11 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   boxes touch and the overlap fraction runs near 1.0 for the best possible file;
   the 30% figure was calibrated at five row groups and left flat, so at several
   hundred groups a file a hundred times worse than an ideal tiling still passed.
-  The rule now defines the expected share of row groups a query window covering
-  10% of each dimension lets a reader skip, as a closed form over the footer
-  boxes with no seed and no sample, and divides it by the same figure for a
-  reference that tiles the extent into the same number of cells with no empty
-  cell. A file passes at 0.70 of the reference. The verdict starts at eight row
+  The rule now defines the expected share of row groups a reader skips for a
+  query window covering 10% of each dimension. It is a closed form over the
+  footer boxes, so no random sample is part of the rule. The rule divides it by the same
+  figure for a reference that tiles the extent into the same number of cells,
+  every cell filled. A file passes at 0.70 of the reference. The verdict starts at eight row
   groups: a well-sorted file scores 0.60 to 0.88 at five and 0.76 to 0.94 at
   eight, because a grid is a poor model of a curve sort at small counts. Below
   eight a validator MUST NOT report a pass or a fail from the footer, and MAY
@@ -46,10 +46,10 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   entry on `PORTO-FMT-006` in the manifest: ten equal chunks of the rows in file
   order, scored by the same efficiency against a ten-cell reference, passing at
   the same 0.70. The flat 30% predicate is retired. The test needs 200 rows, and
-  below that a validator MUST say the file is too small to judge rather than
-  stay silent. The rule applies where the footer check is not judged, and the
-  spec says what it buys there: on a single row group order does not change
-  read performance, so the row rule buys catalog consistency and correct pruning
+  below that a validator MUST say the file is too small to judge, and MUST NOT
+  withhold that message. The rule applies where the footer check is not judged, and the
+  spec says what it buys there: on one row group order does not change read
+  performance, so the row rule buys catalog consistency and correct pruning
   when a publisher repacks the file.
 - **Requirements manifest**: 132 requirements, now 92 MUST, 23 SHOULD, and
   17 MAY.

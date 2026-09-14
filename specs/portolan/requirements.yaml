@@ -845,9 +845,9 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Below that floor the rule is not judged from the footer: a validator
-      MUST NOT report a pass or a fail from the row groups, and MAY report
-      the numbers.
+      Below that floor the footer check does not decide. A validator MUST
+      NOT report a pass or a fail from the row groups, and MAY report the
+      numbers.
 
   - id: PORTO-FMT-051
     severity: MUST
@@ -863,7 +863,7 @@ requirements:
     file: specs/portolan/formats.md
     quote: >-
       That test needs 200 rows. Below that a validator MUST report that the
-      file has too few rows to judge, and MUST NOT stay silent.
+      file has too few rows to judge, and MUST NOT withhold that message.
 
   - id: PORTO-FMT-049
     severity: MUST
