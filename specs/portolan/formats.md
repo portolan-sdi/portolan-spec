@@ -31,39 +31,119 @@ Distributing GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so it can
 queried without a server. Files SHOULD be compressed to stay small, with `zstd`
 RECOMMENDED.
 
-Rows MUST be spatially ordered so nearby features are nearby in the file. This rule
-applies to every file, no matter how many row groups it has. A validator checks it
-by looking at the rows themselves. It splits them into the groups a conforming
-writer would have produced, then checks that each of those groups covers a small
-part of the file.
+Rows MUST be spatially ordered so nearby features are nearby in the file.[^rowrule]
+Order is judged by pruning efficiency, defined next, on the row groups where the
+footer check below applies and on the rows otherwise.
 
-A file with five or more row groups gets a second check, using the row groups it
-actually has. A reader can run this one from the file footer alone, without reading
-any data. The file passes if either of these is true:
+**Pruning efficiency.** The input is a set of `n` bounding boxes
+`B_i = (bx0, by0, bx1, by1)`. The extent `E = (X0, Y0, X1, Y1)` is the union of
+those boxes, not the bbox the file declares. A query window is `w = 0.10 (X1 − X0)`
+wide and `h = 0.10 (Y1 − Y0)` tall, and its lower-left corner is uniformly
+distributed on `[X0, X1 − w] × [Y0, Y1 − h]`. The window hits box `B_i` with
+probability
 
-- **low overlap** — fewer than 30% of consecutive row-group pairs have bounding
-  boxes that overlap on their interiors; or
-- **high locality** — row-group bounding boxes cover, on average, less than about
-  30% of the file's total extent.
+```
+Px = max(0, min(bx1, X1 − w) − max(bx0 − w, X0)) / (X1 − X0 − w)
+Py = max(0, min(by1, Y1 − h) − max(by0 − h, Y0)) / (Y1 − Y0 − h)
+P  = Px · Py
+```
 
-Boxes that small let a reader skip about half the row groups when querying a window
-covering 10% of the extent. That is the benefit the 30% figure is meant to deliver,
-not a separate test to run.
+A factor whose denominator is zero or less is 1: the extent has no width on that
+axis, so every window hits every box there. The expected skip rate of a layout is
+the share of its boxes a window misses:[^expectation]
 
-The 30% figure comes from measuring Hilbert-sorted data, which is how producers
-usually sort. With five row groups, Hilbert-sorted boxes cover about 27% of the
-extent, and that number drops as row groups are added. Five row groups divide the
-extent five ways, so each box covers about a fifth of it before any overlap is
-counted. A stricter limit would fail well-sorted files for having few row groups.
+```
+skip = 1 − mean(P_i)
+```
 
-Neither of these two checks applies to a file with fewer than five row groups. Both
-measure a percentage across the row groups, and with only a few groups the
-percentage cannot land on a useful value. Three row groups can only produce an
-overlap of 0%, 50%, or 100%. Two or three boxes cannot average less than 30% of the
-extent, however well the rows are sorted. A validator MUST NOT fail a file for
-missing a threshold that its row-group count puts out of reach. Row ordering is a
-separate rule and is not waived here, so a file with fewer than five row groups is
-still checked on its rows.
+The reference layout MUST be the near-square grid of `n` cells that this
+construction gives, and no other tiling:[^grid]
+
+```
+cols = ceil(sqrt(n))
+rows = ceil(n / cols)
+last = n − cols · (rows − 1)
+```
+
+Every row is `(Y1 − Y0) / rows` tall. Every row but the last is split into `cols`
+cells, each `(X1 − X0) / cols` wide. The last row is split into `last` cells, each
+`(X1 − X0) / last` wide, so it too spans the full width. The grid covers the whole
+extent, every cell filled. Efficiency is the ratio of the two skip rates,
+clipped at 1:
+
+```
+efficiency = min(1, skip(layout) / skip(reference))
+```
+
+A layout passes when its efficiency is 0.70 or more. When the reference skip rate is
+0, the efficiency is undefined and the layout is not judged. That happens for
+`n = 1`, and for an extent whose width and height are both zero, where every factor
+is 1. An extent that is zero on one axis only is judged: the guard above sets that
+axis factor to 1, and the other axis decides.
+
+The abstract test vectors in
+[`abstract-tests/spatial-metric-vectors.json`](abstract-tests/spatial-metric-vectors.json)
+give the expected numbers for these definitions, and a validator MUST reproduce
+them.
+
+Efficiency measures order relative to the extent, not relative to where the data
+lies. When a few far features stretch the extent so that most of it is empty, every
+box is small against it, and a shuffled file can pass. When features are large
+against the extent, no order makes their boxes small, and a sorted file can fail.
+Both belong to the data, and no sort changes them. The area sum
+`Σ area(B_i) / area(E)` shows them: it is the same expectation with a window of
+zero size, and a re-sort that leaves the verdict unchanged can still shrink it
+several times over.
+
+**Footer check.** A file with eight or more row groups MUST pass on its row-group
+boxes, read from the per-row-group spatial statistics.[^pruning] Below that floor
+the footer check does not decide. A validator MUST NOT report a pass or a fail from
+the row groups, and MAY report the numbers.[^floor] Wherever it reports
+a verdict, a validator MUST also report the area sum, as a statistic and not as a
+verdict. When the extent has no area, the area sum is undefined, and a validator
+MUST report it as absent rather than as 0.
+
+**Row check.** Where the footer check is not judged, the rows are judged by the
+abstract test recorded with `PORTO-FMT-006` in the [requirements
+manifest](requirements.yaml): the same efficiency, applied to ten equal chunks of
+the rows in file order. That test needs 200 rows. Below that a validator MUST
+report that the file has too few rows to judge, and MUST NOT withhold that message.
+
+The fraction of consecutive row-group pairs whose boxes overlap MAY be reported as a
+statistic, but MUST NOT decide the verdict.[^overlap]
+
+[^rowrule]: On a file with one row group, order does not change read performance,
+    because a reader fetches the whole file either way. The row rule buys
+    consistency across a catalog, and correct pruning on the day a publisher repacks
+    the file into more row groups.
+
+[^expectation]: The skip rate is the expectation of a sampled quantity. Draw query
+    windows at random and count the boxes each one misses, and the mean converges to
+    this number. A rule written that way, with twenty windows from a fixed seed,
+    moved its verdict with the seed on real files. The closed form is that sample's
+    limit, so the rule has no seed, window count, or draw order.
+
+[^grid]: The construction is pinned because other tilings that also cover the
+    extent give a different verdict. `n` vertical strips leave one axis unpruned,
+    so their skip rate caps near 0.90 and a file measured against them scores 5% to
+    9% higher than against the grid: on the unit extent the grid skips 0.818 at
+    n = 8, 0.889 at 16, 0.948 at 59 and 0.980 at 589, where strips skip 0.778,
+    0.839, 0.883 and 0.898. A file at 0.65 against the grid passes against strips.
+
+[^pruning]: Pruning is the benefit spatial ordering exists to deliver, and the footer
+    boxes already carry what it takes to estimate it. The bar is relative because the
+    achievable rate rises with the row-group count: two row groups can never skip
+    more than half a file, five hundred about 98%. The bar is set from
+    measurements over the Portolan registry and four further catalogs, recorded in
+    the [changelog](../../CHANGELOG.md).
+
+[^floor]: A grid is a poor model of a curve sort at small counts. Well-sorted files
+    from several catalogs score 0.60 to 0.88 at five row groups and 0.76 to 0.94 at
+    eight, so the verdict starts at eight.
+
+[^overlap]: A space-filling-curve sort makes neighboring row groups adjacent, so
+    their boxes touch and this fraction runs near 1.0 even for a perfectly tiled
+    file.
 
 Files MUST provide per-row-group spatial statistics so readers can skip row groups
 from metadata alone — either:
