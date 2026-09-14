@@ -13,7 +13,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 - **GeoParquet spatial ordering is judged by pruning efficiency, a closed-form
   expectation** (`PORTO-FMT-006`, `PORTO-FMT-044`, new `PORTO-FMT-049` to
-  `PORTO-FMT-053`, [`specs/portolan/formats.md`](specs/portolan/formats.md)):
+  `PORTO-FMT-054`, [`specs/portolan/formats.md`](specs/portolan/formats.md)):
   the footer check passed a file on either low consecutive-pair overlap or
   row-group boxes averaging under 30% of the extent. Neither criterion does its
   job. A space-filling-curve sort makes row groups spatially adjacent, so their
@@ -53,7 +53,15 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   spec says what it buys there: on one row group order does not change read
   performance, so the row rule buys catalog consistency and correct pruning
   when a publisher repacks the file.
-- **Requirements manifest**: 133 requirements, now 93 MUST, 23 SHOULD, and
+- **Abstract test vectors for the metric** (new `PORTO-FMT-054`,
+  [`specs/portolan/abstract-tests/spatial-metric-vectors.json`](specs/portolan/abstract-tests/spatial-metric-vectors.json)):
+  eight layouts and two row-level cases with their expected numbers, which an
+  implementation MUST reproduce. They pin the one-axis guard (`line-n8` is
+  judged, at efficiency 1.0), the undefined efficiency at `n = 1`, the strip
+  and empty-cell references, and the chunk rules for null rows. The area sum
+  is undefined on an extent with no area, and a validator MUST report it as
+  absent rather than as 0.
+- **Requirements manifest**: 134 requirements, now 94 MUST, 23 SHOULD, and
   17 MAY.
 
 ## 0.2.0 - 2026-08-28

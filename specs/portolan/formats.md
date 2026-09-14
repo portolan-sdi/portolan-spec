@@ -76,8 +76,15 @@ efficiency = min(1, skip(layout) / skip(reference))
 ```
 
 A layout passes when its efficiency is 0.70 or more. When the reference skip rate is
-0, which takes an extent with no area, the efficiency is undefined and the layout is
-not judged.
+0, the efficiency is undefined and the layout is not judged. That happens for
+`n = 1`, and for an extent with no width and no height, where every factor is 1. An
+extent with no width or no height on one axis alone is judged: the guard above sets
+that axis factor to 1, and the other axis decides.
+
+The abstract test vectors in
+[`abstract-tests/spatial-metric-vectors.json`](abstract-tests/spatial-metric-vectors.json)
+give the expected numbers for these definitions, and an implementation MUST
+reproduce them.
 
 Efficiency measures order relative to the extent, not relative to where the data
 lies. When a few far features stretch the extent so that most of it is empty, every
@@ -93,7 +100,8 @@ boxes, read from the per-row-group spatial statistics.[^pruning] Below that floo
 the footer check does not decide. A validator MUST NOT report a pass or a fail from
 the row groups, and MAY report the numbers.[^floor] Wherever it reports
 a verdict, a validator MUST also report the area sum, as a statistic and not as a
-verdict.
+verdict. When the extent has no area, the area sum is undefined, and a validator
+MUST report it as absent rather than as 0.
 
 **Row check.** Where the footer check is not judged, the rows are judged by the
 abstract test recorded with `PORTO-FMT-006` in the [requirements

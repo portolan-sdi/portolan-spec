@@ -842,6 +842,28 @@ requirements:
     quote: >-
       The reference layout MUST be the near-square grid of `n` cells that
       this construction gives, and no other tiling:
+    test: >-
+      specs/portolan/abstract-tests/spatial-metric-vectors.json scores eight
+      layouts against this grid. five-strips-n5 and
+      three-boxes-old-vs-new-reference separate it from a strip tiling and
+      from the grid with empty cells.
+
+  - id: PORTO-FMT-054
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      The abstract test vectors in
+      [`abstract-tests/spatial-metric-vectors.json`](abstract-tests/spatial-metric-vectors.json)
+      give the expected numbers for these definitions, and an implementation
+      MUST reproduce them.
+    test: >-
+      Every entry under layouts and rows in that file. An implementation
+      reproduces count, achieved, achievable, efficiency and area_sum to six
+      decimals, and reports efficiency, area_sum and below_bar as absent
+      where the file holds null. line-n8 pins the one-axis guard, with
+      efficiency 1.0 and area_sum null. single-box pins the undefined
+      efficiency at n = 1.
 
   - id: PORTO-FMT-050
     severity: MUST
@@ -866,7 +888,9 @@ requirements:
     file: specs/portolan/formats.md
     quote: >-
       Wherever it reports a verdict, a validator MUST also report the area
-      sum, as a statistic and not as a verdict.
+      sum, as a statistic and not as a verdict. When the extent has no area,
+      the area sum is undefined, and a validator MUST report it as absent
+      rather than as 0.
 
   - id: PORTO-FMT-052
     severity: MUST
