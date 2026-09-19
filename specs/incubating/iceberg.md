@@ -1,4 +1,4 @@
-# Incubating — Apache Iceberg Tables Over Published GeoParquet
+# Incubating — Apache Iceberg tables over published GeoParquet
 
 **Status: Open — convention only, nothing normative
 ([#200](https://github.com/portolan-sdi/portolan-spec/issues/200)).**
@@ -14,21 +14,21 @@ STAC is the catalog. It says what the data is, who published it, and how to draw
 it. An Iceberg table is a second access path to the same bytes, for engines that
 read Iceberg. It says how to query the data.
 
-The read side is what a static catalog gains. A manifest names every file, so a
+The read side is what a static catalog gains. A manifest lists every file, so a
 client reads a partitioned collection over plain HTTPS without listing the
 bucket. Per-file bounds let an engine skip a file without opening its footer. One
 `ATTACH` exposes the catalog as a SQL namespace.
 
 ## Principles
 
-Six rules follow from that position. The rest of this document applies them.
+These rules follow from that position. The rest of this document applies them.
 
 - **P1. STAC is the catalog, Iceberg is an access path.** The GeoParquet file
   keeps the `data` role. The Iceberg metadata file is a separate asset with the
   role `metadata`.
 - **P2. One copy of the bytes.** The manifests reference the published GeoParquet
-  by URI. The writer adds no data file and rewrites nothing.
-- **P3. Static only.** The table lives under the collection directory and is read
+  by URI. The writer creates metadata only, and leaves every data file as it is.
+- **P3. Static only.** The table is stored under the collection directory and is read
   from its `metadata.json`. The convention requires no catalog server.
 - **P4. Format version 3.** Version 3 is the first Iceberg format version with a
   native geometry type that carries a CRS.
@@ -37,9 +37,9 @@ Six rules follow from that position. The rest of this document applies them.
 - **P6. The table is verified before it is published.** A reader opens it and
   returns the row count the GeoParquet file has.
 
-## Where the table lives
+## Table location
 
-The table lives under the collection directory:
+The table is stored under the collection directory:
 
 ```
 <collection>/
@@ -56,7 +56,7 @@ The table lives under the collection directory:
 Links inside the collection are relative, as everywhere else in Portolan. The
 publishing step uploads `<collection>/iceberg/` with the rest of the collection.
 
-The manifests hold the URI of each published GeoParquet file. Those URIs are
+The manifests record the URI of each published GeoParquet file. Those URIs are
 absolute, because an Iceberg reader resolves a data-file path against nothing.
 A writer that stages the table before upload rewrites them to the public base.
 
@@ -116,13 +116,12 @@ Arrow schema an Arrow reader infers.
 Write the parameter unquoted, as `geometry(EPSG:4326)`. That is the form the
 Iceberg specification, the Java implementation, and DuckDB use.
 
-Iceberg forbids inline PROJJSON in a type string. When the CRS has no authority
-code, put the PROJJSON in a table property and name it as
+The Iceberg specification rejects inline PROJJSON in a type string. When the CRS
+has no authority code, put the PROJJSON in a table property and name it as
 `geometry(projjson:<property>)`.
 
 The `table:columns` entry for the same column reports `geometry`, the logical
-type, with no parameter. The two strings are different things. Do not copy one
-into the other.
+type, with no parameter. Keep each string in its own field.
 
 ## Partitioned collections
 
@@ -133,8 +132,7 @@ each entry in `partition:keys`:
   list the same files, which a checker can compare.
 - The partition cell column MUST stay in the data files. A writer reads the
   partition value from the column statistics, not from the directory name.
-- Every partition file has the identical schema. That is already required by
-  PORTO-FMT-021.
+- The partition files share one schema. PORTO-FMT-021 already requires that.
 
 Iceberg has no spatial partition transform. The transforms are `identity`,
 `bucket`, `truncate`, `year`, `month`, `day`, `hour`, and `void`, and `identity`
@@ -142,7 +140,7 @@ is excluded for a geometry column. So `identity` over a precomputed cell column
 is the only mapping, and it is what a Hive-partitioned Portolan collection
 already holds.
 
-Hilbert ordering is an Iceberg sort order, not a partition. Row groups need no
+Hilbert ordering maps to an Iceberg sort order. Row groups need no
 alignment, because Iceberg prunes whole files. Row-group skipping stays with the
 GeoParquet statistics and the bbox covering column, under PORTO-FMT-007 and
 PORTO-FMT-009.
@@ -185,14 +183,14 @@ output.
 **The static REST surface.** A catalog MAY serve a pre-rendered Iceberg REST
 catalog under `v1/` at its public base, so a client attaches the whole catalog
 with one call and no server. The namespaces mirror the catalog tree and each
-table document points at the current `metadata.json`. Two questions stay open.
-The first is whether the root `catalog.json` carries a link to `v1/config`, which
-needs a link relation the extension does not define. The second is whether
-discovery instead relies on `iceberg:catalog_uri` on each collection.
+table document points at the current `metadata.json`. Discovery is undecided. The
+root `catalog.json` could carry a link to `v1/config`, which needs a link
+relation the extension does not define. A client could instead read
+`iceberg:catalog_uri` from each collection.
 
 **Items tables.** A collection that publishes an item mirror can register that
 mirror as an Iceberg table, which makes a raster scene collection searchable with
-SQL. See [STAC-GeoParquet](stac-geoparquet.md). A single catalog-wide `items`
+SQL. See [STAC-GeoParquet](stac-geoparquet.md). One catalog-wide `items`
 table is the more useful object and the harder one. Its column set freezes on
 first publication, so it waits for its own decision.
 
@@ -204,5 +202,5 @@ Iceberg `geometry` type and answers "Geography support: not implemented" for
 parameter, so it cannot load a table a DuckDB or Java writer produced. Spark and
 Trino have no metadata-file entry point and need a catalog server.
 
-Treat `iceberg:format_version: 3` as a statement about the table, not a promise
-that a given engine reads it.
+`iceberg:format_version: 3` states what the table is. Check the engine
+separately.
