@@ -57,6 +57,7 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 | [Contacts][] | `https://stac-extensions.github.io/contacts/v0.1.1/schema.json`             | MAY         | Richer contact info; never replaces url-or-email on the host provider |
 | [Attribution][] | `https://stac-extensions.github.io/attribution/v0.1.0/schema.json`          | MAY         | Display attribution |
 | [Themes][] | `https://stac-extensions.github.io/themes/v1.0.0/schema.json`               | MAY         | Thematic classification |
+| [Iceberg][] | `https://schemas.portolan-sdi.org/incubating/iceberg/v1.1.0/schema.json`     | MAY         | Collection also published as a static Iceberg v3 table over the same files (spec: [Iceberg](../specs/incubating/iceberg.md)) |
 
 Note that `item_assets` needs no extension — it is a core field in STAC 1.1.
 
@@ -69,6 +70,7 @@ As the profile grows, per-format requirement sets (vector, raster, tabular) may 
 [Raster]: https://github.com/stac-extensions/raster
 [Vector]: https://github.com/stac-extensions/vector
 [Partition]: https://github.com/portolan-sdi/stac-partition-extension
+[Iceberg]: https://github.com/portolan-sdi/stac-iceberg-extension
 [Table]: https://github.com/stac-extensions/table
 [Projection]: https://github.com/stac-extensions/projection
 [Alternate Assets]: https://github.com/stac-extensions/alternate-assets
