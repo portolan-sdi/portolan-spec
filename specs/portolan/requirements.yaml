@@ -151,6 +151,23 @@ requirements:
       Collection IDs SHOULD contain only lowercase letters, numbers, hyphens,
       and underscores, start with a letter, and be unique within the catalog.
 
+  # A collection with only a thumbnail asset passed validation before this
+  # rule; a client could find the collection and no data file (#202).
+  - id: PORTO-CORE-082
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      A collection MUST refer to its primary data.
+
+  - id: PORTO-CORE-083
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Where items do exist, each one MUST carry at least one asset with the
+      `data` role.
+
   - id: PORTO-CORE-017
     severity: MUST
     enforcement: validator

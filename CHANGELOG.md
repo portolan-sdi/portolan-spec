@@ -32,7 +32,7 @@ release that carries the new rules.
   Links section now points to the [STAC best practices on the use of
   links](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-catalog-and-collection.md#use-of-links)
   for the trade-offs.
-- **Requirements manifest**: 128 requirements, now 88 MUST, 23 SHOULD, and
+- **Requirements manifest**: 130 requirements, now 90 MUST, 23 SHOULD, and
   17 MAY.
 - **The versioning policy defines `misvalidate`** ([`README.md`](README.md#versioning)):
   the breaking rule tested both catalogs and tools, and the non-breaking rule
@@ -45,6 +45,13 @@ release that carries the new rules.
 
 ### Added
 
+- **Every collection and item MUST refer to its data** (`PORTO-CORE-082`,
+  `PORTO-CORE-083`, [`specs/portolan/core.md`](specs/portolan/core.md)): a
+  collection MUST refer to its primary data through a collection-level `data`
+  asset, item `data` assets, or `partition:glob`, and an item MUST carry at
+  least one `data` asset. A thumbnail, style, or metadata asset alone does not
+  qualify. Before this rule a collection with only a thumbnail asset passed
+  validation, and a client could find the collection but no data file (#202).
 - **A published root catalog SHOULD carry a `self` link** (`PORTO-CORE-081`,
   [`specs/portolan/core.md`](specs/portolan/core.md)): a catalog served over
   the internet from a single fixed URL SHOULD carry an absolute `self` link on
