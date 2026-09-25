@@ -7,6 +7,63 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
+## Unreleased
+
+### Changed
+
+- **GeoParquet spatial ordering is judged by pruning efficiency, a closed-form
+  expectation** (`PORTO-FMT-006`, `PORTO-FMT-044`, new `PORTO-FMT-049` to
+  `PORTO-FMT-054`, [`specs/portolan/formats.md`](specs/portolan/formats.md)):
+  the footer check passed a file on either low consecutive-pair overlap or
+  row-group boxes averaging under 30% of the extent. Neither criterion does its
+  job. A space-filling-curve sort makes row groups spatially adjacent, so their
+  boxes touch and the overlap fraction runs near 1.0 for the best possible file;
+  the 30% figure was calibrated at five row groups and left flat, so at several
+  hundred groups a file a hundred times worse than an ideal tiling still passed.
+  The rule now defines the expected share of row groups a reader skips for a
+  query window covering 10% of each dimension. It is a closed form over the
+  footer boxes, so no random sample is part of the rule. The rule divides it by the same
+  figure for a reference, and the reference is one pinned construction: the
+  near-square grid of `cols = ceil(sqrt(n))` columns, every cell filled. Other
+  tilings that also cover the extent, such as `n` strips, inflate the ratio by
+  5% to 9% and change verdicts, so `PORTO-FMT-053` names the grid. A file passes at 0.70 of the reference. The verdict starts at eight row
+  groups: a well-sorted file scores 0.60 to 0.88 at five and 0.76 to 0.94 at
+  eight, because a grid is a poor model of a curve sort at small counts. Below
+  eight a validator MUST NOT report a pass or a fail from the footer, and MAY
+  report the numbers. Beside every verdict a validator MUST report the area sum,
+  the row-group box areas over the extent area, as a statistic: at high counts
+  the efficiency saturates, and a 94-group file at 0.94 still shrank its boxes
+  2.9 times under a re-sort. The spec states that the metric measures order
+  relative to the extent, so a sparse extent can pass a shuffled file and large
+  features can fail a sorted one. `PORTO-FMT-049` records that consecutive-pair
+  overlap MAY be reported but MUST NOT decide the verdict. The 0.70 figure comes
+  from 206 files across every catalog in the Portolan registry, where the nine
+  below it all reached 0.87 to 0.97 after a re-sort, and from a review across
+  four further catalogs, three single files, and 1.27 million AIS tracks.
+- **The row rule reuses the same metric, and its numbers are an abstract test**
+  (`PORTO-FMT-006`, new `PORTO-FMT-052`,
+  [`specs/portolan/requirements.yaml`](specs/portolan/requirements.yaml)): the
+  rule left both the chunk count and "a small part of the file" to the
+  implementer. The requirement stays in the spec. The procedure is now a `test`
+  entry on `PORTO-FMT-006` in the manifest: ten equal chunks of the rows in file
+  order, scored by the same efficiency against a ten-cell reference, passing at
+  the same 0.70. The flat 30% predicate is retired. The test needs 200 rows, and
+  below that a validator MUST say the file is too small to judge, and MUST NOT
+  withhold that message. The rule applies where the footer check is not judged, and the
+  spec says what it buys there: on one row group order does not change read
+  performance, so the row rule buys catalog consistency and correct pruning
+  when a publisher repacks the file.
+- **Abstract test vectors for the metric** (new `PORTO-FMT-054`,
+  [`specs/portolan/abstract-tests/spatial-metric-vectors.json`](specs/portolan/abstract-tests/spatial-metric-vectors.json)):
+  eight layouts and two row-level cases with their expected numbers, which a
+  validator MUST reproduce. They pin the one-axis guard (`line-n8` is
+  judged, at efficiency 1.0), the undefined efficiency at `n = 1`, the strip
+  and empty-cell references, and the chunk rules for null rows. The area sum
+  is undefined on an extent with no area, and a validator MUST report it as
+  absent rather than as 0.
+- **Requirements manifest**: 134 requirements, now 94 MUST, 23 SHOULD, and
+  17 MAY.
+
 ## 0.2.0 - 2026-08-28
 
 A catalog declares this version by carrying
