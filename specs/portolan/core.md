@@ -137,6 +137,14 @@ directory MUST contain a `collection.json` and holds one subdirectory per item.
 Collection IDs SHOULD contain only lowercase letters, numbers, hyphens, and
 underscores, start with a letter, and be unique within the catalog.
 
+A collection MUST refer to its primary data. The reference is an asset
+carrying the `data` role — on the collection itself or on its items — or
+`partition:glob` on a partitioned collection (see [Partitioned
+Collections](formats.md#partitioned-collections)). A thumbnail, style, or
+metadata asset does not satisfy this requirement on its own. The catalog exists
+to make data findable, and a collection that a client cannot trace to any data
+file describes nothing.
+
 ### Single-File Collections
 
 When a collection holds a single data file (e.g. one GeoParquet file), that data
@@ -206,6 +214,10 @@ A partitioned collection MAY represent each partition as an item, but this is no
 required — see [Partitioned Collections](formats.md#partitioned-collections) for
 when it is worthwhile. An ordinary collection with multiple distinct data files represents
 each as an item.
+
+Where items do exist, each one MUST carry at least one asset with the `data`
+role. An item exists to attach per-file metadata to a data file, so an item
+without one describes nothing.
 
 ## Assets
 
