@@ -1,11 +1,19 @@
 {
-  "$comment": "Registry of the portolan-sdi org's own STAC extensions published under schemas.portolan-sdi.org. Each schema lives in its source repository; this file pins which versions are published, mapping each version to the git ref to fetch it from. The publish workflow serves these at https://schemas.portolan-sdi.org/<name>/<version>/schema.json and the test suite fetches them into .schema-cache/, so bumping a pin is a spec-repo change and profile bindings move together with published schemas. Extensions incubating toward stac-extensions publish under incubating/<name>. PIN NOTE: partition temporarily pins the commit of the canonical-URI PR branch; repoint to ref v1.0.0 once that release is tagged.",
+  "$comment": "Registry of the portolan-sdi org's own STAC extensions published under schemas.portolan-sdi.org. Each schema lives in its source repository; this file pins which versions are published, mapping each version to the git ref to fetch it from. The publish workflow serves these at https://schemas.portolan-sdi.org/<name>/<version>/schema.json and the test suite fetches them into .schema-cache/, so bumping a pin is a spec-repo change and profile bindings move together with published schemas. Extensions incubating toward stac-extensions publish under incubating/<name>. PIN NOTE: partition temporarily pins the commit of the canonical-URI PR branch; repoint to ref v1.0.0 once that release is tagged. PIN NOTE: incubating/iceberg temporarily pins the head of the v1.1.0 release PR branch (portolan-sdi/stac-iceberg-extension#22); repoint to ref v1.1.0 once that release is tagged.",
   "incubating/partition": {
     "title": "STAC Partition Extension",
     "repo": "portolan-sdi/stac-partition-extension",
     "path": "json-schema/schema.json",
     "versions": {
       "v1.0.0": "c4269be16e287435e10e9ee07dfc0970f0ff58bd"
+    }
+  },
+  "incubating/iceberg": {
+    "title": "STAC Iceberg Extension",
+    "repo": "portolan-sdi/stac-iceberg-extension",
+    "path": "json-schema/v1.1.0/schema.json",
+    "versions": {
+      "v1.1.0": "1e0696935dbdff3e9ba56607f97788dffd9808f5"
     }
   }
 }
