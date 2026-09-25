@@ -6,7 +6,9 @@ links connect equivalent catalogs and collections across the trees.
 
 Use the STAC [Language](https://github.com/stac-extensions/language) extension on each
 translated catalog and collection. It identifies the document's language and gives
-clients the information they need for a language selector.
+clients the information they need for a language selector. The [profile's extension
+registry](../../stac/README.md#stac-extensions) pins the version to declare; the
+examples below use it.
 
 The examples below use Romanian as the source language, with Russian and English
 translations. Core defines the required structure in [Alternate-Language
