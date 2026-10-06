@@ -257,7 +257,17 @@ first publication, so it waits for its own decision.
 
 **A collection index.** A catalog MAY publish one table holding a row per
 collection, so a client finds a collection with SQL instead of walking the
-catalog JSON. The root `catalog.json` names it with a `rel: "alternate"` link.
+catalog JSON. The root `catalog.json` names it with a `rel: "alternate"` link,
+typed `application/vnd.apache.iceberg+json`:
+
+```json
+{
+  "rel": "alternate",
+  "href": "https://example.org/catalog/datasets/metadata/v6.metadata.json",
+  "type": "application/vnd.apache.iceberg+json",
+  "title": "This catalog as an Apache Iceberg table, one row per collection"
+}
+```
 
 The row schema is not Portolan's to define.
 [STAC-GeoParquet](stac-geoparquet.md) already records that a catalog-level
