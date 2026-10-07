@@ -135,14 +135,23 @@ that stores numbers as doubles rounds them above 2^53.
 
 ## Type mapping
 
-The Iceberg column type comes from the GeoParquet `geo` metadata, not from the
-Arrow schema an Arrow reader infers.
+The Iceberg column type comes from the data file itself, not from the Arrow
+schema an Arrow reader infers. Read it from the `geo` metadata when the file has
+that key. Read it from the Parquet `GEOMETRY` or `GEOGRAPHY` logical
+type when it does not. An engine that writes Iceberg often writes the native
+type alone.
 
-| GeoParquet | Iceberg type string |
+| Source | Iceberg type string |
 |---|---|
-| `crs` absent | `geometry(OGC:CRS84)` |
-| `crs.id` gives authority `A` and code `C` | `geometry(A:C)` |
-| `edges: spherical` | `geography(A:C, spherical)` |
+| `geo`: `crs` absent | `geometry(OGC:CRS84)` |
+| `geo`: `crs.id` gives authority `A` and code `C` | `geometry(A:C)` |
+| `geo`: `edges: spherical` | `geography(A:C, spherical)` |
+| native type: `crs` absent | `geometry(OGC:CRS84)` |
+| native type: `crs` gives `A:C` or `srid:<n>` | `geometry(A:C)` |
+| native type: edges `spherical` | `geography(A:C, spherical)` |
+
+A file with both a native type and a `geo` key MUST state the same CRS and the
+same edge model in each.
 
 Write the parameter unquoted, as `geometry(EPSG:4326)`. That is the form the
 Iceberg specification, the Java implementation, and DuckDB use.
@@ -236,10 +245,21 @@ output.
 
 A validator that reads `iceberg:metadata_location` can check P2 and P5 without
 the writer. It plans the declared snapshot and compares its live data files with
-the collection's data assets. It then reads each file's footer for the `geo`
-key. A reader depends on both, and a maintenance job breaks both.
+the collection's data assets. It then reads each file's footer for the geometry
+encoding, which is the `geo` key, the native `GEOMETRY` or `GEOGRAPHY` logical
+type, or both. A reader depends on both checks, and a maintenance job breaks
+both.
 
 ## Open areas
+
+**Whether a file needs the `geo` key.** GeoParquet 2.0.0-rc.1 states that a file
+carrying only the native Parquet geospatial types is not conformant GeoParquet
+2.0. Engines that write Iceberg commonly produce exactly that file.
+[opengeospatial/geoparquet#308](https://github.com/opengeospatial/geoparquet/issues/308)
+proposes to make such a file conformant and the `geo` key optional. This
+document takes no position. Portolan requires GeoParquet 1.1 or 2.0 in
+[formats.md](../portolan/formats.md) and defers to that specification for what
+conformance means, so this document follows whatever GeoParquet decides.
 
 **The static REST surface.** A catalog MAY serve a pre-rendered Iceberg REST
 catalog under `v1/` at its public base, so a client attaches the whole catalog
