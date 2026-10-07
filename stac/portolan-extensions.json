@@ -11,9 +11,9 @@
   "incubating/iceberg": {
     "title": "STAC Iceberg Extension",
     "repo": "portolan-sdi/stac-iceberg-extension",
-    "path": "json-schema/v1.1.0/schema.json",
+    "path": "json-schema/schema.json",
     "versions": {
-      "v1.1.0": "1e0696935dbdff3e9ba56607f97788dffd9808f5"
+      "v1.1.0": "504e8a5da2b532368f5bd7921273c764ca89df0d"
     }
   }
 }
