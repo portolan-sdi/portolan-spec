@@ -31,7 +31,9 @@ These rules follow from that position. The rest of this document applies them.
 
 - **P1. STAC is the catalog, Iceberg is an access path.** The GeoParquet file
   keeps the `data` role. The Iceberg metadata file is a separate asset with the
-  role `metadata`.
+  role `metadata`. The table relaxes no Portolan rule. Every requirement in
+  [formats.md](../portolan/formats.md) applies to the data files as if the table
+  were absent.
 - **P2. One copy of the bytes.** The live data files of the declared snapshot
   are exactly the collection's data assets. Each file appears once, under one
   name, and both trees end at the same bytes.
@@ -223,6 +225,23 @@ snapshot it describes, never a moving pointer such as `version-hint.text`. After
 a commit, regenerate in this order: the collection, then any catalog-level index
 row, then the root link. A reader that arrives mid-regeneration then finds an
 older complete view, never a newer broken one.
+
+**Maintenance can undo the asset guarantees.** Compaction and rewrite jobs
+replace the data files. The replacements satisfy Iceberg, and they can still
+fail Portolan. [formats.md](../portolan/formats.md) requires spatial order, it
+requires per-row-group spatial statistics, and it holds a row group to 150,000
+rows. An Iceberg writer guarantees none of the three, and a compaction job
+usually loses the spatial order. Regeneration then makes the collection describe
+the new files correctly. The STAC tree validates, the checksums match, and the
+collection is worse than it was. Run the byte checks again after maintenance,
+not only before the first publication:
+
+```
+rashid check <catalog>
+```
+
+`PTL-DAT-006` reports the spatial order, `PTL-DAT-007` the per-row-group
+statistics, and `PTL-DAT-008` a row group above 150,000 rows.
 
 **Retention keeps what STAC names.** Snapshot expiry and orphan-file removal run
 on the catalog's own schedule. Neither may delete a file that a published
