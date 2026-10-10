@@ -16,5 +16,10 @@ requires. These are recommendations, not requirements.
   `match`, `case`, and `step` to encode data into color, and include a
   `description` explaining what the colors represent.
 
+- **Name the legend entries.** A `match` or `step` expression gives a client the
+  colors but not the wording, so a legend derived from it shows raw field values.
+  Carry the block title and the display labels in `layers[].metadata.legend`, per
+  [`specs/incubating/maplibre-legend.md`](../incubating/maplibre-legend.md).
+
 - **Consider labels.** For collections with named features (roads, monuments, admin
   areas), include a label layer or a dedicated "with labels" style variant.
