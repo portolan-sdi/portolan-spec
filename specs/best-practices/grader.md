@@ -160,7 +160,7 @@ gives up.
 
 Everything above can be verified by inspection, and an honest A is a catalog
 anyone can rely on. The A+ asks a different kind of question, drawn from the
-[Candid Core Framework](https://lettersfromthreadedfoundry.substack.com/p/candid-core-framework):
+[Candid Core Framework](https://github.com/edtrochim/candid_core):
 does this catalog candidly outline known limitations, potential biases, and
 inappropriate use cases to promote responsible data application? Not "is the
 metadata complete", but is the dataset aware of its own blind spots — what

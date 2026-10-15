@@ -8,7 +8,7 @@ them, drawn from the catalogs whose documentation agents use most successfully
 today.
 
 The goal of all of it, borrowed from the
-[Candid Core Framework](https://lettersfromthreadedfoundry.substack.com/p/candid-core-framework)
+[Candid Core Framework](https://github.com/edtrochim/candid_core)
 (Trochim & Roy, 2025, [doi:10.5281/zenodo.15227664](https://doi.org/10.5281/zenodo.15227664)),
 is to help users "swiftly, accurately, and confidently assess a dataset's
 practical value". Discovery is the solved half of the problem: a well-formed
