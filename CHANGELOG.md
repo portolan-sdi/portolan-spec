@@ -7,6 +7,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
+## Unreleased
+
+### Added
+
+- **Every `table:columns` entry carries a description** (`PORTO-FMT-049`,
+  `PORTO-FMT-050`,
+  [`specs/portolan/formats.md`](specs/portolan/formats.md)): the vector and
+  tabular SHOULDs already asked for "names, types, and descriptions", but the
+  sentence reads as a description of the extension's shape, and a validator
+  could satisfy it with entries that carry a name and a type alone. Those two
+  come from the Parquet footer, so such an entry tells a client nothing it
+  could not read from the file. A separate requirement now names the
+  description, so a validator can cite it.
+- **Recording that no definition exists is a description**
+  (`PORTO-FMT-050`): a mirror of a publisher who ships no data dictionary
+  would otherwise face a rule it can satisfy only by inventing meanings.
+  An invented column meaning is not detectable downstream, and an agent acting
+  on one produces a confident wrong answer. Stating that the publisher
+  documents no meaning is correct, and it tells a reader not to keep looking.
+
+### Changed
+
+- **Requirements manifest**: 132 requirements, now 90 MUST, 25 SHOULD, and
+  17 MAY.
+
 ## 0.2.0 - 2026-08-28
 
 A catalog declares this version by carrying

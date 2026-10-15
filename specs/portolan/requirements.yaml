@@ -1217,6 +1217,20 @@ requirements:
       A collection whose data assets describe differing schemas MAY declare
       `table:columns` per asset instead.
 
+  - id: PORTO-FMT-049
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Every entry in `table:columns` SHOULD carry a `description`.
+
+  - id: PORTO-FMT-050
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Where no definition can be sourced, record that.
+
 exclusions:
   # RFC 2119 preamble: keyword mentions, not requirements.
   - file: specs/portolan/core.md

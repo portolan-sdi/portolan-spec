@@ -97,6 +97,17 @@ client has to read the file to learn what the collection holds. Names and types
 can be generated from the Parquet schema. The descriptions are written once and
 belong in both the metadata and the README schema table.
 
+Every entry in `table:columns` SHOULD carry a `description`. A name and a type
+are already in the Parquet footer, so an entry carrying only those adds nothing
+a client could not read from the file itself.
+
+Where no definition can be sourced, record that. A description stating that the
+publisher documents no meaning for the column is correct, and it tells a reader
+not to keep looking. An invented meaning is neither correct nor detectable, and
+an agent acting on one produces a confident wrong answer. A mirror of a
+publisher who ships no data dictionary will carry many such entries, and that is
+an honest account of the situation rather than a gap in the catalog.
+
 ### PMTiles
 
 A PMTiles file SHOULD be provided as the visualization derivative,
