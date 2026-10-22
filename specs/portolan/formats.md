@@ -213,7 +213,10 @@ Compliance is defined by the tag contents, not by use of GDAL.
 **Classified rasters.** A classified raster stores a category in each pixel, such as
 a land cover class or a flood class. A classified raster
 SHOULD describe its classes with `classification:classes` from the STAC
-[classification extension](https://github.com/stac-extensions/classification). The
+[classification extension](https://github.com/stac-extensions/classification).
+Whether a raster is classified is the producer's declaration. An embedded color
+table alone does not make a raster classified, since continuous rasters such as
+water occurrence percentages also ship one. The
 class list MUST sit on the band it describes, in the STAC 1.1 `bands` array of the
 data asset, next to that band's `nodata`. A collection that models scenes as items
 SHOULD also carry the class list on the matching band of its `item_assets`
