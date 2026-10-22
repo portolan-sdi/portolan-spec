@@ -1162,6 +1162,13 @@ requirements:
       A class whose `nodata` is `true` MUST have the band's `nodata` value as
       its `value`.
 
+  - id: PORTO-FMT-060
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A class whose value is the band's nodata MUST be marked `nodata: true`.
+
   - id: PORTO-FMT-058
     severity: SHOULD
     enforcement: process

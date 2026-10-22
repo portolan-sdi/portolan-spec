@@ -234,6 +234,7 @@ entry for that class value. Tools that read both SHOULD warn when they differ. A
 tool that writes the metadata MAY fill a missing `color_hint` from the color table.
 
 A class whose `nodata` is `true` MUST have the band's `nodata` value as its `value`.
+A class whose value is the band's nodata MUST be marked `nodata: true`.
 Clients SHOULD draw that class transparent and SHOULD leave it out of a legend.
 
 A continuous raster, whose pixels are measurements such as elevation or
