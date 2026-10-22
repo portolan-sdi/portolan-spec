@@ -1,0 +1,145 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/classification/v2.0.0/schema.json"
+  ],
+  "id": "valencia-2024",
+  "title": "Flood classification, Valencia, Spain, October 2024 (GEP SAR Features, Sentinel-1)",
+  "description": "Flood classification over Valencia and l'Albufera after the 29 October 2024 DANA, from the GEP SAR Features service using Sentinel-1 backscatter and coherence. It is a single-COG collection with one discrete uint8 band with an embedded color table, 20 m, EPSG:32630. The class list sits on the band, and each color_hint matches the color table entry for its value.",
+  "license": "other",
+  "keywords": [
+    "flood",
+    "Sentinel-1",
+    "SAR",
+    "Valencia",
+    "DANA"
+  ],
+  "providers": [
+    {
+      "name": "Geohazards TEP (GEP)",
+      "roles": [
+        "producer",
+        "licensor"
+      ],
+      "url": "https://geohazards-tep.eu/"
+    },
+    {
+      "name": "Portolan SDI",
+      "roles": [
+        "processor",
+        "host"
+      ],
+      "url": "https://github.com/portolan-sdi"
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -0.62,
+          39.12,
+          0.03,
+          39.63
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2024-10-07T00:00:00Z",
+          "2024-10-31T23:59:59Z"
+        ]
+      ]
+    }
+  },
+  "assets": {
+    "data": {
+      "href": "./sar-features-flood-spain-cog.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "title": "Flood classification (COG)",
+      "description": "Discrete uint8 COG with an embedded color table and embedded band statistics. Value 0 is nodata and draws transparent.",
+      "roles": [
+        "data"
+      ],
+      "bands": [
+        {
+          "name": "band_1",
+          "data_type": "uint8",
+          "nodata": 0,
+          "classification:classes": [
+            {
+              "value": 0,
+              "name": "other",
+              "title": "Other",
+              "nodata": true
+            },
+            {
+              "value": 1,
+              "name": "urban",
+              "title": "Urban",
+              "color_hint": "000000"
+            },
+            {
+              "value": 2,
+              "name": "permanent-water",
+              "title": "Permanent water",
+              "color_hint": "0000FF"
+            },
+            {
+              "value": 3,
+              "name": "bare-soil-flood",
+              "title": "Flooded bare soil",
+              "color_hint": "00FF00"
+            },
+            {
+              "value": 4,
+              "name": "urban-flood",
+              "title": "Flooded urban area",
+              "color_hint": "00FFFF"
+            }
+          ]
+        }
+      ]
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview drawn from the embedded color table",
+      "roles": [
+        "thumbnail"
+      ]
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "license",
+      "href": "./LICENSE.html",
+      "type": "text/html",
+      "title": "Terms of use"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation"
+    }
+  ]
+}

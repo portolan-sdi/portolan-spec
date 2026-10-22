@@ -5,6 +5,21 @@ All notable changes to the Portolan STAC profile will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- The extension registry lists the [Classification](https://github.com/stac-extensions/classification)
+  extension at `v2.0.0`, SHOULD for classified rasters, with
+  `classification:classes` on the band (#41).
+- A [classified raster example](examples/raster-classified-collection.json),
+  the GEP SAR Features flood classification over Valencia, October 2024.
+- `check-portolan` checks the class objects in STAC 1.1 `bands` against the
+  classification schema and the Portolan class rules. The classification
+  `v2.0.0` schema checks only `raster:bands`.
+
+The schema does not change.
+
 ## 0.2.0 - 2026-08-28
 
 The schema is published at

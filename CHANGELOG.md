@@ -9,6 +9,21 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+### Added
+
+- **Classified rasters describe their classes on the band** (`PORTO-FMT-049`
+  to `PORTO-FMT-059`, [`specs/portolan/formats.md`](specs/portolan/formats.md#raster)).
+  A raster whose pixels are categories SHOULD carry `classification:classes`
+  from the STAC classification extension, and the class list MUST sit on the
+  band in STAC 1.1 `bands`, next to `nodata`. Each class has a `value`, a
+  `name`, and a `title`. The color table embedded in the COG stays
+  authoritative for rendering, so a `color_hint` MUST match it. A class marked
+  `nodata` MUST use the band's `nodata` value, and clients draw it transparent
+  and leave it out of the legend. Continuous rasters keep the render extension
+  and carry no classes (#41).
+- **Requirements manifest**: 141 requirements, now 95 MUST, 28 SHOULD, and
+  18 MAY.
+
 ### Removed
 
 - **The catalog grader leaves the specification**
