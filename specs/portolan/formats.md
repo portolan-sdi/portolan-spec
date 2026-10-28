@@ -20,16 +20,38 @@ A validator MUST apply the format requirements in this document to the catalog's
 
 Vector has no single complete cloud-native format yet, so Portolan pairs two strong
 ones — GeoParquet and PMTiles — in a single STAC entity; the community is upgrading
-GeoParquet toward a more complete answer while watching formats like Iceberg, and
-this pairing will likely relax once GeoParquet gains overviews and more browsers
-render it directly.
+GeoParquet toward a more complete answer, and this pairing will likely relax once
+GeoParquet gains overviews and more browsers render it directly.
 
-### GeoParquet
+A collection can also publish an Apache Iceberg table over the same GeoParquet
+files, which gives an Iceberg engine a second way to read them. That convention is
+recorded in [Iceberg](../incubating/iceberg.md). It is optional and adds no
+requirement to this document.
 
-Data MUST be provided in GeoParquet 1.1 or 2.0, following the [Best Practices for
-Distributing GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so it can be
+### Geospatial Parquet
+
+Data MUST be provided in [GeoParquet 1.1](https://geoparquet.org/releases/v1.1.0/),
+[GeoParquet 2.0](https://geoparquet.org/releases/v2.0.0-rc.1/), or Parquet with the
+native geospatial logical types ([`GEOMETRY` or
+`GEOGRAPHY`](https://github.com/apache/parquet-format/blob/master/Geospatial.md)).
+Follow the [Best Practices for Distributing
+GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so the data can be
 queried without a server. Files SHOULD be compressed to stay small, with `zstd`
 RECOMMENDED.
+
+A file with a native geospatial column is vector data even when it carries no
+`geo` metadata key. A validator MUST apply every requirement in this section to
+such a file rather than treat it as tabular Parquet. Apache Iceberg writers
+commonly produce these files, so a catalog can publish an Iceberg table's data
+files directly.
+
+When the native logical type's `crs` field is the only CRS a geometry column
+declares, the value MUST be one the [Parquet geospatial
+specification](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
+defines. An absent value is OGC:CRS84, per that specification. The value
+SHOULD be inline PROJJSON or a `projjson:<key>` reference, which a reader
+resolves from the file alone. An `<authority>:<code>` or `srid:<n>` value needs
+a CRS registry, so a validator reports it as a warning.
 
 Rows MUST be spatially ordered so nearby features are nearby in the file.[^rowrule]
 Order is judged by pruning efficiency, defined next, on the row groups where the

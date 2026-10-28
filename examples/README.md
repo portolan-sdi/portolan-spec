@@ -123,7 +123,7 @@ A catalog that only exists in git proves the bytes are right and proves nothing
 about how a client reads it, over HTTP range requests against a real object
 store. So each catalog is also published to the Portolan repository on Source
 Cooperative, where the reference catalog is readable at
-<https://data.source.coop/portolan/portolan-pipeline/portolan-reference/main/>.
+<https://data.source.coop/portolan/portolan-pipeline/portolan-reference/main/catalog.json>.
 
 CI publishes on every push to `main` that changes a manifest, a generator module,
 or a committed rebuild, since each changes the bytes a catalog is made of. A pull

@@ -97,7 +97,10 @@ Declaring the Portolan extension is a claim of conformance, not proof of it. An
 object conforms to this specification only by passing the Portolan validator.
 Validation runs in separable passes:
 
-- **Structural validation** against the STAC 1.1.0 schemas.
+- **Structural validation** against the STAC 1.1.0 schemas, and against the
+  schemas of the STAC extensions each object declares. An object that declares
+  an extension makes a claim about its own shape; this pass checks the claim.
+  The extension registry governs which version's schema applies.
 - **Portolan metadata validation**, covering every requirement checkable from
   metadata alone.
 - **Portolan data validation**, covering requirements that require reading asset
@@ -133,6 +136,14 @@ Catalogs, Flat Collections](#nested-catalogs-flat-collections)). A collection
 directory MUST contain a `collection.json` and holds one subdirectory per item.
 Collection IDs SHOULD contain only lowercase letters, numbers, hyphens, and
 underscores, start with a letter, and be unique within the catalog.
+
+A collection MUST refer to its primary data. The reference is an asset
+carrying the `data` role — on the collection itself or on its items — or
+`partition:glob` on a partitioned collection (see [Partitioned
+Collections](formats.md#partitioned-collections)). A thumbnail, style, or
+metadata asset does not satisfy this requirement on its own. The catalog exists
+to make data findable, and a collection that a client cannot trace to any data
+file describes nothing.
 
 ### Single-File Collections
 
@@ -203,6 +214,10 @@ A partitioned collection MAY represent each partition as an item, but this is no
 required — see [Partitioned Collections](formats.md#partitioned-collections) for
 when it is worthwhile. An ordinary collection with multiple distinct data files represents
 each as an item.
+
+Where items do exist, each one MUST carry at least one asset with the `data`
+role. An item exists to attach per-file metadata to a data file, so an item
+without one describes nothing.
 
 ## Assets
 
@@ -311,7 +326,8 @@ Provenance (`via`) links are covered under [Source Provenance](#source-provenanc
 
 A catalog MAY publish one STAC object tree for each language. The root catalog links
 to each translated root with an `alternate` link, as defined by the STAC
-[Language](https://github.com/stac-extensions/language) extension.
+[Language](https://github.com/stac-extensions/language) extension. The profile's
+extension registry pins the version of that extension to declare.
 
 A translated tree represents the same catalog in another language. It is not part of
 the containment tree. A catalog MUST NOT link to a translated root with `child` or
