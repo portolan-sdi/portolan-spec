@@ -959,9 +959,9 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A validator MUST NOT judge the order of a file under 5,000,000 bytes,
-      and MUST report that the file is too small for order to matter rather
-      than stay silent.
+      A validator MUST NOT judge the order of a file whose row groups hold
+      fewer than 5,000,000 compressed bytes, and MUST report that the file is
+      too small for order to matter rather than stay silent.
 
   - id: PORTO-FMT-060
     severity: MUST

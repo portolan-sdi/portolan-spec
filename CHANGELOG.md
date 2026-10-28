@@ -36,8 +36,8 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   bytes, every cell filled (`PORTO-FMT-053`). A file passes at 0.70 of the
   reference.
 - **Verdicts follow a 5 MB size floor, not only a row-group floor** (new
-  `PORTO-FMT-058` and `PORTO-FMT-059`): a file under 5,000,000 bytes is not
-  judged at all, and a validator says it is too small for order to matter.
+  `PORTO-FMT-058` and `PORTO-FMT-059`): a file whose row groups hold fewer
+  than 5,000,000 compressed bytes is not judged at all, and a validator says it is too small for order to matter.
   Skipping parts of so small a file saves a reader almost nothing, and the
   old eight-row-group floor made files written at the default row-group size
   unjudgeable until the hundreds of thousands of rows. At or above the size

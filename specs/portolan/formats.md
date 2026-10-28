@@ -55,9 +55,12 @@ a CRS registry, so a validator reports it as a warning.
 
 Rows MUST be spatially ordered so nearby features are nearby in the file.[^rowrule]
 Files under 5 MB are exempt: skipping parts of so small a file saves a reader
-almost nothing. A validator MUST NOT judge the order of a file under 5,000,000
-bytes, and MUST report that the file is too small for order to matter rather
-than stay silent.[^sizefloor] At or above that size, order is judged by pruning
+almost nothing. The size is read from the footer, as the sum of the row groups'
+compressed bytes, so every validator measures the same number on a local or a
+remote file. A validator MUST NOT judge the order of a file whose row groups
+hold fewer than 5,000,000 compressed bytes, and MUST report that the file is
+too small for order to matter rather than stay silent.[^sizefloor] At or above
+that size, order is judged by pruning
 efficiency, defined next, on the row groups where the footer check below applies
 and on the rows otherwise.
 
