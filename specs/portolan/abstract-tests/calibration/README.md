@@ -3,10 +3,10 @@
 The spatial-ordering rule in [`formats.md`](../../formats.md) passes a file at
 efficiency 0.70, judges a pass from eight row groups, fails the clear case
 under 0.25, and exempts files under 5 MB. Those numbers came from
-measurements, and this directory is where the measurements live, so anyone can
+measurements, and this directory stores the measurements, so anyone can
 check them and argue for different numbers with data.
 
-## Where the numbers come from
+## The measurements behind the thresholds
 
 The 0.70 bar was set from a survey of 206 files across every catalog in the
 [Portolan registry](https://github.com/portolan-sdi/portolan-registry), plus a
@@ -36,8 +36,9 @@ uv run specs/portolan/abstract-tests/calibration/measure.py <directory> --out re
 ```
 
 Point it at a checkout of the registry's catalogs (or any corpus of GeoParquet
-files). The columns are the file, its row-group count, its compressed bytes,
-the achieved and achievable skip rates, the efficiency, and the area sum. A
+files). The columns record each file with its row-group count and its
+compressed bytes, then the achieved and achievable skip rates, the
+efficiency, and the area sum. A
 file without per-row-group spatial statistics gets `no-statistics` in the
 `note` column.
 
