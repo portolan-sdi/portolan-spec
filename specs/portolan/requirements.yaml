@@ -873,14 +873,16 @@ requirements:
       that floor(k * N / 10) <= i < floor((k + 1) * N / 10). A chunk's box is
       the union of the bounding boxes of its rows. A row whose bbox covering
       is null stays in its file-order chunk and does not extend the chunk's
-      box. A chunk with no boxed rows contributes no box: it is left out of
-      the mean, and n is the number of chunks that have a box. Compute the
-      pruning efficiency defined in formats.md with the chunk boxes as the
-      layout, so with all ten present the reference is the near-square grid
-      of the chunks' extent into 4 + 4 + 2 cells. The rows pass at the same
-      bar as any layout. Below the row floor formats.md names, ten chunks of
-      twenty rows, the validator reports that the file has too few rows to
-      judge and gives no verdict.
+      box. A chunk with no boxed rows contributes no box: it is left out,
+      and n is the number of chunks that have a box. Compute the pruning
+      efficiency defined in formats.md with the chunk boxes as the layout.
+      Each chunk's row count r_i is its count of boxed rows, and its byte
+      count s_i equals its row count, so with all ten present the reference
+      is the near-square grid of the chunks' extent into 4 + 4 + 2 cells.
+      The rows pass at the same bar as any layout. The row check runs only
+      at or above the 5 MB size floor. Below the row floor formats.md names,
+      ten chunks of twenty rows, the validator reports that the file has too
+      few rows to judge and gives no verdict.
 
   - id: PORTO-FMT-053
     severity: MUST
@@ -888,10 +890,11 @@ requirements:
     file: specs/portolan/formats.md
     quote: >-
       The reference layout MUST be the near-square grid of `n` cells that
-      this construction gives, and no other tiling:
+      this construction gives, with uniform `r_i` and `s_i`, and no other
+      tiling:
     test: >-
-      specs/portolan/abstract-tests/spatial-metric-vectors.json scores eight
-      layouts against this grid. five-strips-n5 and
+      specs/portolan/abstract-tests/spatial-metric-vectors.json scores every
+      layout against this grid. five-strips-n5 and
       three-boxes-old-vs-new-reference separate it from a strip tiling and
       from the grid with empty cells.
 
@@ -910,34 +913,75 @@ requirements:
       decimals, and reports efficiency, area_sum and below_bar as absent
       where the file holds null. line-n8 pins the one-axis guard, with
       efficiency 1.0 and area_sum null. single-box pins the undefined
-      efficiency at n = 1.
+      efficiency at n = 1. outlier-sorted-n20 and outlier-shuffled-n20 pin
+      the window placement, whole-extent-box-heavy-bytes-n8 pins the byte
+      weighting, and crowded-tile-n4 pins the row weighting.
 
   - id: PORTO-FMT-050
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A file with eight or more row groups MUST pass on its row-group boxes,
-      read from the per-row-group spatial statistics.
+      A file at or above the size floor with eight or more row groups MUST
+      pass on its row-group boxes, read from the per-row-group spatial
+      statistics.
 
   - id: PORTO-FMT-044
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Below that floor the footer check does not decide. A validator MUST
-      NOT report a pass or a fail from the row groups, and MAY report the
+      Otherwise the footer gives no verdict there. A validator MUST NOT
+      report a pass from fewer than eight row groups, and MAY report the
       numbers.
+
+  - id: PORTO-FMT-059
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Below eight row groups the footer check MUST still fail a file whose
+      efficiency is under 0.25 at two or more row groups: boxes that each
+      cover most of the extent are plain at any count.
 
   - id: PORTO-FMT-051
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Wherever it reports a verdict, a validator MUST also report the area
-      sum, as a statistic and not as a verdict. When the extent has no area,
-      the area sum is undefined, and a validator MUST report it as absent
-      rather than as 0.
+      Wherever it reports a verdict, a validator MUST also report the
+      efficiency, the achievable skip rate, and the area sum, as statistics
+      and not as verdicts. When the extent has no area, the area sum is
+      undefined, and a validator MUST report it as absent rather than as 0.
+
+  - id: PORTO-FMT-058
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A validator MUST NOT judge the order of a file under 5,000,000 bytes,
+      and MUST report that the file is too small for order to matter rather
+      than stay silent.
+
+  - id: PORTO-FMT-060
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A validator MUST lead its verdict with the absolute cost: the share of
+      the file's bytes the query window is expected to read, as in "a
+      typical query reads 23% of the file".
+
+  - id: PORTO-FMT-061
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      On a failure, a validator SHOULD name the row groups whose boxes are
+      largest against the extent, so a publisher can see whether one outlier
+      or the whole file is at fault. A validator SHOULD also report the read
+      share for windows at 1% and at 25% of each dimension beside the 10%
+      figure.
 
   - id: PORTO-FMT-052
     severity: MUST

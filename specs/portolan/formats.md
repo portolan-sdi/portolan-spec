@@ -54,32 +54,51 @@ resolves from the file alone. An `<authority>:<code>` or `srid:<n>` value needs
 a CRS registry, so a validator reports it as a warning.
 
 Rows MUST be spatially ordered so nearby features are nearby in the file.[^rowrule]
-Order is judged by pruning efficiency, defined next, on the row groups where the
-footer check below applies and on the rows otherwise.
+Files under 5 MB are exempt: skipping parts of so small a file saves a reader
+almost nothing. A validator MUST NOT judge the order of a file under 5,000,000
+bytes, and MUST report that the file is too small for order to matter rather
+than stay silent.[^sizefloor] At or above that size, order is judged by pruning
+efficiency, defined next, on the row groups where the footer check below applies
+and on the rows otherwise.
 
 **Pruning efficiency.** The input is a set of `n` bounding boxes
-`B_i = (bx0, by0, bx1, by1)`. The extent `E = (X0, Y0, X1, Y1)` is the union of
-those boxes, not the bbox the file declares. A query window is `w = 0.10 (X1 − X0)`
-wide and `h = 0.10 (Y1 − Y0)` tall, and its lower-left corner is uniformly
-distributed on `[X0, X1 − w] × [Y0, Y1 − h]`. The window hits box `B_i` with
-probability
+`B_i = (bx0, by0, bx1, by1)`, each carrying a row count `r_i` and a byte count
+`s_i`. For row groups both come from the footer: the group's row count and its
+total compressed size. Where a layout carries no byte counts, as in the row
+check's chunks, `s_i = r_i`. The extent `E` is the union of the boxes, not the
+bbox the file declares.
+
+A query window models a reader working where the data is, at the scale of the
+data it lands on.[^placement] Its centre `c` falls in box `B_i` with probability
+`r_i / N`, where `N = Σ r_i`, uniformly within the box. The window then spans
+10% of each dimension of `B_i`: `w = 0.10 (bx1_i − bx0_i)` wide and
+`h = 0.10 (by1_i − by0_i)` tall. The window overlaps box `B_j` exactly when `c`
+falls inside `B_j` grown by half the window on each side, so the overlap
+probability is a closed form.[^expectation] On one axis, with the centre drawn
+uniformly from `[a0, a1]`, the span of `B_i` there, and the grown target
+`[g0, g1] = [bx0_j − w/2, bx1_j + w/2]`:
 
 ```
-Px = max(0, min(bx1, X1 − w) − max(bx0 − w, X0)) / (X1 − X0 − w)
-Py = max(0, min(by1, Y1 − h) − max(by0 − h, Y0)) / (Y1 − Y0 − h)
-P  = Px · Py
+F = clip((min(a1, g1) − max(a0, g0)) / (a1 − a0), 0, 1)
 ```
 
-A factor whose denominator is zero or less is 1: the extent has no width on that
-axis, so every window hits every box there. The expected skip rate of a layout is
-the share of its boxes a window misses:[^expectation]
+A span with no width (`a1 = a0`) puts all its probability on one coordinate,
+and `F` is 1 when `g0 <= a0 <= g1` and 0 otherwise. The probability that a
+query window overlaps `B_j` is then
 
 ```
-skip = 1 − mean(P_i)
+P_j = Σ_i (r_i / N) · Fx(i, j) · Fy(i, j)
+```
+
+What a reader saves is bytes, not a count of row groups, so the expected skip
+rate weighs each box by its share of the file:
+
+```
+skip = 1 − Σ_j (s_j / S) · P_j        where S = Σ s_j
 ```
 
 The reference layout MUST be the near-square grid of `n` cells that this
-construction gives, and no other tiling:[^grid]
+construction gives, with uniform `r_i` and `s_i`, and no other tiling:[^grid]
 
 ```
 cols = ceil(sqrt(n))
@@ -97,39 +116,51 @@ clipped at 1:
 efficiency = min(1, skip(layout) / skip(reference))
 ```
 
-A layout passes when its efficiency is 0.70 or more. When the reference skip rate is
-0, the efficiency is undefined and the layout is not judged. That happens for
-`n = 1`, and for an extent whose width and height are both zero, where every factor
-is 1. An extent that is zero on one axis only is judged: the guard above sets that
-axis factor to 1, and the other axis decides.
+A layout passes when its efficiency is 0.70 or more. When the reference skip rate
+is 0, the efficiency is undefined and the layout is not judged. That happens for
+`n = 1`, and for an extent that is a single point, where every span has no width
+and every `F` is 1. An extent that is zero on one axis only is judged: the
+single-coordinate rule makes that axis factor 1, and the other axis decides.
 
 The abstract test vectors in
 [`abstract-tests/spatial-metric-vectors.json`](abstract-tests/spatial-metric-vectors.json)
 give the expected numbers for these definitions, and a validator MUST reproduce
 them.
 
-Efficiency measures order relative to the extent, not relative to where the data
-lies. When a few far features stretch the extent so that most of it is empty, every
-box is small against it, and a shuffled file can pass. When features are large
-against the extent, no order makes their boxes small, and a sorted file can fail.
-Both belong to the data, and no sort changes them. The area sum
-`Σ area(B_i) / area(E)` shows them: it is the same expectation with a window of
-zero size, and a re-sort that leaves the verdict unchanged can still shrink it
-several times over.
+Efficiency measures order at the scale of the row groups themselves. The window
+follows the rows and takes the size of the box it lands in, so a few far
+features cannot hide a shuffled file behind a stretched extent, and cannot fail
+a sorted one. The vectors `outlier-shuffled-n20` and `outlier-sorted-n20` pin
+both. When features are large against the extent, no order makes their boxes
+small, and a sorted file can still fail. The area sum `Σ area(B_i) / area(E)`
+shows that case: a re-sort that leaves the verdict unchanged can still shrink
+it several times over.
 
-**Footer check.** A file with eight or more row groups MUST pass on its row-group
-boxes, read from the per-row-group spatial statistics.[^pruning] Below that floor
-the footer check does not decide. A validator MUST NOT report a pass or a fail from
-the row groups, and MAY report the numbers.[^floor] Wherever it reports
-a verdict, a validator MUST also report the area sum, as a statistic and not as a
-verdict. When the extent has no area, the area sum is undefined, and a validator
-MUST report it as absent rather than as 0.
+**Footer check.** A file at or above the size floor with eight or more row
+groups MUST pass on its row-group boxes, read from the per-row-group spatial
+statistics.[^pruning] Below eight row groups the footer check MUST still fail a
+file whose efficiency is under 0.25 at two or more row groups: boxes that each
+cover most of the extent are plain at any count. Otherwise the footer gives no
+verdict there. A validator MUST NOT report a pass from fewer than eight row
+groups, and MAY report the numbers.[^floor]
 
-**Row check.** Where the footer check is not judged, the rows are judged by the
-abstract test recorded with `PORTO-FMT-006` in the [requirements
-manifest](requirements.yaml): the same efficiency, applied to ten equal chunks of
-the rows in file order. That test needs 200 rows. Below that a validator MUST
-report that the file has too few rows to judge, and MUST NOT withhold that message.
+**Row check.** Where the footer check gives no verdict, the rows are judged by
+the abstract test recorded with `PORTO-FMT-006` in the [requirements
+manifest](requirements.yaml): the same efficiency, applied to ten chunks of the
+rows in file order, each weighed by its rows. That test needs 200 rows. Below
+that a validator MUST report that the file has too few rows to judge, and MUST
+NOT withhold that message.
+
+**Reporting.** A validator MUST lead its verdict with the absolute cost: the
+share of the file's bytes the query window is expected to read, as in "a
+typical query reads 23% of the file". Wherever it reports a verdict, a
+validator MUST also report the efficiency, the achievable skip rate, and the
+area sum, as statistics and not as verdicts. When the extent has no area, the
+area sum is undefined, and a validator MUST report it as absent rather than as
+0. On a failure, a validator SHOULD name the row groups whose boxes are largest
+against the extent, so a publisher can see whether one outlier or the whole
+file is at fault. A validator SHOULD also report the read share for windows at
+1% and at 25% of each dimension beside the 10% figure.
 
 The fraction of consecutive row-group pairs whose boxes overlap MAY be reported as a
 statistic, but MUST NOT decide the verdict.[^overlap]
@@ -139,33 +170,54 @@ statistic, but MUST NOT decide the verdict.[^overlap]
     consistency across a catalog, and correct pruning on the day a publisher repacks
     the file into more row groups.
 
-[^expectation]: The skip rate is the expectation of a sampled quantity. Draw query
-    windows at random and count the boxes each one misses, and the mean converges to
-    this number. A rule written that way, with twenty windows from a fixed seed,
-    moved its verdict with the seed on real files. The closed form is that sample's
-    limit, so the rule has no seed, window count, or draw order.
+[^sizefloor]: 5 MB is about one second on a 40 Mbit/s connection, and under the
+    size of most single range requests a reader amortizes anyway. Pruning only
+    pays on files whose skipped bytes outweigh the request overhead. The floor
+    also dissolves the small-file friction the row-group floor used to cause: a
+    file written at the default row-group size reaches eight row groups only in
+    the hundreds of thousands of rows, and judged-versus-not no longer turns on
+    that writer default for small files.
 
-[^grid]: The construction is pinned because other tilings that also cover the
-    extent give a different verdict. `n` vertical strips leave one axis unpruned,
-    so their skip rate caps near 0.90 and a file measured against them scores 5% to
-    9% higher than against the grid: on the unit extent the grid skips 0.818 at
-    n = 8, 0.889 at 16, 0.948 at 59 and 0.980 at 589, where strips skip 0.778,
-    0.839, 0.883 and 0.898. A file at 0.65 against the grid passes against strips.
+[^placement]: An earlier draft placed the window uniformly over the extent and
+    sized it by the extent. Empty area then dominated the verdict: one far
+    outlier row stretched the extent until a shuffled file passed, because most
+    windows landed where no data lies, and a sorted file failed, because the
+    window grew to the size of the whole data region. Placing the window by
+    rows and sizing it by the box it lands in removes both, from the footer
+    alone.
+
+[^expectation]: The skip rate is the expectation of a sampled quantity. Draw a
+    row at random, draw a query window around it, and count the bytes it reads;
+    the mean converges to this number. A rule written that way, with twenty
+    windows from a fixed seed, moved its verdict with the seed on real files.
+    The closed form is that sample's limit, so the rule has no seed, window
+    count, or draw order.
+
+[^grid]: The construction is pinned because the ratio is only comparable when
+    every validator divides by the same reference. Tilings differ less under
+    the box-scaled window than under the extent-scaled one (strips skip 0.864
+    against the grid's 0.858 at n = 8), but they still differ, and the vectors
+    `five-strips-n5` and `three-boxes-old-vs-new-reference` pin the grid.
 
 [^pruning]: Pruning is the benefit spatial ordering exists to deliver, and the footer
     boxes already carry what it takes to estimate it. The bar is relative because the
     achievable rate rises with the row-group count: two row groups can never skip
-    more than half a file, five hundred about 98%. The bar is set from
-    measurements over the Portolan registry and four further catalogs, recorded in
-    the [changelog](../../CHANGELOG.md).
+    more than half a file, five hundred about 98%. The 0.70 bar was calibrated
+    on the earlier extent-window draft over the Portolan registry and four
+    further catalogs, recorded in the [changelog](../../CHANGELOG.md); the
+    calibration corpus is being re-measured under this definition, and the bar
+    moves only with that evidence.
 
-[^floor]: A grid is a poor model of a curve sort at small counts. Well-sorted files
-    from several catalogs score 0.60 to 0.88 at five row groups and 0.76 to 0.94 at
-    eight, so the verdict starts at eight.
+[^floor]: A grid is a poor model of a curve sort at small counts: well-sorted
+    files measured 0.60 to 0.88 at five row groups and 0.76 to 0.94 at eight
+    under the earlier draft, so a pass still starts at eight. A clear failure
+    does not need that many: efficiency near zero means every box covers most
+    of the extent, which two boxes already show.
 
 [^overlap]: A space-filling-curve sort makes neighboring row groups adjacent, so
     their boxes touch and this fraction runs near 1.0 even for a perfectly tiled
     file.
+
 
 Files MUST provide per-row-group spatial statistics so readers can skip row groups
 from metadata alone — either:
