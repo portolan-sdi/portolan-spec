@@ -20,7 +20,7 @@ review is in
 
 Those measurements used the earlier draft of the metric, whose query window
 was sized by the extent and placed uniformly over it. The current rule places
-the window by rows, sizes it by the row group it lands in, and weighs bytes.
+the window by rows, sizes it by the row group around its centre, and weighs bytes.
 The ordering of good and bad files is unchanged on every abstract test vector,
 but the bar carries over from the old measurement until this corpus is
 re-measured under the current definition. The bar moves only with that
