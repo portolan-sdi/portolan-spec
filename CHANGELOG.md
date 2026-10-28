@@ -9,6 +9,16 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+### Added
+
+- **The calibration corpus has a home**
+  ([`specs/portolan/abstract-tests/calibration/`](specs/portolan/abstract-tests/calibration/)):
+  the method and the measurement script behind the 0.70 bar and the floors,
+  with a self-test against the abstract test vectors. The registry survey is
+  to be re-measured under the current metric with
+  `uv run specs/portolan/abstract-tests/calibration/measure.py <corpus>`, and
+  the bar moves only with that evidence. No requirement changes.
+
 ### Changed
 
 - **GeoParquet spatial ordering is judged by pruning efficiency, a closed-form
