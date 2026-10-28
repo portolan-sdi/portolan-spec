@@ -959,9 +959,9 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A validator MUST NOT judge the order of a file whose row groups hold
+      A validator MUST NOT judge the order of a file whose row groups total
       fewer than 5,000,000 compressed bytes, and MUST report that the file is
-      too small for order to matter rather than stay silent.
+      too small for order to matter.
 
   - id: PORTO-FMT-060
     severity: MUST
@@ -977,11 +977,11 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      On a failure, a validator SHOULD name the row groups whose boxes are
-      largest against the extent, so a publisher can see whether one outlier
-      or the whole file is at fault. A validator SHOULD also report the read
-      share for windows at 1% and at 25% of each dimension beside the 10%
-      figure.
+      On a failure, a validator SHOULD identify the row groups whose boxes
+      are largest against the extent, so a publisher can see whether one
+      outlier or the whole file is at fault. A validator SHOULD also report
+      the read share for windows at 1% and at 25% of each dimension beside
+      the 10% figure.
 
   - id: PORTO-FMT-052
     severity: MUST
