@@ -983,6 +983,15 @@ requirements:
       the read share for windows at 1% and at 25% of each dimension beside
       the 10% figure.
 
+  - id: PORTO-FMT-062
+    severity: MAY
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Where a file has page-level statistics (the Parquet page index on
+      the covering leaves, or page-level native statistics), a validator MAY
+      refine the read share it reports with them.
+
   - id: PORTO-FMT-052
     severity: MUST
     enforcement: validator

@@ -222,6 +222,11 @@ statistic, but MUST NOT decide the verdict.[^overlap]
     their boxes touch and this fraction runs near 1.0 even for a perfectly tiled
     file.
 
+[^pagestats]: A reader with page-level statistics skips pages, not only row
+    groups, so the row-group read share overstates what such a reader pays.
+    The refined number is extra information beside the verdict, like the 1%
+    and 25% windows.
+
 
 Files MUST provide per-row-group spatial statistics so readers can skip row groups
 from metadata alone — either:
@@ -233,6 +238,13 @@ from metadata alone — either:
 
 For 2.x, a covering column remains RECOMMENDED even where native statistics exist,
 since it adds page-level min/max stats that enable finer-grained pruning.
+
+Where a file has page-level statistics (the Parquet page index on the
+covering leaves, or page-level native statistics), a validator MAY refine the
+read share it reports with them. The verdict stays the row-group metric above,
+so two validators never disagree over whether one of them read the page
+index.[^pagestats]
+
 
 Row groups MUST hold no more than 150,000 rows.
 
