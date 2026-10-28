@@ -28,7 +28,7 @@ files, which gives an Iceberg engine a second way to read them. That convention 
 recorded in [Iceberg](../incubating/iceberg.md). It is optional and adds no
 requirement to this document.
 
-### Geospatial Parquet
+### Parquet
 
 Data MUST be provided in [GeoParquet 1.1](https://geoparquet.org/releases/v1.1.0/),
 [GeoParquet 2.0](https://geoparquet.org/releases/v2.0.0-rc.1/), or Parquet with the
