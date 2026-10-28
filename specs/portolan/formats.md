@@ -58,8 +58,8 @@ Files under 5 MB are exempt: skipping parts of so small a file saves a reader
 almost nothing. The size is read from the footer, as the sum of the row groups'
 compressed bytes, so every validator measures the same number on a local or a
 remote file. A validator MUST NOT judge the order of a file whose row groups
-hold fewer than 5,000,000 compressed bytes, and MUST report that the file is
-too small for order to matter rather than stay silent.[^sizefloor] At or above
+total fewer than 5,000,000 compressed bytes, and MUST report that the file is
+too small for order to matter.[^sizefloor] At or above
 that size, order is judged by pruning
 efficiency, defined next, on the row groups where the footer check below applies
 and on the rows otherwise.
@@ -67,12 +67,12 @@ and on the rows otherwise.
 **Pruning efficiency.** The input is a set of `n` bounding boxes
 `B_i = (bx0, by0, bx1, by1)`, each carrying a row count `r_i` and a byte count
 `s_i`. For row groups both come from the footer: the group's row count and its
-total compressed size. Where a layout carries no byte counts, as in the row
-check's chunks, `s_i = r_i`. The extent `E` is the union of the boxes, not the
+total compressed size. A layout without byte counts, such as the row
+check's chunks, uses `s_i = r_i`. The extent `E` is the union of the boxes, not the
 bbox the file declares.
 
-A query window models a reader working where the data is, at the scale of the
-data it lands on.[^placement] Its centre `c` falls in box `B_i` with probability
+A query window models a reader working where the data is, at the scale of that
+data.[^placement] Its centre `c` falls in box `B_i` with probability
 `r_i / N`, where `N = Σ r_i`, uniformly within the box. The window then spans
 10% of each dimension of `B_i`: `w = 0.10 (bx1_i − bx0_i)` wide and
 `h = 0.10 (by1_i − by0_i)` tall. The window overlaps box `B_j` exactly when `c`
@@ -93,8 +93,8 @@ query window overlaps `B_j` is then
 P_j = Σ_i (r_i / N) · Fx(i, j) · Fy(i, j)
 ```
 
-What a reader saves is bytes, not a count of row groups, so the expected skip
-rate weighs each box by its share of the file:
+A reader saves bytes, so the expected skip rate weighs each box by its share
+of the file's bytes:
 
 ```
 skip = 1 − Σ_j (s_j / S) · P_j        where S = Σ s_j
@@ -121,7 +121,7 @@ efficiency = min(1, skip(layout) / skip(reference))
 
 A layout passes when its efficiency is 0.70 or more. When the reference skip rate
 is 0, the efficiency is undefined and the layout is not judged. That happens for
-`n = 1`, and for an extent that is a single point, where every span has no width
+`n = 1`, and for an extent that is one point, where every span has no width
 and every `F` is 1. An extent that is zero on one axis only is judged: the
 single-coordinate rule makes that axis factor 1, and the other axis decides.
 
@@ -131,7 +131,7 @@ give the expected numbers for these definitions, and a validator MUST reproduce
 them.
 
 Efficiency measures order at the scale of the row groups themselves. The window
-follows the rows and takes the size of the box it lands in, so a few far
+follows the rows and takes the size of the box around its centre, so a few far
 features cannot hide a shuffled file behind a stretched extent, and cannot fail
 a sorted one. The vectors `outlier-shuffled-n20` and `outlier-sorted-n20` pin
 both. When features are large against the extent, no order makes their boxes
@@ -149,8 +149,9 @@ groups, and MAY report the numbers.[^floor]
 
 **Row check.** Where the footer check gives no verdict, the rows are judged by
 the abstract test recorded with `PORTO-FMT-006` in the [requirements
-manifest](requirements.yaml): the same efficiency, applied to ten chunks of the
-rows in file order, each weighed by its rows. That test needs 200 rows. Below
+manifest](requirements.yaml): the efficiency above, computed on ten chunks of
+the rows in file order. Each chunk is weighed by its rows. That test needs 200
+rows. Below
 that a validator MUST report that the file has too few rows to judge, and MUST
 NOT withhold that message.
 
@@ -160,7 +161,7 @@ typical query reads 23% of the file". Wherever it reports a verdict, a
 validator MUST also report the efficiency, the achievable skip rate, and the
 area sum, as statistics and not as verdicts. When the extent has no area, the
 area sum is undefined, and a validator MUST report it as absent rather than as
-0. On a failure, a validator SHOULD name the row groups whose boxes are largest
+0. On a failure, a validator SHOULD identify the row groups whose boxes are largest
 against the extent, so a publisher can see whether one outlier or the whole
 file is at fault. A validator SHOULD also report the read share for windows at
 1% and at 25% of each dimension beside the 10% figure.
@@ -186,7 +187,7 @@ statistic, but MUST NOT decide the verdict.[^overlap]
     outlier row stretched the extent until a shuffled file passed, because most
     windows landed where no data lies, and a sorted file failed, because the
     window grew to the size of the whole data region. Placing the window by
-    rows and sizing it by the box it lands in removes both, from the footer
+    rows and sizing it by the box around its centre removes both, from the footer
     alone.
 
 [^expectation]: The skip rate is the expectation of a sampled quantity. Draw a
