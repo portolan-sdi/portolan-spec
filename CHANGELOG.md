@@ -11,6 +11,74 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **GeoParquet spatial ordering is judged by pruning efficiency, a closed-form
+  expectation** (`PORTO-FMT-006`, `PORTO-FMT-044`, new `PORTO-FMT-049` to
+  `PORTO-FMT-054` and `PORTO-FMT-058` to `PORTO-FMT-061`,
+  [`specs/portolan/formats.md`](specs/portolan/formats.md)): the footer check
+  passed a file on either low consecutive-pair overlap or row-group boxes
+  averaging under 30% of the extent. Neither criterion does its job. A
+  space-filling-curve sort makes row groups spatially adjacent, so their boxes
+  touch and the overlap fraction runs near 1.0 for the best possible file; the
+  30% figure was calibrated at five row groups and left flat, so at several
+  hundred groups a file a hundred times worse than an ideal tiling still
+  passed. The rule now defines the expected share of the file's bytes a query
+  window skips. The window follows the data: its centre falls in a row group
+  with probability proportional to the group's rows, and it spans 10% of each
+  dimension of that group's box, so empty area cannot decide the verdict. One
+  far outlier row used to stretch the extent until a shuffled file passed and
+  a sorted one failed; the vectors `outlier-shuffled-n20` and
+  `outlier-sorted-n20` pin both ends now. The skip rate weighs each row group
+  by its compressed bytes, because what a reader saves is bytes, not a count
+  of row groups. Everything is a closed form over the footer, so no random
+  sample is part of the rule. The rule divides the skip rate by the same
+  figure for a reference, and the reference is one pinned construction: the
+  near-square grid of `cols = ceil(sqrt(n))` columns with uniform rows and
+  bytes, every cell filled (`PORTO-FMT-053`). A file passes at 0.70 of the
+  reference.
+- **Verdicts follow a 5 MB size floor, not only a row-group floor** (new
+  `PORTO-FMT-058` and `PORTO-FMT-059`): a file whose row groups hold fewer
+  than 5,000,000 compressed bytes is not judged at all, and a validator says it is too small for order to matter.
+  Skipping parts of so small a file saves a reader almost nothing, and the
+  old eight-row-group floor made files written at the default row-group size
+  unjudgeable until the hundreds of thousands of rows. At or above the size
+  floor the pass verdict still starts at eight row groups, because a grid is
+  a poor model of a curve sort at small counts. The clear failure no longer
+  waits: at two or more row groups, efficiency under 0.25 fails, because
+  boxes that each cover most of the extent are plain at any count.
+- **Reporting leads with the absolute cost** (new `PORTO-FMT-060` and
+  `PORTO-FMT-061`, `PORTO-FMT-051` widened): a validator leads with "a
+  typical query reads 23% of the file", reports the efficiency, the
+  achievable rate, and the area sum beside every verdict as statistics, and
+  should name the worst row groups on a failure and give the read share at
+  1% and 25% windows beside the 10% figure.
+- **The row rule reuses the same metric, and its numbers are an abstract test**
+  (`PORTO-FMT-006`, new `PORTO-FMT-052`,
+  [`specs/portolan/requirements.yaml`](specs/portolan/requirements.yaml)): the
+  rule left both the chunk count and "a small part of the file" to the
+  implementer. The requirement stays in the spec. The procedure is now a `test`
+  entry on `PORTO-FMT-006` in the manifest: ten chunks of the rows in file
+  order, each weighed by its rows, scored by the same efficiency against a
+  ten-cell reference, passing at the same 0.70. The flat 30% predicate is
+  retired. The test needs 200 rows, and below that a validator MUST say the
+  file is too small to judge, and MUST NOT withhold that message. The rule
+  applies where the footer check gives no verdict, at or above the size
+  floor.
+- **Abstract test vectors for the metric** (new `PORTO-FMT-054`,
+  [`specs/portolan/abstract-tests/spatial-metric-vectors.json`](specs/portolan/abstract-tests/spatial-metric-vectors.json)):
+  thirteen layouts and two row-level cases with their expected numbers, which
+  a validator MUST reproduce. They pin the one-axis guard (`line-n8` is
+  judged, at efficiency 1.0), the undefined efficiency at `n = 1`, the strip
+  and empty-cell references, the outlier placement, the byte and row
+  weighting, and the chunk rules for null rows. The area sum is undefined on
+  an extent with no area, and a validator MUST report it as absent rather
+  than as 0.
+- **The 0.70 bar carries over from the extent-window draft.** It was set from
+  206 files across every catalog in the Portolan registry, where the nine
+  files below it all reached 0.87 to 0.97 after a re-sort, and from a review
+  across four further catalogs, three single files, and 1.27 million AIS
+  tracks. Those measurements used the earlier draft's uniform window; the
+  corpus is being re-measured under this definition, and the bar moves only
+  with that evidence.
 - **Geospatial Parquet accepts three forms** (`PORTO-FMT-004` widened,
   `PORTO-FMT-055` to `PORTO-FMT-057` added,
   [`specs/portolan/formats.md`](specs/portolan/formats.md)): data can be
@@ -22,7 +90,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   value is one the Parquet geospatial specification defines, or absent.
   PROJJSON and `projjson:<key>` resolve from the file alone. A registry code
   such as `EPSG:4326` is a warning.
-- **Requirements manifest**: 133 requirements, now 92 MUST, 24 SHOULD, and
+- **Requirements manifest**: 143 requirements, now 101 MUST, 25 SHOULD, and
   17 MAY.
 
 ### Removed
