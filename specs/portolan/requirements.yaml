@@ -988,7 +988,7 @@ requirements:
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      Where a file carries page-level statistics (the Parquet page index on
+      Where a file has page-level statistics (the Parquet page index on
       the covering leaves, or page-level native statistics), a validator MAY
       refine the read share it reports with them.
 

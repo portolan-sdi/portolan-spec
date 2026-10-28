@@ -239,7 +239,7 @@ from metadata alone — either:
 For 2.x, a covering column remains RECOMMENDED even where native statistics exist,
 since it adds page-level min/max stats that enable finer-grained pruning.
 
-Where a file carries page-level statistics (the Parquet page index on the
+Where a file has page-level statistics (the Parquet page index on the
 covering leaves, or page-level native statistics), a validator MAY refine the
 read share it reports with them. The verdict stays the row-group metric above,
 so two validators never disagree over whether one of them read the page
