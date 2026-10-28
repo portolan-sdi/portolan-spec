@@ -275,10 +275,10 @@ both.
 carrying only the native Parquet geospatial types is not conformant GeoParquet
 2.0. Engines that write Iceberg commonly produce exactly that file.
 [opengeospatial/geoparquet#308](https://github.com/opengeospatial/geoparquet/issues/308)
-proposes to make such a file conformant and the `geo` key optional. This
-document takes no position. Portolan requires GeoParquet 1.1 or 2.0 in
-[formats.md](../portolan/formats.md) and defers to that specification for what
-conformance means, so this document follows whatever GeoParquet decides.
+proposes to make such a file conformant and the `geo` key optional. Portolan
+accepts the file either way: [formats.md](../portolan/formats.md) admits
+GeoParquet 1.1, GeoParquet 2.0, and Parquet with the native geospatial types,
+so an Iceberg data file needs no `geo` key to conform.
 
 **The static REST surface.** A catalog MAY serve a pre-rendered Iceberg REST
 catalog under `v1/` at its public base, so a client attaches the whole catalog

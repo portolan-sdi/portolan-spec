@@ -11,6 +11,18 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **Geospatial Parquet accepts three forms** (`PORTO-FMT-004` widened,
+  `PORTO-FMT-055` to `PORTO-FMT-057` added,
+  [`specs/portolan/formats.md`](specs/portolan/formats.md)): data can be
+  GeoParquet 1.1, GeoParquet 2.0, or Parquet with the native geospatial
+  logical types and no `geo` key. Apache Iceberg writers produce the third
+  form, and the validator used to skip those files as tabular Parquet
+  (portolan-sdi/rashid#200). A validator now checks all three forms against
+  every vector requirement. The native `crs` field gets its own rules. The
+  value is one the Parquet geospatial specification defines, or absent.
+  PROJJSON and `projjson:<key>` resolve from the file alone. A registry code
+  such as `EPSG:4326` is a warning.
+
 - **Tabular bounding boxes have regional examples**. Use the bounds of Europe
   for a table about Europe, or the country's bounds for a tabular collection
   in a country catalog (#198).
@@ -56,7 +68,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 135 requirements, now 94 MUST, 23 SHOULD, and
+- **Requirements manifest**: 138 requirements, now 96 MUST, 24 SHOULD, and
   18 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source
