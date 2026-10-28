@@ -90,8 +90,12 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   value is one the Parquet geospatial specification defines, or absent.
   PROJJSON and `projjson:<key>` resolve from the file alone. A registry code
   such as `EPSG:4326` is a warning.
-- **Requirements manifest**: 143 requirements, now 101 MUST, 25 SHOULD, and
-  17 MAY.
+- **A validator may refine its read share with page-level statistics** (new
+  `PORTO-FMT-062`): the page index on the covering leaves lets a reader skip
+  pages, not only row groups, so the reported read share can say so. The
+  verdict stays the row-group metric, so validators keep agreeing.
+- **Requirements manifest**: 144 requirements, now 101 MUST, 25 SHOULD, and
+  18 MAY.
 
 ### Removed
 
