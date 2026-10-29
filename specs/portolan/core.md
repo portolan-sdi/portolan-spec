@@ -21,7 +21,7 @@ specification - every Portolan implementation is a STAC catalog, and can be used
 with any STAC tooling. But where STAC can be used with any data format and can 
 be implemented as an API or files on cloud storage, Portolan requires well-formed 
 cloud-native formats, stored as files on browser-accessible online services. All
-Portolan implementaions are [static catalogs](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#static-catalogs)
+Portolan implementations are [static catalogs](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#static-catalogs)
 - there is no 'Portolan API' like the STAC API, as many of the key benefits of Portolan,
 like scalability and lower cost, are achieved by the full embrace of cloud-native geospatial.
 
