@@ -9,6 +9,22 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+### Changed
+
+- **Geospatial Parquet accepts three forms** (`PORTO-FMT-004` widened,
+  `PORTO-FMT-055` to `PORTO-FMT-057` added,
+  [`specs/portolan/formats.md`](specs/portolan/formats.md)): data can be
+  GeoParquet 1.1, GeoParquet 2.0, or Parquet with the native geospatial
+  logical types and no `geo` key. Apache Iceberg writers produce the third
+  form, and the validator used to skip those files as tabular Parquet
+  (portolan-sdi/rashid#200). A validator now checks all three forms against
+  every vector requirement. The native `crs` field gets its own rules. The
+  value is one the Parquet geospatial specification defines, or absent.
+  PROJJSON and `projjson:<key>` resolve from the file alone. A registry code
+  such as `EPSG:4326` is a warning.
+- **Requirements manifest**: 133 requirements, now 92 MUST, 24 SHOULD, and
+  17 MAY.
+
 ### Removed
 
 - **The catalog grader leaves the specification**
