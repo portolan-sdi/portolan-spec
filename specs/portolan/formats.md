@@ -211,6 +211,12 @@ The required statistics are:
 | Valid percent | SHOULD (MUST when the band has a nodata value) |
 | Approximate flag (`STATISTICS_APPROXIMATE = YES`) | MUST when estimated |
 
+For non-finite nodata, [STAC 1.1.0 common
+metadata](https://github.com/radiantearth/stac-spec/blob/v1.1.0/commons/common-metadata.md#bands)
+uses the strings `"nan"`, `"inf"`, and `"-inf"` in the band `nodata` field.
+`null` and bare `NaN` fail STAC validation. The valid-percent condition in the
+table still applies to a band whose nodata value is non-finite.
+
 The exact on-disk encoding (the TIFF `GDAL_METADATA` tag and its XML layout, and
 `GDAL_NODATA`) is specified in
 [`specs/incubating/geotiff-stats-headers.md`](../incubating/geotiff-stats-headers.md).

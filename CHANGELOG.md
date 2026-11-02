@@ -11,6 +11,10 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **The raster statistics note points to STAC for non-finite nodata**.
+  It names the permitted strings and confirms that valid percent still
+  applies (#205).
+
 - **The spatial-path rule applies only to spatial schemes**
   (`PORTO-FMT-018`). The `temporal` and `attribute` schemes are exempt (#196).
 
