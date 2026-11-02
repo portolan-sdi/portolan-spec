@@ -11,6 +11,9 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **The Contacts extension pin is v1.0.0** in the STAC profile registry
+  (#53, part 7a).
+
 - **Catalogs, collections, and items can publish logos**
   (`PORTO-CORE-074`). The `icon` permission now matches the schema (#151).
 
