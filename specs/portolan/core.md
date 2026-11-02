@@ -258,7 +258,11 @@ Portolan reuses existing extensions rather than restating their fields: `file` f
 layer detail, `license` for per-asset license, and `scientific` for citation or
 DOI.
 
-Assets SHOULD carry `file:size` and `file:checksum` from the [file
+An asset whose `href` resolves to the STAC object that contains it MUST omit
+`file:size` and `file:checksum`. This avoids changing the file when recording
+its own checksum, as with a `collection.json` asset that refers to itself.
+
+Other assets SHOULD carry `file:size` and `file:checksum` from the [file
 extension](https://github.com/stac-extensions/file). Both are cheap to compute for
 bytes the publisher uploads, and they let a client budget a download and verify
 what it received. Neither is required, because a catalog that describes data it

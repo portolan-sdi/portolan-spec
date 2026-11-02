@@ -11,6 +11,10 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **An asset that refers to its containing STAC object omits file metadata**
+  (`PORTO-CORE-028`, `PORTO-CORE-085`). It carries neither `file:size` nor
+  `file:checksum`, which avoids a checksum that changes its own file (#176).
+
 - **Mirrors need at least one HTML `via` link** (`PORTO-CORE-053`,
   `PORTO-CORE-084`). Further `via` links can carry the media type their
   upstream service returns (#122).
@@ -25,7 +29,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 - **The spatial-path rule applies only to spatial schemes**
   (`PORTO-FMT-018`). The `temporal` and `attribute` schemes are exempt (#196).
 
-- **Requirements manifest**: 132 requirements, now 91 MUST, 23 SHOULD, and
+- **Requirements manifest**: 133 requirements, now 92 MUST, 23 SHOULD, and
   18 MAY.
 
 - **PMTiles assets carry `visual` and reference GeoParquet**
