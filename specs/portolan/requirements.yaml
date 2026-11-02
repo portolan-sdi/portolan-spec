@@ -1009,6 +1009,13 @@ requirements:
       where those readers need them (glob expansion requires listing, which
       plain https does not provide).
 
+  - id: PORTO-FMT-064
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      `partition:glob` MUST NOT use `http://` or `https://`.
+
   - id: PORTO-FMT-021
     severity: MUST
     enforcement: validator

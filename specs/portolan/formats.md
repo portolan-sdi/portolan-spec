@@ -144,6 +144,7 @@ requirements the extension does not cover:
   glob: globs are consumed by partition-aware readers rather than browsers, and
   bucket-native schemes (`s3://`, `gs://`) MAY be used where those readers need
   them (glob expansion requires listing, which plain https does not provide).
+- `partition:glob` MUST NOT use `http://` or `https://`.
 - Every partition file MUST share a single Parquet schema — the same columns,
   names, and types — so the glob can be queried as one table. This is validated
   by tooling reading file footers, not by JSON schema.

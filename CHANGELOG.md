@@ -11,6 +11,10 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **Partition globs reject HTTP and HTTPS** (`PORTO-FMT-064`).
+  Glob expansion needs object listing, which plain HTTP does not provide
+  (#166).
+
 - **The Contacts extension pin is v1.0.0** in the STAC profile registry
   (#53, part 7a).
 
@@ -43,7 +47,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 - **The spatial-path rule applies only to spatial schemes**
   (`PORTO-FMT-018`). The `temporal` and `attribute` schemes are exempt (#196).
 
-- **Requirements manifest**: 134 requirements, now 93 MUST, 23 SHOULD, and
+- **Requirements manifest**: 135 requirements, now 94 MUST, 23 SHOULD, and
   18 MAY.
 
 - **PMTiles assets carry `visual` and reference GeoParquet**
