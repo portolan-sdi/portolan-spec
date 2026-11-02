@@ -11,6 +11,9 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **Catalogs, collections, and items can publish logos**
+  (`PORTO-CORE-074`). The `icon` permission now matches the schema (#151).
+
 - **The sync tool writes `updated` for every object it checks**
   (`PORTO-CORE-057`), even when the source is unchanged. Catalogs and
   collections outside that sync keep their previous value (#206).

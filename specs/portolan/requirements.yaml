@@ -680,7 +680,8 @@ requirements:
     enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      The root catalog MAY publish a logo as a link with `rel: "icon"`.
+      A catalog, collection, or item MAY publish a logo as a link
+      with `rel: "icon"`.
 
   - id: PORTO-CORE-075
     severity: MUST

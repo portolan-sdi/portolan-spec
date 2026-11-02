@@ -521,8 +521,8 @@ title, description, license, and data provenance.
 ## Catalog Logo
 
 A registry lists many catalogs side by side. A logo makes each one recognizable
-before the reader has read a word. The root catalog MAY publish a logo as a link
-with `rel: "icon"`.
+before the reader has read a word. A catalog, collection, or item MAY publish a
+logo as a link with `rel: "icon"`.
 
 STAC defines no `logo` relation. `icon` is registered with IANA, and stac-js and
 STAC Browser already read it. STAC uses `preview` for a preview of the data
