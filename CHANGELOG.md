@@ -11,53 +11,56 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
-- **The tabular area-of-interest text gives regional examples**.
-  European data uses the bounds of Europe, and a country catalog uses the
-  country bounds (#198).
+- **Tabular bounding boxes have regional examples**. A table about Europe
+  uses the bounds of Europe. A tabular collection in a country catalog uses
+  that country's bounds (#198).
 
-- **Partition globs reject HTTP and HTTPS** (`PORTO-FMT-064`).
-  Glob expansion needs object listing, which plain HTTP does not provide
-  (#166).
+- **Partition globs cannot use HTTP or HTTPS** (`PORTO-FMT-064`).
+  A reader needs to list the files that match the glob, and plain HTTP
+  does not support that operation (#166).
 
-- **The Contacts extension pin is v1.0.0** in the STAC profile registry
+- **The STAC profile now lists Contacts v1.0.0** in place of v0.1.1
   (#53, part 7a).
 
-- **Catalogs, collections, and items can publish logos**
-  (`PORTO-CORE-074`). The `icon` permission now matches the schema (#151).
+- **Catalogs, collections, and items can include logo links**
+  (`PORTO-CORE-074`). The prose now allows a link with `rel: "icon"` on
+  all three object types, as the schema already does (#151).
 
-- **The sync tool writes `updated` for every object it checks**
-  (`PORTO-CORE-057`), even when the source is unchanged. Catalogs and
-  collections outside that sync keep their previous value (#206).
+- **The sync tool sets `updated` on every mirror catalog and collection
+  it checks** (`PORTO-CORE-057`), even when the source has not changed.
+  Catalogs and collections outside that sync keep their previous value (#206).
 
-- **Embedded statistics describe stored pixels at full resolution**
-  (`PORTO-FMT-063`, `process` enforcement). The allowance for approximate
-  statistics still applies (#163).
+- **Embedded raster statistics describe the pixels stored in each band
+  at full resolution** (`PORTO-FMT-063`, enforced through the publication
+  process). Estimates are still allowed with the approximate flag (#163).
 
-- **An asset that refers to its containing STAC object omits file metadata**
-  (`PORTO-CORE-028`, `PORTO-CORE-085`). It carries neither `file:size` nor
-  `file:checksum`, which avoids a checksum that changes its own file (#176).
+- **An asset that points to its own STAC object omits `file:size` and
+  `file:checksum`** (`PORTO-CORE-028`, `PORTO-CORE-085`). Adding a checksum
+  to the file itself would change the file and make that checksum incorrect (#176).
 
-- **Mirrors need at least one HTML `via` link** (`PORTO-CORE-053`,
-  `PORTO-CORE-084`). Further `via` links can carry the media type their
-  upstream service returns (#122).
+- **Mirrors need at least one `via` link with `type` set to `text/html`**
+  (`PORTO-CORE-053`, `PORTO-CORE-084`). Additional `via` links can use the
+  actual media type of the source service, such as XML (#122).
 
-- **Documentation guidance covers all-nodata scenes**. Omit them and
-  state in the README how many scenes you omit and why (#177).
+- **The documentation guidance explains what to do with scenes that contain
+  only nodata pixels**. Leave them out and explain in the README how many
+  scenes you left out and why (#177).
 
-- **The raster statistics note points to STAC for non-finite nodata**.
-  It names the permitted strings and confirms that valid percent still
-  applies (#205).
+- **The raster note explains how STAC represents non-finite nodata values**.
+  It lists the valid strings for the `nodata` field and confirms that these
+  bands still need a valid-percent statistic (#205).
 
-- **The spatial-path rule applies only to spatial schemes**
-  (`PORTO-FMT-018`). The `temporal` and `attribute` schemes are exempt (#196).
+- **Only spatial partition schemes need paths that reflect spatial extent**
+  (`PORTO-FMT-018`). This rule does not apply to the `temporal` and
+  `attribute` schemes (#196).
 
 - **Requirements manifest**: 135 requirements, now 94 MUST, 23 SHOULD, and
   18 MAY.
 
-- **PMTiles assets carry `visual` and reference GeoParquet**
-  (`PORTO-FMT-062`). The GeoParquet belongs to the same collection, through a
-  `data` asset or `partition:glob`. PMTiles alone does not satisfy the
-  primary-data rule (#225).
+- **PMTiles assets need the `visual` role and a reference to their source
+  GeoParquet data in the same collection** (`PORTO-FMT-062`). The reference
+  can be a `data` asset or `partition:glob`. A collection cannot use PMTiles
+  alone as its primary data (#225).
 
 ### Removed
 

@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The Contacts extension registry pin is v1.0.0 instead of v0.1.1 (#53).
+- The STAC profile now lists Contacts v1.0.0 in place of v0.1.1 (#53).
 
 ## 0.2.0 - 2026-08-28
 

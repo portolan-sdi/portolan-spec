@@ -258,11 +258,12 @@ Portolan reuses existing extensions rather than restating their fields: `file` f
 layer detail, `license` for per-asset license, and `scientific` for citation or
 DOI.
 
-An asset whose `href` resolves to the STAC object that contains it MUST omit
-`file:size` and `file:checksum`. This avoids changing the file when recording
-its own checksum, as with a `collection.json` asset that refers to itself.
+If an asset's `href` points to the STAC object that contains the asset, it
+MUST omit `file:size` and `file:checksum`. A `collection.json` asset
+cannot include its own checksum: adding the checksum changes the file and
+makes that checksum incorrect.
 
-Other assets SHOULD carry `file:size` and `file:checksum` from the [file
+Other assets SHOULD include `file:size` and `file:checksum` from the [file
 extension](https://github.com/stac-extensions/file). Both are cheap to compute for
 bytes the publisher uploads, and they let a client budget a download and verify
 what it received. Neither is required, because a catalog that describes data it
@@ -468,10 +469,10 @@ organization; it is a mirror when they differ. An organization hosting data it d
 not produce is a mirror under this definition even when it is the primary
 distributor; the `via` link then simply records where the data originated.
 
-A mirror MUST include at least one `via` link of type `text/html` pointing to
-the original source. Further `via` links MAY point to the upstream services the
-data comes from, each carrying the media type that service returns. When that
-source publishes its own STAC catalog, the mirror MUST also
+A mirror MUST include at least one `via` link to the original source with
+`type` set to `text/html`. Additional `via` links MAY point to the upstream
+services that supply the data, with `type` set to the media type each service
+returns. When that source publishes its own STAC catalog, the mirror MUST also
 include a `canonical` link pointing to the source's STAC, so consumers and agents
 can follow the chain to the authoritative metadata, not just a landing page.
 Whether the source publishes a STAC catalog cannot be determined from the mirror's
@@ -481,9 +482,10 @@ informational, never as a failure. The
 human page and a STAC root). An official catalog carries no `via` or `canonical`
 link to an upstream source, because it is the source.
 
-The sync tool MUST set the top-level `updated` field (RFC 3339) to the sync
-time on every mirror catalog and collection it checks. This applies even when
-the source is unchanged. Objects outside that sync keep their previous value.
+The tool that syncs a mirror MUST set the top-level `updated` field to the
+sync time, in RFC 3339 format, on every catalog and collection it checks.
+It sets this value even when the source has not changed. Catalogs and collections
+outside that sync keep their previous value.
 A sync is a metadata update, so this reuses the core STAC field
 with no Portolan-specific addition; a consumer judges the freshness of a copy by
 comparing `updated` against the source. Sync cadence and richer source-freshness
@@ -521,8 +523,8 @@ title, description, license, and data provenance.
 ## Catalog Logo
 
 A registry lists many catalogs side by side. A logo makes each one recognizable
-before the reader has read a word. A catalog, collection, or item MAY publish a
-logo as a link with `rel: "icon"`.
+before the reader has read a word. A catalog, collection, or item MAY include a
+logo in its links with `rel: "icon"`.
 
 STAC defines no `logo` relation. `icon` is registered with IANA, and stac-js and
 STAC Browser already read it. STAC uses `preview` for a preview of the data

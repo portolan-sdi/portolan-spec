@@ -302,15 +302,15 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      An asset whose `href` resolves to the STAC object that contains it MUST omit
-      `file:size` and `file:checksum`.
+      If an asset's `href` points to the STAC object that contains the asset, it
+      MUST omit `file:size` and `file:checksum`.
 
   - id: PORTO-CORE-028
     severity: SHOULD
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Other assets SHOULD carry `file:size` and `file:checksum` from the [file
+      Other assets SHOULD include `file:size` and `file:checksum` from the [file
       extension](https://github.com/stac-extensions/file).
 
   - id: PORTO-CORE-029
@@ -578,16 +578,17 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      A mirror MUST include at least one `via` link of type `text/html` pointing to
-      the original source.
+      A mirror MUST include at least one `via` link to the original source with
+      `type` set to `text/html`.
 
   - id: PORTO-CORE-084
     severity: MAY
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Further `via` links MAY point to the upstream services the
-      data comes from, each carrying the media type that service returns.
+      Additional `via` links MAY point to the upstream
+      services that supply the data, with `type` set to the media type each service
+      returns.
 
   - id: PORTO-CORE-054
     severity: MUST
@@ -621,9 +622,10 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      The sync tool MUST set the top-level `updated` field (RFC 3339) to the sync
-      time on every mirror catalog and collection it checks. This applies even when
-      the source is unchanged. Objects outside that sync keep their previous value.
+      The tool that syncs a mirror MUST set the top-level `updated` field to the
+      sync time, in RFC 3339 format, on every catalog and collection it checks.
+      It sets this value even when the source has not changed. Catalogs and collections
+      outside that sync keep their previous value.
 
   - id: PORTO-CORE-058
     severity: MUST
@@ -680,8 +682,8 @@ requirements:
     enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      A catalog, collection, or item MAY publish a logo as a link
-      with `rel: "icon"`.
+      A catalog, collection, or item MAY include a
+      logo in its links with `rel: "icon"`.
 
   - id: PORTO-CORE-075
     severity: MUST
@@ -938,9 +940,8 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A PMTiles asset MUST carry the `visual` role and belong to a collection that
-      references the GeoParquet data it renders through a `data` asset or
-      `partition:glob`.
+      A PMTiles asset MUST have the `visual` role and belong to a collection that
+      references its source GeoParquet data through a `data` asset or `partition:glob`.
 
   - id: PORTO-FMT-014
     severity: MUST
@@ -985,9 +986,9 @@ requirements:
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      A spatial scheme (`kdtree`, `h3`, `s2`, `quadkey`, `a5`) MUST have a path
-      structure that reflects spatial extent so readers can prune files without
-      reading metadata.
+      For a spatial scheme (`kdtree`, `h3`, `s2`, `quadkey`, or `a5`), paths MUST
+      reflect the area each file covers so readers can skip files without
+      reading their metadata.
 
   - id: PORTO-FMT-019
     severity: SHOULD
@@ -1102,8 +1103,8 @@ requirements:
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      Embedded statistics MUST describe the stored, full-resolution pixels of each
-      band.
+      Embedded statistics MUST describe the pixels stored in each band at full
+      resolution.
 
   - id: PORTO-FMT-030
     severity: MUST

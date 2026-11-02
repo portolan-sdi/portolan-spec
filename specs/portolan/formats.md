@@ -112,10 +112,9 @@ rather than download, it is expressed as a link by default; when a provider inte
 the PMTiles file as a genuine distribution format of the data, it MAY additionally
 be registered as a collection-level asset, and the link and the asset then coexist.
 
-A PMTiles asset MUST carry the `visual` role and belong to a collection that
-references the GeoParquet data it renders through a `data` asset or
-`partition:glob`.
-PMTiles alone does not satisfy the collection's primary-data requirement.
+A PMTiles asset MUST have the `visual` role and belong to a collection that
+references its source GeoParquet data through a `data` asset or `partition:glob`.
+A collection cannot use PMTiles alone as its primary data.
 
 When PMTiles are provided, the collection MUST include at least one visualization
 style as a standalone STAC asset with the `["style"]` role, registered per
@@ -135,9 +134,9 @@ carried — `partition:scheme`, `partition:keys`, and `partition:glob`. Field
 definitions live in the extension and are not restated here. Portolan adds the
 requirements the extension does not cover:
 
-- A spatial scheme (`kdtree`, `h3`, `s2`, `quadkey`, `a5`) MUST have a path
-  structure that reflects spatial extent so readers can prune files without
-  reading metadata. A `temporal` or `attribute` scheme is exempt.
+- For a spatial scheme (`kdtree`, `h3`, `s2`, `quadkey`, or `a5`), paths MUST
+  reflect the area each file covers so readers can skip files without
+  reading their metadata. The `temporal` and `attribute` schemes are exempt.
 - `partition:glob` is the normative bulk-access path; the collection description
   SHOULD also mention the glob for human readers, but validators read only the
   field. The https-only rule for absolute asset hrefs does not extend to the
@@ -204,8 +203,8 @@ file — an external `.aux.xml` (PAM) sidecar does not satisfy this — and MUST
 written at creation time (e.g. `gdal_translate -of COG -stats`), residing in the
 file's leading header block so they arrive in a reader's first range request.
 
-Embedded statistics MUST describe the stored, full-resolution pixels of each
-band. Estimates remain permitted with the approximate flag below.
+Embedded statistics MUST describe the pixels stored in each band at full
+resolution. Estimates are allowed when the approximate flag below is set.
 
 The required statistics are:
 
@@ -215,11 +214,11 @@ The required statistics are:
 | Valid percent | SHOULD (MUST when the band has a nodata value) |
 | Approximate flag (`STATISTICS_APPROXIMATE = YES`) | MUST when estimated |
 
-For non-finite nodata, [STAC 1.1.0 common
-metadata](https://github.com/radiantearth/stac-spec/blob/v1.1.0/commons/common-metadata.md#bands)
-uses the strings `"nan"`, `"inf"`, and `"-inf"` in the band `nodata` field.
-`null` and bare `NaN` fail STAC validation. The valid-percent condition in the
-table still applies to a band whose nodata value is non-finite.
+For a non-finite nodata value, set the band's `nodata` field to `"nan"`,
+`"inf"`, or `"-inf"`, as defined in [STAC 1.1.0 common
+metadata](https://github.com/radiantearth/stac-spec/blob/v1.1.0/commons/common-metadata.md#bands).
+Neither `null` nor bare `NaN` is valid in this field. A band with a non-finite
+nodata value still needs the valid-percent statistic listed in the table.
 
 The exact on-disk encoding (the TIFF `GDAL_METADATA` tag and its XML layout, and
 `GDAL_NODATA`) is specified in
@@ -297,8 +296,9 @@ MUST treat it as informational. GeoParquet spatial metadata, PMTiles and other
 visualization derivatives, and geometry validation do not apply, as there is no
 geometry.
 
-European data uses the bounds of Europe, and tabular data in a country
-catalog uses the country bounds.
+A table of European electricity prices uses the bounds of Europe in
+`extent.spatial.bbox`. A tabular collection in a country catalog uses the
+bounds of that country.
 
 Tabular collections SHOULD populate `extent.temporal` when the data has a time
 dimension, and SHOULD document their columns with the STAC

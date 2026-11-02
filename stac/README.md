@@ -55,7 +55,7 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 | [Render][] | `https://stac-extensions.github.io/render/v2.0.0/schema.json`               | SHOULD      | Continuous rasters rendering from source (draw-time colorization) |
 | [Projection][] | `https://stac-extensions.github.io/projection/v2.0.0/schema.json`           | MAY         | CRS / projection of the data |
 | [Scientific][] | `https://stac-extensions.github.io/scientific/v1.0.0/schema.json`           | MAY         | Citation / DOI |
-| [Contacts][] | `https://stac-extensions.github.io/contacts/v1.0.0/schema.json`             | MAY         | Richer contact info; never replaces url-or-email on the host provider |
+| [Contacts][] | `https://stac-extensions.github.io/contacts/v1.0.0/schema.json`             | MAY         | Adds contact details. The host provider still needs a URL or email address. |
 | [Attribution][] | `https://stac-extensions.github.io/attribution/v0.1.0/schema.json`          | MAY         | Display attribution |
 | [Themes][] | `https://stac-extensions.github.io/themes/v1.0.0/schema.json`               | MAY         | Thematic classification |
 | [Iceberg][] | `https://schemas.portolan-sdi.org/incubating/iceberg/v1.1.0/schema.json`     | MAY         | Collection also published as a static Iceberg v3 table over the same files (spec: [Iceberg](../specs/incubating/iceberg.md)) |
