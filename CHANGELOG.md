@@ -11,6 +11,9 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **Documentation guidance covers all-nodata scenes**. Omit them and
+  state in the README how many scenes you omit and why (#177).
+
 - **The raster statistics note points to STAC for non-finite nodata**.
   It names the permitted strings and confirms that valid percent still
   applies (#205).
