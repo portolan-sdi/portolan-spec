@@ -481,9 +481,10 @@ informational, never as a failure. The
 human page and a STAC root). An official catalog carries no `via` or `canonical`
 link to an upstream source, because it is the source.
 
-A mirror MUST record when it was last synced from its source by setting the
-top-level `updated` field (RFC 3339) at each synced catalog and collection to the
-time of the sync. A sync is a metadata update, so this reuses the core STAC field
+The sync tool MUST set the top-level `updated` field (RFC 3339) to the sync
+time on every mirror catalog and collection it checks. This applies even when
+the source is unchanged. Objects outside that sync keep their previous value.
+A sync is a metadata update, so this reuses the core STAC field
 with no Portolan-specific addition; a consumer judges the freshness of a copy by
 comparing `updated` against the source. Sync cadence and richer source-freshness
 metadata are deferred to a future version.

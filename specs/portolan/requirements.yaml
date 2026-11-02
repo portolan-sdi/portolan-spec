@@ -621,9 +621,9 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      A mirror MUST record when it was last synced from its source by setting
-      the top-level `updated` field (RFC 3339) at each synced catalog and
-      collection to the time of the sync.
+      The sync tool MUST set the top-level `updated` field (RFC 3339) to the sync
+      time on every mirror catalog and collection it checks. This applies even when
+      the source is unchanged. Objects outside that sync keep their previous value.
 
   - id: PORTO-CORE-058
     severity: MUST
