@@ -112,6 +112,11 @@ rather than download, it is expressed as a link by default; when a provider inte
 the PMTiles file as a genuine distribution format of the data, it MAY additionally
 be registered as a collection-level asset, and the link and the asset then coexist.
 
+A PMTiles asset MUST carry the `visual` role and belong to a collection that
+references the GeoParquet data it renders through a `data` asset or
+`partition:glob`.
+PMTiles alone does not satisfy the collection's primary-data requirement.
+
 When PMTiles are provided, the collection MUST include at least one visualization
 style as a standalone STAC asset with the `["style"]` role, registered per
 [Visualization Styles](core.md#visualization-styles). For PMTiles the style is a

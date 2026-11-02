@@ -140,8 +140,8 @@ underscores, start with a letter, and be unique within the catalog.
 A collection MUST refer to its primary data. The reference is an asset
 carrying the `data` role — on the collection itself or on its items — or
 `partition:glob` on a partitioned collection (see [Partitioned
-Collections](formats.md#partitioned-collections)). A thumbnail, style, or
-metadata asset does not satisfy this requirement on its own. The catalog exists
+Collections](formats.md#partitioned-collections)). A thumbnail, style, metadata,
+or PMTiles asset does not satisfy this requirement on its own. The catalog exists
 to make data findable, and a collection that a client cannot trace to any data
 file describes nothing.
 

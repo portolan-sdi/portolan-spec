@@ -9,6 +9,16 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+### Changed
+
+- **Requirements manifest**: 131 requirements, now 91 MUST, 23 SHOULD, and
+  17 MAY.
+
+- **PMTiles assets carry `visual` and reference GeoParquet**
+  (`PORTO-FMT-062`). The GeoParquet belongs to the same collection, through a
+  `data` asset or `partition:glob`. PMTiles alone does not satisfy the
+  primary-data rule (#225).
+
 ### Removed
 
 - **The catalog grader leaves the specification**
