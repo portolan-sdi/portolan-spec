@@ -203,6 +203,9 @@ file — an external `.aux.xml` (PAM) sidecar does not satisfy this — and MUST
 written at creation time (e.g. `gdal_translate -of COG -stats`), residing in the
 file's leading header block so they arrive in a reader's first range request.
 
+Embedded statistics MUST describe the stored, full-resolution pixels of each
+band. Estimates remain permitted with the approximate flag below.
+
 The required statistics are:
 
 | Statistic | Requirement |

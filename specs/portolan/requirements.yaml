@@ -1089,6 +1089,14 @@ requirements:
       -stats`), residing in the file's leading header block so they arrive in
       a reader's first range request.
 
+  - id: PORTO-FMT-063
+    severity: MUST
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Embedded statistics MUST describe the stored, full-resolution pixels of each
+      band.
+
   - id: PORTO-FMT-030
     severity: MUST
     enforcement: validator
