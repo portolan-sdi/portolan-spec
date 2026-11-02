@@ -135,8 +135,9 @@ carried — `partition:scheme`, `partition:keys`, and `partition:glob`. Field
 definitions live in the extension and are not restated here. Portolan adds the
 requirements the extension does not cover:
 
-- The scheme's path structure MUST reflect spatial extent so readers can prune
-  files without reading metadata.
+- A spatial scheme (`kdtree`, `h3`, `s2`, `quadkey`, `a5`) MUST have a path
+  structure that reflects spatial extent so readers can prune files without
+  reading metadata. A `temporal` or `attribute` scheme is exempt.
 - `partition:glob` is the normative bulk-access path; the collection description
   SHOULD also mention the glob for human readers, but validators read only the
   field. The https-only rule for absolute asset hrefs does not extend to the

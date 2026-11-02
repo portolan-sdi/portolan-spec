@@ -968,8 +968,9 @@ requirements:
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      The scheme's path structure MUST reflect spatial extent so readers can
-      prune files without reading metadata.
+      A spatial scheme (`kdtree`, `h3`, `s2`, `quadkey`, `a5`) MUST have a path
+      structure that reflects spatial extent so readers can prune files without
+      reading metadata.
 
   - id: PORTO-FMT-019
     severity: SHOULD

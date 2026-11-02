@@ -11,6 +11,9 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **The spatial-path rule applies only to spatial schemes**
+  (`PORTO-FMT-018`). The `temporal` and `attribute` schemes are exempt (#196).
+
 - **Requirements manifest**: 131 requirements, now 91 MUST, 23 SHOULD, and
   17 MAY.
 
