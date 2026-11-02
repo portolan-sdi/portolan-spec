@@ -11,6 +11,10 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **The tabular area-of-interest text gives regional examples**.
+  European data uses the bounds of Europe, and a country catalog uses the
+  country bounds (#198).
+
 - **Partition globs reject HTTP and HTTPS** (`PORTO-FMT-064`).
   Glob expansion needs object listing, which plain HTTP does not provide
   (#166).

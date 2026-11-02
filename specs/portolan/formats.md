@@ -297,6 +297,9 @@ MUST treat it as informational. GeoParquet spatial metadata, PMTiles and other
 visualization derivatives, and geometry validation do not apply, as there is no
 geometry.
 
+European data uses the bounds of Europe, and tabular data in a country
+catalog uses the country bounds.
+
 Tabular collections SHOULD populate `extent.temporal` when the data has a time
 dimension, and SHOULD document their columns with the STAC
 [table](https://github.com/stac-extensions/table) extension (`table:columns` with
