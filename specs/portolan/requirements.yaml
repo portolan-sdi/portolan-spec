@@ -570,8 +570,16 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      A mirror MUST include a `via` link (type `text/html`) pointing to the
-      original source.
+      A mirror MUST include at least one `via` link of type `text/html` pointing to
+      the original source.
+
+  - id: PORTO-CORE-084
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Further `via` links MAY point to the upstream services the
+      data comes from, each carrying the media type that service returns.
 
   - id: PORTO-CORE-054
     severity: MUST

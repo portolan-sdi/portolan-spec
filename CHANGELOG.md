@@ -11,6 +11,10 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **Mirrors need at least one HTML `via` link** (`PORTO-CORE-053`,
+  `PORTO-CORE-084`). Further `via` links can carry the media type their
+  upstream service returns (#122).
+
 - **Documentation guidance covers all-nodata scenes**. Omit them and
   state in the README how many scenes you omit and why (#177).
 
@@ -21,8 +25,8 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 - **The spatial-path rule applies only to spatial schemes**
   (`PORTO-FMT-018`). The `temporal` and `attribute` schemes are exempt (#196).
 
-- **Requirements manifest**: 131 requirements, now 91 MUST, 23 SHOULD, and
-  17 MAY.
+- **Requirements manifest**: 132 requirements, now 91 MUST, 23 SHOULD, and
+  18 MAY.
 
 - **PMTiles assets carry `visual` and reference GeoParquet**
   (`PORTO-FMT-062`). The GeoParquet belongs to the same collection, through a

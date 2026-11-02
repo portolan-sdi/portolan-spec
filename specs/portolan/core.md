@@ -464,8 +464,10 @@ organization; it is a mirror when they differ. An organization hosting data it d
 not produce is a mirror under this definition even when it is the primary
 distributor; the `via` link then simply records where the data originated.
 
-A mirror MUST include a `via` link (type `text/html`) pointing to the original
-source. When that source publishes its own STAC catalog, the mirror MUST also
+A mirror MUST include at least one `via` link of type `text/html` pointing to
+the original source. Further `via` links MAY point to the upstream services the
+data comes from, each carrying the media type that service returns. When that
+source publishes its own STAC catalog, the mirror MUST also
 include a `canonical` link pointing to the source's STAC, so consumers and agents
 can follow the chain to the authoritative metadata, not just a landing page.
 Whether the source publishes a STAC catalog cannot be determined from the mirror's
