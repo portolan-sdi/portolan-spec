@@ -69,8 +69,8 @@ separate complete documentation from excellent documentation.
   forest datasets disagree by millions of square kilometres on definitional
   grounds alone. The category boundary is metadata, not a footnote.
 
-Leave out scenes that contain only nodata pixels. Explain in the README
-how many scenes you left out and why.
+Exclude scenes that contain only nodata pixels. In the README, state how many
+scenes you excluded and explain why.
 
 Put these caveats where they will be seen. A warning buried in prose is easily
 missed once the data itself looks clean and continuous, so state limitations

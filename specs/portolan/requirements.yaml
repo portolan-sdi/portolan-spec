@@ -302,8 +302,9 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      If an asset's `href` points to the STAC object that contains the asset, it
-      MUST omit `file:size` and `file:checksum`.
+      If an asset's `href` points to the STAC object that contains it, the
+      publisher MUST omit `file:size` and `file:checksum` from that asset's
+      metadata.
 
   - id: PORTO-CORE-028
     severity: SHOULD
@@ -578,54 +579,51 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      A mirror MUST include at least one `via` link to the original source with
-      `type` set to `text/html`.
+      A mirror MUST include at least one `via` link to the original source's
+      HTML page, with `type` set to `text/html`.
 
   - id: PORTO-CORE-084
     severity: MAY
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Additional `via` links MAY point to the upstream
-      services that supply the data, with `type` set to the media type each service
-      returns.
+      Additional `via` links MAY reference upstream services that supply the
+      data, with `type` set to the media type returned by each service.
 
   - id: PORTO-CORE-054
     severity: MUST
     enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      When that source publishes its own STAC catalog, the mirror MUST also
-      include a `canonical` link pointing to the source's STAC, so consumers
-      and agents can follow the chain to the authoritative metadata, not just
-      a landing page.
+      If the original source publishes a STAC catalog, the mirror MUST also
+      include a `canonical` link to that catalog.
 
   - id: PORTO-CORE-055
     severity: MAY
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Whether the source publishes a STAC catalog cannot be determined from
-      the mirror's metadata alone, so a validator MAY surface a mirror
-      without a `canonical` link as informational, never as a failure.
+      A validator MAY report a missing `canonical` link as informational,
+      but never as a failure.
 
   - id: PORTO-CORE-056
     severity: MAY
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      The `via` and `canonical` links MAY both be present and point at
-      different targets (a human page and a STAC root).
+      The `via` and `canonical` links MAY both be present, with different
+      targets: a human-readable page and a STAC root.
 
   - id: PORTO-CORE-057
     severity: MUST
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      The tool that syncs a mirror MUST set the top-level `updated` field to the
-      sync time, in RFC 3339 format, on every catalog and collection it checks.
-      It sets this value even when the source has not changed. Catalogs and collections
-      outside that sync keep their previous value.
+      The tool that syncs a mirror MUST set the top-level `updated` field on
+      every catalog and collection it checks to the sync time in RFC 3339
+      format. The tool sets this value even if the source has not changed,
+      and leaves the value unchanged on catalogs and collections outside
+      that sync.
 
   - id: PORTO-CORE-058
     severity: MUST
@@ -682,8 +680,8 @@ requirements:
     enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      A catalog, collection, or item MAY include a
-      logo in its links with `rel: "icon"`.
+      A catalog, collection, or item MAY include a logo link with `rel:
+      "icon"`.
 
   - id: PORTO-CORE-075
     severity: MUST
@@ -940,8 +938,9 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A PMTiles asset MUST have the `visual` role and belong to a collection that
-      references its source GeoParquet data through a `data` asset or `partition:glob`.
+      A PMTiles asset MUST have the `visual` role. Its collection MUST also
+      reference the source GeoParquet data through an asset with the `data`
+      role or through `partition:glob`.
 
   - id: PORTO-FMT-014
     severity: MUST
@@ -986,36 +985,32 @@ requirements:
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      For a spatial scheme (`kdtree`, `h3`, `s2`, `quadkey`, or `a5`), paths MUST
-      reflect the area each file covers so readers can skip files without
-      reading their metadata.
+      For a spatial scheme (`kdtree`, `h3`, `s2`, `quadkey`, or `a5`), file
+      paths MUST indicate each file's geographic extent.
 
   - id: PORTO-FMT-019
     severity: SHOULD
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      `partition:glob` is the normative bulk-access path; the collection
-      description SHOULD also mention the glob for human readers, but
-      validators read only the field.
+      The collection description SHOULD also include the glob for human
+      readers.
 
   - id: PORTO-FMT-020
     severity: MAY
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      The https-only rule for absolute asset hrefs does not extend to the
-      glob: globs are consumed by partition-aware readers rather than
-      browsers, and bucket-native schemes (`s3://`, `gs://`) MAY be used
-      where those readers need them (glob expansion requires listing, which
-      plain https does not provide).
+      Bucket-native schemes (`s3://`, `gs://`) MAY be used when
+      partition-aware readers need them.
 
   - id: PORTO-FMT-064
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      `partition:glob` MUST NOT use `http://` or `https://`.
+      `partition:glob` MUST NOT use `http://` or `https://`, because plain
+      HTTP does not support listing the files that match a glob.
 
   - id: PORTO-FMT-021
     severity: MUST
@@ -1071,40 +1066,39 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      COGs MUST carry pixel statistics for rendering.
+      COGs MUST include pixel statistics for rendering.
 
   - id: PORTO-FMT-027
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Every band MUST carry an embedded minimum, maximum, mean, and standard
-      deviation so a renderer can scale any data type without reading pixels.
+      For each band, the file MUST include an embedded minimum, maximum,
+      mean, and standard deviation.
 
   - id: PORTO-FMT-028
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Statistics MUST be embedded in the file — an external `.aux.xml` (PAM)
-      sidecar does not satisfy this —
+      Publishers MUST store statistics inside the COG file.
 
   - id: PORTO-FMT-029
     severity: MUST
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      and MUST be written at creation time (e.g. `gdal_translate -of COG
-      -stats`), residing in the file's leading header block so they arrive in
-      a reader's first range request.
+      Publishers MUST write the statistics at creation time in the file's
+      leading header block, so readers receive them in the first range
+      request.
 
   - id: PORTO-FMT-063
     severity: MUST
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      Embedded statistics MUST describe the pixels stored in each band at full
-      resolution.
+      Embedded statistics MUST describe the pixels stored at full resolution
+      in each band.
 
   - id: PORTO-FMT-030
     severity: MUST
@@ -1164,10 +1158,10 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      STAC requires `extent.spatial.bbox` on every collection, so a tabular
-      collection MUST still carry one, but it represents the area of interest
-      the data pertains to, not a geometry footprint, and validators MUST
-      treat it as informational.
+      STAC requires `extent.spatial.bbox` on every collection. A tabular
+      collection MUST include this field with the bounds of the geographic
+      area the data is about. The bounds do not describe a geometry
+      footprint, and validators MUST treat them as informational.
 
   - id: PORTO-FMT-037
     severity: SHOULD

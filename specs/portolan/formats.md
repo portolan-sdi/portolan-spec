@@ -112,9 +112,9 @@ rather than download, it is expressed as a link by default; when a provider inte
 the PMTiles file as a genuine distribution format of the data, it MAY additionally
 be registered as a collection-level asset, and the link and the asset then coexist.
 
-A PMTiles asset MUST have the `visual` role and belong to a collection that
-references its source GeoParquet data through a `data` asset or `partition:glob`.
-A collection cannot use PMTiles alone as its primary data.
+A PMTiles asset MUST have the `visual` role. Its collection MUST also reference
+the source GeoParquet data through an asset with the `data` role or through
+`partition:glob`. PMTiles alone is insufficient as a collection's primary data.
 
 When PMTiles are provided, the collection MUST include at least one visualization
 style as a standalone STAC asset with the `["style"]` role, registered per
@@ -134,16 +134,17 @@ carried — `partition:scheme`, `partition:keys`, and `partition:glob`. Field
 definitions live in the extension and are not restated here. Portolan adds the
 requirements the extension does not cover:
 
-- For a spatial scheme (`kdtree`, `h3`, `s2`, `quadkey`, or `a5`), paths MUST
-  reflect the area each file covers so readers can skip files without
-  reading their metadata. The `temporal` and `attribute` schemes are exempt.
-- `partition:glob` is the normative bulk-access path; the collection description
-  SHOULD also mention the glob for human readers, but validators read only the
-  field. The https-only rule for absolute asset hrefs does not extend to the
-  glob: globs are consumed by partition-aware readers rather than browsers, and
-  bucket-native schemes (`s3://`, `gs://`) MAY be used where those readers need
-  them (glob expansion requires listing, which plain https does not provide).
-- `partition:glob` MUST NOT use `http://` or `https://`.
+- For a spatial scheme (`kdtree`, `h3`, `s2`, `quadkey`, or `a5`), file paths
+  MUST indicate each file's geographic extent. Readers can then skip files
+  without reading their metadata. Paths for `temporal` and `attribute`
+  partitions do not need to indicate spatial extent.
+- `partition:glob` is the normative field for bulk access. The collection
+  description SHOULD also include the glob for human readers. Validators read
+  the field only. Partition-aware readers use the glob to find matching files
+  and need a way to list them. Bucket-native schemes (`s3://`, `gs://`) MAY be
+  used when partition-aware readers need them.
+- `partition:glob` MUST NOT use `http://` or `https://`, because plain HTTP
+  does not support listing the files that match a glob.
 - Every partition file MUST share a single Parquet schema — the same columns,
   names, and types — so the glob can be queried as one table. This is validated
   by tooling reading file footers, not by JSON schema.
@@ -196,15 +197,17 @@ since it is its own overview. Base COG validators, including `rio cogeo validate
 treat missing overviews as a warning rather than a failure. Portolan raises this to a
 requirement.
 
-**Raster statistics.** COGs MUST carry pixel statistics for rendering. Every band
-MUST carry an embedded minimum, maximum, mean, and standard deviation so a renderer
-can scale any data type without reading pixels. Statistics MUST be embedded in the
-file — an external `.aux.xml` (PAM) sidecar does not satisfy this — and MUST be
-written at creation time (e.g. `gdal_translate -of COG -stats`), residing in the
-file's leading header block so they arrive in a reader's first range request.
+**Raster statistics.** COGs MUST include pixel statistics for rendering. For
+each band, the file MUST include an embedded minimum, maximum, mean, and
+standard deviation. Renderers use these values to scale any data type without
+reading pixels. Publishers MUST store statistics inside the COG file. An
+external `.aux.xml` (PAM) sidecar is insufficient. Publishers MUST write the
+statistics at creation time in the file's leading header block, so readers
+receive them in the first range request. One command for this is
+`gdal_translate -of COG -stats`.
 
-Embedded statistics MUST describe the pixels stored in each band at full
-resolution. Estimates are allowed when the approximate flag below is set.
+Embedded statistics MUST describe the pixels stored at full resolution in each
+band. These statistics may be estimates if `STATISTICS_APPROXIMATE = YES` is set.
 
 The required statistics are:
 
@@ -214,11 +217,11 @@ The required statistics are:
 | Valid percent | SHOULD (MUST when the band has a nodata value) |
 | Approximate flag (`STATISTICS_APPROXIMATE = YES`) | MUST when estimated |
 
-For a non-finite nodata value, set the band's `nodata` field to `"nan"`,
-`"inf"`, or `"-inf"`, as defined in [STAC 1.1.0 common
-metadata](https://github.com/radiantearth/stac-spec/blob/v1.1.0/commons/common-metadata.md#bands).
-Neither `null` nor bare `NaN` is valid in this field. A band with a non-finite
-nodata value still needs the valid-percent statistic listed in the table.
+For a band with a non-finite nodata value, use the corresponding string in its
+`nodata` field: `"nan"`, `"inf"`, or `"-inf"`. These strings are defined in
+[STAC 1.1.0 common metadata](https://github.com/radiantearth/stac-spec/blob/v1.1.0/commons/common-metadata.md#bands).
+Neither `null` nor an unquoted `NaN` is valid in this field. The valid-percent
+statistic is required for these bands, as it is for any band with a nodata value.
 
 The exact on-disk encoding (the TIFF `GDAL_METADATA` tag and its XML layout, and
 `GDAL_NODATA`) is specified in
@@ -289,16 +292,16 @@ collection pattern — no item directory or item JSON. Where a source file is
 converted (e.g. a CSV), the original MAY be retained as an alternate asset under
 the [primary-vs-alternate](core.md#assets) rule, with the Parquet as the primary.
 
-Spatial requirements are relaxed. STAC requires `extent.spatial.bbox` on every
-collection, so a tabular collection MUST still carry one, but it represents the
-area of interest the data pertains to, not a geometry footprint, and validators
-MUST treat it as informational. GeoParquet spatial metadata, PMTiles and other
-visualization derivatives, and geometry validation do not apply, as there is no
-geometry.
+STAC requires `extent.spatial.bbox` on every collection. A tabular collection
+MUST include this field with the bounds of the geographic area the data is
+about. The bounds do not describe a geometry footprint, and validators MUST
+treat them as informational. Without geometry, there are no requirements for
+GeoParquet spatial metadata, PMTiles and other visualization derivatives, or
+geometry validation.
 
-A table of European electricity prices uses the bounds of Europe in
-`extent.spatial.bbox`. A tabular collection in a country catalog uses the
-bounds of that country.
+Set `extent.spatial.bbox` to the bounds of Europe for a table of
+European electricity prices. For a tabular collection in a country catalog,
+use that country's bounds.
 
 Tabular collections SHOULD populate `extent.temporal` when the data has a time
 dimension, and SHOULD document their columns with the STAC
