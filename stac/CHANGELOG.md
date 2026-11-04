@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- The extension registry lists the [Classification](https://github.com/stac-extensions/classification)
+  extension at `v2.0.0`, SHOULD for classified rasters, with
+  `classification:classes` on the band (#41).
+- A [classified raster example](examples/raster-classified-collection.json),
+  the GEP SAR Features flood classification over Valencia, October 2024.
+- `check-portolan` checks the class objects in STAC 1.1 `bands` against the
+  classification schema and the Portolan class rules. The classification
+  `v2.0.0` schema checks only `raster:bands`.
+
 ### Changed
 
 - The STAC profile uses Contacts v1.0.0 instead of v0.1.1 (#53).

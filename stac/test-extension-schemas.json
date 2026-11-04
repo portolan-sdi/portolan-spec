@@ -6,5 +6,12 @@
     "repo": "stac-extensions/table",
     "ref": "f962838a51c0ce78c9aa180b7973e538e6ef900e",
     "path": "json-schema/schema.json"
+  },
+  "https://stac-extensions.github.io/classification/v2.0.0/schema.json": {
+    "name": "classification",
+    "version": "v2.0.0",
+    "repo": "stac-extensions/classification",
+    "ref": "457b0e05bc5c1eae7aee2642f902c5f287b8e187",
+    "path": "json-schema/schema.json"
   }
 }

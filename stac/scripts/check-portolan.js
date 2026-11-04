@@ -38,6 +38,50 @@ for (const [name, ext] of Object.entries(extensions)) {
   }
 }
 
+// The classification v2.0.0 schema checks classes only under raster:bands,
+// never under STAC 1.1 bands, so apply its class fields here, plus the
+// Portolan class rules (PORTO-FMT-052, PORTO-FMT-057).
+const classificationUri = 'https://stac-extensions.github.io/classification/v2.0.0/schema.json';
+const classificationCache = path.join(
+  __dirname, '..', '.schema-cache', 'stac-extensions', 'classification', 'v2.0.0', 'schema.json',
+);
+let validateClassFields = null;
+if (fs.existsSync(classificationCache)) {
+  ajv.addSchema(JSON.parse(fs.readFileSync(classificationCache, 'utf8')));
+  validateClassFields = ajv.getSchema(`${classificationUri}#/definitions/fields`);
+}
+
+function bandClassErrors(doc) {
+  const errors = [];
+  const groups = { assets: doc.assets || {}, item_assets: doc.item_assets || {} };
+  for (const [group, assets] of Object.entries(groups)) {
+    for (const [key, asset] of Object.entries(assets)) {
+      (asset.bands || []).forEach((band, i) => {
+        const where = `${group}/${key}/bands/${i}`;
+        const classes = band['classification:classes'];
+        if (classes === undefined) return;
+        if (!validateClassFields) {
+          errors.push(`${where}: classification schema not cached, run \`node scripts/fetch-extension-schemas.js\``);
+          return;
+        }
+        if (!validateClassFields(band)) {
+          errors.push(...validateClassFields.errors.map((e) => `[classification] ${where}${e.instancePath} ${e.message}`));
+        }
+        if (!Array.isArray(classes)) return;
+        classes.forEach((cls, j) => {
+          if (typeof cls.title !== 'string' || !cls.title) {
+            errors.push(`${where}/classification:classes/${j}: class has no title (PORTO-FMT-052)`);
+          }
+          if (cls.nodata === true && cls.value !== band.nodata) {
+            errors.push(`${where}/classification:classes/${j}: nodata class value ${cls.value} is not the band nodata ${band.nodata} (PORTO-FMT-057)`);
+          }
+        });
+      });
+    }
+  }
+  return errors;
+}
+
 let failed = false;
 
 const names = fs.readdirSync(examplesDir).filter((f) => f.endsWith('.json')).sort();
@@ -55,6 +99,8 @@ for (const name of names) {
       errors.push(...ext.validate.errors.map((e) => `[${ext.label}] ${e.instancePath || '/'} ${e.message}`));
     }
   }
+
+  errors.push(...bandClassErrors(doc));
 
   // The schema deliberately delegates multihash validity to tooling; the
   // examples must still be valid exemplars, so enforce well-formed sha2-256
