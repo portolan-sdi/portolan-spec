@@ -18,8 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   classification schema and the Portolan class rules. The classification
   `v2.0.0` schema checks only `raster:bands`.
 
-The schema does not change.
-
 ### Changed
 
 - The STAC profile uses Contacts v1.0.0 instead of v0.1.1 (#53).

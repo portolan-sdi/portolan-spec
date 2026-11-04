@@ -256,17 +256,17 @@ The color table embedded in the COG (the TIFF `ColorMap` tag) is authoritative f
 rendering, because any TIFF reader can draw it without reading STAC. The class list
 adds the names. When a band has both a color table and classes, each class
 `color_hint` MUST equal the red, green, and blue components of the color table
-entry for that class value. Tools that read both SHOULD warn when they differ. A
-tool that writes the metadata MAY fill a missing `color_hint` from the color table.
+entry for that class value. Software that reads the catalog SHOULD draw from the
+color table when the two differ. A tool that writes the metadata MAY fill a missing
+`color_hint` from the color table.
 
 A class whose `nodata` is `true` MUST have the band's `nodata` value as its `value`.
 A class whose value is the band's nodata MUST be marked `nodata: true`.
 Clients SHOULD draw that class transparent and SHOULD leave it out of a legend.
 
 A continuous raster, whose pixels are measurements such as elevation or
-temperature, SHOULD NOT carry `classification:classes`. It is colorized at draw
-time through the [render](https://github.com/stac-extensions/render) extension and
-the embedded statistics.
+temperature, SHOULD NOT carry `classification:classes`. How a continuous raster is
+colorized is still under discussion.
 
 The classification extension's v2.0.0 schema checks classes only under the older
 `raster:bands` field, not under STAC 1.1 `bands`. A validator applies the class rules

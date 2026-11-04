@@ -20,10 +20,10 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   authoritative for rendering, so a `color_hint` MUST match it. A class marked
   `nodata` MUST use the band's `nodata` value, a class with that value MUST be
   marked `nodata`, and clients draw it transparent
-  and leave it out of the legend. Continuous rasters keep the render extension
-  and carry no classes (#41).
-- **Requirements manifest**: 142 requirements, now 96 MUST, 28 SHOULD, and
-  18 MAY.
+  and leave it out of the legend. Continuous rasters carry no classes, and
+  their styling is still under discussion (#41).
+- **Requirements manifest**: 147 requirements, now 100 MUST, 28 SHOULD, and
+  19 MAY.
 
 ### Changed
 
@@ -71,9 +71,6 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 - **Only spatial partition schemes need paths that indicate geographic
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
-
-- **Requirements manifest**: 135 requirements, now 94 MUST, 23 SHOULD, and
-  18 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source
   GeoParquet data in the same collection** (`PORTO-FMT-062`). Use an asset

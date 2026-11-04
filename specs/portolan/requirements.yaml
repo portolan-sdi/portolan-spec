@@ -1179,7 +1179,8 @@ requirements:
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      Tools that read both SHOULD warn when they differ.
+      Software that reads the catalog SHOULD draw from the color table when
+      the two differ.
 
   - id: PORTO-FMT-056
     severity: MAY
