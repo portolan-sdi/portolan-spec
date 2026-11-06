@@ -275,6 +275,89 @@ mirror. Item mirrors for other collection types, and STAC-GeoParquet mirrors cov
 entire catalog's collections, remain incubating. See
 [`specs/incubating/stac-geoparquet.md`](../incubating/stac-geoparquet.md).
 
+### Zarr
+
+Raster data MAY be published as Zarr in place of COG. 
+
+This profile covers a physical Zarr store. Virtual stores and transactional
+stores such as Icechunk are not yet part of the conformance surface, though
+clients are expected to read them.
+
+**Store and access.** A store MUST be Zarr v3, served over `https` with media
+type `application/vnd.zarr`, and MUST return
+`Access-Control-Allow-Origin` permitting a cross-origin read. An `s3://` href
+MAY be given beside the https one. A store MUST declare its conventions in
+`zarr_conventions`.
+
+**Grid.** A client must index the samples from metadata alone, so:
+
+- The spatial axes MUST be the last two dimensions of every renderable array,
+  Y before X.
+- The X and Y coordinates MUST be 1-D arrays with regular spacing. A 2-D
+  curvilinear grid does not conform, because placing its pixels needs a
+  per-pixel warp.
+- Arrays MUST be stored row-major (C order).
+- Coordinate arrays SHOULD be float64. A float32 axis of 0.01-degree cells
+  quantises enough near the poles to fail a regularity test.
+
+**Coordinate reference system.** The store MUST carry a CF grid mapping, as a
+`spatial_ref` or `crs` array whose attributes hold `crs_wkt`. The asset MUST
+also carry `proj:code` with an EPSG code. The first is what a reader uses, and
+the second lets a validator or a search client judge the store without opening
+it. A grid that EPSG does not define SHOULD carry `proj:projjson`, which
+states method parameters directly, rather than `proj:wkt2` alone, whose method
+names resolve differently between libraries.
+
+**Overviews.** A store whose finest level needs more than 4 chunks to cover
+its full extent MUST provide a multiscale pyramid, declared with the
+[multiscales](https://github.com/zarr-conventions/multiscales) convention. The
+coarsest level MUST fit in 4 chunks or fewer, so a client can draw the whole
+extent at once. Each level MUST declare its own downsample factor and shape,
+because the order levels are listed in varies between publishers and a client
+MUST NOT have to infer it. Levels SHOULD step by a factor of 2. An append to a
+pyramided store MUST target the level-0 group, not the store root, which
+otherwise gains a second array beside the pyramid and stops opening.
+
+**Variables.** A store holding more than one array MUST declare
+`cube:variables` per the
+[datacube](https://github.com/stac-extensions/datacube) STAC extension, with a
+`type` on each entry, so a client can tell data from coordinates. A variable
+MUST have its spatial dimensions declared.
+
+**Display range.** Every renderable variable MUST carry a minimum and a
+maximum, as a `statistics` object on the matching entry of the asset's `bands`
+array, with `name` equal to the `cube:variables` key. A store that is 8-bit
+with three or more bands is exempt, since its samples are display values. Mean
+and standard deviation are NOT required, unlike for a COG: a Zarr store has no
+header to embed them in, and a cube is expensive to summarize. The range is an
+authored display range and SHOULD stay stable as data is appended. It is not a
+recomputed summary of current contents.
+
+A variable SHOULD declare `nodata`. A store with partial coverage SHOULD carry
+an alpha band instead, named `alpha`, because a no-data value cannot tell an
+empty pixel from a dark one.
+
+**Chunking.** Chunking decides what a client pays to draw one tile, so:
+
+- A store MUST NOT require a client to read more than 8 samples for every
+  sample it draws, for a single timestep at full resolution. Compute the
+  factor from the chunk shape alone.
+- Non-spatial dimensions SHOULD have a chunk length of 1. That is the simplest
+  way to meet the bound. A store chunked for time-series access is not
+  defective, but it SHOULD be published beside a display-chunked copy.
+- Inner chunks SHOULD be 256 to 1024 samples on X and Y. A shard MAY be much
+  larger on X and Y, since a client range-requests within it. The inner chunk
+  is the unit a client fetches and decompresses.
+- A shard MUST NOT span a non-spatial dimension more widely than the bound
+  above allows. A shard holding every band costs what a chunk holding every
+  band costs.
+
+**Codecs.** Every codec in the chain SHOULD have a JavaScript implementation,
+so a browser can draw the store without a tile server. `blosc`, `lz4`, `zstd`,
+`gzip`, `zlib`, `shuffle`, `delta`, `scale_offset`, `transpose`, `bytes`,
+`crc32c`, and `sharding_indexed` all qualify. A codec without one, such as
+`gribberish`, leaves the store readable only through a server.
+
 Raster styling (colormaps, legends, continuous vs. categorical vs. multiband) is
 still under discussion — see
 [`specs/incubating/raster-styling.md`](../incubating/raster-styling.md).
