@@ -113,14 +113,15 @@ in its root directory.
 | `license` | string | MUST | null | The collection `license` |
 | `original` | string, JSON | MUST | The full catalog document | The full collection document |
 | `title` | string | SHOULD | The catalog `title`, null when absent | The collection `title`, null when absent |
-| `keywords` | list of string | SHOULD | The catalog `keywords`, null when absent | The collection `keywords`, null when absent |
+| `keywords` | list of string | SHOULD | null | The collection `keywords`, null when absent |
 
 A MUST column exists in every file. These rules apply to its values:
 
 - A `Collection` row MUST fill every column that copies a field the STAC
   Collection specification requires. Every valid collection can fill them.
 - A `Catalog` row fills the fields that a STAC Catalog has. It leaves
-  `geometry`, `bbox`, `start_datetime`, `end_datetime`, and `license` null.
+  `geometry`, `bbox`, `start_datetime`, `end_datetime`, `license`, and
+  `keywords` null. STAC defines `keywords` for a Collection, not for a Catalog.
 - STAC makes `title` and `keywords` optional, so the index can only recommend
   them.
 - `href` is absolute or relative to the index. It identifies the row in any
@@ -171,7 +172,8 @@ Remove the `type` filter, and the same query also returns the sub-catalogs
 under `transport`. The [collection index
 testbed](https://github.com/cayetanobv/stac-geoparquet-as-catalog-testbed)
 measures this layout against Berlin, Comunidad de Madrid, and the Portolan
-registry.
+registry. Since 2026-11-05 the CARTO catalogs publish it, for example
+`https://storage.googleapis.com/carto-open-catalogs/berlin-geoportal/main/collections.parquet`.
 
 ### Open questions
 
