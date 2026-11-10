@@ -301,12 +301,21 @@ requirements:
       `thumbnail` for the preview image; `metadata` for sidecar metadata,
       with `iso-19115` used specifically for an ISO 19115 file.
 
+  - id: PORTO-CORE-085
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      If an asset's `href` points to the STAC object that contains it, the
+      publisher MUST omit `file:size` and `file:checksum` from that asset's
+      metadata.
+
   - id: PORTO-CORE-028
     severity: SHOULD
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Assets SHOULD carry `file:size` and `file:checksum` from the [file
+      Other assets SHOULD include `file:size` and `file:checksum` from the [file
       extension](https://github.com/stac-extensions/file).
 
   - id: PORTO-CORE-029
@@ -574,44 +583,50 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      A mirror MUST include a `via` link (type `text/html`) pointing to the
-      original source.
+      A mirror MUST include at least one `via` link to the original source's
+      HTML page, with `type` set to `text/html`.
+
+  - id: PORTO-CORE-084
+    severity: MAY
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Additional `via` links MAY reference upstream services that supply the
+      data, with `type` set to the media type returned by each service.
 
   - id: PORTO-CORE-054
     severity: MUST
     enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      When that source publishes its own STAC catalog, the mirror MUST also
-      include a `canonical` link pointing to the source's STAC, so consumers
-      and agents can follow the chain to the authoritative metadata, not just
-      a landing page.
+      If the original source publishes a STAC catalog, the mirror MUST also
+      include a `canonical` link to that catalog.
 
   - id: PORTO-CORE-055
     severity: MAY
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Whether the source publishes a STAC catalog cannot be determined from
-      the mirror's metadata alone, so a validator MAY surface a mirror
-      without a `canonical` link as informational, never as a failure.
+      A validator MAY report a missing `canonical` link as informational,
+      but never as a failure.
 
   - id: PORTO-CORE-056
     severity: MAY
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      The `via` and `canonical` links MAY both be present and point at
-      different targets (a human page and a STAC root).
+      The `via` and `canonical` links MAY both be present and point to
+      different targets, such as a human-readable page and a STAC root.
 
   - id: PORTO-CORE-057
     severity: MUST
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      A mirror MUST record when it was last synced from its source by setting
-      the top-level `updated` field (RFC 3339) at each synced catalog and
-      collection to the time of the sync.
+      During a mirror sync, the tool MUST set the top-level `updated` field
+      on every catalog and collection it checks. Use the sync time in RFC
+      3339 format. Set the value even if the source has not changed. Leave
+      `updated` unchanged on catalogs and collections outside that sync.
 
   - id: PORTO-CORE-058
     severity: MUST
@@ -668,7 +683,8 @@ requirements:
     enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      The root catalog MAY publish a logo as a link with `rel: "icon"`.
+      A catalog, collection, or item MAY include a logo link with `rel:
+      "icon"`.
 
   - id: PORTO-CORE-075
     severity: MUST
@@ -815,11 +831,10 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Data MUST be provided in [GeoParquet
-      1.1](https://geoparquet.org/releases/v1.1.0/), [GeoParquet
-      2.0](https://geoparquet.org/releases/v2.0.0-rc.1/), or Parquet with the
-      native geospatial logical types ([`GEOMETRY` or
-      `GEOGRAPHY`](https://github.com/apache/parquet-format/blob/master/Geospatial.md)).
+      Publishers MUST provide data as [GeoParquet 1.1](https://geoparquet.org/releases/v1.1.0/),
+      [GeoParquet 2.0](https://geoparquet.org/releases/v2.0.0-rc.1/), or Parquet with native
+      [`GEOMETRY` or `GEOGRAPHY`](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
+      logical types.
 
   - id: PORTO-FMT-005
     severity: SHOULD
@@ -833,17 +848,17 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A file with a native geospatial column is vector data even when it
-      carries no `geo` metadata key. A validator MUST apply every requirement
-      in this section to such a file rather than treat it as tabular Parquet.
+      A file with a native geospatial column is vector data, even without a `geo`
+      metadata key. A validator MUST apply every requirement in this section to the
+      file.
 
   - id: PORTO-FMT-056
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      When the native logical type's `crs` field is the only CRS a geometry
-      column declares, the value MUST be one the [Parquet geospatial
+      When a geometry column declares its CRS only through the native logical type's
+      `crs` field, the value MUST be one that the [Parquet geospatial
       specification](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
       defines.
 
@@ -852,10 +867,10 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      The value SHOULD be inline PROJJSON or a `projjson:<key>` reference,
-      which a reader resolves from the file alone. An `<authority>:<code>` or
-      `srid:<n>` value needs a CRS registry, so a validator reports it as a
-      warning.
+      The value SHOULD be inline PROJJSON or a `projjson:<key>` reference. Readers
+      can resolve either from the file alone. Values in `<authority>:<code>` or
+      `srid:<n>` form require a CRS registry. A validator reports these values as
+      warnings.
 
   - id: PORTO-FMT-006
     severity: MUST
@@ -983,7 +998,7 @@ requirements:
       the read share for windows at 1% and at 25% of each dimension beside
       the 10% figure.
 
-  - id: PORTO-FMT-062
+  - id: PORTO-FMT-073
     severity: MAY
     enforcement: process
     file: specs/portolan/formats.md
@@ -1073,6 +1088,16 @@ requirements:
       format of the data, it MAY additionally be registered as a
       collection-level asset, and the link and the asset then coexist.
 
+  - id: PORTO-FMT-062
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A PMTiles asset MUST meet both conditions: - The asset has the
+      `visual` role. - The asset belongs to a collection that references the
+      GeoParquet data used to create the PMTiles file. Use an asset with the
+      `data` role or `partition:glob` for the GeoParquet reference.
+
   - id: PORTO-FMT-014
     severity: MUST
     enforcement: validator
@@ -1116,28 +1141,31 @@ requirements:
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      The scheme's path structure MUST reflect spatial extent so readers can
-      prune files without reading metadata.
+      For a spatial scheme (`kdtree`, `h3`, `s2`, `quadkey`, or `a5`), file
+      paths MUST indicate each file's geographic extent.
 
   - id: PORTO-FMT-019
     severity: SHOULD
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      `partition:glob` is the normative bulk-access path; the collection
-      description SHOULD also mention the glob for human readers, but
-      validators read only the field.
+      The collection description SHOULD also include the glob for human
+      readers.
 
   - id: PORTO-FMT-020
     severity: MAY
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      The https-only rule for absolute asset hrefs does not extend to the
-      glob: globs are consumed by partition-aware readers rather than
-      browsers, and bucket-native schemes (`s3://`, `gs://`) MAY be used
-      where those readers need them (glob expansion requires listing, which
-      plain https does not provide).
+      Bucket-native schemes (`s3://`, `gs://`) MAY be used when
+      partition-aware readers need them.
+
+  - id: PORTO-FMT-064
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      `partition:glob` MUST NOT use `http://` or `https://`.
 
   - id: PORTO-FMT-021
     severity: MUST
@@ -1193,32 +1221,38 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      COGs MUST carry pixel statistics for rendering.
+      COGs MUST include pixel statistics for rendering.
 
   - id: PORTO-FMT-027
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Every band MUST carry an embedded minimum, maximum, mean, and standard
-      deviation so a renderer can scale any data type without reading pixels.
+      For each band, the file MUST include an embedded minimum, maximum,
+      mean, and standard deviation.
 
   - id: PORTO-FMT-028
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Statistics MUST be embedded in the file — an external `.aux.xml` (PAM)
-      sidecar does not satisfy this —
+      Publishers MUST embed these statistics in the COG file.
 
   - id: PORTO-FMT-029
     severity: MUST
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      and MUST be written at creation time (e.g. `gdal_translate -of COG
-      -stats`), residing in the file's leading header block so they arrive in
-      a reader's first range request.
+      Publishers MUST write the statistics at creation time, in the file's
+      leading header block.
+
+  - id: PORTO-FMT-063
+    severity: MUST
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Embedded statistics MUST describe the full-resolution pixels stored in
+      each band.
 
   - id: PORTO-FMT-030
     severity: MUST
@@ -1278,10 +1312,10 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      STAC requires `extent.spatial.bbox` on every collection, so a tabular
-      collection MUST still carry one, but it represents the area of interest
-      the data pertains to, not a geometry footprint, and validators MUST
-      treat it as informational.
+      A tabular collection MUST include `extent.spatial.bbox`, as required
+      by STAC. Use the bounds of the geographic area the table is about. The
+      bounding box does not describe a geometry footprint. Validators MUST
+      treat the bounding box as informational.
 
   - id: PORTO-FMT-037
     severity: SHOULD

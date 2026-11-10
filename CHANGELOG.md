@@ -21,6 +21,72 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **Portolan accepts native geospatial Parquet** (`PORTO-FMT-004`,
+  `PORTO-FMT-055` to `PORTO-FMT-057`,
+  [`specs/portolan/formats.md`](specs/portolan/formats.md)). Publishers can
+  provide GeoParquet 1.1, GeoParquet 2.0, or Parquet with native geospatial
+  logical types and no `geo` key. Validators apply every vector requirement
+  to all three formats. This includes native Parquet files from Apache
+  Iceberg writers, which validators previously treated as tabular data
+  (portolan-sdi/rashid#200). When a geometry column declares its CRS only
+  through the native logical type's `crs` field, the value follows the
+  Parquet geospatial specification. An absent value means OGC:CRS84.
+  Readers can resolve inline PROJJSON and `projjson:<key>` from the file
+  alone. Registry codes such as `EPSG:4326` produce warnings.
+
+- **Tabular bounding boxes have regional examples**. Use the bounds of Europe
+  for a table about Europe, or the country's bounds for a tabular collection
+  in a country catalog (#198).
+
+- **Partition globs cannot use HTTP or HTTPS** (`PORTO-FMT-064`). Readers
+  need to list the files that match a glob. Plain HTTP does not support
+  file listing (#166).
+
+- **The STAC profile uses Contacts v1.0.0** instead of v0.1.1
+  (#53, part 7a).
+
+- **Catalogs, collections, and items can include logo links**
+  (`PORTO-CORE-074`). Links with `rel: "icon"` are now allowed in the prose
+  for all three object types, consistent with the schema (#151).
+
+- **Sync tools set `updated` on every mirror catalog and collection they
+  check** (`PORTO-CORE-057`), including when the source has not changed.
+  Tools leave the value unchanged on catalogs and collections outside that
+  sync (#206).
+
+- **Embedded raster statistics describe full-resolution pixel values in
+  each band** (`PORTO-FMT-063`, enforced through the publication process).
+  Estimates are allowed if the approximate flag is set (#163).
+
+- **Self-referencing assets omit `file:size` and `file:checksum`**
+  (`PORTO-CORE-028`, `PORTO-CORE-085`). This applies when an asset's `href`
+  points to the STAC object that contains it. Adding a checksum to that
+  object would change its contents and invalidate the checksum (#176).
+
+- **Mirrors need at least one `via` link with `type` set to `text/html`**
+  (`PORTO-CORE-053`, `PORTO-CORE-084`). Additional `via` links can reference
+  source services using their actual media types, such as XML (#122).
+
+- **Documentation guidance now covers scenes containing only nodata pixels**.
+  Exclude these scenes and state in the README how many you excluded and
+  why (#177).
+
+- **The raster note clarifies non-finite nodata values in STAC**. It lists
+  the valid strings for `nodata` and confirms that the valid-percent
+  statistic is required for bands with these values (#205).
+
+- **Only spatial partition schemes need paths that indicate geographic
+  extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
+  partitions do not need to indicate spatial extent (#196).
+
+- **Requirements manifest**: 149 requirements, now 105 MUST, 25 SHOULD, and
+  19 MAY.
+
+- **PMTiles assets need the `visual` role and a reference to their source
+  GeoParquet data in the same collection** (`PORTO-FMT-062`). Use an asset
+  with the `data` role or `partition:glob` for the reference. PMTiles alone
+  is insufficient as a collection's primary data (#225).
+
 - **GeoParquet spatial ordering is judged by pruning efficiency, a closed-form
   expectation** (`PORTO-FMT-006`, `PORTO-FMT-044`, new `PORTO-FMT-049` to
   `PORTO-FMT-054` and `PORTO-FMT-058` to `PORTO-FMT-061`,
@@ -45,6 +111,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   near-square grid of `cols = ceil(sqrt(n))` columns with uniform rows and
   bytes, every cell filled (`PORTO-FMT-053`). A file passes at 0.70 of the
   reference.
+
 - **Verdicts follow a 5 MB size floor, not only a row-group floor** (new
   `PORTO-FMT-058` and `PORTO-FMT-059`): a file whose row groups hold fewer
   than 5,000,000 compressed bytes is not judged at all, and a validator says it is too small for order to matter.
@@ -55,12 +122,14 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   a poor model of a curve sort at small counts. The clear failure no longer
   waits: at two or more row groups, efficiency under 0.25 fails, because
   boxes that each cover most of the extent are plain at any count.
+
 - **Reporting leads with the absolute cost** (new `PORTO-FMT-060` and
   `PORTO-FMT-061`, `PORTO-FMT-051` widened): a validator leads with "a
   typical query reads 23% of the file", reports the efficiency, the
   achievable rate, and the area sum beside every verdict as statistics, and
   should name the worst row groups on a failure and give the read share at
   1% and 25% windows beside the 10% figure.
+
 - **The row rule reuses the same metric, and its numbers are an abstract test**
   (`PORTO-FMT-006`, new `PORTO-FMT-052`,
   [`specs/portolan/requirements.yaml`](specs/portolan/requirements.yaml)): the
@@ -73,6 +142,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   file is too small to judge, and MUST NOT withhold that message. The rule
   applies where the footer check gives no verdict, at or above the size
   floor.
+
 - **Abstract test vectors for the metric** (new `PORTO-FMT-054`,
   [`specs/portolan/abstract-tests/spatial-metric-vectors.json`](specs/portolan/abstract-tests/spatial-metric-vectors.json)):
   thirteen layouts and two row-level cases with their expected numbers, which
@@ -82,6 +152,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   weighting, and the chunk rules for null rows. The area sum is undefined on
   an extent with no area, and a validator MUST report it as absent rather
   than as 0.
+
 - **The 0.70 bar carries over from the extent-window draft.** It was set from
   206 files across every catalog in the Portolan registry, where the nine
   files below it all reached 0.87 to 0.97 after a re-sort, and from a review
@@ -89,23 +160,11 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   tracks. Those measurements used the earlier draft's uniform window; the
   corpus is being re-measured under this definition, and the bar moves only
   with that evidence.
-- **Geospatial Parquet accepts three forms** (`PORTO-FMT-004` widened,
-  `PORTO-FMT-055` to `PORTO-FMT-057` added,
-  [`specs/portolan/formats.md`](specs/portolan/formats.md)): data can be
-  GeoParquet 1.1, GeoParquet 2.0, or Parquet with the native geospatial
-  logical types and no `geo` key. Apache Iceberg writers produce the third
-  form, and the validator used to skip those files as tabular Parquet
-  (portolan-sdi/rashid#200). A validator now checks all three forms against
-  every vector requirement. The native `crs` field gets its own rules. The
-  value is one the Parquet geospatial specification defines, or absent.
-  PROJJSON and `projjson:<key>` resolve from the file alone. A registry code
-  such as `EPSG:4326` is a warning.
+
 - **A validator may refine its read share with page-level statistics** (new
-  `PORTO-FMT-062`): the page index on the covering leaves lets a reader skip
+  `PORTO-FMT-073`): the page index on the covering leaves lets a reader skip
   pages, not only row groups, so the reported read share can say so. The
   verdict stays the row-group metric, so validators keep agreeing.
-- **Requirements manifest**: 144 requirements, now 101 MUST, 25 SHOULD, and
-  18 MAY.
 
 ### Removed
 
