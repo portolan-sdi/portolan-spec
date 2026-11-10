@@ -29,7 +29,8 @@ requests. The command was:
 uv run specs/portolan/abstract-tests/calibration/measure.py --registry <portolan-registry checkout> --per-collection 3
 ```
 
-The results are in `results-registry-2026-11.csv`.
+The results are in `results-registry-2026-11.csv` in
+[the calibration gist](https://gist.github.com/nlebovits/5c123a65d8d448875751f431f9c77475).
 The survey recorded 5,914 files from 74 catalogs.
 One catalog, `bot-open-data`, served a `catalog.json` that is not valid JSON.
 
@@ -69,7 +70,7 @@ The command was:
 uv run specs/portolan/abstract-tests/calibration/resort.py results-registry-2026-11.csv --below 0.85 --max-bytes 300000000
 ```
 
-The results are in `resort-registry-2026-11.csv`.
+The results are in `resort-registry-2026-11.csv` in the same gist.
 The control selected 145 files and measured 141 copies.
 Among the 32 measured copies with eight or more row groups, efficiency
 ranged from 0.696 to 0.944. The median was 0.91.
@@ -170,6 +171,7 @@ To check the formula implementation against
 uv run specs/portolan/abstract-tests/calibration/measure.py --self-test
 ```
 
-To propose another bar or floor, add a `results-*.csv` file in this
-directory through a pull request. Name the corpus and the measurement date.
+To propose another bar or floor, open a pull request that changes the
+numbers and links your results file. Publish the file outside this
+repository, for example as a gist. Name the corpus and the measurement date.
 State which files the proposed threshold would reclassify.

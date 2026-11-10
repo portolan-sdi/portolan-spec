@@ -11,13 +11,13 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Added
 
-- **Calibration scripts and measured corpora** are in
+- **Calibration scripts** are in
   [`specs/portolan/abstract-tests/calibration/`](specs/portolan/abstract-tests/calibration/).
-  The directory records the method and evidence for the pass bar and floors.
+  The directory records the method and the evidence for the pass bar and floors.
   The measurement script checks its formulas against the abstract test vectors.
   The registry survey on 2026-11-10 measured 5,914 files from 74 catalogs.
-  `results-registry-2026-11.csv` records that survey.
-  `resort-registry-2026-11.csv` records the Hilbert-sort control.
+  The survey results and the Hilbert-sort control are in
+  [a public gist](https://gist.github.com/nlebovits/5c123a65d8d448875751f431f9c77475).
   Use `uv run specs/portolan/abstract-tests/calibration/measure.py <corpus>`
   to measure another local corpus. The directory itself adds no requirements.
 
