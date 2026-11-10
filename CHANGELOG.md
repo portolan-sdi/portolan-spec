@@ -42,9 +42,18 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   for a table about Europe, or the country's bounds for a tabular collection
   in a country catalog (#198).
 
-- **Partition globs cannot use HTTP or HTTPS** (`PORTO-FMT-064`). Readers
-  need to list the files that match a glob. Plain HTTP does not support
-  file listing (#166).
+- **Partition globs must be absolute `s3://`, `gs://`, or `az://` URLs**
+  (`PORTO-FMT-064`). Readers need to list the files that match a glob. HTTP
+  URLs and relative paths cannot be listed. This breaks catalogs with
+  relative globs, 9 of 37 registry collections in October 2026. To fix one,
+  replace the relative glob with the absolute bucket URL (#166, #216).
+
+- **Data asset paths cannot contain globs** (`PORTO-FMT-065`). Each data
+  asset points to one file (#216).
+
+- **S3-compatible servers outside AWS should be described with the STAC
+  storage extension** (`PORTO-FMT-066`). Without it, clients assume Amazon
+  S3 (#216).
 
 - **The STAC profile uses Contacts v1.0.0** instead of v0.1.1
   (#53, part 7a).
@@ -83,8 +92,8 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 146 requirements, now 95 MUST, 32 SHOULD, and
-  19 MAY.
+- **Requirements manifest**: 147 requirements, now 96 MUST, 33 SHOULD, and
+  18 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source
   GeoParquet data in the same collection** (`PORTO-FMT-062`). Use an asset

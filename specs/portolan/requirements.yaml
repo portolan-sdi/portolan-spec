@@ -1014,20 +1014,29 @@ requirements:
       The collection description SHOULD also include the glob for human
       readers.
 
-  - id: PORTO-FMT-020
-    severity: MAY
-    enforcement: validator
-    file: specs/portolan/formats.md
-    quote: >-
-      Bucket-native schemes (`s3://`, `gs://`) MAY be used when
-      partition-aware readers need them.
-
   - id: PORTO-FMT-064
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      `partition:glob` MUST NOT use `http://` or `https://`.
+      `partition:glob` MUST be an absolute `s3://`, `gs://`, or `az://` URL.
+
+  - id: PORTO-FMT-065
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A data asset's `href` MUST NOT contain `*` or `[` in its path.
+
+  - id: PORTO-FMT-066
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Publishers SHOULD describe S3-compatible servers outside AWS with the STAC
+      [storage extension](https://github.com/stac-extensions/storage) (v2.0.0).
+      Set `type`, `platform` (the endpoint URL), and `bucket` matching the glob's
+      bucket in a `storage:schemes` entry.
 
   - id: PORTO-FMT-021
     severity: MUST

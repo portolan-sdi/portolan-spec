@@ -145,10 +145,16 @@ requirements the extension does not cover:
   partitions do not need to indicate spatial extent.
 - Use `partition:glob` for bulk access. The collection description SHOULD
   also include the glob for human readers. Validators read the field only.
-- Bucket-native schemes (`s3://`, `gs://`) MAY be used when partition-aware
-  readers need them. These readers need to list the files that match the glob.
-- `partition:glob` MUST NOT use `http://` or `https://`. Plain HTTP does not
-  support listing the files that match a glob.
+- `partition:glob` MUST be an absolute `s3://`, `gs://`, or `az://` URL.
+  Readers need to list the matching files. HTTP URLs and relative paths
+  cannot be listed.
+- A data asset's `href` MUST NOT contain `*` or `[` in its path.
+  Each data asset points to one file. Query strings after `?` are allowed.
+- Publishers SHOULD describe S3-compatible servers outside AWS with the STAC
+  [storage extension](https://github.com/stac-extensions/storage) (v2.0.0).
+  Set `type`, `platform` (the endpoint URL), and `bucket` matching the glob's
+  bucket in a `storage:schemes` entry. Without a matching entry, clients
+  assume Amazon S3.
 - Every partition file MUST share a single Parquet schema — the same columns,
   names, and types — so the glob can be queried as one table. This is validated
   by tooling reading file footers, not by JSON schema.
