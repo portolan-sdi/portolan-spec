@@ -403,7 +403,8 @@ def crs_block(crs: str, kind: str, geometry: str | None) -> list[str]:
     """The coordinate reference system block, and the consequence of it.
 
     The best-practices documentation page asks an AGENTS.md to name the CRS and
-    say what follows from it, and the grader makes that an A-grade criterion.
+    say what follows from it, and the catalog-grader skill in portolan-skills
+    makes that an A-grade criterion.
     Every word here is computed from the `proj:code` the built `data` asset
     carries, the code, the CRS name, whether it is geographic or projected, and
     the axis unit, so a Collection that changes its output CRS cannot leave
