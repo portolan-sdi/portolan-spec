@@ -2,13 +2,15 @@
 # requires-python = ">=3.11"
 # dependencies = ["pyarrow>=21", "fsspec>=2024.6", "aiohttp>=3.9"]
 # ///
-"""Measure the pruning-efficiency metric over a corpus of Parquet files.
+"""Measure pruning efficiency for a corpus of Parquet files.
 
-A direct transcription of the spatial-ordering rule in formats.md: the query
-window's centre falls in row group i with probability rows_i / N, uniform in
-its box, and spans 10% of each dimension of that box; each group weighs its
-compressed bytes; the reference is the near-square grid with uniform weights.
-Footer-only. ``--self-test`` reproduces every layout vector in
+The script implements the spatial-order rule in formats.md from footers.
+It chooses row group i with probability rows_i / N.
+It places the query window's center uniformly within that group's box.
+The window spans 10% of each box dimension.
+The skip rate weights each group by its compressed bytes.
+The reference uses a near-square grid with uniform row and byte weights.
+The ``--self-test`` option checks every layout vector in
 ``../spatial-metric-vectors.json``.
 
 Usage::
@@ -33,7 +35,7 @@ Box = tuple[float, float, float, float]
 
 
 def axis_factor(a0: float, a1: float, g0: float, g1: float, half: float) -> float:
-    """P(centre coordinate uniform on [a0, a1] lands in [g0 - half, g1 + half])."""
+    """Return the probability that a uniform center on [a0, a1] falls in [g0 - half, g1 + half]."""
     g0, g1 = g0 - half, g1 + half
     if a1 <= a0:
         return 1.0 if g0 <= a0 <= g1 else 0.0
@@ -134,7 +136,7 @@ def _covering_leaves(geo: dict) -> dict[str, str] | None:
 
 
 def file_boxes(path: Path | str) -> tuple[list[Box], list[float], list[float]] | str:
-    """Per-row-group boxes, rows and compressed bytes, or why the file has none."""
+    """Return row-group boxes, row counts, and compressed bytes, or explain why statistics are absent."""
     import pyarrow.parquet as pq
 
     parquet = pq.ParquetFile(_open(path))
@@ -216,7 +218,7 @@ COLUMNS = [
 
 
 def _open(path: Path | str):
-    """A local path as is, or a remote file that fsspec reads by range requests."""
+    """Return a local path or open a remote file with fsspec range requests."""
     if isinstance(path, str) and path.startswith(("http://", "https://")):
         import fsspec
 
@@ -225,11 +227,12 @@ def _open(path: Path | str):
 
 
 def extent_window_skip(boxes: list[Box]) -> float:
-    """The skip rate under the earlier draft, for comparison only.
+    """Return the earlier draft's skip rate for comparison.
 
-    That draft sized the window at 10% of each side of the extent, placed its
-    corner uniformly so the window stays inside the extent, and counted every
-    row group once. This is its closed form.
+    That draft used a window at 10% of each extent dimension.
+    It placed the corner uniformly where the window fits inside the extent.
+    It gave every row group equal weight.
+    This formula calculates that draft's rate without a random sample.
     """
     e = union(boxes)
     w = QUERY_FRACTION * (e[2] - e[0])
@@ -253,7 +256,7 @@ def extent_window_efficiency(boxes: list[Box]) -> float | None:
 
 
 def verdict(count: int, size: int, efficiency: float | None) -> str:
-    """The footer check's outcome under the spatial-ordering rule in formats.md."""
+    """Return the footer verdict under the spatial-order rule in formats.md."""
     if size < SIZE_FLOOR:
         return "too-small"
     if efficiency is None:
@@ -266,12 +269,12 @@ def verdict(count: int, size: int, efficiency: float | None) -> str:
 
 
 def measure_one(path: Path | str) -> dict:
-    """One CSV row for one file, with the reason when the file has no score."""
+    """Return one CSV row per file and explain any absent score."""
     row = {column: "" for column in COLUMNS}
     row["file"] = str(path)
     try:
         result = file_boxes(path)
-    except Exception as exc:  # noqa: BLE001 - a corpus survey reports and moves on
+    except Exception as exc:  # noqa: BLE001 - report each file error and continue
         row["note"] = f"unreadable: {type(exc).__name__}: {exc}"[:300]
         return row
     if isinstance(result, str):
@@ -327,14 +330,15 @@ def _is_data_parquet(asset: dict) -> bool:
 
 
 def measure_registry(registry: Path, out: Path, per_collection: int, workers: int) -> None:
-    """Measure every catalog listed in a checkout of portolan-registry.
+    """Measure files from every catalog in a portolan-registry checkout.
 
-    One thread pool fetches STAC objects for all catalogs at once, and a second
-    pool reads Parquet footers as soon as the crawl finds a file. Inside a
-    collection the crawl follows at most ``per_collection`` item links and
-    ``per_collection`` child links per object, so a partitioned collection with
-    thousands of items costs a few requests, not thousands. A ``partition:glob``
-    href names no single file, so the crawl measures the items instead.
+    One thread pool fetches STAC objects across catalogs.
+    A second pool reads Parquet footers as the crawl finds files.
+    Within a collection, each object supplies at most ``per_collection`` item
+    links and ``per_collection`` child links to follow.
+    This cap limits requests for collections with thousands of partitions.
+    A ``partition:glob`` href does not identify one file.
+    The crawl measures the items instead.
     """
     import re
     import time
@@ -374,7 +378,7 @@ def measure_registry(registry: Path, out: Path, per_collection: int, workers: in
             catalog, url, collection = pending.pop(future)
             try:
                 obj = future.result()
-            except Exception as exc:  # noqa: BLE001 - a survey reports and moves on
+            except Exception as exc:  # noqa: BLE001 - report each error and continue
                 errors += 1
                 print(f"crawl {catalog}: {url}: {type(exc).__name__}: {exc}"[:300], file=sys.stderr)
                 continue

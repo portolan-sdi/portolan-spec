@@ -11,13 +11,15 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Added
 
-- **The calibration corpus has a home**
-  ([`specs/portolan/abstract-tests/calibration/`](specs/portolan/abstract-tests/calibration/)):
-  the method and the measurement script behind the 0.70 bar and the floors,
-  with a self-test against the abstract test vectors. The registry survey is
-  to be re-measured under the current metric with
-  `uv run specs/portolan/abstract-tests/calibration/measure.py <corpus>`, and
-  the bar moves only with that evidence. No requirement changes.
+- **Calibration scripts and measured corpora** are in
+  [`specs/portolan/abstract-tests/calibration/`](specs/portolan/abstract-tests/calibration/).
+  The directory records the method and evidence for the pass bar and floors.
+  The measurement script checks its formulas against the abstract test vectors.
+  The registry survey on 2026-11-10 measured 5,914 files from 74 catalogs.
+  `results-registry-2026-11.csv` records that survey.
+  `resort-registry-2026-11.csv` records the Hilbert-sort control.
+  Use `uv run specs/portolan/abstract-tests/calibration/measure.py <corpus>`
+  to measure another local corpus. The directory itself adds no requirements.
 
 ### Changed
 
@@ -87,84 +89,101 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   with the `data` role or `partition:glob` for the reference. PMTiles alone
   is insufficient as a collection's primary data (#225).
 
-- **GeoParquet spatial ordering is judged by pruning efficiency, a closed-form
-  expectation** (`PORTO-FMT-006`, `PORTO-FMT-044`, new `PORTO-FMT-049` to
-  `PORTO-FMT-054` and `PORTO-FMT-058` to `PORTO-FMT-061`,
-  [`specs/portolan/formats.md`](specs/portolan/formats.md)): the footer check
-  passed a file on either low consecutive-pair overlap or row-group boxes
-  averaging under 30% of the extent. Neither criterion does its job. A
-  space-filling-curve sort makes row groups spatially adjacent, so their boxes
-  touch and the overlap fraction runs near 1.0 for the best possible file; the
-  30% figure was calibrated at five row groups and left flat, so at several
-  hundred groups a file a hundred times worse than an ideal tiling still
-  passed. The rule now defines the expected share of the file's bytes a query
-  window skips. The window follows the data: its centre falls in a row group
-  with probability proportional to the group's rows, and it spans 10% of each
-  dimension of that group's box, so empty area cannot decide the verdict. One
-  far outlier row used to stretch the extent until a shuffled file passed and
-  a sorted one failed; the vectors `outlier-shuffled-n20` and
-  `outlier-sorted-n20` pin both ends now. The skip rate weighs each row group
-  by its compressed bytes, because what a reader saves is bytes, not a count
-  of row groups. Everything is a closed form over the footer, so no random
-  sample is part of the rule. The rule divides the skip rate by the same
-  figure for a reference, and the reference is one pinned construction: the
-  near-square grid of `cols = ceil(sqrt(n))` columns with uniform rows and
-  bytes, every cell filled (`PORTO-FMT-053`). A file passes at 0.70 of the
-  reference.
+- **GeoParquet spatial order now uses pruning efficiency** (`PORTO-FMT-006`,
+  `PORTO-FMT-044`, new `PORTO-FMT-049` to `PORTO-FMT-054` and
+  `PORTO-FMT-058` to `PORTO-FMT-061`,
+  [`specs/portolan/formats.md`](specs/portolan/formats.md)).
+  The old footer check accepted low overlap between consecutive row-group
+  pairs or boxes that averaged under 30% of the extent.
+  A space-filling-curve sort puts neighboring groups next to each other.
+  Their boxes touch, so even an ideal file can have overlap near 1.0.
+  The fixed 30% limit came from files with five row groups.
+  At several hundred groups, it could pass a layout a hundred times worse
+  than an ideal tiling.
+  The new metric calculates the expected share of bytes a query skips.
+  It places the window in a row group with probability proportional to its
+  row count. The window spans 10% of each dimension of that group's box.
+  A distant outlier cannot stretch the extent to make a shuffled file pass
+  or a sorted file fail. The vectors `outlier-shuffled-n20` and
+  `outlier-sorted-n20` test these cases.
+  The skip rate weights groups by compressed bytes to measure data transfer.
+  A formula uses the footer statistics without random samples.
+  Efficiency divides this rate by the rate for a fixed reference grid
+  (`PORTO-FMT-053`). The grid has `cols = ceil(sqrt(n))` columns and uniform
+  row and byte counts. It fills every cell.
+  A layout passes at 0.65 of the reference rate.
 
-- **Verdicts follow a 5 MB size floor, not only a row-group floor** (new
-  `PORTO-FMT-058` and `PORTO-FMT-059`): a file whose row groups hold fewer
-  than 5,000,000 compressed bytes is not judged at all, and a validator says it is too small for order to matter.
-  Skipping parts of so small a file saves a reader almost nothing, and the
-  old eight-row-group floor made files written at the default row-group size
-  unjudgeable until the hundreds of thousands of rows. At or above the size
-  floor the pass verdict still starts at eight row groups, because a grid is
-  a poor model of a curve sort at small counts. The clear failure no longer
-  waits: at two or more row groups, efficiency under 0.25 fails, because
-  boxes that each cover most of the extent are plain at any count.
+- **Files below 5 MB receive no spatial-order verdict** (new
+  `PORTO-FMT-058` and `PORTO-FMT-059`). A validator does not judge a file
+  whose row groups total fewer than 5,000,000 compressed bytes.
+  It reports that the file is too small for order to matter.
+  Pruning such a file saves almost no data transfer.
+  The size floor also removes a dependence on the writer's row-group size
+  for small files. The default size can require hundreds of thousands of
+  rows before a file reaches eight row groups.
+  At or above the size floor, a footer pass needs eight row groups.
+  A grid poorly represents a curve sort at smaller counts.
+  With three to seven groups, efficiency under 0.25 fails the footer check.
+  With two groups, the footer check gives no verdict.
 
-- **Reporting leads with the absolute cost** (new `PORTO-FMT-060` and
-  `PORTO-FMT-061`, `PORTO-FMT-051` widened): a validator leads with "a
-  typical query reads 23% of the file", reports the efficiency, the
-  achievable rate, and the area sum beside every verdict as statistics, and
-  should name the worst row groups on a failure and give the read share at
-  1% and 25% windows beside the 10% figure.
+- **Validators start each verdict with the expected read cost** (new
+  `PORTO-FMT-060` and `PORTO-FMT-061`, expanded `PORTO-FMT-051`).
+  An example is "a typical query reads 23% of the file".
+  Each verdict also reports efficiency, achievable skip rate, and area sum
+  as statistics. These statistics do not give separate verdicts.
+  On failure, a validator should identify the largest row-group boxes
+  relative to the extent. It should also report the read share for 1% and
+  25% windows beside the 10% figure.
 
-- **The row rule reuses the same metric, and its numbers are an abstract test**
-  (`PORTO-FMT-006`, new `PORTO-FMT-052`,
-  [`specs/portolan/requirements.yaml`](specs/portolan/requirements.yaml)): the
-  rule left both the chunk count and "a small part of the file" to the
-  implementer. The requirement stays in the spec. The procedure is now a `test`
-  entry on `PORTO-FMT-006` in the manifest: ten chunks of the rows in file
-  order, each weighed by its rows, scored by the same efficiency against a
-  ten-cell reference, passing at the same 0.70. The flat 30% predicate is
-  retired. The test needs 200 rows, and below that a validator MUST say the
-  file is too small to judge, and MUST NOT withhold that message. The rule
-  applies where the footer check gives no verdict, at or above the size
-  floor.
+- **The row check now has a defined abstract test** (`PORTO-FMT-006`, new
+  `PORTO-FMT-052`,
+  [`specs/portolan/requirements.yaml`](specs/portolan/requirements.yaml)).
+  The old rule left the chunk count and "a small part of the file" undefined.
+  The spec states the rule and references the manifest's `test` entry.
+  The test divides rows in file order into ten chunks and weights each
+  chunk by its row count. It uses the same efficiency metric against a
+  ten-cell reference grid, with a pass bar of 0.65.
+  It replaces the fixed 30% limit.
+  The test needs 200 rows. Below that count, a validator MUST report that
+  the file has too few rows to judge. It MUST NOT withhold that message.
+  The row check applies when the footer gives no verdict, at or above the
+  size floor.
 
-- **Abstract test vectors for the metric** (new `PORTO-FMT-054`,
-  [`specs/portolan/abstract-tests/spatial-metric-vectors.json`](specs/portolan/abstract-tests/spatial-metric-vectors.json)):
-  thirteen layouts and two row-level cases with their expected numbers, which
-  a validator MUST reproduce. They pin the one-axis guard (`line-n8` is
-  judged, at efficiency 1.0), the undefined efficiency at `n = 1`, the strip
-  and empty-cell references, the outlier placement, the byte and row
-  weighting, and the chunk rules for null rows. The area sum is undefined on
-  an extent with no area, and a validator MUST report it as absent rather
-  than as 0.
+- **Validators must reproduce the abstract test vectors** (new `PORTO-FMT-054`,
+  [`specs/portolan/abstract-tests/spatial-metric-vectors.json`](specs/portolan/abstract-tests/spatial-metric-vectors.json)).
+  The vectors specify expected results for thirteen layouts and two row cases.
+  They test a zero extent on one axis (`line-n8` passes at efficiency 1.0)
+  and undefined efficiency at `n = 1`.
+  They distinguish the required grid from strips and grids with empty cells.
+  Other cases test outliers, byte and row weights, and null rows in chunks.
+  The area sum is undefined when the extent has no area.
+  A validator MUST report it as absent rather than as 0.
 
-- **The 0.70 bar carries over from the extent-window draft.** It was set from
-  206 files across every catalog in the Portolan registry, where the nine
-  files below it all reached 0.87 to 0.97 after a re-sort, and from a review
-  across four further catalogs, three single files, and 1.27 million AIS
-  tracks. Those measurements used the earlier draft's uniform window; the
-  corpus is being re-measured under this definition, and the bar moves only
-  with that evidence.
+- **The pass bar is now 0.65, and clear failure starts at three row groups.**
+  The new survey replaces the earlier 0.70 calibration from the extent-window
+  draft. The earlier review covered 206 registry files, four further catalogs,
+  three single files, and 1.27 million AIS tracks.
+  Its nine files below the bar reached 0.87 to 0.97 after a sort.
+  The new survey used the current metric on 5,914 files from 74 catalogs.
+  The sort control selected 145 files and measured 141 copies.
+  The 32 copies with eight or more row groups scored 0.696 to 0.944.
+  An already sorted Manitoba buildings file scored 0.682 before the sort
+  and 0.696 after it. The 0.70 bar would reject that sorted file.
+  At 0.65, every sorted copy eligible for a footer pass passes.
+  The original 2011 crop-parcel file also passes at 0.668.
+  With two row groups, sorted copies scored as low as 0.18.
+  The clear-fail rule now starts at three groups to avoid false failures.
+  The new thresholds produce 308 footer passes and no footer failures.
+  Another 570 files need the row check.
+  One catalog supplies 183 of the 878 files at or above the size floor.
+  The calibration README records this limitation and the survey's missing
+  statistics and broken links.
 
-- **A validator may refine its read share with page-level statistics** (new
-  `PORTO-FMT-073`): the page index on the covering leaves lets a reader skip
-  pages, not only row groups, so the reported read share can say so. The
-  verdict stays the row-group metric, so validators keep agreeing.
+- **Validators may use page-level statistics to refine the read share**
+  (new `PORTO-FMT-073`). The Parquet page index on covering leaves or native
+  page statistics can let a reader skip pages within a row group.
+  A validator MAY report that finer estimate.
+  The verdict uses the row-group metric so validators agree.
 
 ### Removed
 

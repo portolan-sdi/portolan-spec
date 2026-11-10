@@ -2,16 +2,18 @@
 # requires-python = ">=3.11"
 # dependencies = ["pyarrow>=21", "fsspec>=2024.6", "aiohttp>=3.9"]
 # ///
-"""Re-sort the low scorers of a survey and measure them again.
+"""Sort survey files with low efficiency and measure the copies.
 
-This is the positive control for the pass bar. For every judged file in a
-``measure.py`` CSV whose efficiency is under ``--below``, the script writes a
-Hilbert-sorted copy with ``gpio sort hilbert``. The copy keeps the original
-number of rows per row group, so only the order changes. Then the script
-measures the copy with the same code as ``measure.py``. A bar is sound when
-the sorted copies pass it and the files below it are badly ordered.
+The sorted copies form a positive control for the pass bar.
+The script selects eligible files from a ``measure.py`` CSV.
+Each file must score below ``--below`` and meet the ``--max-bytes`` limit.
+For each file, ``gpio sort hilbert`` writes a Hilbert-sorted copy.
+The copy uses the same number of rows per row group.
+The script then measures it with the code from ``measure.py``.
+A suitable bar lets sorted copies pass and rejects files with poor order.
 
-``gpio`` must be on the PATH (``uv tool install geoparquet-io``).
+The ``gpio`` command must be on the PATH.
+Use ``uv tool install geoparquet-io`` to install it.
 
 Usage::
 
@@ -60,13 +62,13 @@ def resort(row: dict, workdir: Path) -> dict:
     stem = f"{abs(hash(row['file']))}"
     source = workdir / f"{stem}-source.parquet"
     target = workdir / f"{stem}-sorted.parquet"
-    # gpio reads a path segment such as country=CA as a hive partition, so
-    # the script sorts a local copy with a plain name.
+    # Sort a local copy with a plain name.
+    # gpio interprets a path segment such as country=CA as a Hive partition.
     try:
         request = urllib.request.Request(row["file"], headers={"User-Agent": USER_AGENT})
         with urllib.request.urlopen(request, timeout=120) as response, source.open("wb") as f:
             shutil.copyfileobj(response, f, 1 << 20)
-    except Exception as exc:  # noqa: BLE001 - a survey reports and moves on
+    except Exception as exc:  # noqa: BLE001 - report each error and continue
         source.unlink(missing_ok=True)
         out["note"] = f"download failed: {type(exc).__name__}: {exc}"[:300]
         return out
