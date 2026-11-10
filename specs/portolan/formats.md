@@ -30,28 +30,28 @@ requirement to this document.
 
 ### Parquet
 
-Data MUST be provided in [GeoParquet 1.1](https://geoparquet.org/releases/v1.1.0/),
-[GeoParquet 2.0](https://geoparquet.org/releases/v2.0.0-rc.1/), or Parquet with the
-native geospatial logical types ([`GEOMETRY` or
-`GEOGRAPHY`](https://github.com/apache/parquet-format/blob/master/Geospatial.md)).
+Publishers MUST provide data as [GeoParquet 1.1](https://geoparquet.org/releases/v1.1.0/),
+[GeoParquet 2.0](https://geoparquet.org/releases/v2.0.0-rc.1/), or Parquet with native
+[`GEOMETRY` or `GEOGRAPHY`](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
+logical types.
 Follow the [Best Practices for Distributing
-GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so the data can be
-queried without a server. Files SHOULD be compressed to stay small, with `zstd`
+GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so readers can query
+the data without a server. Files SHOULD be compressed to stay small, with `zstd`
 RECOMMENDED.
 
-A file with a native geospatial column is vector data even when it carries no
-`geo` metadata key. A validator MUST apply every requirement in this section to
-such a file rather than treat it as tabular Parquet. Apache Iceberg writers
-commonly produce these files, so a catalog can publish an Iceberg table's data
-files directly.
+A file with a native geospatial column is vector data, even without a `geo`
+metadata key. A validator MUST apply every requirement in this section to the
+file. Apache Iceberg writers commonly produce these files, so catalogs can
+publish an Iceberg table's data files directly.
 
-When the native logical type's `crs` field is the only CRS a geometry column
-declares, the value MUST be one the [Parquet geospatial
+When a geometry column declares its CRS only through the native logical type's
+`crs` field, the value MUST be one that the [Parquet geospatial
 specification](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
-defines. An absent value is OGC:CRS84, per that specification. The value
-SHOULD be inline PROJJSON or a `projjson:<key>` reference, which a reader
-resolves from the file alone. An `<authority>:<code>` or `srid:<n>` value needs
-a CRS registry, so a validator reports it as a warning.
+defines. An absent `crs` value means OGC:CRS84, as that specification defines.
+The value SHOULD be inline PROJJSON or a `projjson:<key>` reference. Readers
+can resolve either from the file alone. Values in `<authority>:<code>` or
+`srid:<n>` form require a CRS registry. A validator reports these values as
+warnings.
 
 Rows MUST be spatially ordered so nearby features are nearby in the file. This rule
 applies to every file, no matter how many row groups it has. A validator checks it

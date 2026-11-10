@@ -827,11 +827,10 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Data MUST be provided in [GeoParquet
-      1.1](https://geoparquet.org/releases/v1.1.0/), [GeoParquet
-      2.0](https://geoparquet.org/releases/v2.0.0-rc.1/), or Parquet with the
-      native geospatial logical types ([`GEOMETRY` or
-      `GEOGRAPHY`](https://github.com/apache/parquet-format/blob/master/Geospatial.md)).
+      Publishers MUST provide data as [GeoParquet 1.1](https://geoparquet.org/releases/v1.1.0/),
+      [GeoParquet 2.0](https://geoparquet.org/releases/v2.0.0-rc.1/), or Parquet with native
+      [`GEOMETRY` or `GEOGRAPHY`](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
+      logical types.
 
   - id: PORTO-FMT-005
     severity: SHOULD
@@ -845,17 +844,17 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A file with a native geospatial column is vector data even when it
-      carries no `geo` metadata key. A validator MUST apply every requirement
-      in this section to such a file rather than treat it as tabular Parquet.
+      A file with a native geospatial column is vector data, even without a `geo`
+      metadata key. A validator MUST apply every requirement in this section to the
+      file.
 
   - id: PORTO-FMT-056
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      When the native logical type's `crs` field is the only CRS a geometry
-      column declares, the value MUST be one the [Parquet geospatial
+      When a geometry column declares its CRS only through the native logical type's
+      `crs` field, the value MUST be one that the [Parquet geospatial
       specification](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
       defines.
 
@@ -864,10 +863,10 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      The value SHOULD be inline PROJJSON or a `projjson:<key>` reference,
-      which a reader resolves from the file alone. An `<authority>:<code>` or
-      `srid:<n>` value needs a CRS registry, so a validator reports it as a
-      warning.
+      The value SHOULD be inline PROJJSON or a `projjson:<key>` reference. Readers
+      can resolve either from the file alone. Values in `<authority>:<code>` or
+      `srid:<n>` form require a CRS registry. A validator reports these values as
+      warnings.
 
   - id: PORTO-FMT-006
     severity: MUST
