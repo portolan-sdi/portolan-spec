@@ -385,28 +385,28 @@ Items SHOULD carry an explicit `datetime` (or a `start_datetime` /
 
 ## Data Storage
 
-Cloud-native formats depend on clients fetching only the bytes they need, so
-Portolan catalogs assume data is hosted in cloud object storage reachable over
-HTTP range requests (S3-compatible or otherwise).
+Clients read cloud-optimized formats such as COG, GeoParquet, PMTiles, and
+COPC in parts, while they fetch STAC JSON, Markdown, thumbnails, and style JSON
+whole.
 
 The requirements in this section apply to servers hosting the catalog's own
-cloud-native assets: the copies of the data that the publisher has uploaded and
+metadata and asset files: the copies that the publisher has uploaded and
 controls. They do not apply to upstream sources hosted by third parties.
 
-A server hosting the catalog's cloud-native assets MUST support range
+A server hosting files in formats that clients read in parts MUST support range
 requests: honor the `Range` header, return `206 Partial Content`, and advertise
 `Accept-Ranges: bytes`; HEAD requests MUST return an accurate `Content-Length`.
 The server MUST support HTTP/1.1 or greater; HTTP/2 or /3 is RECOMMENDED. Endpoints
 that compress or transform responses in ways that break range semantics are not
 conformant.
 
-To let browser clients read data directly, a server hosting the catalog's
-cloud-native assets MUST also enable CORS on all
-metadata and asset files: `Access-Control-Allow-Origin: *` (or an equivalent
-read-permitting policy), allowed methods including `GET` and `HEAD`, allowed
+Servers MUST enable CORS on all metadata and asset files:
+`Access-Control-Allow-Origin: *` (or an equivalent read-permitting policy) for
+`GET` and `HEAD`.
+For files in formats that clients read in parts, the server MUST also allow
 request headers including `Range`, `If-Match`, `If-Modified-Since`,
 `If-None-Match`, and `If-Unmodified-Since` (via
-`Access-Control-Allow-Headers`), and exposed response headers including
+`Access-Control-Allow-Headers`), and expose response headers including
 `Content-Type`, `Content-Length`, `Content-Range`, `Accept-Ranges`, and `ETag`
 (via `Access-Control-Expose-Headers`).
 
@@ -421,10 +421,10 @@ upstream sources that a mirror complements and original files carried over from
 an upstream source. Because those servers are operated by third parties and are
 outside the publisher's control, the requirements above do not apply to them.
 
-A validator MUST probe the servers hosting the catalog's own cloud-native assets
-and MUST NOT require upstream servers to satisfy these requirements. An upstream
-server that does not support range requests or provide the required CORS headers
-limits the capabilities available to clients using that upstream copy, but does
+A validator MUST probe the servers hosting the catalog's own metadata and asset
+files and MUST NOT require upstream servers to satisfy these requirements. An
+upstream server that does not support range requests or provide the required
+CORS headers limits the capabilities available to clients using that upstream copy, but does
 not make the catalog non-conformant.
 
 ## Providers

@@ -18,6 +18,11 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 - **Assets should have a `title` and a `description`** (`PORTO-CORE-088`).
   The spec recommended them before. Now they are a SHOULD (#240).
 
+- **Metadata-only hosts no longer need range support**
+  (`PORTO-CORE-043`, `PORTO-CORE-045`, `PORTO-CORE-073`, `PORTO-CORE-086`).
+  Range requests and range-related CORS now apply only to formats clients read
+  in parts. CORS still applies to all metadata and asset files (#183).
+
 - **Tabular bounding boxes have regional examples**. Use the bounds of Europe
   for a table about Europe, or the country's bounds for a tabular collection
   in a country catalog (#198).
@@ -63,7 +68,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 137 requirements, now 94 MUST, 25 SHOULD, and
+- **Requirements manifest**: 138 requirements, now 95 MUST, 25 SHOULD, and
   18 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source
