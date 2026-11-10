@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The unreleased `v0.3.0` schema accepts absolute asset hrefs that are not
+  https. The schema cannot compare assets, so rashid checks for the https
+  copy (#213).
+
 - The STAC profile uses Contacts v1.0.0 instead of v0.1.1 (#53).
 
 ## 0.2.0 - 2026-08-28

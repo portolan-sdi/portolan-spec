@@ -11,6 +11,11 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **Non-https asset hrefs can conform with an https copy**
+  (`PORTO-CORE-023`, `PORTO-CORE-087`). Absolute hrefs should use https.
+  Other schemes need the same data over https in an alternate or a sibling
+  asset of the same type in the same item or collection (#213).
+
 - **Tabular bounding boxes have regional examples**. Use the bounds of Europe
   for a table about Europe, or the country's bounds for a tabular collection
   in a country catalog (#198).
@@ -56,7 +61,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 135 requirements, now 94 MUST, 23 SHOULD, and
+- **Requirements manifest**: 136 requirements, now 94 MUST, 24 SHOULD, and
   18 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source

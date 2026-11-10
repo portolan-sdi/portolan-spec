@@ -248,12 +248,20 @@ requirements:
       or absolute both allowed for now.
 
   - id: PORTO-CORE-023
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      An absolute asset `href` SHOULD use `https`.
+
+  - id: PORTO-CORE-087
     severity: MUST
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Where an asset `href` is absolute, it MUST use `https` rather than
-      `s3`, since browsers cannot fetch `s3` URLs directly.
+      Other absolute hrefs MUST expose the same data over `https` through
+      `alternate` or a sibling asset with the same `type` in the same item or
+      collection.
 
   - id: PORTO-CORE-024
     severity: SHOULD
