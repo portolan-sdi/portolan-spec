@@ -236,6 +236,28 @@ The exact on-disk encoding (the TIFF `GDAL_METADATA` tag and its XML layout, and
 [`specs/incubating/geotiff-stats-headers.md`](../incubating/geotiff-stats-headers.md).
 Compliance is defined by the tag contents, not by use of GDAL.
 
+**Spatial mosaics.** A spatial mosaic covers one point in time across many scene
+footprints. Time series are not spatial mosaics. A spatial mosaic
+collection SHOULD publish one overview COG as a collection-level asset with
+`roles: ["visual", "overview"]` and media type
+`image/tiff; application=geotiff; profile=cloud-optimized`.
+The overview SHOULD use a web-friendly projection such as Web Mercator (EPSG:3857),
+since it is only for display. This display derivative is separate from scene COGs
+and satisfies [Visualization](core.md#visualization) (PORTO-CORE-065) through its
+`visual` role. The `overview` role follows
+[STAC best practices](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#asset-roles)
+for a medium-resolution, full-extent view that is easy to display.
+
+For these mosaics:
+
+- Scenes SHOULD share the same bands and data type.
+- Scenes SHOULD declare nodata or include an alpha band.
+- Item geometries SHOULD trace the valid-data footprint rather than the full raster bounds.
+- The collection SHOULD state the drawing order for overlapping scenes in its `description`.
+
+The item mirror recommended below (PORTO-FMT-040) lets clients move from the overview
+to individual scenes when zoomed in.
+
 **Item mirror.** A raster collection that models scenes as items SHOULD also publish a
 [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) item mirror at
 `items.parquet` in the collection root. One range request then returns the whole

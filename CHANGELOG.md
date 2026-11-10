@@ -25,6 +25,13 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   metadata and asset files. Servers no longer need to expose `Content-Type`
   and `Content-Length` (#183).
 
+- **Spatial mosaics should publish an overview COG** (`PORTO-FMT-067` through
+  `PORTO-FMT-072`). The overview is a collection-level visualization derivative
+  in a web-friendly projection. Scenes should share bands and data type,
+  declare nodata or alpha, trace valid-data footprints, and state an overlap
+  order. The existing item mirror lets clients reach scenes when zoomed in
+  (#114).
+
 - **Tabular bounding boxes have regional examples**. Use the bounds of Europe
   for a table about Europe, or the country's bounds for a tabular collection
   in a country catalog (#198).
@@ -70,7 +77,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 138 requirements, now 95 MUST, 25 SHOULD, and
+- **Requirements manifest**: 144 requirements, now 95 MUST, 31 SHOULD, and
   18 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source

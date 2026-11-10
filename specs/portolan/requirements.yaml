@@ -1207,6 +1207,51 @@ requirements:
       Point cloud support is not yet implemented; when complete, data MUST be
       provided as Cloud-Optimized Point Cloud (COPC).
 
+  - id: PORTO-FMT-067
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A spatial mosaic collection SHOULD publish one overview COG as a collection-level
+      asset with `roles: ["visual", "overview"]` and media type
+      `image/tiff; application=geotiff; profile=cloud-optimized`.
+
+  - id: PORTO-FMT-068
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      The overview SHOULD use a web-friendly projection such as Web Mercator (EPSG:3857),
+      since it is only for display.
+
+  - id: PORTO-FMT-069
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Scenes SHOULD share the same bands and data type.
+
+  - id: PORTO-FMT-070
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Scenes SHOULD declare nodata or include an alpha band.
+
+  - id: PORTO-FMT-071
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Item geometries SHOULD trace the valid-data footprint rather than the full raster bounds.
+
+  - id: PORTO-FMT-072
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      The collection SHOULD state the drawing order for overlapping scenes in its `description`.
+
   - id: PORTO-FMT-040
     severity: SHOULD
     enforcement: validator
