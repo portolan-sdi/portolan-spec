@@ -119,7 +119,7 @@ clipped at 1:
 efficiency = min(1, skip(layout) / skip(reference))
 ```
 
-A layout passes when its efficiency is 0.70 or more. When the reference skip rate
+A layout passes when its efficiency is 0.65 or more. When the reference skip rate
 is 0, the efficiency is undefined and the layout is not judged. That happens for
 `n = 1`, and for an extent that is one point, where every span has no width
 and every `F` is 1. An extent that is zero on one axis only is judged: the
@@ -142,8 +142,9 @@ it several times over.
 **Footer check.** A file at or above the size floor with eight or more row
 groups MUST pass on its row-group boxes, read from the per-row-group spatial
 statistics.[^pruning] Below eight row groups the footer check MUST still fail a
-file whose efficiency is under 0.25 at two or more row groups: boxes that each
-cover most of the extent are plain at any count. Otherwise the footer gives no
+file whose efficiency is under 0.25 at three or more row groups. Two row groups
+can each cover most of the extent even when the rows are sorted, so the footer
+gives no verdict on a file with two row groups. Otherwise the footer gives no
 verdict there. A validator MUST NOT report a pass from fewer than eight row
 groups, and MAY report the numbers.[^floor]
 
@@ -206,17 +207,19 @@ statistic, but MUST NOT decide the verdict.[^overlap]
 [^pruning]: Pruning is the benefit spatial ordering exists to deliver, and the footer
     boxes already carry what it takes to estimate it. The bar is relative because the
     achievable rate rises with the row-group count: two row groups can never skip
-    more than half a file, five hundred about 98%. The 0.70 bar was calibrated
-    on the earlier extent-window draft over the Portolan registry and four
-    further catalogs, recorded in the [changelog](../../CHANGELOG.md); the
-    calibration corpus is being re-measured under this definition, and the bar
-    moves only with that evidence.
+    more than half a file, five hundred about 98%. The 0.65 bar comes from the
+    [calibration corpus](abstract-tests/calibration/README.md), measured under
+    this definition in November 2026 over 5,914 files in 74 registry catalogs.
+    Hilbert-sorted copies of every low scorer with eight or more row groups
+    scored 0.696 to 0.944. The one file a sort lifted from under 0.70 scored
+    0.668 before the sort and 0.912 after it.
 
-[^floor]: A grid is a poor model of a curve sort at small counts: well-sorted
-    files measured 0.60 to 0.88 at five row groups and 0.76 to 0.94 at eight
-    under the earlier draft, so a pass still starts at eight. A clear failure
-    does not need that many: efficiency near zero means every box covers most
-    of the extent, which two boxes already show.
+[^floor]: A grid is a poor model of a curve sort at small counts. In the
+    calibration corpus, Hilbert-sorted copies scored as low as 0.56 at five
+    row groups and 0.68 at six, so a pass still starts at eight. A clear
+    failure needs fewer: sorted copies never scored under 0.34 at three or
+    more row groups. At two row groups they scored as low as 0.18, because
+    two halves of a curve can each span most of the extent.
 
 [^overlap]: A space-filling-curve sort makes neighboring row groups adjacent, so
     their boxes touch and this fraction runs near 1.0 even for a perfectly tiled

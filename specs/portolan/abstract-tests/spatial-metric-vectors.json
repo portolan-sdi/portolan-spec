@@ -5,7 +5,7 @@
   "Boxes are [xmin, ymin, xmax, ymax]. The window centre falls in box i with probability rows_i/N, uniform in the box,",
   "and the window spans 10% of each dimension of that box. The skip rate weighs each box by its share of the bytes.",
   "'rows' and 'sizes' are per-box row and byte counts; a layout without them is uniform (every box 1 and 1).",
-  "Values are rounded to six decimals; the bar is 0.70.",
+  "Values are rounded to six decimals; the bar is 0.65.",
   "efficiency is null when the reference skip rate is zero (n = 1, or an extent that is a single point).",
   "area_sum is null when the extent has no area (0/0), never 0.0. below_bar is null wherever efficiency is null.",
   "'layouts' score a set of boxes directly. 'rows' hold per-row boxes in file order, null for a row without a bbox covering;",

@@ -956,8 +956,7 @@ requirements:
     file: specs/portolan/formats.md
     quote: >-
       Below eight row groups the footer check MUST still fail a file whose
-      efficiency is under 0.25 at two or more row groups: boxes that each
-      cover most of the extent are plain at any count.
+      efficiency is under 0.25 at three or more row groups.
 
   - id: PORTO-FMT-051
     severity: MUST
