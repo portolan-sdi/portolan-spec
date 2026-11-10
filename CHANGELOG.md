@@ -11,21 +11,19 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Added
 
-- **Every `table:columns` entry carries a description** (`PORTO-FMT-049`,
-  `PORTO-FMT-050`,
-  [`specs/portolan/formats.md`](specs/portolan/formats.md)): the vector and
-  tabular SHOULDs already asked for "names, types, and descriptions", but the
-  sentence reads as a description of the extension's shape, and a validator
-  could satisfy it with entries that carry a name and a type alone. Those two
-  come from the Parquet footer, so such an entry tells a client nothing it
-  could not read from the file. A separate requirement now names the
-  description, so a validator can cite it.
-- **Recording that no definition exists is a description**
-  (`PORTO-FMT-050`): a mirror of a publisher who ships no data dictionary
-  would otherwise face a rule it can satisfy only by inventing meanings.
-  An invented column meaning is not detectable downstream, and an agent acting
-  on one produces a confident wrong answer. Stating that the publisher
-  documents no meaning is correct, and it tells a reader not to keep looking.
+- **Column descriptions** (`PORTO-FMT-049`,
+  [`specs/portolan/formats.md`](specs/portolan/formats.md)). Every
+  `table:columns` entry should include a `description`. The existing vector
+  and tabular recommendations mention names, types, and descriptions, but a
+  validator could accept entries with only names and types. Both already
+  appear in the Parquet footer. The separate description requirement gives
+  validators a specific requirement to check.
+- **Descriptions for columns without a sourced definition** (`PORTO-FMT-050`).
+  If no source defines a column, state that in its description. This lets
+  mirrors document data from publishers without a data dictionary. Readers
+  then know they do not need to keep searching for a definition. Invented
+  definitions introduce errors that downstream users cannot detect and can
+  lead agents to give confident but incorrect answers.
 
 ### Changed
 

@@ -1257,14 +1257,14 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Every entry in `table:columns` SHOULD carry a `description`.
+      Every entry in `table:columns` SHOULD include a `description`.
 
   - id: PORTO-FMT-050
     severity: SHOULD
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      Where no definition can be sourced, record that.
+      If you cannot find a definition in a source, state that in the description.
 
 exclusions:
   # RFC 2119 preamble: keyword mentions, not requirements.
