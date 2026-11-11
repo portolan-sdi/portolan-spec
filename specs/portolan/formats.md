@@ -236,7 +236,7 @@ The exact on-disk encoding (the TIFF `GDAL_METADATA` tag and its XML layout, and
 [`specs/incubating/geotiff-stats-headers.md`](../incubating/geotiff-stats-headers.md).
 Compliance is defined by the tag contents, not by use of GDAL.
 
-**Spatial mosaics.** A spatial mosaic combines multiple scene footprints at a single point in time.
+**Spatial mosaics.** A spatial mosaic combines multiple scene footprints at one point in time.
 
 For a spatial mosaic, publishers SHOULD provide one overview Cloud Optimized GeoTIFF (COG) as a collection-level asset with both the `visual` and `overview` roles and the media type `image/tiff; application=geotiff; profile=cloud-optimized`. This overview is separate from the individual scene COGs.
 
