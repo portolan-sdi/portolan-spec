@@ -385,47 +385,51 @@ Items SHOULD carry an explicit `datetime` (or a `start_datetime` /
 
 ## Data Storage
 
-Clients read cloud-optimized formats such as COG, GeoParquet, PMTiles, and
-COPC in parts, while they fetch STAC JSON, Markdown, thumbnails, and style JSON
-whole.
+Require byte-range support for formats designed for partial reads, such as
+COG, GeoParquet, PMTiles, and COPC. Clients use byte-range requests to fetch
+only the bytes they need. For files that clients normally read in full, such as
+STAC JSON, Markdown, thumbnails, and style JSON, byte-range support is
+optional.
 
-The requirements in this section apply to servers hosting the catalog's own
-metadata and asset files: the copies that the publisher has uploaded and
-controls. They do not apply to upstream sources hosted by third parties.
+A metadata-only catalog on GitHub Pages that contains only STAC JSON and
+Markdown can conform without byte-range support. Its files still need
+to meet the CORS requirements below.
 
-A server hosting files in formats that clients read in parts MUST support range
-requests: honor the `Range` header, return `206 Partial Content`, and advertise
-`Accept-Ranges: bytes`; HEAD requests MUST return an accurate `Content-Length`.
-The server MUST support HTTP/1.1 or greater; HTTP/2 or /3 is RECOMMENDED. Endpoints
-that compress or transform responses in ways that break range semantics are not
-conformant.
+These requirements apply only to metadata and asset files that the publisher
+uploads and controls.
 
-Servers MUST enable CORS on all metadata and asset files:
-`Access-Control-Allow-Origin: *` (or an equivalent read-permitting policy) for
-`GET` and `HEAD`.
-For files in formats that clients read in parts, the server MUST also allow
-request headers including `Range`, `If-Match`, `If-Modified-Since`,
-`If-None-Match`, and `If-Unmodified-Since` (via
-`Access-Control-Allow-Headers`), and expose response headers including
-`Content-Type`, `Content-Length`, `Content-Range`, `Accept-Ranges`, and `ETag`
-(via `Access-Control-Expose-Headers`).
+### Byte-range requests
 
-The conditional-request headers let a browser revalidate a cached range instead
-of refetching it, which keeps tile and range readers cheap on repeat views.
-Provider-specific headers such as `x-amz-*` and `x-goog-*` fall outside this
-requirement, since reading a public catalog takes no signed request. Portolan
-leaves cloud-specific configuration to separate guidance.
+If a file's format is designed for partial reads, the server MUST honor
+byte-range requests for that file, return `206 Partial Content` for successful
+range requests, and advertise `Accept-Ranges: bytes`. The server MUST also
+return an accurate `Content-Length` for `HEAD` requests for that file.
 
-Catalogs also reference bytes that the publisher does not host, including
-upstream sources that a mirror complements and original files carried over from
-an upstream source. Because those servers are operated by third parties and are
-outside the publisher's control, the requirements above do not apply to them.
+A server that hosts these files MUST support HTTP/1.1 or later. HTTP/2 or
+HTTP/3 is RECOMMENDED.
 
-A validator MUST probe the servers hosting the catalog's own metadata and asset
-files and MUST NOT require upstream servers to satisfy these requirements. An
-upstream server that does not support range requests or provide the required
-CORS headers limits the capabilities available to clients using that upstream copy, but does
-not make the catalog non-conformant.
+### Cross-origin resource sharing (CORS)
+
+To let browsers read files directly, servers MUST allow cross-origin `GET` and
+`HEAD` requests for all metadata and asset files. Use
+`Access-Control-Allow-Origin: *` or an equivalent policy that permits reads.
+
+If a file's format is designed for partial reads, the server MUST also:
+
+- Allow `Range`, `If-Match`, `If-Modified-Since`, `If-None-Match`, and
+  `If-Unmodified-Since` through `Access-Control-Allow-Headers`.
+- Expose `Content-Type`, `Content-Length`, `Content-Range`, `Accept-Ranges`,
+  and `ETag` through `Access-Control-Expose-Headers`.
+
+### Validation
+
+A validator MUST probe the servers that host the publisher's metadata and asset
+files. It MUST NOT require third-party servers to meet these requirements for
+upstream copies.
+
+If an upstream server lacks byte-range support or CORS headers, clients may
+have fewer ways to access that copy. The catalog's conformance depends on the
+publisher's copies.
 
 ## Providers
 
