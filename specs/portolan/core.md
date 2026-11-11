@@ -407,6 +407,8 @@ return an accurate `Content-Length` for `HEAD` requests for that file.
 
 A server that hosts these files MUST support HTTP/1.1 or later. HTTP/2 or
 HTTP/3 is RECOMMENDED.
+Endpoints that compress or transform responses in ways that break range
+semantics are not conformant.
 
 ### Cross-origin resource sharing (CORS)
 
@@ -421,7 +423,18 @@ If a file's format is designed for partial reads, the server MUST also:
 - Expose `Content-Type`, `Content-Length`, `Content-Range`, `Accept-Ranges`,
   and `ETag` through `Access-Control-Expose-Headers`.
 
+The conditional-request headers let a browser revalidate a cached range instead
+of refetching it, which keeps tile and range readers cheap on repeat views.
+Provider-specific headers such as `x-amz-*` and `x-goog-*` fall outside this
+requirement, since reading a public catalog takes no signed request. Portolan
+leaves cloud-specific configuration to separate guidance.
+
 ### Validation
+
+Catalogs also reference bytes that the publisher does not host, including
+upstream sources that a mirror complements and original files carried over from
+an upstream source. Because those servers are operated by third parties and are
+outside the publisher's control, the requirements above do not apply to them.
 
 A validator MUST probe the servers that host the publisher's metadata and asset
 files. It MUST NOT require third-party servers to meet these requirements for
