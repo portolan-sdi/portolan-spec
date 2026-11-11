@@ -222,13 +222,16 @@ without one describes nothing.
 
 ## Assets
 
-Every asset MUST include an `href`, the URI to the data, with relative or absolute
-both allowed for now. An absolute asset `href` SHOULD use `https`.
-Other absolute hrefs MUST expose the same data over `https` through
-`alternate` or a sibling asset with the same `type` in the same item or
-collection. An asset SHOULD also provide `s3` or other cloud-native URLs
-through the [alternate](https://github.com/stac-extensions/alternate-assets) extension, so
-tools that prefer direct bucket access can use them. Portolan additionally
+Every asset MUST include an `href`. The `href` MAY be relative or absolute.
+
+For an absolute `href`, publishers SHOULD use `https`. If they use a different scheme, they MUST provide an HTTPS URL for the same data in one of these ways:
+
+- Add the HTTPS URL to the asset’s `alternate` field using the [alternate assets extension](https://github.com/stac-extensions/alternate-assets).
+- Add a separate asset to the same item or collection with an HTTPS `href` and the same `type` as the original asset.
+
+The HTTPS URL lets browsers fetch the data when the primary `href` uses a scheme they cannot fetch directly, such as `s3://`.
+
+If the `href` resolves to an HTTPS URL and the same data is also available at a direct bucket URL such as `s3://`, publishers SHOULD add the bucket URL to the asset’s `alternate` field. Portolan additionally
 requires a `type`, meaning the media type, and at least one role on every asset.
 STAC leaves both optional, but a validator and a browser cannot do their jobs
 without them, so Portolan makes them mandatory. The `title` and `description`
