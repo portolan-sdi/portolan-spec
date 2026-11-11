@@ -1011,32 +1011,34 @@ requirements:
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      The collection description SHOULD also include the glob for human
-      readers.
+      To help people find the glob, publishers SHOULD also include it in the
+      collection's `description`.
 
   - id: PORTO-FMT-064
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      `partition:glob` MUST be an absolute `s3://`, `gs://`, or `az://` URL.
+      Publishers MUST set this field to an absolute `s3://`, `gs://`, or `az://`
+      URL.
 
   - id: PORTO-FMT-065
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A data asset's `href` MUST NOT contain `*` or `[` in its path.
+      Clients use a data asset's `href` to open one file. Publishers MUST NOT
+      include `*` or `[` in the path. They MAY include a query string after `?`.
 
   - id: PORTO-FMT-066
     severity: SHOULD
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Publishers SHOULD describe S3-compatible servers outside AWS with the STAC
-      [storage extension](https://github.com/stac-extensions/storage) (v2.0.0).
-      Set `type`, `platform` (the endpoint URL), and `bucket` matching the glob's
-      bucket in a `storage:schemes` entry.
+      If a publisher uses such a service for an `s3://` glob, they SHOULD add a
+      `storage:schemes` entry with `type`, `platform` (the endpoint URL), and
+      `bucket` (the bucket named in the glob). Use version 2.0.0 of the
+      [STAC Storage Extension](https://github.com/stac-extensions/storage).
 
   - id: PORTO-FMT-021
     severity: MUST

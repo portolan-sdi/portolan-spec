@@ -143,18 +143,23 @@ requirements the extension does not cover:
   MUST indicate each file's geographic extent. Readers can then skip files
   without reading their metadata. Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent.
-- Use `partition:glob` for bulk access. The collection description SHOULD
-  also include the glob for human readers. Validators read the field only.
-- `partition:glob` MUST be an absolute `s3://`, `gs://`, or `az://` URL.
-  Readers need to list the matching files. HTTP URLs and relative paths
-  cannot be listed.
-- A data asset's `href` MUST NOT contain `*` or `[` in its path.
-  Each data asset points to one file. Query strings after `?` are allowed.
-- Publishers SHOULD describe S3-compatible servers outside AWS with the STAC
-  [storage extension](https://github.com/stac-extensions/storage) (v2.0.0).
-  Set `type`, `platform` (the endpoint URL), and `bucket` matching the glob's
-  bucket in a `storage:schemes` entry. Without a matching entry, clients
-  assume Amazon S3.
+
+To read a partitioned dataset in bulk, clients first need to identify which
+files to open. They use the absolute URL to locate the bucket and list its
+objects. Then they apply the glob pattern to the object paths.
+
+- Use `partition:glob` for bulk access. Publishers MUST set this field to an
+  absolute `s3://`, `gs://`, or `az://` URL. To help people find the glob,
+  publishers SHOULD also include it in the collection's `description`.
+  Validators check only the `partition:glob` field.
+- Clients use a data asset's `href` to open one file. Publishers MUST NOT
+  include `*` or `[` in the path. They MAY include a query string after `?`.
+- Clients need the endpoint URL to list objects on an S3-compatible service
+  other than Amazon S3. If a publisher uses such a service for an `s3://` glob,
+  they SHOULD add a `storage:schemes` entry with `type`, `platform` (the
+  endpoint URL), and `bucket` (the bucket named in the glob). Use version 2.0.0
+  of the [STAC Storage Extension](https://github.com/stac-extensions/storage).
+  If clients find no entry for the bucket, they assume Amazon S3.
 - Every partition file MUST share a single Parquet schema — the same columns,
   names, and types — so the glob can be queried as one table. This is validated
   by tooling reading file footers, not by JSON schema.
