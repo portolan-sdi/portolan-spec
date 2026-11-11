@@ -247,36 +247,58 @@ entire catalog's collections, remain incubating. See
 
 ### Zarr
 
-Raster data MAY be published as Zarr in place of COG. 
+Raster data MAY be published as Zarr in place of COG.
 
-This profile covers a physical Zarr store. Virtual stores and transactional
-stores such as Icechunk are not yet part of the conformance surface, though
-clients are expected to read them.
+This profile judges a store as a client reads it at the asset href, not by how
+the publisher keeps it behind that URL. A store kept in Icechunk and served as
+plain Zarr v3 conforms. Virtual stores, and assets that open only through an
+SDK or a reference resolver, are not yet part of the conformance surface.
 
-**Store and access.** A store MUST be Zarr v3, served over `https` with media
-type `application/vnd.zarr`, and MUST return
-`Access-Control-Allow-Origin` permitting a cross-origin read. An `s3://` href
-MAY be given beside the https one. A store MUST declare its conventions in
-`zarr_conventions`.
+**Store and access.** A store MUST be Zarr v3. Zarr v2 does not conform. It has
+no inner chunks, and inner chunks let one store serve both display and analysis.
+The asset MUST be served over `https` with media type
+`application/vnd.zarr; version=3`, as the
+[STAC Zarr best practices](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-zarr.md)
+give it. Further parameters MAY follow, such as `profile=multiscales` on a
+pyramid group. The server MUST return `Access-Control-Allow-Origin` permitting a
+cross-origin read. An `s3://` href MAY be given beside the https one. A store
+MUST declare its conventions in `zarr_conventions`.
 
-**Grid.** A client must index the samples from metadata alone, so:
+**Grid.** A client must index the samples from metadata alone, so the store
+MUST declare the [spatial](https://github.com/zarr-conventions/spatial)
+convention.
 
+- Every renderable array MUST have `spatial:dimensions` and an affine
+  `spatial:transform` that apply to it, placed as the convention directs. The
+  transform is the authoritative grid. It states the cell size, the origin, and
+  the axis direction.
 - The spatial axes MUST be the last two dimensions of every renderable array,
   Y before X.
-- The X and Y coordinates MUST be 1-D arrays with regular spacing. A 2-D
-  curvilinear grid does not conform, because placing its pixels needs a
-  per-pixel warp.
 - Arrays MUST be stored row-major (C order).
-- Coordinate arrays SHOULD be float64. A float32 axis of 0.01-degree cells
-  quantises enough near the poles to fail a regularity test.
+- Coordinate arrays MAY sit beside the transform. A client reads the transform,
+  not the arrays.
 
-**Coordinate reference system.** The store MUST carry a CF grid mapping, as a
-`spatial_ref` or `crs` array whose attributes hold `crs_wkt`. The asset MUST
-also carry `proj:code` with an EPSG code. The first is what a reader uses, and
-the second lets a validator or a search client judge the store without opening
-it. A grid that EPSG does not define SHOULD carry `proj:projjson`, which
-states method parameters directly, rather than `proj:wkt2` alone, whose method
-names resolve differently between libraries.
+A grid that an affine transform cannot describe, such as a 2-D curvilinear
+grid, does not conform, because placing its pixels needs a per-pixel warp.
+
+**Coordinate reference system.** The rules in this paragraph apply to
+attributes inside the Zarr store. They do not apply to the STAC asset. The Zarr
+[proj](https://github.com/zarr-conventions/proj) convention and the STAC
+Projection extension use the same field names, and this paragraph means the
+Zarr ones.
+
+- The store MUST declare the proj convention. That convention requires at
+  least one of `proj:code`, `proj:wkt2`, or `proj:projjson` in the attributes
+  of a group or an array.
+- The store SHOULD carry `proj:code`. It is the first field a client checks.
+- A store without `proj:code` SHOULD carry `proj:projjson`, which a client
+  reads without a WKT parser.
+- `proj:wkt2` MAY be present beside either one.
+
+Portolan asks for no CRS field in STAC. As for a COG, the asset MAY carry
+fields from the STAC
+[Projection](https://github.com/stac-extensions/projection) extension, which
+the [STAC profile](../../stac/README.md) lists as optional.
 
 **Overviews.** A store whose finest level needs more than 4 chunks to cover
 its full extent MUST provide a multiscale pyramid, declared with the
@@ -288,20 +310,29 @@ MUST NOT have to infer it. Levels SHOULD step by a factor of 2. An append to a
 pyramided store MUST target the level-0 group, not the store root, which
 otherwise gains a second array beside the pyramid and stops opening.
 
+The 4-chunk threshold here and the 8-sample bound under Chunking are
+provisional. Experiments with real stores can move them.
+
 **Variables.** A store holding more than one array MUST declare
 `cube:variables` per the
 [datacube](https://github.com/stac-extensions/datacube) STAC extension, with a
 `type` on each entry, so a client can tell data from coordinates. A variable
 MUST have its spatial dimensions declared.
 
-**Display range.** Every renderable variable MUST carry a minimum and a
-maximum, as a `statistics` object on the matching entry of the asset's `bands`
-array, with `name` equal to the `cube:variables` key. A store that is 8-bit
-with three or more bands is exempt, since its samples are display values. Mean
-and standard deviation are NOT required, unlike for a COG: a Zarr store has no
-header to embed them in, and a cube is expensive to summarize. The range is an
-authored display range and SHOULD stay stable as data is appended. It is not a
-recomputed summary of current contents.
+**Display range.** Every renderable variable MUST carry a range a client can
+draw from, in at least one of two places:
+
+- a `statistics` object with a minimum and a maximum, on the matching entry of
+  the asset's `bands` array, with `name` equal to the `cube:variables` key; or
+- a `rescale` in a `renders` entry, per the
+  [render](https://github.com/stac-extensions/render) extension.
+
+Band `statistics` and band `nodata` describe the stored values. An authored
+display range, or a no-data value used only to hide cells when drawing, goes in
+`renders`. A store that grows by appends can keep a stable authored range in
+`rescale` while its measured statistics change. A store that is 8-bit with
+three or more bands is exempt, since its samples are display values. Mean and
+standard deviation are not required.
 
 A variable SHOULD declare `nodata`. A store with partial coverage SHOULD carry
 an alpha band instead, named `alpha`, because a no-data value cannot tell an
