@@ -236,27 +236,20 @@ The exact on-disk encoding (the TIFF `GDAL_METADATA` tag and its XML layout, and
 [`specs/incubating/geotiff-stats-headers.md`](../incubating/geotiff-stats-headers.md).
 Compliance is defined by the tag contents, not by use of GDAL.
 
-**Spatial mosaics.** A spatial mosaic covers one point in time across many scene
-footprints. Time series are not spatial mosaics. A spatial mosaic
-collection SHOULD publish one overview COG as a collection-level asset with
-`roles: ["visual", "overview"]` and media type
-`image/tiff; application=geotiff; profile=cloud-optimized`.
-The overview SHOULD use a web-friendly projection such as Web Mercator (EPSG:3857),
-since it is only for display. This display derivative is separate from scene COGs
-and satisfies [Visualization](core.md#visualization) (PORTO-CORE-065) through its
-`visual` role. The `overview` role follows
-[STAC best practices](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#asset-roles)
-for a medium-resolution, full-extent view that is easy to display.
+**Spatial mosaics.** A spatial mosaic combines multiple scene footprints at a single point in time.
 
-For these mosaics:
+For a spatial mosaic, publishers SHOULD provide one overview Cloud Optimized GeoTIFF (COG) as a collection-level asset with both the `visual` and `overview` roles and the media type `image/tiff; application=geotiff; profile=cloud-optimized`. This overview is separate from the individual scene COGs.
 
-- Scenes SHOULD share the same bands and data type.
-- Scenes SHOULD declare nodata or include an alpha band.
-- Item geometries SHOULD trace the valid-data footprint rather than the full raster bounds.
-- The collection SHOULD state the drawing order for overlapping scenes in its `description`.
+The `visual` role satisfies [PORTO-CORE-065](core.md#visualization). The `overview` role follows STAC best practices for a medium-resolution view of the full mosaic. For this display asset, publishers SHOULD use a projection suitable for web maps, such as Web Mercator (EPSG:3857). See [STAC asset roles](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#asset-roles).
 
-The item mirror recommended below (PORTO-FMT-040) lets clients move from the overview
-to individual scenes when zoomed in.
+To help clients draw the individual scenes, publishers SHOULD:
+
+- Use the same bands and data type across all scenes.
+- Declare nodata or include an alpha band for each scene.
+- Use the valid-data footprint of each scene as its item geometry.
+- If scenes overlap, state the order in which clients should draw them in the collection’s `description`.
+
+As users zoom in, clients can use the item mirror recommended in PORTO-FMT-040 to load individual scenes.
 
 **Item mirror.** A raster collection that models scenes as items SHOULD also publish a
 [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) item mirror at
