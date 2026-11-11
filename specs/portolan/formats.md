@@ -249,115 +249,100 @@ entire catalog's collections, remain incubating. See
 
 Raster data MAY be published as Zarr in place of COG.
 
-This profile judges a store as a client reads it at the asset href, not by how
-the publisher keeps it behind that URL. A store kept in Icechunk and served as
-plain Zarr v3 conforms. Virtual stores, and assets that open only through an
-SDK or a reference resolver, are not yet part of the conformance surface.
+A Zarr store is a hierarchy of groups and arrays under one root URL. The
+requirements in this section apply to the store that the asset `href` points
+to, as a standard Zarr v3 reader reads it over HTTP. The storage system behind
+that URL is not constrained. For example, an Icechunk repository served as
+plain Zarr v3 can conform. A virtual store, or a store that needs an extra
+library or a reference file to open, does not conform to this version of the
+specification.
 
-**Store and access.** A store MUST be Zarr v3. Zarr v2 does not conform. It has
-no inner chunks, and inner chunks let one store serve both display and analysis.
-The asset MUST be served over `https` with media type
-`application/vnd.zarr; version=3`, as the
-[STAC Zarr best practices](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-zarr.md)
-give it. Further parameters MAY follow, such as `profile=multiscales` on a
-pyramid group. The server MUST return `Access-Control-Allow-Origin` permitting a
-cross-origin read. An `s3://` href MAY be given beside the https one. A store
-MUST declare its conventions in `zarr_conventions`.
+**Store.** A store MUST be Zarr v3. It MUST declare these conventions in
+`zarr_conventions` and conform to them:
 
-**Grid.** A client must index the samples from metadata alone, so the store
-MUST declare the [spatial](https://github.com/zarr-conventions/spatial)
-convention.
+- [spatial](https://github.com/zarr-conventions/spatial);
+- [proj](https://github.com/zarr-conventions/proj); and
+- [multiscales](https://github.com/zarr-conventions/multiscales), where
+  Overviews requires a pyramid.
 
-- Every renderable array MUST have `spatial:dimensions` and an affine
-  `spatial:transform` that apply to it, placed as the convention directs. The
-  transform is the authoritative grid. It states the cell size, the origin, and
-  the axis direction.
+**Access.**
+
+- The store MUST be served over `https`, with an
+  `Access-Control-Allow-Origin` header that permits cross-origin reads.
+- The STAC asset MUST follow the
+  [asset organization](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-zarr.md#asset-organization)
+  rules of the STAC Zarr Best Practices, with media type
+  `application/vnd.zarr; version=3`.
+- An `s3://` href MAY be given beside the `https` one.
+
+**Grid.**
+
+- Every renderable array MUST have an affine
+  [`spatial:transform`](https://github.com/zarr-conventions/spatial#spatialtransform).
+  The transform is the authoritative grid.
 - The spatial axes MUST be the last two dimensions of every renderable array,
   Y before X.
 - Arrays MUST be stored row-major (C order).
-- Coordinate arrays MAY sit beside the transform. A client reads the transform,
-  not the arrays.
 
-A grid that an affine transform cannot describe, such as a 2-D curvilinear
-grid, does not conform, because placing its pixels needs a per-pixel warp.
+**Coordinate reference system.** These rules apply to the attributes of the
+Zarr store under the proj convention. They do not apply to the STAC Projection
+extension fields of the same names.
 
-**Coordinate reference system.** The rules in this paragraph apply to
-attributes inside the Zarr store. They do not apply to the STAC asset. The Zarr
-[proj](https://github.com/zarr-conventions/proj) convention and the STAC
-Projection extension use the same field names, and this paragraph means the
-Zarr ones.
+- The store SHOULD carry `proj:code`.
+- A store without `proj:code` SHOULD carry `proj:projjson`.
 
-- The store MUST declare the proj convention. That convention requires at
-  least one of `proj:code`, `proj:wkt2`, or `proj:projjson` in the attributes
-  of a group or an array.
-- The store SHOULD carry `proj:code`. It is the first field a client checks.
-- A store without `proj:code` SHOULD carry `proj:projjson`, which a client
-  reads without a WKT parser.
-- `proj:wkt2` MAY be present beside either one.
+**Overviews.**
 
-Portolan asks for no CRS field in STAC. As for a COG, the asset MAY carry
-fields from the STAC
-[Projection](https://github.com/stac-extensions/projection) extension, which
-the [STAC profile](../../stac/README.md) lists as optional.
-
-**Overviews.** A store whose finest level needs more than 4 chunks to cover
-its full extent MUST provide a multiscale pyramid, declared with the
-[multiscales](https://github.com/zarr-conventions/multiscales) convention. The
-coarsest level MUST fit in 4 chunks or fewer, so a client can draw the whole
-extent at once. Each level MUST declare its own downsample factor and shape,
-because the order levels are listed in varies between publishers and a client
-MUST NOT have to infer it. Levels SHOULD step by a factor of 2. An append to a
-pyramided store MUST target the level-0 group, not the store root, which
-otherwise gains a second array beside the pyramid and stops opening.
-
-The 4-chunk threshold here and the 8-sample bound under Chunking are
-provisional. Experiments with real stores can move them.
+- A store whose finest level needs more than 4 chunks to cover its full extent
+  MUST provide a multiscale pyramid.
+- The coarsest level MUST fit in 4 chunks or fewer.
+- Each `layout` entry MUST carry `spatial:transform` and `spatial:shape`, per
+  the spatial convention's
+  [multiscales usage](https://github.com/zarr-conventions/spatial#usage-with-multiscales-convention).
+- Levels SHOULD step by a factor of 2.
+- An append to a pyramided store MUST target the level-0 group, not the store
+  root.
 
 **Variables.** A store holding more than one array MUST declare
 `cube:variables` per the
-[datacube](https://github.com/stac-extensions/datacube) STAC extension, with a
-`type` on each entry, so a client can tell data from coordinates. A variable
-MUST have its spatial dimensions declared.
+[datacube](https://github.com/stac-extensions/datacube#variable-object)
+extension.
 
-**Display range.** Every renderable variable MUST carry a range a client can
-draw from, in at least one of two places:
+**Display range.** Every renderable variable MUST carry at least one of:
 
-- a `statistics` object with a minimum and a maximum, on the matching entry of
-  the asset's `bands` array, with `name` equal to the `cube:variables` key; or
+- a `statistics` object with `minimum` and `maximum`, on the entry of the
+  asset's `bands` array whose `name` equals the `cube:variables` key; or
 - a `rescale` in a `renders` entry, per the
   [render](https://github.com/stac-extensions/render) extension.
 
-Band `statistics` and band `nodata` describe the stored values. An authored
-display range, or a no-data value used only to hide cells when drawing, goes in
-`renders`. A store that grows by appends can keep a stable authored range in
-`rescale` while its measured statistics change. A store that is 8-bit with
-three or more bands is exempt, since its samples are display values. Mean and
-standard deviation are not required.
+A store that is 8-bit with three or more bands is exempt.
 
-A variable SHOULD declare `nodata`. A store with partial coverage SHOULD carry
-an alpha band instead, named `alpha`, because a no-data value cannot tell an
-empty pixel from a dark one.
+Band `statistics` and band `nodata` describe the stored values, per the STAC
+[bands](https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md#bands)
+definition. An authored display range or a display-only no-data value belongs
+in `renders`.
 
-**Chunking.** Chunking decides what a client pays to draw one tile, so:
+**No data.** A variable SHOULD declare `nodata`. A store with partial coverage
+SHOULD carry an alpha band named `alpha` instead.
+
+**Chunking.**
 
 - A store MUST NOT require a client to read more than 8 samples for every
-  sample it draws, for a single timestep at full resolution. Compute the
-  factor from the chunk shape alone.
-- Non-spatial dimensions SHOULD have a chunk length of 1. That is the simplest
-  way to meet the bound. A store chunked for time-series access is not
-  defective, but it SHOULD be published beside a display-chunked copy.
-- Inner chunks SHOULD be 256 to 1024 samples on X and Y. A shard MAY be much
-  larger on X and Y, since a client range-requests within it. The inner chunk
-  is the unit a client fetches and decompresses.
+  sample it draws, for a single timestep at full resolution. The factor is
+  computed from the chunk shape alone.
+- Non-spatial dimensions SHOULD have a chunk length of 1.
+- A store chunked for time-series access SHOULD be published beside a
+  display-chunked copy.
+- Inner chunks SHOULD be 256 to 1024 samples on X and Y. A shard MAY be larger
+  on X and Y.
 - A shard MUST NOT span a non-spatial dimension more widely than the bound
-  above allows. A shard holding every band costs what a chunk holding every
-  band costs.
+  above allows.
 
-**Codecs.** Every codec in the chain SHOULD have a JavaScript implementation,
-so a browser can draw the store without a tile server. `blosc`, `lz4`, `zstd`,
-`gzip`, `zlib`, `shuffle`, `delta`, `scale_offset`, `transpose`, `bytes`,
-`crc32c`, and `sharding_indexed` all qualify. A codec without one, such as
-`gribberish`, leaves the store readable only through a server.
+The 4-chunk and 8-sample thresholds are provisional.
+
+**Codecs.** Every codec in the chain SHOULD have a JavaScript implementation.
+`blosc`, `lz4`, `zstd`, `gzip`, `zlib`, `shuffle`, `delta`, `scale_offset`,
+`transpose`, `bytes`, `crc32c`, and `sharding_indexed` qualify.
 
 Raster styling (colormaps, legends, continuous vs. categorical vs. multiband) is
 still under discussion — see
