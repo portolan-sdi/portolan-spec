@@ -231,8 +231,10 @@ For an absolute `href`, publishers SHOULD use `https`. If they use a different s
 
 The HTTPS URL lets browsers fetch the data when the primary `href` uses a scheme they cannot fetch directly, such as `s3://`.
 
-If the `href` resolves to an HTTPS URL and the same data is also available at a direct bucket URL such as `s3://`, publishers SHOULD add the bucket URL to the asset’s `alternate` field. Portolan additionally
-requires a `type`, meaning the media type, and at least one role on every asset.
+If the `href` resolves to an HTTPS URL and the same data is also available at a direct bucket URL such as `s3://`, publishers SHOULD add the bucket URL to the asset’s `alternate` field.
+
+Portolan additionally requires a `type`, meaning the media type, and at least
+one role on every asset.
 STAC leaves both optional, but a validator and a browser cannot do their jobs
 without them, so Portolan makes them mandatory. The `title` and `description`
 fields are optional but recommended.

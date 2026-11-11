@@ -244,33 +244,35 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Every asset MUST include an `href`, the URI to the data, with relative
-      or absolute both allowed for now.
+      Every asset MUST include an `href`. The `href` MAY be relative or absolute.
 
   - id: PORTO-CORE-023
     severity: SHOULD
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      An absolute asset `href` SHOULD use `https`.
+      For an absolute `href`, publishers SHOULD use `https`.
 
   - id: PORTO-CORE-087
     severity: MUST
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Other absolute hrefs MUST expose the same data over `https` through
-      `alternate` or a sibling asset with the same `type` in the same item or
-      collection.
+      If they use a different scheme, they MUST provide an HTTPS URL for the same
+      data in one of these ways:
+      - Add the HTTPS URL to the asset’s `alternate` field using the
+      [alternate assets extension](https://github.com/stac-extensions/alternate-assets).
+      - Add a separate asset to the same item or collection with an HTTPS `href` and
+      the same `type` as the original asset.
 
   - id: PORTO-CORE-024
     severity: SHOULD
     enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      An asset SHOULD also provide `s3` or other cloud-native URLs through
-      the [alternate](https://github.com/stac-extensions/alternate-assets)
-      extension, so tools that prefer direct bucket access can use them.
+      If the `href` resolves to an HTTPS URL and the same data is also available at a
+      direct bucket URL such as `s3://`, publishers SHOULD add the bucket URL to the
+      asset’s `alternate` field.
 
   - id: PORTO-CORE-025
     severity: MUST
