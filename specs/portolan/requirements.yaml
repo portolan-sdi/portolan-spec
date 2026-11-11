@@ -1212,8 +1212,9 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A spatial mosaic collection SHOULD publish one overview COG as a collection-level
-      asset with `roles: ["visual", "overview"]` and media type
+      For a spatial mosaic, publishers SHOULD provide one overview Cloud Optimized
+      GeoTIFF (COG) as a collection-level asset with both the `visual` and `overview`
+      roles and the media type
       `image/tiff; application=geotiff; profile=cloud-optimized`.
 
   - id: PORTO-FMT-068
@@ -1221,36 +1222,38 @@ requirements:
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      The overview SHOULD use a web-friendly projection such as Web Mercator (EPSG:3857),
-      since it is only for display.
+      For this display asset, publishers SHOULD use a projection suitable for web
+      maps, such as Web Mercator (EPSG:3857).
 
   - id: PORTO-FMT-069
     severity: SHOULD
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Scenes SHOULD share the same bands and data type.
+      To help clients draw the individual scenes, publishers SHOULD:
+      - Use the same bands and data type across all scenes.
 
   - id: PORTO-FMT-070
     severity: SHOULD
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Scenes SHOULD declare nodata or include an alpha band.
+      Declare nodata or include an alpha band for each scene.
 
   - id: PORTO-FMT-071
     severity: SHOULD
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Item geometries SHOULD trace the valid-data footprint rather than the full raster bounds.
+      Use the valid-data footprint of each scene as its item geometry.
 
   - id: PORTO-FMT-072
     severity: SHOULD
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      The collection SHOULD state the drawing order for overlapping scenes in its `description`.
+      If scenes overlap, state the order in which clients should draw them in the
+      collection’s `description`.
 
   - id: PORTO-FMT-040
     severity: SHOULD
