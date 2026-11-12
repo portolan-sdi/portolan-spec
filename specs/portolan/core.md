@@ -385,11 +385,17 @@ Items SHOULD carry an explicit `datetime` (or a `start_datetime` /
 
 ## Data Storage
 
-Require byte-range support for formats designed for partial reads, such as
-COG, GeoParquet, PMTiles, and COPC. Clients use byte-range requests to fetch
-only the bytes they need. For files that clients normally read in full, such as
-STAC JSON, Markdown, thumbnails, and style JSON, byte-range support is
-optional.
+Clients read some formats in parts. They use byte-range requests to fetch only
+the bytes they need. The byte-range rules below apply to files with these
+partial-read media types:
+
+- COG: `image/tiff; application=geotiff; profile=cloud-optimized`
+- GeoParquet and Parquet: `application/vnd.apache.parquet`
+- PMTiles: `application/vnd.pmtiles`
+- COPC: `application/vnd.laszip+copc`
+
+Clients read other files in full, such as STAC JSON, Markdown, PNG thumbnails,
+and style JSON. Byte-range support is optional for those files.
 
 A metadata-only catalog on GitHub Pages that contains only STAC JSON and
 Markdown can conform without byte-range support. Its files still need
@@ -400,12 +406,12 @@ uploads and controls.
 
 ### Byte-range requests
 
-If a file's format is designed for partial reads, the server MUST honor
+For a file with a partial-read media type, the server MUST honor
 byte-range requests for that file, return `206 Partial Content` for successful
 range requests, and advertise `Accept-Ranges: bytes`. The server MUST also
 return an accurate `Content-Length` for `HEAD` requests for that file.
 
-A server that hosts these files MUST support HTTP/1.1 or later. HTTP/2 or
+A server that hosts any metadata or asset files MUST support HTTP/1.1 or later. HTTP/2 or
 HTTP/3 is RECOMMENDED.
 Endpoints that compress or transform responses in ways that break range
 semantics are not conformant.
@@ -416,12 +422,15 @@ To let browsers read files directly, servers MUST allow cross-origin `GET` and
 `HEAD` requests for all metadata and asset files. Use
 `Access-Control-Allow-Origin: *` or an equivalent policy that permits reads.
 
-If a file's format is designed for partial reads, the server MUST also:
+For a file with a partial-read media type, the server MUST also:
 
 - Allow `Range`, `If-Match`, `If-Modified-Since`, `If-None-Match`, and
   `If-Unmodified-Since` through `Access-Control-Allow-Headers`.
-- Expose `Content-Type`, `Content-Length`, `Content-Range`, `Accept-Ranges`,
-  and `ETag` through `Access-Control-Expose-Headers`.
+- Expose `Content-Range`, `Accept-Ranges`, and `ETag` through
+  `Access-Control-Expose-Headers`.
+
+Browsers can already read `Content-Type` and `Content-Length` across origins,
+so these headers don't need to be exposed.
 
 The conditional-request headers let a browser revalidate a cached range instead
 of refetching it, which keeps tile and range readers cheap on repeat views.

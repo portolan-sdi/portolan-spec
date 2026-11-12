@@ -487,7 +487,7 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      If a file's format is designed for partial reads, the server MUST honor
+      For a file with a partial-read media type, the server MUST honor
       byte-range requests for that file, return `206 Partial Content` for successful
       range requests, and advertise `Accept-Ranges: bytes`. The server MUST also
       return an accurate `Content-Length` for `HEAD` requests for that file.
@@ -497,8 +497,8 @@ requirements:
     enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      A server that hosts these files MUST support HTTP/1.1 or later. HTTP/2 or
-      HTTP/3 is RECOMMENDED.
+      A server that hosts any metadata or asset files MUST support HTTP/1.1 or
+      later. HTTP/2 or HTTP/3 is RECOMMENDED.
 
   - id: PORTO-CORE-086
     severity: MUST
@@ -514,11 +514,11 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      If a file's format is designed for partial reads, the server MUST also:
+      For a file with a partial-read media type, the server MUST also:
       - Allow `Range`, `If-Match`, `If-Modified-Since`, `If-None-Match`, and
       `If-Unmodified-Since` through `Access-Control-Allow-Headers`.
-      - Expose `Content-Type`, `Content-Length`, `Content-Range`, `Accept-Ranges`,
-      and `ETag` through `Access-Control-Expose-Headers`.
+      - Expose `Content-Range`, `Accept-Ranges`, and `ETag` through
+      `Access-Control-Expose-Headers`.
 
   # Numbered after the last core requirement because it was added to the Data
   # Storage section once the section's scope was stated; kept here in document

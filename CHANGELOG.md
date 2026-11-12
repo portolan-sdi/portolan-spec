@@ -20,8 +20,10 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 - **Metadata-only hosts no longer need range support**
   (`PORTO-CORE-043`, `PORTO-CORE-045`, `PORTO-CORE-073`, `PORTO-CORE-086`).
-  Range requests and range-related CORS now apply only to formats clients read
-  in parts. CORS still applies to all metadata and asset files (#183).
+  Range requests and range-related CORS now apply only to COG, Parquet,
+  PMTiles, and COPC files, listed by media type. CORS still applies to all
+  metadata and asset files. Servers no longer need to expose `Content-Type`
+  and `Content-Length` (#183).
 
 - **Tabular bounding boxes have regional examples**. Use the bounds of Europe
   for a table about Europe, or the country's bounds for a tabular collection
