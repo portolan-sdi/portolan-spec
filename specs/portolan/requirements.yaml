@@ -1212,48 +1212,65 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      For a spatial mosaic, publishers SHOULD provide one overview Cloud Optimized
-      GeoTIFF (COG) as a collection-level asset with both the `visual` and `overview`
-      roles and the media type
-      `image/tiff; application=geotiff; profile=cloud-optimized`.
+      To allow clients to show the whole mosaic without loading every item,
+      collections containing spatial mosaics SHOULD provide an
+      overview COG (subject to all the COG requirements in this section) as a
+      collection-level asset with the `visual` and `overview` roles.
 
   - id: PORTO-FMT-068
     severity: SHOULD
-    enforcement: process
+    enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      For this display asset, publishers SHOULD use a projection suitable for web
-      maps, such as Web Mercator (EPSG:3857).
+      The overview SHOULD be an 8-bit RGB image, with an optional alpha band.
 
   - id: PORTO-FMT-069
     severity: SHOULD
-    enforcement: validator
+    enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      To help clients draw the individual scenes, publishers SHOULD:
-      - Use the same bands and data type across all scenes.
+      It SHOULD use a projection that suits web maps, such as Web Mercator
+      (EPSG:3857).
 
   - id: PORTO-FMT-070
-    severity: SHOULD
-    enforcement: validator
-    file: specs/portolan/formats.md
-    quote: >-
-      Declare nodata or include an alpha band for each scene.
-
-  - id: PORTO-FMT-071
-    severity: SHOULD
-    enforcement: validator
-    file: specs/portolan/formats.md
-    quote: >-
-      Use the valid-data footprint of each scene as its item geometry.
-
-  - id: PORTO-FMT-072
     severity: SHOULD
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      If scenes overlap, state the order in which clients should draw them in the
-      collection’s `description`.
+      Collections with mosaics for several time periods SHOULD provide an
+      overview for at least the most recent mosaic.
+
+  - id: PORTO-FMT-071
+    severity: MAY
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      They MAY provide an overview for each of the other periods.
+
+  - id: PORTO-FMT-072
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Each overview asset SHOULD have a `datetime`, or a `start_datetime` and
+      `end_datetime`, so clients can match it to its items.
+
+  - id: PORTO-FMT-073
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      For satellite and aerial imagery, publishers SHOULD declare nodata, or
+      include an alpha band, in each scene, so that clients don't draw empty
+      pixels as black.
+
+  - id: PORTO-FMT-074
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Publishers SHOULD also use each scene's valid-data footprint as its item
+      geometry.
 
   - id: PORTO-FMT-040
     severity: SHOULD

@@ -9,6 +9,18 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+### Added
+
+- **Spatial mosaics should have an overview COG** (`PORTO-FMT-067` through
+  `PORTO-FMT-072`). A spatial mosaic is a set of raster items with the same
+  bands and time period that together cover a much larger area than any one
+  item. The overview is an 8-bit RGB COG in a web map projection. Collections
+  with several mosaics should have an overview for the most recent one (#114).
+
+- **Imagery scenes should declare nodata and use valid-data footprints**
+  (`PORTO-FMT-073`, `PORTO-FMT-074`). Clients then do not draw empty pixels
+  as black (#114).
+
 ### Changed
 
 - **Asset hrefs can use `s3://` and other schemes with an https alternate**
@@ -24,13 +36,6 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   PMTiles, and COPC files, listed by media type. CORS still applies to all
   metadata and asset files. Servers no longer need to expose `Content-Type`
   and `Content-Length` (#183).
-
-- **Spatial mosaics should publish an overview COG** (`PORTO-FMT-067` through
-  `PORTO-FMT-072`). The overview is a collection-level visualization derivative
-  in a web-friendly projection. Scenes should share bands and data type,
-  declare nodata or alpha, trace valid-data footprints, and state an overlap
-  order. The existing item mirror lets clients reach scenes when zoomed in
-  (#114).
 
 - **Tabular bounding boxes have regional examples**. Use the bounds of Europe
   for a table about Europe, or the country's bounds for a tabular collection
@@ -77,8 +82,8 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 144 requirements, now 95 MUST, 31 SHOULD, and
-  18 MAY.
+- **Requirements manifest**: 146 requirements, now 95 MUST, 32 SHOULD, and
+  19 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source
   GeoParquet data in the same collection** (`PORTO-FMT-062`). Use an asset
