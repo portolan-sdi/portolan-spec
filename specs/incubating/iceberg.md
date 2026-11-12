@@ -278,8 +278,8 @@ carrying only the native Parquet geospatial types is not conformant GeoParquet
 proposes to make such a file conformant and the `geo` key optional. Portolan
 accepts these files regardless of that decision.
 [formats.md](../portolan/formats.md) allows GeoParquet 1.1, GeoParquet 2.0, and
-Parquet with native geospatial types. An Iceberg data file with native
-geospatial types can conform without a `geo` key.
+Parquet with native geospatial types. Any Parquet file with native geospatial
+types can conform without a `geo` key. Iceberg data files are one example.
 
 **The static REST surface.** A catalog MAY serve a pre-rendered Iceberg REST
 catalog under `v1/` at its public base, so a client attaches the whole catalog

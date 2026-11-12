@@ -828,7 +828,7 @@ requirements:
     file: specs/portolan/formats.md
     quote: >-
       Publishers MUST provide data as [GeoParquet 1.1](https://geoparquet.org/releases/v1.1.0/),
-      [GeoParquet 2.0](https://geoparquet.org/releases/v2.0.0-rc.1/), or Parquet with native
+      [GeoParquet 2.0](https://geoparquet.org/releases/v2.0.0/), or Parquet with native
       [`GEOMETRY` or `GEOGRAPHY`](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
       logical types.
 
@@ -838,6 +838,17 @@ requirements:
     file: specs/portolan/formats.md
     quote: >-
       Files SHOULD be compressed to stay small, with `zstd` RECOMMENDED.
+
+  # Numbered after the highest ID in open PRs (#188 uses PORTO-FMT-073). Before
+  # this change, the guide was part of PORTO-FMT-004.
+  - id: PORTO-FMT-074
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Publishers SHOULD follow the [Best Practices for Distributing
+      GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so readers can query
+      the data without a server.
 
   - id: PORTO-FMT-055
     severity: MUST
@@ -854,9 +865,10 @@ requirements:
     file: specs/portolan/formats.md
     quote: >-
       When a geometry column declares its CRS only through the native logical type's
-      `crs` field, the value MUST be one that the [Parquet geospatial
+      `crs` field, the value MUST use one of the four formats that the [Parquet geospatial
       specification](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
-      defines.
+      suggests. These formats are inline PROJJSON, `projjson:<key>`,
+      `<authority>:<code>`, and `srid:<identifier>`.
 
   - id: PORTO-FMT-057
     severity: SHOULD
@@ -865,7 +877,7 @@ requirements:
     quote: >-
       The value SHOULD be inline PROJJSON or a `projjson:<key>` reference. Readers
       can resolve either from the file alone. Values in `<authority>:<code>` or
-      `srid:<n>` form require a CRS registry. A validator reports these values as
+      `srid:<identifier>` form require a CRS registry. A validator reports these values as
       warnings.
 
   - id: PORTO-FMT-006
@@ -905,15 +917,15 @@ requirements:
       row groups from metadata alone — either: - a GeoParquet 1.1 `bbox`
       covering column with Parquet min/max statistics on its leaf fields (a
       `bbox` column without statistics does not qualify); or - for GeoParquet
-      2.x / Parquet `GEOMETRY`, native `GeospatialStatistics` per geometry
-      column chunk.
+      2.x / Parquet `GEOMETRY` or `GEOGRAPHY`, native `GeospatialStatistics`
+      per geometry column chunk.
 
   - id: PORTO-FMT-008
     severity: SHOULD
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      For 2.x, a covering column remains RECOMMENDED even where native
+      For GeoParquet 2.x, a covering column remains RECOMMENDED even where native
       statistics exist, since it adds page-level min/max stats that enable
       finer-grained pruning.
 

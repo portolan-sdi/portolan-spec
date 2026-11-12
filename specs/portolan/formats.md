@@ -31,10 +31,10 @@ requirement to this document.
 ### Parquet
 
 Publishers MUST provide data as [GeoParquet 1.1](https://geoparquet.org/releases/v1.1.0/),
-[GeoParquet 2.0](https://geoparquet.org/releases/v2.0.0-rc.1/), or Parquet with native
+[GeoParquet 2.0](https://geoparquet.org/releases/v2.0.0/), or Parquet with native
 [`GEOMETRY` or `GEOGRAPHY`](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
 logical types.
-Follow the [Best Practices for Distributing
+Publishers SHOULD follow the [Best Practices for Distributing
 GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so readers can query
 the data without a server. Files SHOULD be compressed to stay small, with `zstd`
 RECOMMENDED.
@@ -45,13 +45,15 @@ file. Apache Iceberg writers commonly produce these files, so catalogs can
 publish an Iceberg table's data files directly.
 
 When a geometry column declares its CRS only through the native logical type's
-`crs` field, the value MUST be one that the [Parquet geospatial
-specification](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
-defines. An absent `crs` value means OGC:CRS84, as that specification defines.
+`crs` field, the value MUST use one of the four formats that the [Parquet
+geospatial specification](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
+suggests. These formats are inline PROJJSON, `projjson:<key>`,
+`<authority>:<code>`, and `srid:<identifier>`. An absent `crs` value means
+OGC:CRS84, as that specification defines.
 The value SHOULD be inline PROJJSON or a `projjson:<key>` reference. Readers
 can resolve either from the file alone. Values in `<authority>:<code>` or
-`srid:<n>` form require a CRS registry. A validator reports these values as
-warnings.
+`srid:<identifier>` form require a CRS registry. A validator reports these
+values as warnings.
 
 Rows MUST be spatially ordered so nearby features are nearby in the file. This rule
 applies to every file, no matter how many row groups it has. A validator checks it
@@ -92,11 +94,13 @@ from metadata alone — either:
 
 - a GeoParquet 1.1 `bbox` covering column with Parquet min/max statistics on its
   leaf fields (a `bbox` column without statistics does not qualify); or
-- for GeoParquet 2.x / Parquet `GEOMETRY`, native `GeospatialStatistics` per
-  geometry column chunk.
+- for GeoParquet 2.x / Parquet `GEOMETRY` or `GEOGRAPHY`, native
+  `GeospatialStatistics` per geometry column chunk.
 
-For 2.x, a covering column remains RECOMMENDED even where native statistics exist,
-since it adds page-level min/max stats that enable finer-grained pruning.
+For GeoParquet 2.x, a covering column remains RECOMMENDED even where native
+statistics exist, since it adds page-level min/max stats that enable
+finer-grained pruning. A file without a `geo` key cannot declare a covering
+column, so native statistics alone meet the preceding requirement.
 
 Row groups MUST hold no more than 150,000 rows.
 
