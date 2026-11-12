@@ -195,10 +195,9 @@ def file_boxes(path: Path | str) -> tuple[list[Box], list[float], list[float]] |
     return boxes, [w[0] for w in weights], [w[1] for w in weights]
 
 
-SIZE_FLOOR = 5_000_000
 PASS_BAR = 0.65
-CLEAR_FAIL_BAR = 0.25
 PASS_FLOOR = 8
+ROW_FLOOR = 200
 USER_AGENT = "portolan-calibration/1 (+https://github.com/portolan-sdi/portolan-spec)"
 COLUMNS = [
     "catalog",
@@ -256,16 +255,39 @@ def extent_window_efficiency(boxes: list[Box]) -> float | None:
 
 
 def verdict(count: int, size: int, efficiency: float | None) -> str:
-    """Return the footer verdict under the spatial-order rule in formats.md."""
-    if size < SIZE_FLOOR:
-        return "too-small"
-    if efficiency is None:
-        return "row-check"
-    if count >= PASS_FLOOR:
+    """Return the footer verdict under the spatial-order rule in formats.md.
+
+    A file with eight or more row groups and a defined efficiency takes the
+    footer check. Every other file takes the row check. ``size`` is unused
+    since the 5 MB floor was retired, and stays for the CSV callers.
+    """
+    del size
+    if count >= PASS_FLOOR and efficiency is not None:
         return "pass" if efficiency >= PASS_BAR else "fail"
-    if count >= 3 and efficiency < CLEAR_FAIL_BAR:
-        return "fail"
     return "row-check"
+
+
+def row_chunks(boxes: list) -> tuple[list[Box], list[float]]:
+    """Split per-row boxes into the PORTO-FMT-006 chunks. None marks a row without a box."""
+    n = len(boxes)
+    chunks: list[Box] = []
+    rows: list[float] = []
+    for k in range(10):
+        part = [b for b in boxes[(k * n) // 10 : ((k + 1) * n) // 10] if b is not None]
+        if not part:
+            continue
+        chunks.append(union([tuple(b) for b in part]))
+        rows.append(float(len(part)))
+    return chunks, rows
+
+
+def row_verdict(n_rows: int, efficiency: float | None) -> str:
+    """Return the row-check verdict under the spatial-order rule in formats.md."""
+    if n_rows < ROW_FLOOR:
+        return "too-few-rows"
+    if efficiency is None:
+        return "none"
+    return "pass" if efficiency >= PASS_BAR else "fail"
 
 
 def measure_one(path: Path | str) -> dict:
@@ -440,10 +462,27 @@ def self_test() -> int:
             or abs(got["efficiency"] - expected["efficiency"]) < 1e-6,
             (got["area_sum"] is None) == (expected["area_sum"] is None),
             expected["area_sum"] is None or abs(got["area_sum"] - expected["area_sum"]) < 1e-5,
+            verdict(got["count"], 0, got["efficiency"]) == expected["verdict"],
         ]
         status = "OK " if all(checks) else "BAD"
         failures += not all(checks)
         print(f"{status} {name}")
+    for name, vector in vectors["rows"].items():
+        chunks, rows = row_chunks(vector["boxes"])
+        got = score(chunks, rows, rows)
+        expected = vector["expected"]
+        checks = [
+            [list(c) for c in chunks] == vector["expected_chunks"],
+            rows == vector["chunk_rows"],
+            abs(got["achieved"] - expected["achieved"]) < 1e-6,
+            abs(got["achievable"] - expected["achievable"]) < 1e-6,
+            expected["efficiency"] is None
+            or abs(got["efficiency"] - expected["efficiency"]) < 1e-6,
+            row_verdict(len(vector["boxes"]), got["efficiency"]) == expected["verdict"],
+        ]
+        status = "OK " if all(checks) else "BAD"
+        failures += not all(checks)
+        print(f"{status} rows/{name}")
     print("ALL MATCH" if not failures else f"{failures} mismatches")
     return 1 if failures else 0
 

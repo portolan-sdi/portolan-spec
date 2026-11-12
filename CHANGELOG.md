@@ -91,7 +91,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 150 requirements, now 105 MUST, 26 SHOULD, and
+- **Requirements manifest**: 148 requirements, now 103 MUST, 26 SHOULD, and
   19 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source
@@ -100,8 +100,8 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   is insufficient as a collection's primary data (#225).
 
 - **GeoParquet spatial order now uses pruning efficiency** (`PORTO-FMT-006`,
-  `PORTO-FMT-044`, new `PORTO-FMT-049` to `PORTO-FMT-054` and
-  `PORTO-FMT-058` to `PORTO-FMT-061`,
+  `PORTO-FMT-044`, new `PORTO-FMT-049` to `PORTO-FMT-054`,
+  `PORTO-FMT-060`, and `PORTO-FMT-061`,
   [`specs/portolan/formats.md`](specs/portolan/formats.md)).
   The old footer check accepted low overlap between consecutive row-group
   pairs or boxes that averaged under 30% of the extent.
@@ -123,18 +123,14 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   row and byte counts. It fills every cell.
   A layout passes at 0.65 of the reference rate.
 
-- **Files below 5 MB receive no spatial-order verdict** (new
-  `PORTO-FMT-058` and `PORTO-FMT-059`). A validator does not judge a file
-  whose row groups total fewer than 5,000,000 compressed bytes.
-  It reports that the file is too small for order to matter.
-  Pruning such a file saves almost no data transfer.
-  The size floor also removes a dependence on the writer's row-group size
-  for small files. The default size can require hundreds of thousands of
-  rows before a file reaches eight row groups.
-  At or above the size floor, a footer pass needs eight row groups.
-  A grid poorly represents a curve sort at smaller counts.
-  With three to seven groups, efficiency under 0.25 fails the footer check.
-  With two groups, the footer check gives no verdict.
+- **Spatial order has two verdict paths** (`PORTO-FMT-044`, `PORTO-FMT-050`,
+  `PORTO-FMT-006`). A file with eight or more row groups takes the footer
+  check. A file with fewer than eight row groups takes the row check. Both use the same metric and
+  the 0.65 bar. The verdict depends on the order of the rows, not on the file
+  size or the codec. A grid poorly represents a curve sort below eight row
+  groups. Sorted rows failed the footer check in 70% of files at two groups
+  and in 2% at eight. The row-check calibration on 654 registry files found
+  no shuffled file at the bar. Its highest score was 0.52.
 
 - **Validators start each verdict with the expected read cost** (new
   `PORTO-FMT-060` and `PORTO-FMT-061`, expanded `PORTO-FMT-051`).
@@ -156,12 +152,12 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   It replaces the fixed 30% limit.
   The test needs 200 rows. Below that count, a validator MUST report that
   the file has too few rows to judge. It MUST NOT withhold that message.
-  The row check applies when the footer gives no verdict, at or above the
-  size floor.
+  The row check applies to every file with fewer than eight row groups.
 
 - **Validators must reproduce the abstract test vectors** (new `PORTO-FMT-054`,
   [`specs/portolan/abstract-tests/spatial-metric-vectors.json`](specs/portolan/abstract-tests/spatial-metric-vectors.json)).
-  The vectors specify expected results for thirteen layouts and two row cases.
+  The vectors specify expected results and verdicts for thirteen layouts and
+  four row cases.
   They test a zero extent on one axis (`line-n8` passes at efficiency 1.0)
   and undefined efficiency at `n = 1`.
   They distinguish the required grid from strips and grids with empty cells.
@@ -169,7 +165,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   The area sum is undefined when the extent has no area.
   A validator MUST report it as absent rather than as 0.
 
-- **The pass bar is now 0.65, and clear failure starts at three row groups.**
+- **The pass bar is now 0.65.**
   The new survey replaces the earlier 0.70 calibration from the extent-window
   draft. The earlier review covered 206 registry files, four further catalogs,
   three single files, and 1.27 million AIS tracks.
@@ -181,11 +177,8 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   and 0.696 after it. The 0.70 bar would reject that sorted file.
   At 0.65, every sorted copy eligible for a footer pass passes.
   The original 2011 crop-parcel file also passes at 0.668.
-  With two row groups, sorted copies scored as low as 0.18.
-  The clear-fail rule now starts at three groups to avoid false failures.
-  The new thresholds produce 308 footer passes and no footer failures.
-  Another 570 files need the row check.
-  One catalog supplies 183 of the 878 files at or above the size floor.
+  The footer survey produced 308 footer passes and no footer failures.
+  One catalog supplies 183 of the 878 files over 5 MB.
   The calibration README records this limitation and the survey's missing
   statistics and broken links.
 

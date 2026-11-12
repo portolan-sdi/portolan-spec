@@ -60,15 +60,12 @@ A row group is a set of rows that Parquet stores together.
 Its footer statistics let a reader skip the group without reading its data.
 A bbox covering stores each row's bounding box in separate fields.
 
-A validator MUST NOT judge spatial order when the row groups total fewer than
-5,000,000 compressed bytes. It MUST report that the file is too small for
-order to matter.[^sizefloor] This 5 MB size floor exempts files where spatial
-order saves a reader almost no data transfer.
-The validator reads each row group's compressed size from the footer and adds
-the sizes together. This gives the same size for local and remote files.
-For files of at least 5 MB, the validator uses pruning efficiency to judge order.
-It checks the row groups when the footer check gives a verdict.
-Otherwise, it checks the rows.
+A validator judges spatial order with pruning efficiency on one of two paths.
+A file with eight or more row groups takes the footer check.
+A file with fewer than eight row groups takes the row check.
+Both checks use the same metric and the same pass bar.[^paths]
+A conformance validator gives a verdict on every file that has enough rows.
+Other tools can report the statistics without a verdict.
 
 **Pruning efficiency.** Pruning means that a reader skips data it does not
 need for a query. The skip rate is the share of the file's bytes that the
@@ -167,20 +164,16 @@ The area sum is the sum of the box areas divided by the extent's area,
 features. A sort can reduce the area sum several times over without changing
 the verdict.
 
-**Footer check.** A file at least as large as the size floor with eight or more row
-groups MUST reach the pass bar on its row-group boxes.[^pruning]
+**Footer check.** A file with eight or more row groups MUST reach the pass
+bar on its row-group boxes.[^pruning]
 The validator reads these boxes from the per-row-group spatial statistics.
-Below eight row groups, the footer check MUST fail a file when its efficiency
-is under 0.25 and it has three or more row groups.
-With two row groups, each half of a sorted file can still span most of the
-extent, so the footer check gives no verdict.
-The footer check also gives no verdict on other files below eight row groups
-that do not meet the clear-fail rule.
-A validator MUST NOT report a pass from fewer than eight row groups.
-It MAY report their statistics.[^floor]
+A validator MUST NOT judge a file with fewer than eight row groups by its
+row-group boxes. It MAY report their statistics.[^floor]
+When the efficiency of the row-group boxes is undefined, the validator applies
+the row check.
 
-**Row check.** Where the footer check gives no verdict, the validator applies
-the abstract test for `PORTO-FMT-006` in the [requirements
+**Row check.** For a file with fewer than eight row groups, or without
+per-row-group spatial statistics, the validator applies the abstract test for `PORTO-FMT-006` in the [requirements
 manifest](requirements.yaml). This test computes the same efficiency on ten
 chunks of rows in file order. It weights each chunk by its row count.
 The test needs 200 rows. Below that count, a validator MUST report that the
@@ -210,13 +203,13 @@ boxes overlap as a statistic. It MUST NOT base its verdict on that fraction.[^ov
     It also lets readers prune correctly after a publisher repacks the file
     into more row groups.
 
-[^sizefloor]: A reader can transfer 5 MB in about one second over a 40 Mbit/s
-    connection. Most individual range requests already transfer more data
-    than this to offset the request overhead. Pruning saves time only when
-    the skipped bytes outweigh that overhead.
-    The size floor also removes a dependence on the writer's default row-group
-    size for small files. At the default size, a file can need hundreds of
-    thousands of rows to reach eight row groups.
+[^paths]: The verdict depends on the order of the rows. It does not depend
+    on the file size or the compression codec. In the November 2026
+    row-check calibration on 654 registry files, shuffled rows never reached
+    0.65, and the highest scored 0.52. Hilbert-sorted rows had a median of
+    0.90. On the same rows, the footer check at eight row groups and the row
+    check agreed on 648 files. The
+    [calibration README](abstract-tests/calibration/README.md) links the data.
 
 [^placement]: An earlier draft placed the window uniformly over the extent
     and sized it to that extent. One distant row could stretch the
@@ -257,13 +250,11 @@ boxes overlap as a statistic. It MUST NOT base its verdict on that fraction.[^ov
     sort and 0.912 after it.
 
 [^floor]: A grid is a poor model of a curve sort at small row-group counts.
-    In the calibration corpus, Hilbert-sorted copies scored as low as 0.56 at
-    five row groups and 0.68 at six. The footer check allows a pass only from
-    eight row groups.
-    It can identify a clear failure with fewer groups.
-    Sorted copies never scored below 0.34 with three or more row groups.
-    With two row groups, they scored as low as 0.18.
     Each half of a curve can span most of the extent.
+    In the row-check calibration, Hilbert-sorted rows failed the footer check
+    in 70% of files at two row groups, 13% at four, 2% at eight, and 0.2% at
+    sixteen. The row check uses ten chunks, which behave like eight to ten
+    row groups.
 
 [^overlap]: A space-filling-curve sort places neighboring row groups next to
     each other in space. Their boxes share boundaries, so the overlap fraction can be

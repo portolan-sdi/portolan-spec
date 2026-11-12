@@ -891,8 +891,9 @@ requirements:
     quote: >-
       Rows MUST follow a spatial order that places nearby features near each
       other in the file.
-    # The validator runs this abstract row test when the footer check gives
-    # no verdict. The spec states the rule and references this procedure.
+    # The validator runs this abstract row test on a file with fewer than
+    # eight row groups, or without per-row-group spatial statistics. The spec
+    # states the rule and references this procedure.
     test: >-
       The validator takes the N rows in file order and splits them into ten
       chunks. Chunk k, for k from 0 to 9, contains rows with zero-based
@@ -905,8 +906,7 @@ requirements:
       chunk boxes. Each chunk's row count r_i is its count of boxed rows.
       Its byte count s_i equals that row count. With all ten chunks present,
       the reference grid divides their extent into 4 + 4 + 2 cells. The rows
-      pass at the same bar as any layout. The validator runs the row check
-      only at or above the 5 MB size floor. The row floor in formats.md
+      pass at the same bar as any layout. The row floor in formats.md
       requires ten chunks of twenty rows. Below that floor, the validator
       reports that the file has too few rows to judge and gives no verdict.
 
@@ -935,38 +935,34 @@ requirements:
     test: >-
       The validator checks every entry under layouts and rows in that file.
       It reproduces count, achieved, achievable, efficiency and area_sum to
-      six decimals. It reports efficiency, area_sum and below_bar as absent
+      six decimals, and the verdict of each entry. It reports efficiency, area_sum and below_bar as absent
       where the file specifies null. line-n8 tests an extent with zero width
       on one axis, with efficiency 1.0 and area_sum null. single-box tests
       undefined efficiency at n = 1. outlier-sorted-n20 and
       outlier-shuffled-n20 test window placement.
       whole-extent-box-heavy-bytes-n8 tests byte weights. crowded-tile-n4
-      tests row weights.
+      tests row weights. two-hundred-rows-hilbert and
+      two-hundred-rows-shuffled test a row-check pass and a row-check failure
+      at the row floor.
 
   - id: PORTO-FMT-050
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A file at least as large as the size floor with eight or more row
-      groups MUST reach the pass bar on its row-group boxes.
+      A file with eight or more row groups MUST reach the pass
+      bar on its row-group boxes.
 
   - id: PORTO-FMT-044
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A validator MUST NOT report a pass from fewer than eight row groups.
-      It MAY report their statistics.
+      A validator MUST NOT judge a file with fewer than eight row groups by its
+      row-group boxes. It MAY report their statistics.
 
-  - id: PORTO-FMT-059
-    severity: MUST
-    enforcement: validator
-    file: specs/portolan/formats.md
-    quote: >-
-      Below eight row groups, the footer check MUST fail a file when its
-      efficiency is under 0.25 and it has three or more row groups.
-
+  # PORTO-FMT-059 (clear failure below eight row groups) is retired. Files
+  # with fewer than eight row groups take the row check (#188).
   - id: PORTO-FMT-051
     severity: MUST
     enforcement: validator
@@ -979,15 +975,8 @@ requirements:
       the area sum is undefined. A validator MUST report an undefined area
       sum as absent rather than as 0.
 
-  - id: PORTO-FMT-058
-    severity: MUST
-    enforcement: validator
-    file: specs/portolan/formats.md
-    quote: >-
-      A validator MUST NOT judge spatial order when the row groups total
-      fewer than 5,000,000 compressed bytes. It MUST report that the file is
-      too small for order to matter.
-
+  # PORTO-FMT-058 (5 MB size floor) is retired. Every file with enough rows
+  # receives a verdict (#188).
   - id: PORTO-FMT-060
     severity: MUST
     enforcement: validator

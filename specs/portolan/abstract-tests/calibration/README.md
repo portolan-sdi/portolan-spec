@@ -2,7 +2,8 @@
 
 The current pass bar comes from the registry survey on 2026-11-10 and the
 sort control below. It replaces the 0.70 bar from the earlier extent-window
-draft with 0.65.
+draft with 0.65. The row-check calibration on 2026-11-13 supports the two
+verdict paths.
 
 The [spatial-order rule](../../formats.md) uses pruning efficiency to compare
 how much data a reader can skip with a reference grid.
@@ -10,12 +11,14 @@ A row group is a set of rows that Parquet stores together.
 The reference grid divides the file's extent into cells for comparison.
 The rule applies these thresholds:
 
-| Check | Threshold |
+| Path | Threshold |
 | --- | --- |
-| Size floor | No order verdict below 5,000,000 compressed bytes (5 MB) |
-| Footer pass | Efficiency of at least 0.65 with eight or more row groups |
-| Footer clear failure | Efficiency under 0.25 with three to seven row groups |
-| Row check | The same 0.65 bar when the footer gives no verdict, for files of at least 5 MB |
+| Footer check | Efficiency of at least 0.65 on the row-group boxes, for eight or more row groups |
+| Row check | Efficiency of at least 0.65 on ten chunks of rows, for fewer than eight row groups |
+| Row floor | No verdict below 200 rows |
+
+The survey below predates the two paths. Its `too-small` verdict and the
+clear-failure band no longer exist.
 
 ## Registry survey on 2026-11-10
 
@@ -113,6 +116,49 @@ Another file scored 0.293 before the sort and 0.178 after it.
 Each half of a sorted file can span most of its extent.
 The current clear-fail rule starts at three row groups to avoid these false
 failures. The minimum sorted score at three or more groups was 0.34.
+
+## Row-check calibration on 2026-11-13
+
+The registry survey read only footers, so it did not measure the row check.
+This calibration sampled at most six files per catalog from each survey
+group. It read every row's bbox. It scored the row check on the published
+order, a Hilbert-sorted order and a shuffled order of the same rows. It also
+repacked the rows into equal row groups and scored the footer check on them.
+The data and scripts are in
+[the row-check gist](https://gist.github.com/cayetanobv/6e51f10bfbe313fa1f1bcfe31026c36c).
+
+The calibration scored 654 files from 70 catalogs.
+
+| Row check | Minimum | Percentile 5 | Median | Percentile 95 | Maximum |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Hilbert-sorted | 0.101 | 0.760 | 0.897 | 0.934 | 0.977 |
+| Shuffled | 0.000 | 0.000 | 0.005 | 0.119 | 0.518 |
+
+The highest shuffled score was 0.518, under the 0.65 bar.
+Of the sorted files, 6 scored under the bar.
+One of them stores 97% of its rows at (0, 0).
+The others hold large features and scored 0.57 to 0.64.
+No sort can raise these scores. A lower bar would come close to the highest
+shuffled score.
+
+On the same published rows, the footer check at eight row groups and the
+row check agreed on 648 files. Sorted rows failed the footer check in this
+share of files:
+
+| Row groups | Sorted rows that fail the footer check |
+| ---: | ---: |
+| 2 | 70% |
+| 4 | 13% |
+| 8 | 2% |
+| 16 | 0.2% |
+
+These results set the footer floor at eight row groups. The row check
+covers the files below it.
+
+| Survey group | Fail the row check as published | Fixed by a sort |
+| --- | ---: | ---: |
+| Under 5 MB, never judged before | 13 of 319 | 9 |
+| Sent to the row check | 5 of 253 | 5 |
 
 ## Earlier survey
 
