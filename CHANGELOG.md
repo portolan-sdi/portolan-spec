@@ -31,10 +31,20 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   to all three formats. This includes native Parquet files from Apache
   Iceberg writers, which validators previously treated as tabular data
   (portolan-sdi/rashid#200). When a geometry column declares its CRS only
-  through the native logical type's `crs` field, the value follows the
-  Parquet geospatial specification. An absent value means OGC:CRS84.
-  Readers can resolve inline PROJJSON and `projjson:<key>` from the file
-  alone. Registry codes such as `EPSG:4326` produce warnings.
+  through the native logical type's `crs` field, the value uses one of the
+  four formats that the Parquet geospatial specification suggests. An absent
+  value means OGC:CRS84. Readers can resolve inline PROJJSON and
+  `projjson:<key>` from the file alone. Registry codes such as `EPSG:4326`
+  produce warnings. Native statistics now cover `GEOGRAPHY` columns
+  (`PORTO-FMT-007`), and a file without a `geo` key meets the statistics
+  rule with native statistics alone (`PORTO-FMT-008`).
+
+- **GeoParquet 2.0 links to the 2.0.0 release** instead of the release
+  candidate (`PORTO-FMT-004`).
+
+- **The GeoParquet best-practices guide is a SHOULD** (`PORTO-FMT-074`).
+  Before this change, it was part of the `PORTO-FMT-004` MUST, which a
+  validator cannot check.
 
 - **Tabular bounding boxes have regional examples**. Use the bounds of Europe
   for a table about Europe, or the country's bounds for a tabular collection
@@ -81,7 +91,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 149 requirements, now 105 MUST, 25 SHOULD, and
+- **Requirements manifest**: 150 requirements, now 105 MUST, 26 SHOULD, and
   19 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source
