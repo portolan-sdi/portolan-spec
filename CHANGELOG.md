@@ -49,11 +49,12 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   replace the relative glob with the absolute bucket URL (#166, #216).
 
 - **Data asset paths cannot contain globs** (`PORTO-FMT-065`). Each data
-  asset points to one file (#216).
+  asset links to one file. The rule applies to every data asset, not only
+  partitioned collections (#216).
 
 - **S3-compatible servers outside AWS should be described with the STAC
   storage extension** (`PORTO-FMT-066`). Without it, clients assume Amazon
-  S3 (#216).
+  S3. Set `type` to `custom-s3` (#216).
 
 - **The STAC profile uses Contacts v1.0.0** instead of v0.1.1
   (#53, part 7a).
@@ -107,6 +108,9 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   guidance on how to build a catalog. It is now the `catalog-grader` skill in
   [portolan-skills](https://github.com/portolan-sdi/portolan-skills), where it
   runs and can be tested. No requirement changes.
+
+- **`PORTO-FMT-020` is retired.** It allowed bucket schemes such as `s3://`
+  for partition globs. `PORTO-FMT-064` now requires them (#216).
 
 ## 0.2.0 - 2026-08-28
 
