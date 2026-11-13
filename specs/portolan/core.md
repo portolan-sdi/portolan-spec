@@ -633,7 +633,9 @@ provides exactly one style, that style is the default and needs no marker, thoug
 carrying the `default` role there too is encouraged so a client can find the
 default the same way everywhere.
 
-The concrete style format is defined per data format in [`formats.md`](formats.md):
-for vector (PMTiles) it is a MapLibre GL style file, while raster styling is still
-under discussion (see
+The choice of style format depends on the data format (see
+[`formats.md`](formats.md)). For vector data (i.e., PMTiles), it is a MapLibre
+GL style file. A classified raster uses the color table embedded in its COG,
+with its classes described as in [Classified rasters](formats.md#raster).
+Styling for continuous and multiband rasters is still under discussion (see
 [`specs/incubating/raster-styling.md`](../incubating/raster-styling.md)).

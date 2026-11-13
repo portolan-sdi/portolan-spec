@@ -28,6 +28,20 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   this in the collection's `README.md`. Publishers should not include
   placeholder descriptions.
 
+- **Classified rasters describe their classes with the classification
+  extension** (`PORTO-FMT-049` to `PORTO-FMT-059`,
+  [`specs/portolan/formats.md`](specs/portolan/formats.md#raster)).
+  A raster whose pixels are categories should list its classes in
+  `classification:classes` from the STAC classification extension. The list
+  goes on the data asset for a single-band raster and on the band in STAC 1.1
+  `bands` for a multi-band raster, next to `nodata`. Each class must have a
+  `title`. The color table embedded in the COG is authoritative for
+  rendering, so a `color_hint` should match it. A class is marked
+  `nodata: true` if and only if its value is the `nodata` value of its asset
+  or band. Clients draw that class transparent and leave it out of the
+  legend. Continuous rasters have no classes, and their styling is still
+  under discussion (#41).
+
 ### Changed
 
 - **Asset hrefs can use `s3://` and other schemes with an https alternate**
@@ -100,8 +114,8 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 151 requirements, now 96 MUST, 37 SHOULD, and
-  18 MAY.
+- **Requirements manifest**: 161 requirements, now 99 MUST, 43 SHOULD, and
+  19 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source
   GeoParquet data in the same collection** (`PORTO-FMT-062`). Use an asset

@@ -1158,6 +1158,100 @@ requirements:
       | Approximate flag (`STATISTICS_APPROXIMATE = YES`) | MUST when
       estimated |
 
+  - id: PORTO-FMT-049
+    severity: SHOULD
+    # Whether pixels are categories is a producer fact that only the producer
+    # declares. A color table is not proof, since continuous rasters such as
+    # percent tree cover have one, so a validator cannot check this.
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      A classified raster SHOULD describe these classes with
+      `classification:classes` from the STAC [classification
+      extension](https://github.com/stac-extensions/classification).
+
+  - id: PORTO-FMT-050
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      For single-band rasters, the list of classes MUST accompany the data
+      asset. For multi-band rasters, it MUST accompany the band it describes, in
+      the STAC 1.1 `bands` array of the data asset.
+
+  - id: PORTO-FMT-051
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A collection that models scenes as items SHOULD also put the list of
+      classes in the same place on its `item_assets` definition, so that clients
+      can render legends without needing to open the item itself.
+
+  # The classification extension defines `value`, `name`, and the format of
+  # `color_hint`. Portolan does not repeat those rules. PORTO-FMT-053 is not
+  # in use.
+  - id: PORTO-FMT-052
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      In addition to the `value`, `name`, and optional `color_hint` defined by
+      the STAC classification extension, publishers MUST also include a
+      human-readable `title` for every class.
+
+  - id: PORTO-FMT-054
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      When a classified band has a color table, the `color_hint` for each class
+      SHOULD correspond to the red, green, and blue components of the color
+      table entry for that class value.
+
+  - id: PORTO-FMT-055
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Software that reads the catalog SHOULD draw the band based on the color
+      table when the two differ.
+
+  - id: PORTO-FMT-056
+    severity: MAY
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Tools that generate the metadata MAY set a missing `color_hint` from the
+      color table.
+
+  - id: PORTO-FMT-057
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A class MUST be marked `nodata: true` if and only if its `value` equals
+      the `nodata` value of the asset or band that has the list of classes.
+
+  # PORTO-FMT-060 is not in use. PORTO-FMT-057 states both directions.
+  - id: PORTO-FMT-058
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Clients SHOULD render that class as transparent and SHOULD exclude it from
+      the legend.
+
+  - id: PORTO-FMT-059
+    severity: SHOULD
+    # Whether pixels are measurements is a producer fact a validator cannot
+    # read from the bytes.
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Continuous rasters, whose pixels are measurements such as elevation,
+      SHOULD NOT include `classification:classes`.
+
   - id: PORTO-FMT-033
     severity: MUST
     # The validator consumes this property (tabular identification drives

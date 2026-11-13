@@ -272,6 +272,40 @@ for at least the most recent mosaic. They MAY provide an overview for each of
 the other periods. Each overview asset SHOULD have a `datetime`, or a
 `start_datetime` and `end_datetime`, so clients can match it to its items.
 
+**Classified rasters.** In a classified raster, the pixels represent categories
+(e.g., land cover classes). A classified raster SHOULD describe these classes
+with `classification:classes` from the STAC
+[classification extension](https://github.com/stac-extensions/classification).
+Determining whether a raster is classified depends on the producer's
+declaration; the presence of an embedded color table does not, on its own, make
+a raster classified, since continuous rasters like percent tree cover can also
+have a color table.
+
+For single-band rasters, the list of classes MUST accompany the data asset. For
+multi-band rasters, it MUST accompany the band it describes, in the STAC 1.1
+`bands` array of the data asset. In both cases, the list of classes is adjacent
+to the `nodata` value of the same object. A collection that models scenes as
+items SHOULD also put the list of classes in the same place on its `item_assets`
+definition, so that clients can render legends without needing to open the item
+itself. In addition to the `value`, `name`, and optional `color_hint` defined by
+the STAC classification extension, publishers MUST also include a human-readable
+`title` for every class.
+
+The COG's embedded color table (i.e., the TIFF `ColorMap` tag) is authoritative
+for rendering because any TIFF reader can draw it without needing to read the
+STAC metadata. Class names are provided by the class list. When a classified
+band has a color table, the `color_hint` for each class SHOULD correspond to the
+red, green, and blue components of the color table entry for that class value.
+Software that reads the catalog SHOULD draw the band based on the color table
+when the two differ. Tools that generate the metadata MAY set a missing
+`color_hint` from the color table.
+
+A class MUST be marked `nodata: true` if and only if its `value` equals the
+`nodata` value of the asset or band that has the list of classes. Clients SHOULD
+render that class as transparent and SHOULD exclude it from the legend.
+Continuous rasters, whose pixels are measurements such as elevation, SHOULD NOT
+include `classification:classes`.
+
 **Item mirror.** A raster collection that models scenes as items SHOULD also publish a
 [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) item mirror at
 `items.parquet` in the collection root. One range request then returns the whole
@@ -311,8 +345,8 @@ mirror. Item mirrors for other collection types, and STAC-GeoParquet mirrors cov
 entire catalog's collections, remain incubating. See
 [`specs/incubating/stac-geoparquet.md`](../incubating/stac-geoparquet.md).
 
-Raster styling (colormaps, legends, continuous vs. categorical vs. multiband) is
-still under discussion — see
+Classified rasters are covered earlier in this section. Styling for continuous and multiband rasters
+is still under discussion in
 [`specs/incubating/raster-styling.md`](../incubating/raster-styling.md).
 
 ### Imagery
