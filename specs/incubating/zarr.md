@@ -139,9 +139,6 @@ The `file:size` of a Zarr store asset is the total size in bytes of all
 objects in the store. The `file:checksum` recommendation of
 [`core.md`](../portolan/core.md) does not apply to a Zarr store asset.
 
-Every array SHOULD include the `crc32c` codec in the codec chain of its
-chunks.
-
 ## Codecs
 
 Every codec in the chain SHOULD have a JavaScript implementation. `blosc`,
