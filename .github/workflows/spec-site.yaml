@@ -1,0 +1,225 @@
+name: Spec site
+
+# Builds the rendered specification that https://spec.portolan-sdi.org/
+# serves, and checks it. The build logic lives in site/. This repo's own
+# Pages site is schemas.portolan-sdi.org, so the rendered site deploys from
+# portolan-sdi/portolan-spec-site instead. The notify job below tells that
+# repo to rebuild and deploy after a change lands on main or a release
+# publishes.
+#
+# No path filter on pull_request. The job is cheap enough to run on every
+# pull request, and a path-filtered workflow cannot be a required check
+# (it stays pending on the pull requests it skips).
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  # Superseded pull request runs are worth cancelling. Runs on main and on
+  # releases are not, because a cancelled run skips its deploy request.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # renovate: datasource=pypi depName=uv
+  UV_VERSION: "0.13.6"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # One version with its PDF and EPUB takes a few minutes. The full build
+    # below adds one such build per release.
+    timeout-minutes: 30
+    steps:
+      # Full history and tags. A release builds its tag by name, and the
+      # full build reads every tag from v0.2.0 on.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: ${{ env.UV_VERSION }}
+          # zizmor reports cache poisoning because the workflow runs on
+          # release. "auto" turns the uv cache off for release events, and
+          # this workflow publishes nothing. The deploy repo rebuilds the
+          # site with no cache.
+          enable-cache: auto # zizmor: ignore[cache-poisoning] off on release
+          # The build scripts carry PEP 723 metadata, and build.py also has
+          # a lockfile, so the cache key follows both.
+          cache-dependency-glob: |
+            site/**/*.py
+            site/**/*.py.lock
+
+      # The script pins pandoc and typst and checks their digests. A release
+      # run skips the cache and installs from the pinned downloads, so a
+      # cache entry never feeds a release build. That is why the
+      # cache-poisoning finding is ignored here.
+      - name: Restore the toolchain
+        id: toolchain-cache
+        if: github.event_name != 'release' # zizmor: ignore[cache-poisoning] skipped on release
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/spec-site-toolchain
+          key: spec-site-toolchain-${{ runner.os }}-${{ hashFiles('site/install-toolchain.sh') }}
+
+      - name: Install the toolchain
+        if: steps.toolchain-cache.outputs.cache-hit != 'true'
+        run: bash site/install-toolchain.sh "$RUNNER_TEMP/spec-site-toolchain"
+
+      - name: Put the toolchain on PATH
+        run: echo "$RUNNER_TEMP/spec-site-toolchain/bin" >> "$GITHUB_PATH"
+
+      # A release builds the released tag under its own name. Every other
+      # event builds the checked-out commit as the "next" draft.
+      - name: Choose the version
+        id: version
+        env:
+          EVENT: ${{ github.event_name }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = release ]; then
+            if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::Release tag '$TAG' is not vX.Y.Z."
+              exit 1
+            fi
+            ref=$TAG
+            label=$TAG
+          else
+            ref=HEAD
+            label=next
+          fi
+          echo "Building $ref as $label"
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "label=$label" >> "$GITHUB_OUTPUT"
+
+      - name: Build the site
+        env:
+          REF: ${{ steps.version.outputs.ref }}
+          LABEL: ${{ steps.version.outputs.label }}
+        run: >-
+          uv run --locked --script site/build.py
+          --ref "$REF" --label "$LABEL" --out _site
+
+      - name: Check the site
+        run: uv run --script site/tests/check_site.py _site
+
+      # Decision: a pull request that changes the build also builds every
+      # version. The deploy repo runs build.py --all with the build code from
+      # main, so it rebuilds each released tag with it. The "next" build
+      # above proves the build only against the current text. A build change
+      # that breaks an older tag would pass here and fail in the deploy after
+      # merge, and the live site would stop updating. The full build costs
+      # one build per release, so it runs only when site/ or this workflow
+      # changes, and on a manual run. On a pull request, HEAD is the test
+      # merge commit, so HEAD^1 is the base it merges into.
+      - name: Detect build changes
+        id: changes
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          all=false
+          if [ "$EVENT" = workflow_dispatch ]; then
+            all=true
+          elif [ "$EVENT" = pull_request ] \
+            && ! git diff --quiet HEAD^1 HEAD -- \
+              site/ .github/workflows/spec-site.yaml; then
+            all=true
+          fi
+          echo "Build every version: $all"
+          echo "all=$all" >> "$GITHUB_OUTPUT"
+
+      - name: Build every version
+        if: steps.changes.outputs.all == 'true'
+        run: >-
+          uv run --locked --script site/build.py
+          --all --out "$RUNNER_TEMP/spec-site-all"
+
+      - name: Check every version
+        if: steps.changes.outputs.all == 'true'
+        run: >-
+          uv run --script site/tests/check_site.py
+          "$RUNNER_TEMP/spec-site-all"
+
+      - name: Upload the site
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: spec-site
+          path: _site
+          if-no-files-found: error
+          retention-days: 7
+
+  # Checks the relative links and anchors in the built site, offline. The
+  # reusable job sets its own 15-minute timeout. A caller job cannot set
+  # timeout-minutes.
+  site-links:
+    needs: build
+    uses: portolan-sdi/portolan-ops/.github/workflows/reusable-links.yml@v1
+    permissions:
+      contents: read
+      # The reusable job declares issues: write for its weekly mode. A
+      # caller must grant at least that, even though this mode never
+      # writes an issue.
+      issues: write
+    with:
+      site-artifact: spec-site
+
+  # Asks portolan-spec-site to rebuild and deploy. It needs the build job
+  # only. A failed build blocks the deploy request. A broken link does not,
+  # because new spec text matters more than one stale anchor, and the
+  # site-links check still reports it.
+  notify:
+    needs: build
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+      || github.event_name == 'release'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      # A secret cannot appear in a step `if:`. A fork has no org secrets.
+      HAS_BOT: ${{ secrets.OPS_SYNC_APP_KEY != '' }}
+    steps:
+      - name: Report a missing bot secret
+        if: env.HAS_BOT != 'true'
+        run: >-
+          echo "::notice::OPS_SYNC_APP_KEY is not set. The spec site
+          picks up this change on its weekly rebuild."
+
+      # The portolan-ops-sync app carries the cross-repo permission, not
+      # GITHUB_TOKEN. The token reaches one repo and can only write contents,
+      # which the dispatches endpoint requires.
+      - name: Create site token
+        if: env.HAS_BOT == 'true'
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: site-token
+        with:
+          client-id: ${{ secrets.OPS_SYNC_APP_CLIENT_ID }}
+          private-key: ${{ secrets.OPS_SYNC_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: portolan-spec-site
+          permission-contents: write
+
+      # The deploy rebuilds every version from main, so the payload only
+      # records what started it.
+      - name: Request a site deploy
+        if: env.HAS_BOT == 'true'
+        env:
+          GH_TOKEN: ${{ steps.site-token.outputs.token }}
+        run: |
+          gh api \
+            --method POST \
+            repos/portolan-sdi/portolan-spec-site/dispatches \
+            --raw-field event_type=spec-updated \
+            --raw-field "client_payload[spec_sha]=$GITHUB_SHA" \
+            --raw-field "client_payload[ref]=$GITHUB_REF_NAME"
