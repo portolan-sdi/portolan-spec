@@ -35,6 +35,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     (`PORTO-FMT-045`).
   - `partition:glob` is an absolute URL whose scheme is not `http` or
     `https` (`PORTO-FMT-064`, #230, #237).
+- `check-portolan` skips `source` assets and reports a class list in
+  `raster:bands`, as the schema does. Its drift cases fail `npm test` when
+  the schema and the script disagree on a class list.
 
 ### Changed
 
