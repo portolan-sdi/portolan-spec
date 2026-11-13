@@ -22,6 +22,11 @@ so the validator that checks a catalog is the validator that built it. This
 script declares no dependencies of its own for that reason, and runs on the
 standard library alone.
 
+The schema pass uses the working-copy profile schema, stac/json-schema/schema.json,
+through rashid's --schema-map option. The schema's $id names the URI it maps. On
+main that URI is the next version, which no rashid release bundles yet, so the
+bundled schema would only report PTL-SCH-000.
+
 The gate is errors and warnings. rashid's own exit code fires on errors only, and
 a warning is a real defect in a reference example. Infos are advisory and do not
 fail the run. The reference catalog reports eight PTL-PRO-002 infos, which are
@@ -80,6 +85,14 @@ def rashid_requirement(build_script: Path) -> str:
     raise SystemExit(f"{build_script}: no rashid dependency in its PEP 723 header")
 
 
+def schema_mapping(schema: Path) -> str:
+    """The URI=PATH argument that maps the profile schema's $id to its file."""
+    schema_id = json.loads(schema.read_text(encoding="utf-8")).get("$id")
+    if not isinstance(schema_id, str) or not schema_id:
+        raise SystemExit(f"{schema}: no $id")
+    return f"{schema_id.rstrip('#')}={schema}"
+
+
 def catalogs(root: Path, only: str | None) -> list[Path]:
     """Every built catalog tree under examples/catalog/, by root catalog.json."""
     found = sorted(
@@ -91,7 +104,7 @@ def catalogs(root: Path, only: str | None) -> list[Path]:
     return found
 
 
-def run_rashid(requirement: str, catalog: Path) -> dict:
+def run_rashid(requirement: str, mapping: str, catalog: Path) -> dict:
     """rashid's JSON report for one catalog tree."""
     completed = subprocess.run(
         [
@@ -100,7 +113,8 @@ def run_rashid(requirement: str, catalog: Path) -> dict:
             # before that version exists. Refresh the one package. A flag on
             # the outer uv run does not reach this subprocess. See #155.
             "uv", "run", "--refresh-package", "rashid", "--with", requirement,
-            "rashid", "check", "--schema", "--all", "--json", str(catalog),
+            "rashid", "check", "--schema", "--schema-map", mapping,
+            "--all", "--json", str(catalog),
         ],
         capture_output=True,
         text=True,
@@ -153,6 +167,8 @@ def main() -> int:
 
     requirement = rashid_requirement(root / "examples/tools/build.py")
     print(f"rashid requirement: {requirement}")
+    mapping = schema_mapping(root / "stac/json-schema/schema.json")
+    print(f"profile schema: {mapping}")
 
     trees = catalogs(root, args.catalog)
     if not trees:
@@ -160,7 +176,7 @@ def main() -> int:
 
     rows = []
     for catalog in trees:
-        data = run_rashid(requirement, catalog)
+        data = run_rashid(requirement, mapping, catalog)
         rows.append((catalog, data, report(catalog, data, root)))
 
     write_step_summary(rows)
