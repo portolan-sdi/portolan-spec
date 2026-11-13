@@ -29,7 +29,13 @@ The root redirect points to the newest release. `versions.json` follows
 and releases in descending order. The newest release has the `latest` alias.
 Each HTML page has a matching alias redirect that preserves its path, query,
 and fragment. The root 404 page links to the newest release and `next`.
-Cross-page fragment links name `index.html` so offline checks can resolve them.
+Published page links use directory URLs. The validator resolves them to
+`index.html` on disk. For the org offline checker, use:
+
+```sh
+LYCHEE_ROOT_DIR="$site_output" ../portolan-ops/scripts/lychee.sh \
+  --offline --index-files index.html "$site_output"
+```
 
 Each build exports its ref with `git archive` and changes temporary copies.
 Links outside the document set point to that ref on GitHub. Images use raw
@@ -45,6 +51,8 @@ With no supported release tags, the draft notice omits the release link.
 The output root must stay outside the checkout. The workflow's top-level
 `_site` artifact directory is the only exception. The build refuses to replace
 an existing version or alias directory without its `build-info.json` marker.
+An output root must be empty or carry this script's `site-build.json` marker.
+Unmarked directories remain untouched, including existing root pages and version lists.
 
 `install-toolchain.sh` installs checksum-pinned Linux x86_64 binaries from the
 [Pandoc release](https://github.com/jgm/pandoc/releases/tag/3.14) and
@@ -57,7 +65,8 @@ The build adds Hanken Grotesk italics from the Google Fonts commit in
 Only these pinned faces enter the PDF font directory. Typst ignores system
 fonts and retains its embedded fallback faces.
 
-- `build.py` stages documents and builds HTML, PDF, and EPUB.
+- `build.py` uses CommonMark block tokens to preserve code while it rewrites
+  links in list continuations. It stages documents and builds HTML, PDF, and EPUB.
 - `mkdocs.yml` defines Zensical's theme and Markdown extensions, with its native
   mike version picker.
 - `assets/` holds logos and styles. Load `_brand-vars.css` before `extra.css`.
