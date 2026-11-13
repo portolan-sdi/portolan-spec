@@ -73,6 +73,9 @@
           "$ref": "#/definitions/partition_conformant"
         },
         {
+          "$ref": "#/definitions/classes_conformant"
+        },
+        {
           "properties": {
             "extent": {
               "type": "object",
@@ -115,6 +118,12 @@
         },
         {
           "$ref": "#/definitions/assets_typed_and_roled"
+        },
+        {
+          "$ref": "#/definitions/item_data_asset"
+        },
+        {
+          "$ref": "#/definitions/classes_conformant"
         },
         {
           "$ref": "#/definitions/links_conformant"
@@ -346,7 +355,7 @@
       }
     },
     "assets_typed_and_roled": {
-      "$comment": "STAC leaves media type and roles optional on assets; Portolan requires both so validators and browsers can dispatch on them. file:size and file:checksum are SHOULD-level (spec: Assets), so the schema constrains their shape where present but does not require them; the checksum's multihash encoding and its agreement with the bytes are verified by Portolan tooling, not by schema. Absolute hrefs MUST use https, never s3 or other bucket schemes; relative hrefs are allowed.",
+      "$comment": "STAC leaves media type and roles optional on assets; Portolan requires both so validators and browsers can dispatch on them. file:size and file:checksum are SHOULD-level (spec: Assets), so the schema constrains their shape where present but does not require them; the checksum's multihash encoding and its agreement with the bytes are verified by Portolan tooling, not by schema. An href can be relative or absolute. An absolute href SHOULD use https, and one with another scheme needs an https alternate (asset_https_alternate).",
       "type": "object",
       "properties": {
         "assets": {
@@ -354,20 +363,21 @@
           "additionalProperties": {
             "type": "object",
             "required": ["href", "type", "roles"],
+            "allOf": [
+              {
+                "$ref": "#/definitions/asset_https_alternate"
+              },
+              {
+                "$ref": "#/definitions/data_asset_single_file"
+              },
+              {
+                "$ref": "#/definitions/pmtiles_asset_visual"
+              }
+            ],
             "properties": {
               "href": {
                 "type": "string",
-                "minLength": 1,
-                "anyOf": [
-                  {
-                    "pattern": "^https://"
-                  },
-                  {
-                    "not": {
-                      "pattern": "://"
-                    }
-                  }
-                ]
+                "minLength": 1
               },
               "type": {
                 "type": "string",
@@ -394,8 +404,272 @@
         }
       }
     },
+    "source_asset": {
+      "$comment": "An asset with the source role is an upstream original. The format requirements do not apply to it (spec: Formats), so the format rules below skip it. The Assets rules in core.md still apply.",
+      "type": "object",
+      "required": ["roles"],
+      "properties": {
+        "roles": {
+          "type": "array",
+          "contains": {
+            "const": "source"
+          }
+        }
+      }
+    },
+    "asset_https_alternate": {
+      "$comment": "Browsers cannot open s3 or other bucket URLs. An absolute href with a scheme other than https therefore needs an HTTPS URL for the same data in the asset's alternate field, from the alternate-assets extension (spec: Assets). An href is absolute when it starts with an RFC 3986 scheme and a colon, so file:/x and C:/x are absolute. The schema requires at least one alternate whose href is an https URL with a nonempty host. That the alternate serves the same data is checked by Portolan tooling.",
+      "type": "object",
+      "if": {
+        "required": ["href"],
+        "properties": {
+          "href": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:",
+            "not": {
+              "pattern": "^[Hh][Tt][Tt][Pp][Ss]:"
+            }
+          }
+        }
+      },
+      "then": {
+        "required": ["alternate"],
+        "properties": {
+          "alternate": {
+            "type": "object",
+            "$comment": "At least one value is an https alternate: the alternates are not all something else.",
+            "not": {
+              "additionalProperties": {
+                "not": {
+                  "type": "object",
+                  "required": ["href"],
+                  "properties": {
+                    "href": {
+                      "type": "string",
+                      "pattern": "^[Hh][Tt][Tt][Pp][Ss]://([^/?#@]*@)?([A-Za-z0-9._~%!$&'()*+,;=-]+|\\[[0-9A-Fa-f:.]+\\])(:[0-9]*)?([/?#]|$)"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "data_asset_single_file": {
+      "$comment": "Each data asset links to only one file, so the href of an asset with the data role contains no '*' and no '[' (spec: Formats). The rule has no exception, so an IPv6 literal host fails too. To link to many files, a partitioned collection uses partition:glob. A query string is allowed. Source assets are exempt.",
+      "type": "object",
+      "if": {
+        "allOf": [
+          {
+            "required": ["roles"],
+            "properties": {
+              "roles": {
+                "type": "array",
+                "contains": {
+                  "const": "data"
+                }
+              }
+            }
+          },
+          {
+            "not": {
+              "$ref": "#/definitions/source_asset"
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "href": {
+            "type": "string",
+            "not": {
+              "pattern": "[*\\[]"
+            }
+          }
+        }
+      }
+    },
+    "pmtiles_asset_visual": {
+      "$comment": "A PMTiles asset, identified by its media type or a .pmtiles extension at the end of the href path, has the visual role (spec: PMTiles). The query string and the fragment do not count. Source assets are exempt. The rule that its collection also refers to the GeoParquet data behind the PMTiles can depend on the collection's items, so Portolan tooling checks it.",
+      "type": "object",
+      "if": {
+        "allOf": [
+          {
+            "anyOf": [
+              {
+                "required": ["type"],
+                "properties": {
+                  "type": {
+                    "const": "application/vnd.pmtiles"
+                  }
+                }
+              },
+              {
+                "required": ["href"],
+                "properties": {
+                  "href": {
+                    "type": "string",
+                    "pattern": "^[^?#]*\\.[Pp][Mm][Tt][Ii][Ll][Ee][Ss]([?#]|$)"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "not": {
+              "$ref": "#/definitions/source_asset"
+            }
+          }
+        ]
+      },
+      "then": {
+        "required": ["roles"],
+        "properties": {
+          "roles": {
+            "type": "array",
+            "contains": {
+              "const": "visual"
+            }
+          }
+        }
+      }
+    },
+    "item_data_asset": {
+      "$comment": "Every item carries at least one asset with the data role, because an item exists to describe a data file (spec: Items). A collection must also refer to its primary data, but it can do so through its items, so Portolan tooling checks collections.",
+      "type": "object",
+      "required": ["assets"],
+      "properties": {
+        "assets": {
+          "type": "object",
+          "$comment": "At least one asset has the data role: the assets are not all without it.",
+          "not": {
+            "additionalProperties": {
+              "not": {
+                "type": "object",
+                "required": ["roles"],
+                "properties": {
+                  "roles": {
+                    "type": "array",
+                    "contains": {
+                      "const": "data"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "classes_conformant": {
+      "$comment": "Classified rasters list their classes in classification:classes from the classification extension (spec: Raster, Classified rasters). The rules apply to assets and to item_assets definitions. The classification extension schema checks value, name, and color_hint. A class is marked nodata exactly when its value equals the nodata value of the asset or band that holds the list; that rule compares two fields, so Portolan tooling checks it.",
+      "type": "object",
+      "properties": {
+        "assets": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/class_holder"
+          }
+        },
+        "item_assets": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/class_holder"
+          }
+        }
+      }
+    },
+    "class_holder": {
+      "$comment": "A single-band raster has its class list on the data asset. A multiband raster has each class list on the band it describes, in the STAC 1.1 bands array of the asset, never in raster:bands. An asset with no bands array counts as single-band. Source assets are exempt.",
+      "type": "object",
+      "if": {
+        "$ref": "#/definitions/source_asset"
+      },
+      "else": {
+        "properties": {
+          "classification:classes": {
+            "$ref": "#/definitions/class_list"
+          },
+          "bands": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "classification:classes": {
+                  "$ref": "#/definitions/class_list"
+                }
+              }
+            }
+          },
+          "raster:bands": {
+            "type": "array",
+            "$comment": "Class lists go in the STAC 1.1 bands array, not in the legacy raster:bands array.",
+            "items": {
+              "not": {
+                "required": ["classification:classes"]
+              }
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": ["bands"],
+              "properties": {
+                "bands": {
+                  "type": "array",
+                  "minItems": 2
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": ["classification:classes"]
+              }
+            }
+          },
+          {
+            "if": {
+              "required": ["bands"],
+              "properties": {
+                "bands": {
+                  "type": "array",
+                  "maxItems": 1
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "bands": {
+                  "items": {
+                    "not": {
+                      "required": ["classification:classes"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "class_list": {
+      "$comment": "Every class carries a non-empty human-readable title, in addition to the value and name that the classification extension defines.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
     "partition_conformant": {
-      "$comment": "A partitioned collection declares the partition extension and carries its required fields (spec: Partitioned Collections). Any partition:* field without the declared extension, or a declaration missing a required field, fails. Field shapes are validated by the partition extension schema itself, which Portolan validators apply alongside this profile; cross-partition Parquet schema consistency is checked by tooling reading file footers.",
+      "$comment": "A partitioned collection declares the partition extension and carries its required fields (spec: Partitioned Collections). Any partition:* field without the declared extension, or a declaration missing a required field, fails. Clients list files to expand the glob, and they cannot list a relative path or an http or https URL, so partition:glob is an absolute URL with another scheme, such as s3, gs, or az. Whether the URL names a bucket or host, and whether its scheme supports listing, is checked by Portolan tooling. Field shapes are validated by the partition extension schema itself, which Portolan validators apply alongside this profile; cross-partition Parquet schema consistency is checked by tooling reading file footers.",
       "type": "object",
       "if": {
         "anyOf": [
@@ -434,6 +708,13 @@
             "type": "array",
             "contains": {
               "const": "https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json"
+            }
+          },
+          "partition:glob": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9+.-]+://",
+            "not": {
+              "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://"
             }
           }
         }
