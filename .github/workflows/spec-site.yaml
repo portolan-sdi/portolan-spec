@@ -112,7 +112,7 @@ jobs:
           --ref "$REF" --label "$LABEL" --out _site
 
       - name: Check the site
-        run: uv run --script site/tests/check_site.py _site
+        run: uv run --locked --script site/tests/check_site.py _site
 
       # Decision: a pull request that changes the build also builds every
       # version. The deploy repo runs build.py --all with the build code from
@@ -149,7 +149,7 @@ jobs:
       - name: Check every version
         if: steps.changes.outputs.all == 'true'
         run: >-
-          uv run --script site/tests/check_site.py
+          uv run --locked --script site/tests/check_site.py
           "$RUNNER_TEMP/spec-site-all"
 
       - name: Upload the site
