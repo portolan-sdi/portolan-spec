@@ -2,16 +2,16 @@
 # requires-python = ">=3.12"
 # dependencies = ["pyyaml>=6.0.3"]
 # ///
-"""Publish a built example catalog to the Portolan repository on Source Cooperative.
+"""Publish a built example catalog to the Portolan Mirrors organization on Source Cooperative.
 
 examples/manifests/*.yaml each describe one whole catalog, and build.py turns a
 manifest into a complete catalog tree under examples/catalog/<stem>/. This
-uploads that tree to https://data.source.coop/portolan/portolan-pipeline/ so the
+uploads that tree to the portolan-mirrors/portolan-spec-examples product,
+https://data.source.coop/portolan-mirrors/portolan-spec-examples/, so the
 example is reachable at a real URL, which is the only way to exercise a Portolan
 catalog the way a client actually reads one, over HTTP range requests.
 
-portolan-pipeline already publishes into this same repository, so the prefix
-taxonomy here is its taxonomy rather than a second one. The layout is
+The product holds only these example catalogs. The layout is
 <catalog id>/<namespace>, where the namespace is `main` for main or master,
 `branches/<slug>` for any other branch, and `PRs/<number>` for a pull request.
 A PR number is stable across a force-push where a branch name is not, and it is
@@ -24,7 +24,7 @@ Transfers run through s5cmd rather than the AWS CLI. A catalog is a few hundred
 small JSON files next to a handful of large Parquet and COG assets, and s5cmd
 saturates that shape far better. `sync --delete` is scoped to one catalog's own
 prefix, so a stale file from an earlier build is removed while everything else
-published under portolan/portolan-pipeline/ is left alone.
+published under portolan-mirrors/portolan-spec-examples/ is left alone.
 
 After the upload it refetches the published catalog.json over HTTPS and checks
 that it parses and still carries the id that was uploaded. A sync that reported
@@ -54,19 +54,20 @@ from pathlib import Path
 import yaml
 
 BUCKET = "s3://us-west-2.opendata.source.coop"
-# The Source Cooperative repository. Both halves of this pair have to move
-# together, they address the same bytes over S3 and over HTTPS.
-REPO_PREFIX = "portolan/portolan-pipeline"
-PUBLIC_BASE = "https://data.source.coop/portolan/portolan-pipeline"
+# The Source Cooperative product, portolan-mirrors/portolan-spec-examples. Both
+# halves of this pair have to move together, they address the same bytes over S3
+# and over HTTPS. data.source.coop resolves a path through the product record,
+# so the product must exist for PUBLIC_BASE to serve what REPO_PREFIX holds.
+REPO_PREFIX = "portolan-mirrors/portolan-spec-examples"
+PUBLIC_BASE = "https://data.source.coop/portolan-mirrors/portolan-spec-examples"
 # The two human-facing views of the same bytes. `data.` serves the objects,
 # the bare domain serves Source Cooperative's file browser, and STAC Browser
 # renders the catalog. All three are derived from PUBLIC_BASE in review_urls,
 # never reassembled, so moving the repository moves all of them together.
-SOURCE_COOP_BASE = "https://source.coop/portolan/portolan-pipeline"
+SOURCE_COOP_BASE = "https://source.coop/portolan-mirrors/portolan-spec-examples"
 BROWSER_BASE = "https://browser.portolan-sdi.org/#/external/"
 
-# portolan-pipeline publishes into this same repository, so its prefix taxonomy
-# is the one to match rather than invent a second. See its docs/branch-versioning.md.
+# The namespace taxonomy is main, branches/<slug>, and PRs/<number>.
 DEFAULT_BRANCHES = {"main", "master"}
 # Everything outside this set collapses to a single dash, so a branch name is
 # one path segment. `feat/x` becomes `feat-x`, never a nested directory.
@@ -108,7 +109,7 @@ def manifest_catalogs(root: Path) -> dict[str, str]:
 
 
 def slugify_ref(ref: str) -> str:
-    """Turn a git ref into one safe path segment, as portolan-pipeline does."""
+    """Turn a git ref into one safe path segment, by lowercasing and collapsing unsafe runs to a dash."""
     slug = UNSAFE_IN_SLUG.sub("-", ref.strip().lower()).strip("-./")
     return slug or "unnamed"
 
@@ -180,7 +181,7 @@ def destination(catalog_id: str, ns: str) -> tuple[str, str]:
     """The s3:// target and the public https:// URL for one catalog and run.
 
     Keyed on the catalog id rather than the manifest file name, since the id is
-    what the published catalog calls itself and what portolan-pipeline keys on.
+    what the published catalog calls itself.
     """
     if not catalog_id or "/" in catalog_id or ".." in catalog_id:
         raise SystemExit(f"refusing to publish catalog id {catalog_id!r}")

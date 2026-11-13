@@ -121,9 +121,15 @@ uv run examples/tools/check_catalogs.py --catalog portolan-reference  # one cata
 
 A catalog that only exists in git proves the bytes are right and proves nothing
 about how a client reads it, over HTTP range requests against a real object
-store. So each catalog is also published to the Portolan repository on Source
-Cooperative, where the reference catalog is readable at
-<https://data.source.coop/portolan/portolan-pipeline/portolan-reference/main/catalog.json>.
+store. So each catalog is also published to the Source Cooperative product
+`portolan-mirrors/portolan-spec-examples` ("Portolan Specification Example
+Catalogs"). Each catalog sits at `<catalog id>/<namespace>/` in that product,
+and the reference catalog is readable at
+<https://data.source.coop/portolan-mirrors/portolan-spec-examples/portolan-reference/main/catalog.json>.
+The constants that name the product are `REPO_PREFIX`, `PUBLIC_BASE`, and
+`SOURCE_COOP_BASE` in `examples/tools/publish_catalogs.py`. The product must
+stay public, because `data.source.coop` serves nothing for a product it has no
+record of.
 
 CI publishes on every push to `main` that changes a manifest, a generator module,
 or a committed rebuild, since each changes the bytes a catalog is made of. A pull

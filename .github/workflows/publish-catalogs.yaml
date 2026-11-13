@@ -14,10 +14,10 @@ name: Publish Catalogs
 # and on demand for a single catalog or a dry run. The build refetches five
 # third-party sources, so it is not on every push.
 #
-# The prefix taxonomy is CartoDB/portolan-pipeline's, which publishes into this
-# same Source Cooperative repository. See examples/tools/CLAUDE.md.
+# The target is the portolan-mirrors/portolan-spec-examples product on Source
+# Cooperative. See examples/tools/CLAUDE.md.
 #
-#   push to main or master  -> portolan/portolan-pipeline/<catalog id>/main/
+#   push to main or master  -> portolan-mirrors/portolan-spec-examples/<catalog id>/main/
 #   push to any other branch -> .../<catalog id>/branches/<slug>/
 #   pull request N          -> .../<catalog id>/PRs/N/, deleted when it closes
 #

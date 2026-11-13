@@ -362,7 +362,7 @@ whenever one of them is briefly down, which says nothing about the PR. A failure
 opens an issue instead, or comments on the open one.
 
 `.github/workflows/publish-catalogs.yaml` builds each manifest and uploads the
-result to the Portolan repository on Source Cooperative with
+result to the `portolan-mirrors/portolan-spec-examples` product on Source Cooperative with
 `examples/tools/publish_catalogs.py`, so an example is readable at a real URL rather
 than only in git. It runs when a manifest, a generator module, or a committed
 rebuild lands on main, on every pull request, and on demand for one catalog or
@@ -372,11 +372,9 @@ unvalidated, the same `check_catalogs.py` gate runs between the build and the
 upload, and afterwards the published `catalog.json` is refetched over HTTPS and
 its `id` checked.
 
-The prefix taxonomy is not ours. `CartoDB/portolan-pipeline` already publishes
-into the same Source Cooperative repository, so `publish_catalogs.py`
-reimplements its scheme from `docs/branch-versioning.md` rather than inventing a
-second one that would sit confusingly beside it. The layout is
-`<catalog id>/<namespace>`.
+The product holds only these example catalogs. `data.source.coop` resolves a path
+through a product record, so the product must exist for the public URL to serve
+what the S3 prefix holds. The layout is `<catalog id>/<namespace>`.
 
 | git context | published prefix |
 | --- | --- |
@@ -392,8 +390,7 @@ of characters outside `[a-z0-9._-]` to one dash, so `feat/x` becomes `feat-x`
 and stays a single path segment. And the default-branch test runs on the raw
 ref, so a branch named `Main` lands in `branches/main` rather than overwriting
 the canonical catalog. That last one reads like an upstream oversight and is the
-safer behaviour, so it is matched deliberately. The ground-truth cases from
-their `tests/test_context.py` all pass against our implementation.
+safer behaviour, so it is kept deliberately. `check_publish_urls.py` covers the URL derivation.
 
 A pull request from a fork is skipped rather than run, since GitHub withholds
 secrets there and the build would burn its full runtime only to fail at the
