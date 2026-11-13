@@ -204,7 +204,9 @@ How a raster collection is structured — one item per scene, with a single-COG
 collection handled as a single-file collection — is defined under [Raster
 Collections](core.md#raster-collections).
 
-**Optimized GeoTIFF conformance.** Beyond that baseline, a COG MUST conform to OGC
+### Optimized GeoTIFF conformance
+
+Beyond that baseline, a COG MUST conform to OGC
 21-026's [Optimized GeoTIFF requirements
 class](https://docs.ogc.org/is/21-026/21-026.html#optimized_geotiff-requirements-class)
 (`/req/optimized_geotiff`), which adds three requirements:
@@ -228,20 +230,17 @@ since it is its own overview. Base COG validators, including `rio cogeo validate
 treat missing overviews as a warning rather than a failure. Portolan raises this to a
 requirement.
 
-**Raster statistics.** COGs MUST include pixel statistics for rendering.
+### Raster statistics
+
+COGs MUST include pixel statistics for rendering.
 For each band, the file MUST include an embedded minimum, maximum, mean, and
 standard deviation. Renderers use these values to scale any data type without reading
 pixels.
 
 Publishers MUST embed these statistics in the COG file.
-A separate `.aux.xml` (PAM) file does not meet this requirement.
-
 Publishers MUST write the statistics at creation time, in the file's leading
-header block. Readers then receive the statistics in the first range request.
-One command for this is `gdal_translate -of COG -stats`.
-
-Embedded statistics MUST describe the full-resolution pixels stored in each
-band. Publishers may use estimates if they set `STATISTICS_APPROXIMATE = YES`.
+header block. Embedded statistics MUST describe the full-resolution pixels
+stored in each band.
 
 The required statistics are:
 
@@ -251,39 +250,15 @@ The required statistics are:
 | Valid percent | SHOULD (MUST when the band has a nodata value) |
 | Approximate flag (`STATISTICS_APPROXIMATE = YES`) | MUST when estimated |
 
-For a non-finite nodata value, use the corresponding string in the band's
-`nodata` field: `"nan"`, `"inf"`, or `"-inf"`. These strings are specified in
-[STAC 1.1.0 common metadata](https://github.com/radiantearth/stac-spec/blob/v1.1.0/commons/common-metadata.md#bands).
-Do not use `null` or an unquoted `NaN` in this field.
-
-A valid-percent statistic is required even when the nodata value is non-finite.
-
 The exact on-disk encoding (the TIFF `GDAL_METADATA` tag and its XML layout, and
-`GDAL_NODATA`) is specified in
+`GDAL_NODATA`), the nodata conventions, and the rules for approximate statistics
+are specified in
 [`specs/incubating/geotiff-stats-headers.md`](../incubating/geotiff-stats-headers.md).
 Compliance is defined by the tag contents, not by use of GDAL.
 
-Collections of multiple rasters (i.e., two or more) that share the same bands
-and belong to the same time period, but together cover an area much larger than
-that of any individual item, SHOULD provide an overview COG. The overview COG is
-subject to all the COG requirements in this section and should be included as a
-collection-level asset with the `visual` and `overview` roles. This allows
-clients to show the whole mosaic without loading every item. Because the
-overview is mostly to help users understand what areas the collection covers, it
-can simply show the most recent or least cloudy items; complex pixel processing
-is not required.
+### Classified rasters
 
-The overview SHOULD be an 8-bit RGB image, with an optional alpha band. It
-SHOULD use a projection that suits web maps, such as Web Mercator (EPSG:3857).
-The overview needs sufficient resolution to show what area the items cover, but
-does not need to have the full resolution of the items themselves.
-
-Collections with mosaics for several time periods SHOULD provide an overview
-for at least the most recent mosaic. They MAY provide an overview for each of
-the other periods. Each overview asset SHOULD have a `datetime`, or a
-`start_datetime` and `end_datetime`, so clients can match it to its items.
-
-**Classified rasters.** In a classified raster, the pixels represent categories
+In a classified raster, the pixels represent categories
 (e.g., land cover classes). A classified raster SHOULD describe these classes
 with `classification:classes` from the STAC
 [classification extension](https://github.com/stac-extensions/classification).
@@ -315,9 +290,35 @@ A class MUST be marked `nodata: true` if and only if its `value` equals the
 `nodata` value of the asset or band that has the list of classes. Clients SHOULD
 render that class as transparent and SHOULD exclude it from the legend.
 Continuous rasters, whose pixels are measurements such as elevation, SHOULD NOT
-include `classification:classes`.
+include `classification:classes`. Styling for continuous and multiband rasters
+is still under discussion in
+[`specs/incubating/raster-styling.md`](../incubating/raster-styling.md).
 
-**Item mirror.** A raster collection that models scenes as items SHOULD also publish a
+### Collection overviews
+
+Collections of multiple rasters (i.e., two or more) that share the same bands
+and belong to the same time period, but together cover an area much larger than
+that of any individual item, SHOULD provide an overview COG. The overview COG is
+subject to all the COG requirements in this section and should be included as a
+collection-level asset with the `visual` and `overview` roles. This allows
+clients to show the whole mosaic without loading every item. Because the
+overview is mostly to help users understand what areas the collection covers, it
+can simply show the most recent or least cloudy items; complex pixel processing
+is not required.
+
+The overview SHOULD be an 8-bit RGB image, with an optional alpha band. It
+SHOULD use a projection that suits web maps, such as Web Mercator (EPSG:3857).
+The overview needs sufficient resolution to show what area the items cover, but
+does not need to have the full resolution of the items themselves.
+
+Collections with mosaics for several time periods SHOULD provide an overview
+for at least the most recent mosaic. They MAY provide an overview for each of
+the other periods. Each overview asset SHOULD have a `datetime`, or a
+`start_datetime` and `end_datetime`, so clients can match it to its items.
+
+### Item mirror
+
+A raster collection that models scenes as items SHOULD also publish a
 [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) item mirror at
 `items.parquet` in the collection root. One range request then returns the whole
 collection's item metadata, in place of one HTTP fetch per scene. Clients can search a large
@@ -355,10 +356,6 @@ A collection containing only a single COG has no items and therefore publishes n
 mirror. Item mirrors for other collection types, and STAC-GeoParquet mirrors covering an
 entire catalog's collections, remain incubating. See
 [`specs/incubating/stac-geoparquet.md`](../incubating/stac-geoparquet.md).
-
-Classified rasters are covered earlier in this section. Styling for continuous and multiband rasters
-is still under discussion in
-[`specs/incubating/raster-styling.md`](../incubating/raster-styling.md).
 
 ### Imagery
 
