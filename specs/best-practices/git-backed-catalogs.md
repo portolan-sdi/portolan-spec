@@ -68,7 +68,7 @@ Use rashid for Portolan conformance and stac-check for STAC validity and best pr
 
 A minimal workflow is:
 
-```yaml id="j49h8x"
+```yaml
 - run: python -m pip install stac-check rashid
 - run: rashid check catalog/
 ```
@@ -77,7 +77,7 @@ Run these checks on pull requests and before publication. This catches errors be
 
 A root catalog with no collections can pass validation, which allows a repository to remain valid from its first commit:
 
-```console id="0v3l6e"
+```console
 $ rashid check catalog/ --schema
 OK: 1 files checked, no findings.
 ```
@@ -99,7 +99,7 @@ If a catalog is maintained in Git, publish two links on the root catalog:
 
 Use absolute URLs because the repository is outside the published catalog.
 
-```json id="5cwv69"
+```json
 {
   "rel": "vcs",
   "href": "https://github.com/example/catalog",

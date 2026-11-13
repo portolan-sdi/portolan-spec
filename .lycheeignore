@@ -1,0 +1,14 @@
+# URL patterns the link check skips. One regular expression per line.
+# Path exceptions live in lychee.toml. The org rules live in lychee/org.toml.
+
+# data.boston.gov answers 403 to every automated client, including curl and a
+# browser User-Agent. The page loads in a browser.
+^https://data\.boston\.gov/dataset/open-space$
+
+# data.census.gov answers 403 to lychee, even with a browser User-Agent. It
+# answers 200 to curl and in a browser.
+^https://data\.census\.gov/$
+
+# Substack answers 403 to GitHub Actions runners. The same URL answers 200
+# from a browser and from lychee on other networks.
+^https://[a-z0-9-]+\.substack\.com/

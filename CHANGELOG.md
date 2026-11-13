@@ -11,48 +11,92 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Added
 
-- **Calibration scripts** are in
-  [`specs/portolan/abstract-tests/calibration/`](specs/portolan/abstract-tests/calibration/).
-  The directory records the method and the evidence for the pass bar and floors.
-  The measurement script checks its formulas against the abstract test vectors.
-  The registry survey on 2026-11-10 measured 5,914 files from 74 catalogs.
-  The survey results and the Hilbert-sort control are in
-  [a public gist](https://gist.github.com/nlebovits/5c123a65d8d448875751f431f9c77475).
-  Use `uv run specs/portolan/abstract-tests/calibration/measure.py <corpus>`
-  to measure another local corpus. The directory itself adds no requirements.
+- **Collections of multiple rasters should have an overview COG**
+  (`PORTO-FMT-067` through `PORTO-FMT-072`). This applies to two or more
+  rasters with the same bands and time period that together cover a much
+  larger area than any one item. The overview is an 8-bit RGB COG in a web map
+  projection. Collections with mosaics for several time periods should have an
+  overview for the most recent one (#114).
+
+- **Imagery scenes should declare nodata and use valid-data footprints**
+  (`PORTO-FMT-073`, `PORTO-FMT-074`). Clients then do not draw empty pixels
+  as black (#114).
+
+- **Table columns should have descriptions** (`PORTO-FMT-077` through
+  `PORTO-FMT-079`). Every `table:columns` entry should include a
+  `description`. A mirror whose source has no column descriptions should note
+  this in the collection's `README.md`. Publishers should not include
+  placeholder descriptions.
+
+- **Classified rasters describe their classes with the classification
+  extension** (`PORTO-FMT-049` to `PORTO-FMT-059`,
+  [`specs/portolan/formats.md`](specs/portolan/formats.md#raster)).
+  A raster whose pixels are categories should list its classes in
+  `classification:classes` from the STAC classification extension. The list
+  goes on the data asset for a single-band raster and on the band in STAC 1.1
+  `bands` for a multi-band raster, next to `nodata`. Each class must have a
+  `title`. The color table embedded in the COG is authoritative for
+  rendering, so a `color_hint` should match it. A class is marked
+  `nodata: true` if and only if its value is the `nodata` value of its asset
+  or band. Clients draw that class transparent and leave it out of the
+  legend. Continuous rasters have no classes, and their styling is still
+  under discussion (#41).
 
 ### Changed
 
 - **Portolan accepts native geospatial Parquet** (`PORTO-FMT-004`,
-  `PORTO-FMT-055` to `PORTO-FMT-057`,
+  `PORTO-FMT-080`, `PORTO-FMT-081`,
   [`specs/portolan/formats.md`](specs/portolan/formats.md)). Publishers can
   provide GeoParquet 1.1, GeoParquet 2.0, or Parquet with native geospatial
-  logical types and no `geo` key. Validators apply every vector requirement
-  to all three formats. This includes native Parquet files from Apache
-  Iceberg writers, which validators previously treated as tabular data
-  (portolan-sdi/rashid#200). When a geometry column declares its CRS only
-  through the native logical type's `crs` field, the value uses one of the
-  four formats that the Parquet geospatial specification suggests. An absent
-  value means OGC:CRS84. Readers can resolve inline PROJJSON and
-  `projjson:<key>` from the file alone. Registry codes such as `EPSG:4326`
-  produce warnings. Native statistics now cover `GEOGRAPHY` columns
-  (`PORTO-FMT-007`), and a file without a `geo` key meets the statistics
-  rule with native statistics alone (`PORTO-FMT-008`).
+  logical types and no `geo` key. A file with a native geometry column is
+  vector data, so the vector requirements apply to it. This includes native
+  Parquet files from Apache Iceberg writers, which validators previously
+  treated as tabular data (portolan-sdi/rashid#200). Publishers should use
+  GeoParquet 2.0 when their tools can write it. A file without a `geo` key
+  should give its CRS as inline PROJJSON or a `projjson:<key>` reference.
+  Native statistics now cover `GEOGRAPHY` columns (`PORTO-FMT-007`), and a
+  file without a `geo` key meets the statistics rule with native statistics
+  alone (`PORTO-FMT-008`).
 
 - **GeoParquet 2.0 links to the 2.0.0 release** instead of the release
   candidate (`PORTO-FMT-004`).
 
-- **The GeoParquet best-practices guide is a SHOULD** (`PORTO-FMT-074`).
+- **The GeoParquet best-practices guide is a SHOULD** (`PORTO-FMT-082`).
   Before this change, it was part of the `PORTO-FMT-004` MUST, which a
   validator cannot check.
+
+- **Asset hrefs can use `s3://` and other schemes with an https alternate**
+  (`PORTO-CORE-023`, `PORTO-CORE-087`). Absolute hrefs should use https.
+  Other schemes need an https `alternate` for the same data (#213).
+
+- **Assets should have a `title` and a `description`** (`PORTO-CORE-088`).
+  The spec recommended them before. Now they are a SHOULD (#240).
+
+- **Metadata-only hosts no longer need range support**
+  (`PORTO-CORE-043`, `PORTO-CORE-045`, `PORTO-CORE-073`, `PORTO-CORE-086`).
+  Range requests and range-related CORS now apply only to COG, Parquet,
+  PMTiles, and COPC files, listed by media type. CORS still applies to all
+  metadata and asset files. Servers no longer need to expose `Content-Type`
+  and `Content-Length` (#183).
 
 - **Tabular bounding boxes have regional examples**. Use the bounds of Europe
   for a table about Europe, or the country's bounds for a tabular collection
   in a country catalog (#198).
 
-- **Partition globs cannot use HTTP or HTTPS** (`PORTO-FMT-064`). Readers
-  need to list the files that match a glob. Plain HTTP does not support
-  file listing (#166).
+- **Partition globs must be absolute URLs that clients can list**
+  (`PORTO-FMT-064`, `PORTO-FMT-075`). Readers need to list the files that
+  match a glob. HTTP URLs and relative paths cannot be listed. Globs should
+  use `s3://`, `gs://`, or `az://`. This breaks catalogs with
+  relative globs, 9 of 37 registry collections in October 2026. To fix one,
+  replace the relative glob with the absolute bucket URL (#166, #216).
+
+- **Data asset paths cannot contain globs** (`PORTO-FMT-065`). Each data
+  asset links to one file. The rule applies to every data asset, not only
+  partitioned collections (#216).
+
+- **S3-compatible servers outside AWS should be described with the STAC
+  storage extension** (`PORTO-FMT-066`). Without it, clients assume Amazon
+  S3. Set `type` to `custom-s3` (#216).
 
 - **The STAC profile uses Contacts v1.0.0** instead of v0.1.1
   (#53, part 7a).
@@ -91,105 +135,13 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 148 requirements, now 103 MUST, 26 SHOULD, and
+- **Requirements manifest**: 164 requirements, now 99 MUST, 46 SHOULD, and
   19 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source
   GeoParquet data in the same collection** (`PORTO-FMT-062`). Use an asset
   with the `data` role or `partition:glob` for the reference. PMTiles alone
   is insufficient as a collection's primary data (#225).
-
-- **GeoParquet spatial order now uses pruning efficiency** (`PORTO-FMT-006`,
-  `PORTO-FMT-044`, new `PORTO-FMT-049` to `PORTO-FMT-054`,
-  `PORTO-FMT-060`, and `PORTO-FMT-061`,
-  [`specs/portolan/formats.md`](specs/portolan/formats.md)).
-  The old footer check accepted low overlap between consecutive row-group
-  pairs or boxes that averaged under 30% of the extent.
-  A space-filling-curve sort puts neighboring groups next to each other.
-  Their boxes touch, so even an ideal file can have overlap near 1.0.
-  The fixed 30% limit came from files with five row groups.
-  At several hundred groups, it could pass a layout a hundred times worse
-  than an ideal tiling.
-  The new metric calculates the expected share of bytes a query skips.
-  It places the window in a row group with probability proportional to its
-  row count. The window spans 10% of each dimension of that group's box.
-  A distant outlier cannot stretch the extent to make a shuffled file pass
-  or a sorted file fail. The vectors `outlier-shuffled-n20` and
-  `outlier-sorted-n20` test these cases.
-  The skip rate weights groups by compressed bytes to measure data transfer.
-  A formula uses the footer statistics without random samples.
-  Efficiency divides this rate by the rate for a fixed reference grid
-  (`PORTO-FMT-053`). The grid has `cols = ceil(sqrt(n))` columns and uniform
-  row and byte counts. It fills every cell.
-  A layout passes at 0.65 of the reference rate.
-
-- **Spatial order has two verdict paths** (`PORTO-FMT-044`, `PORTO-FMT-050`,
-  `PORTO-FMT-006`). A file with eight or more row groups takes the footer
-  check. A file with fewer than eight row groups takes the row check. Both use the same metric and
-  the 0.65 bar. The verdict depends on the order of the rows, not on the file
-  size or the codec. A grid poorly represents a curve sort below eight row
-  groups. Sorted rows failed the footer check in 70% of files at two groups
-  and in 2% at eight. The row-check calibration on 654 registry files found
-  no shuffled file at the bar. Its highest score was 0.52.
-
-- **Validators start each verdict with the expected read cost** (new
-  `PORTO-FMT-060` and `PORTO-FMT-061`, expanded `PORTO-FMT-051`).
-  An example is "a typical query reads 23% of the file".
-  Each verdict also reports efficiency, achievable skip rate, and area sum
-  as statistics. These statistics do not give separate verdicts.
-  On failure, a validator should identify the largest row-group boxes
-  relative to the extent. It should also report the read share for 1% and
-  25% windows beside the 10% figure.
-
-- **The row check now has a defined abstract test** (`PORTO-FMT-006`, new
-  `PORTO-FMT-052`,
-  [`specs/portolan/requirements.yaml`](specs/portolan/requirements.yaml)).
-  The old rule left the chunk count and "a small part of the file" undefined.
-  The spec states the rule and references the manifest's `test` entry.
-  The test divides rows in file order into ten chunks and weights each
-  chunk by its row count. It uses the same efficiency metric against a
-  ten-cell reference grid, with a pass bar of 0.65.
-  It replaces the fixed 30% limit.
-  The test needs 200 rows. Below that count, a validator MUST report that
-  the file has too few rows to judge. It MUST NOT withhold that message.
-  The row check applies to every file with fewer than eight row groups.
-  A row's box is its bbox covering. A file without a covering uses the
-  minimum and maximum of each row's coordinates, so native files from #226
-  receive a verdict.
-
-- **Validators must reproduce the abstract test vectors** (new `PORTO-FMT-054`,
-  [`specs/portolan/abstract-tests/spatial-metric-vectors.json`](specs/portolan/abstract-tests/spatial-metric-vectors.json)).
-  The vectors specify expected results and verdicts for thirteen layouts and
-  four row cases.
-  They test a zero extent on one axis (`line-n8` passes at efficiency 1.0)
-  and undefined efficiency at `n = 1`.
-  They distinguish the required grid from strips and grids with empty cells.
-  Other cases test outliers, byte and row weights, and null rows in chunks.
-  The area sum is undefined when the extent has no area.
-  A validator MUST report it as absent rather than as 0.
-
-- **The pass bar is now 0.65.**
-  The new survey replaces the earlier 0.70 calibration from the extent-window
-  draft. The earlier review covered 206 registry files, four further catalogs,
-  three single files, and 1.27 million AIS tracks.
-  Its nine files below the bar reached 0.87 to 0.97 after a sort.
-  The new survey used the current metric on 5,914 files from 74 catalogs.
-  The sort control selected 145 files and measured 141 copies.
-  The 32 copies with eight or more row groups scored 0.696 to 0.944.
-  An already sorted Manitoba buildings file scored 0.682 before the sort
-  and 0.696 after it. The 0.70 bar would reject that sorted file.
-  At 0.65, every sorted copy eligible for a footer pass passes.
-  The original 2011 crop-parcel file also passes at 0.668.
-  The footer survey produced 308 footer passes and no footer failures.
-  One catalog supplies 183 of the 878 files over 5 MB.
-  The calibration README records this limitation and the survey's missing
-  statistics and broken links.
-
-- **Validators may use page-level statistics to refine the read share**
-  (new `PORTO-FMT-073`). The Parquet page index on covering leaves or native
-  page statistics can let a reader skip pages within a row group.
-  A validator MAY report that finer estimate.
-  The verdict uses the row-group metric so validators agree.
 
 ### Removed
 
@@ -198,6 +150,9 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   guidance on how to build a catalog. It is now the `catalog-grader` skill in
   [portolan-skills](https://github.com/portolan-sdi/portolan-skills), where it
   runs and can be tested. No requirement changes.
+
+- **`PORTO-FMT-020` is retired.** It allowed bucket schemes such as `s3://`
+  for partition globs. `PORTO-FMT-064` now requires them (#216).
 
 ## 0.2.0 - 2026-08-28
 

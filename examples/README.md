@@ -121,17 +121,37 @@ uv run examples/tools/check_catalogs.py --catalog portolan-reference  # one cata
 
 A catalog that only exists in git proves the bytes are right and proves nothing
 about how a client reads it, over HTTP range requests against a real object
-store. So each catalog is also published to the Portolan repository on Source
-Cooperative, where the reference catalog is readable at
-<https://data.source.coop/portolan/portolan-pipeline/portolan-reference/main/catalog.json>.
+store. So each catalog is also published to the Source Cooperative product
+`portolan-mirrors/portolan-spec-examples` ("Portolan Specification Example
+Catalogs"). Each catalog is at `<catalog id>/<namespace>/` in that product,
+and the reference catalog is readable at
+<https://data.source.coop/portolan-mirrors/portolan-spec-examples/portolan-reference/main/catalog.json>.
+The constants that name the product are `ACCOUNT` and `PRODUCT` in
+`examples/tools/publish_catalogs.py`, and every other address derives from
+them. The product must stay public, because `data.source.coop` serves nothing
+for a product it has no record of.
 
 CI publishes on every push to `main` that changes a manifest, a generator module,
 or a committed rebuild, since each changes the bytes a catalog is made of. A pull
 request gets its own preview under `PRs/<number>/`, torn down when it closes, and
 a comment linking it in [STAC Browser](https://browser.portolan-sdi.org/) so
 review can open the catalog rather than read a diff of Parquet and COG.
-Publishing by hand needs Source Cooperative credentials in the environment and
-`s5cmd` on your PATH.
+
+CI stores no Source Cooperative keys. Each publish or teardown job signs in with
+a GitHub OpenID Connect (OIDC) token as the service account `portolan-mirrors--spec-examples`.
+The service account trusts only jobs that run in the `source-coop` environment
+of this repository. The sign-in goes through the Source Cooperative data proxy,
+which issues credentials that work only against the proxy. So every upload and
+delete goes to `https://data.source.coop`, not to Amazon S3. The
+`SOURCE_COOP_ACCESS_KEY_ID` and `SOURCE_COOP_SECRET_ACCESS_KEY` secrets are no
+longer used. See
+[Automated Access](https://docs.source.coop/automated-access) in the Source
+Cooperative docs.
+
+Uploads and deletes run through the Amazon Web Services (AWS) CLI, which the
+publish script pins in its own header, so you install nothing else. Publishing by hand needs
+credentials that the data proxy issued, in `AWS_ACCESS_KEY_ID`,
+`AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`.
 
 ```bash
 uv run examples/tools/publish_catalogs.py --list                        # publishable stems
