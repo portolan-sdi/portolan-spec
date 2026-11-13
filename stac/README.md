@@ -159,7 +159,7 @@ The files are stored flat in `examples/` for convenience, but their relative hre
 
 ## Building and Testing
 
-Every published schema version is tracked in this repository under `json-schema/v<version>/schema.json`; the `version` field in `package.json` names the current one and is the single source of truth. The portolan-sdi extension schemas (currently [partition](https://github.com/portolan-sdi/stac-partition-extension)) live in their own repositories; [`portolan-extensions.json`](portolan-extensions.json) pins which versions are published under `schemas.portolan-sdi.org/<name>/<version>/`, so bumping a pin — like binding the profile to a new extension version — is a change to this repository. The publish workflow deploys the site from the tracked tree plus the pinned extension schemas fetched from their source repos.
+[`json-schema/schema.json`](json-schema/schema.json) is the one schema file in this repository. On `main` it is the draft of the next version, and the `version` field in `package.json` names that version and is the single source of truth. Each released version lives in its git tag, `v<version>`, and the publish workflow reads each schema from its tag, never from `main`. The portolan-sdi extension schemas (currently [partition](https://github.com/portolan-sdi/stac-partition-extension)) live in their own repositories; [`portolan-extensions.json`](portolan-extensions.json) pins which versions are published under `schemas.portolan-sdi.org/<name>/<version>/`, so bumping a pin — like binding the profile to a new extension version — is a change to this repository. The publish workflow deploys the site from the release tags plus the pinned extension schemas fetched from their source repos.
 
 From `stac/`:
 
@@ -171,7 +171,7 @@ npm test
 `npm test` runs after a `pretest` step that fetches pinned extension schemas into the gitignored `.schema-cache/`. This cache includes Portolan extensions and third-party schemas that the examples require.
 
 - **check-markdown** — remark lint over the profile documents.
-- **check-version** — every versioned Portolan schema URI reference (schema `$id`, READMEs, examples, spec documents) matches the `package.json` version, and the matching `json-schema/v<version>/` directory exists.
+- **check-version** — every versioned Portolan schema URI reference (schema `$id`, READMEs, examples, spec documents) matches the `package.json` version, and the `$id` of `json-schema/schema.json` names that version.
 - **check-examples** — [stac-node-validator](https://github.com/stac-utils/stac-node-validator) validates the examples, applying the schema where `stac_extensions` declares it.
 - **check-portolan** — validates every example directly against the schema with ajv, the way the Portolan validator does. This is what exercises the schema's item rules — items never declare the schema URI, so `check-examples` alone would never apply it to them. It also applies the pinned extension schemas to every example that declares them, and verifies the examples' `file:checksum` values are well-formed sha2-256 multihashes, which the schema deliberately delegates to tooling.
 
