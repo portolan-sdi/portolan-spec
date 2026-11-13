@@ -29,14 +29,16 @@ theme:
   font:
     text: Hanken Grotesk
     code: JetBrains Mono
-  # The section nav sits in the left sidebar and the page contents on the
-  # right. With no tabs, `navigation.sections` renders each top-level group
-  # as a labelled block. Every group is one level deep, so
-  # `navigation.expand` has nothing to open. Each group lists its overview
-  # as a named page, so `navigation.indexes` stays off.
+  # The left sidebar holds the nav. Each top-level group is a collapsible
+  # item, and only the group of the current page opens, so the feature list
+  # leaves out `navigation.sections` and `navigation.expand`. Each group
+  # lists its overview as a named page, so `navigation.indexes` stays off.
+  # `toc.follow` keeps the current heading in view in the page contents.
+  # `toc.integrate` stays off: core.md has a long contents list, which would
+  # push the other groups below the fold and leave the right column empty.
   features:
     - navigation.top
-    - navigation.sections
+    - toc.follow
     - search.suggest
     - search.highlight
     - content.code.copy
