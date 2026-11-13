@@ -1,5 +1,11 @@
 @font-face {
   font-family: "Hanken Grotesk";
+  font-style: italic;
+  font-weight: 100 900;
+  src: url("../fonts/hanken-grotesk-italic.ttf");
+}
+@font-face {
+  font-family: "Hanken Grotesk";
   font-weight: 400;
   src: url("../fonts/hanken-grotesk-400.ttf");
 }

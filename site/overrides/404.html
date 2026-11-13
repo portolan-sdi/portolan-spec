@@ -1,10 +1,10 @@
 {% extends "main.html" %}
 {% block content %}
-  {% if config.extra.draft_version %}
+  {% if config.extra.draft_title %}
     <div class="admonition warning">
-      <p class="admonition-title">Draft of v{{ config.extra.draft_version }}</p>
-      <p>This text is not released. Read
-        <a href="{{ config.extra.latest_release }}">the newest release</a>.
+      <p class="admonition-title">{{ config.extra.draft_title }}</p>
+      <p>This text is not released.{% if config.extra.latest_release %} Read
+        <a href="{{ config.extra.latest_release }}">the newest release</a>.{% endif %}
       </p>
     </div>
   {% endif %}

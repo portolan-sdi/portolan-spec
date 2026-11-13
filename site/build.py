@@ -53,7 +53,16 @@ INLINE_LINK = re.compile(
     r"(!?\[(?:[^\[\]]|\[[^\]]*\])*\]\(\s*)(<[^>]*>|(?:[^\s()]+|\([^()]*\))+)"
 )
 REFERENCE = re.compile(r"(^ {0,3}\[[^\]\n]+\]:[ \t]*)(<[^>]*>|\S+)", re.MULTILINE)
-FENCE = re.compile(r"^(\s*)(`{3,}|~{3,})(.*)$")
+FENCE = re.compile(r"^( {0,3})(`{3,}|~{3,})([^\r\n]*)$")
+HTML_TAG = re.compile(r"<[A-Za-z][^>]*>")
+HTML_URL = re.compile(
+    r"((?<![\w:-])(href|src)\s*=\s*)([\"'])(.*?)\3|(?P<bare>(?<![\w:-])(?P<attr>href|src)\s*=\s*)(?P<url>[^\s>]+)",
+    re.IGNORECASE,
+)
+GOOGLE_FONTS_SHA = "c1eda9233c33ad7775b27efd794f931095cf6133"
+ITALIC_FONT = "hanken-grotesk-italic.ttf"
+ITALIC_HASH = "ae5731726ff75301a3cb63f2e98d1babc77d55ab09fb8e229ca75f5bd46fbe32"
+ITALIC_LICENSE_HASH = "e02ccb89a86839b22feff7872ff5cc355cc0f58318d29eee20e2cf83a612f16d"
 
 
 def git(*args: str) -> str:
@@ -77,62 +86,100 @@ def toolchain() -> None:
             )
 
 
-def fonts() -> Path:
+def checked_download(path: Path, url: str, expected: str) -> None:
+    if not path.exists():
+        with urllib.request.urlopen(url, timeout=60) as response:
+            data = response.read()
+        if hashlib.sha256(data).hexdigest() != expected:
+            raise ValueError(f"Font checksum mismatch: {url}")
+        path.write_bytes(data)
+    if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+        raise ValueError(f"Font checksum mismatch: {path}")
+
+
+def fonts(destination: Path) -> Path:
     configured = os.environ.get("PORTOLAN_FONTS_DIR")
-    destination = (
-        Path(configured)
-        if configured
-        else Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
+    cache = (
+        Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
         / "portolan-spec"
         / "fonts"
-        / FONTS_SHA
     )
-    destination.mkdir(parents=True, exist_ok=True)
+    brand = Path(configured) if configured else cache / FONTS_SHA
+    if not configured:
+        brand.mkdir(parents=True, exist_ok=True)
+    destination.mkdir()
     for name, expected in FONT_HASHES.items():
-        path = destination / name
-        if not path.exists() and not configured:
-            url = (
-                f"https://raw.githubusercontent.com/portolan-sdi/portolan-ops/"
-                f"{FONTS_SHA}/brand/fonts/{name}"
+        path = brand / name
+        if not configured:
+            checked_download(
+                path,
+                f"https://raw.githubusercontent.com/portolan-sdi/portolan-ops/{FONTS_SHA}/brand/fonts/{name}",
+                expected,
             )
-            with urllib.request.urlopen(url, timeout=60) as response:
-                data = response.read()
-            if hashlib.sha256(data).hexdigest() != expected:
-                raise ValueError(f"Font checksum mismatch: {url}")
-            path.write_bytes(data)
         if not path.is_file():
             raise ValueError(f"Missing brand font: {path}")
         if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
             raise ValueError(f"Font checksum mismatch: {path}")
-    return destination.resolve()
+        shutil.copyfile(path, destination / name)
+    supplemental = cache / GOOGLE_FONTS_SHA
+    supplemental.mkdir(parents=True, exist_ok=True)
+    base = f"https://raw.githubusercontent.com/google/fonts/{GOOGLE_FONTS_SHA}/ofl/hankengrotesk/"
+    for name, remote, checksum in [
+        (ITALIC_FONT, "HankenGrotesk-Italic%5Bwght%5D.ttf", ITALIC_HASH),
+        ("OFL-hanken-grotesk-italic.txt", "OFL.txt", ITALIC_LICENSE_HASH),
+    ]:
+        checked_download(supplemental / name, base + remote, checksum)
+        shutil.copyfile(supplemental / name, destination / name)
+    return destination
 
 
 def fenced_parts(text: str):
-    """Yield (is_code, text) blocks without interpreting fenced examples."""
-    prose: list[str] = []
-    code: list[str] = []
-    marker = ""
-    for line in text.splitlines(keepends=True):
+    """Protect CommonMark fences and four-space or tab-indented code blocks."""
+    lines = text.splitlines(keepends=True)
+    prose = []
+    index = 0
+    previous_blank = True
+    while index < len(lines):
+        line = lines[index]
         match = FENCE.match(line.rstrip("\r\n"))
-        if marker:
-            code.append(line)
-            if (
-                match
-                and match[2][0] == marker[0]
-                and len(match[2]) >= len(marker)
-                and not match[3].strip()
-            ):
-                yield True, "".join(code)
-                code, marker = [], ""
-        elif match:
-            if prose:
-                yield False, "".join(prose)
-                prose = []
-            marker, code = match[2], [line]
-        else:
+        opens = match and (match[2][0] != "`" or "`" not in match[3])
+        indented = (
+            (line.startswith("    ") or line.startswith("\t"))
+            and line.strip()
+            and previous_blank
+        )
+        if not opens and not indented:
             prose.append(line)
-    if code:
+            previous_blank = not line.strip()
+            index += 1
+            continue
+        if prose:
+            yield False, "".join(prose)
+            prose = []
+        code = [line]
+        index += 1
+        if opens:
+            marker = match[2]
+            while index < len(lines):
+                line = lines[index]
+                code.append(line)
+                index += 1
+                closing = FENCE.match(line.rstrip("\r\n"))
+                if (
+                    closing
+                    and closing[2][0] == marker[0]
+                    and len(closing[2]) >= len(marker)
+                    and not closing[3].strip()
+                ):
+                    break
+        else:
+            while index < len(lines) and (
+                not lines[index].strip() or lines[index].startswith(("    ", "\t"))
+            ):
+                code.append(lines[index])
+                index += 1
         yield True, "".join(code)
+        previous_blank = not code[-1].strip()
     if prose:
         yield False, "".join(prose)
 
@@ -140,9 +187,9 @@ def fenced_parts(text: str):
 def normalize_fences(text: str) -> str:
     blocks = []
     for code, block in fenced_parts(text):
-        if code:
-            lines = block.splitlines(keepends=True)
-            match = FENCE.match(lines[0].rstrip("\r\n"))
+        lines = block.splitlines(keepends=True)
+        match = FENCE.match(lines[0].rstrip("\r\n")) if code else None
+        if match:
             info = match[3].strip().split()
             language = info[0] if info else ""
             lines[0] = f"{match[1]}{match[2]}{language}\n"
@@ -152,8 +199,14 @@ def normalize_fences(text: str) -> str:
 
 
 def rewrite_links(text: str, resolve) -> str:
+    prose = "".join(block for code, block in fenced_parts(text) if not code)
+    image_labels = {
+        " ".join(m[1].lower().split())
+        for m in re.finditer(r"!\[[^\]]*\]\[([^\]]+)\]", CODE_SPAN.sub("", prose))
+    }
+
     def rewrite(block: str) -> str:
-        protected: list[str] = []
+        protected = []
 
         def protect(match):
             protected.append(match[0])
@@ -165,11 +218,29 @@ def rewrite_links(text: str, resolve) -> str:
             value = match[2]
             angled = value.startswith("<")
             target = value[1:-1] if angled else value
-            result = resolve(target)
+            image = match[1].startswith("!")
+            if match.re is REFERENCE:
+                label = re.search(r"\[([^\]]+)\]", match[1])[1]
+                image = " ".join(label.lower().split()) in image_labels
+            result = resolve(target, image=image)
             return match[1] + (f"<{result}>" if angled else result)
+
+        def raw_tag(match):
+            def attribute(attr):
+                prefix = attr[1] or attr["bare"]
+                name = attr[2] or attr["attr"]
+                target = attr[4] if attr[1] else attr["url"]
+                value = resolve(
+                    html.unescape(target), image=name.lower() == "src", html_link=True
+                )
+                delimiter = attr[3] if attr[1] else '"'
+                return prefix + delimiter + html.escape(value, quote=True) + delimiter
+
+            return HTML_URL.sub(attribute, match[0])
 
         block = INLINE_LINK.sub(replace, block)
         block = REFERENCE.sub(replace, block)
+        block = HTML_TAG.sub(raw_tag, block)
         return re.sub(r"\x02(\d+)\x03", lambda m: protected[int(m[1])], block)
 
     return "".join(
@@ -209,8 +280,20 @@ def resolve_link(
     tree: Path,
     revision: str,
     tag: bool,
+    image: bool = False,
+    html_link: bool = False,
 ) -> str:
     parts = urlsplit(target)
+    if image and parts.netloc == "github.com" and "/blob/" in parts.path:
+        return urlunsplit(
+            (
+                "https",
+                "raw.githubusercontent.com",
+                parts.path.replace("/blob/", "/", 1),
+                parts.query,
+                parts.fragment,
+            )
+        )
     if parts.scheme or parts.netloc or not parts.path:
         return target
     path = posixpath.normpath(
@@ -218,13 +301,42 @@ def resolve_link(
     )
     if parts.path.startswith("/"):
         path = posixpath.normpath(unquote(parts.path).lstrip("/"))
+    if path == ".." or path.startswith("../"):
+        raise ValueError(f"{source}: link climbs above repository root: {target}")
     staged = mapping.get(path) or mapping.get(path.rstrip("/") + "/README.md")
     if staged:
         relative = posixpath.relpath(staged, posixpath.dirname(mapping[source]) or ".")
+        if html_link:
+            relative = (
+                posixpath.relpath(
+                    page_url(staged) or ".", page_url(mapping[source]) or "."
+                )
+                + "/"
+            )
         return urlunsplit(("", "", relative, parts.query, parts.fragment))
-    if tag and (path == "stac/json-schema" or path.startswith("stac/json-schema/")):
-        return f"https://schemas.portolan-sdi.org/portolan/{revision}/schema.json" + (
-            f"#{parts.fragment}" if parts.fragment else ""
+    versioned = re.fullmatch(r"stac/json-schema/(v\d+\.\d+\.\d+)/schema\.json", path)
+    if tag and (
+        versioned or path == "stac/json-schema/schema.json" and (tree / path).is_file()
+    ):
+        version = versioned[1] if versioned else revision
+        return urlunsplit(
+            (
+                "https",
+                "schemas.portolan-sdi.org",
+                f"/portolan/{version}/schema.json",
+                parts.query,
+                parts.fragment,
+            )
+        )
+    if image:
+        return urlunsplit(
+            (
+                "https",
+                "raw.githubusercontent.com",
+                f"/portolan-sdi/portolan-spec/{revision}/{quote(path, safe='/')}",
+                parts.query,
+                parts.fragment,
+            )
         )
     kind = "tree" if (tree / path).is_dir() else "blob"
     return urlunsplit(
@@ -294,8 +406,10 @@ def requirements_page(
         anchor = quote_section((tree / source).read_text(), entry["quote"])
         target = f"{mapping[source]}#{anchor}"
 
-        def resolve_quote(value):
-            resolved = resolve_link(value, source, mapping, tree, revision, tag)
+        def resolve_quote(value, **options):
+            resolved = resolve_link(
+                value, source, mapping, tree, revision, tag, **options
+            )
             parts = urlsplit(resolved)
             if parts.scheme or parts.netloc:
                 return resolved
@@ -308,27 +422,36 @@ def requirements_page(
             )
             return urlunsplit(("", "", path, parts.query, parts.fragment))
 
+        heading = next(
+            token["name"]
+            for token in toc((tree / source).read_text())
+            if token["id"] == anchor
+        )
+        heading = html.unescape(re.sub(r"<[^>]*>", "", heading))
         quotation = rewrite_links(entry["quote"], resolve_quote)
         pages.append(
             f"## {entry['id']} {{#{entry['id'].lower()}}}\n\n"
-            f"Severity: **{entry['severity']}**. Enforcement: **{entry['enforcement']}**.\n\n"
+            f"Severity: **{entry['severity']}** · Enforcement: **{entry['enforcement']}** · Section: [{heading}]({target})\n\n"
             + "\n".join("> " + line for line in quotation.splitlines())
-            + f"\n\n[Specification section]({target})\n"
+            + "\n"
         )
         locations.append({"id": entry["id"], "page": mapping[source], "anchor": anchor})
     return "\n".join(pages), locations
 
 
+def draft_title(version: str, latest: str | None) -> str:
+    package_key = semver_key("v" + version)
+    if package_key is None:
+        raise ValueError(f"Invalid source package version: {version}")
+    latest_key = (*map(int, latest[1:].split(".")), (1,)) if latest else None
+    if latest_key is not None and package_key <= latest_key:
+        return f"Unreleased changes after {latest}"
+    return f"Draft of v{version}"
+
+
 def draft_banner(version: str, latest: str | None) -> str:
-    release = (
-        f"[the newest release]({SITE_URL}/{latest}/)"
-        if latest
-        else "the released specification"
-    )
-    return (
-        f'!!! warning "Draft of v{version}"\n\n'
-        f"    This text is not released. Read {release}.\n\n"
-    )
+    release = f" Read [the newest release]({SITE_URL}/{latest}/)." if latest else ""
+    return f'!!! warning "{draft_title(version, latest)}"\n\n    This text is not released.{release}\n\n'
 
 
 def page_url(path: str) -> str:
@@ -410,7 +533,7 @@ def book(
         text = (docs / page).read_text()
         # Markdown admonitions belong to the website; give books a plain draft notice.
         text = re.sub(
-            r'^!!! warning "Draft of v[^\n]+"\n\n    (.*)\n\n',
+            r'^!!! warning "[^\n]+"\n\n    (.*)\n\n',
             r"**Draft.** \1\n\n",
             text,
         )
@@ -485,7 +608,12 @@ def book(
         "--variable=page-numbering:1",
         f"--resource-path={docs}",
     ]
-    env = {**os.environ, "SOURCE_DATE_EPOCH": epoch, "TYPST_FONT_PATHS": str(font_dir)}
+    env = {
+        **os.environ,
+        "SOURCE_DATE_EPOCH": epoch,
+        "TYPST_FONT_PATHS": str(font_dir),
+        "TYPST_IGNORE_SYSTEM_FONTS": "true",
+    }
     subprocess.run(
         [
             *common,
@@ -503,7 +631,10 @@ def book(
             *common,
             "--to=epub3",
             f"--css={SITE / 'pandoc/epub.css'}",
-            *[f"--epub-embed-font={font_dir / name}" for name in FONT_HASHES],
+            *[
+                f"--epub-embed-font={font_dir / name}"
+                for name in [*FONT_HASHES, ITALIC_FONT]
+            ],
             f"--output={output / f'portolan-spec-{label}.epub'}",
         ],
         input=payload,
@@ -543,21 +674,93 @@ def semver_key(tag: str) -> tuple | None:
 
 
 def releases() -> list[str]:
-    minimum = semver_key("v0.2.0")
-    tags = [
-        tag
-        for tag in git("tag", "--list", "v*").splitlines()
-        if (key := semver_key(tag)) is not None and key >= minimum
-    ]
-    return sorted(tags, key=semver_key)
+    tags = []
+    for tag in git("tag", "--list", "v*").splitlines():
+        if not re.fullmatch(r"v\d+\.\d+\.\d+", tag):
+            print(f"Skip tag {tag}: expected vX.Y.Z", flush=True)
+        elif tuple(map(int, tag[1:].split("."))) >= (0, 2, 0):
+            tags.append(tag)
+    return sorted(tags, key=lambda tag: tuple(map(int, tag[1:].split("."))))
 
 
 def main_ref() -> str:
-    result = subprocess.run(
-        ["git", "-C", str(ROOT), "rev-parse", "--verify", "origin/main"],
-        capture_output=True,
+    refs = [
+        ref
+        for ref in ("main", "origin/main")
+        if subprocess.run(
+            ["git", "-C", str(ROOT), "rev-parse", "--verify", f"{ref}^{{commit}}"],
+            capture_output=True,
+        ).returncode
+        == 0
+    ]
+    if not refs:
+        raise ValueError("Neither main nor origin/main exists")
+    if len(refs) == 1:
+        return refs[0]
+
+    def ancestor(first, second):
+        result = subprocess.run(
+            ["git", "-C", str(ROOT), "merge-base", "--is-ancestor", first, second]
+        )
+        if result.returncode not in (0, 1):
+            raise ValueError(f"Cannot compare {first} and {second}")
+        return result.returncode == 0
+
+    if ancestor("main", "origin/main"):
+        return "origin/main"
+    if ancestor("origin/main", "main"):
+        return "main"
+    raise ValueError("main and origin/main diverge; cannot choose next")
+
+
+def output_root(out: Path) -> Path:
+    out = out.expanduser().resolve()
+    # CI's fixed contract writes only this artifact directory in the checkout.
+    if out == ROOT or out.is_relative_to(ROOT) and out != ROOT / "_site":
+        raise ValueError(
+            f"Refuse --out inside the source tree: {out}. Use an external directory or the CI artifact path _site."
+        )
+    return out
+
+
+def require_build_marker(destination: Path) -> None:
+    if destination.is_symlink():
+        raise ValueError(f"Refuse output symlink: {destination}")
+    if destination.exists() and (
+        not destination.is_dir() or not (destination / "build-info.json").is_file()
+    ):
+        raise ValueError(
+            f"Refuse to replace {destination}: missing build-info.json build marker"
+        )
+
+
+def redirect_html(href: str) -> str:
+    # mike 2.2.0 templates/redirect.html preserves both query and fragment.
+    escaped = html.escape(href, quote=True)
+    return (
+        f'<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Redirecting</title>'
+        f'<noscript><meta http-equiv="refresh" content="1; url={escaped}"></noscript>'
+        f"<script>window.location.replace({json.dumps(href)} + window.location.search + window.location.hash);</script>"
+        f'</head><body>Redirecting to <a href="{escaped}">{escaped}</a>.</body></html>\n'
     )
-    return "origin/main" if result.returncode == 0 else "main"
+
+
+def alias_redirects(out: Path, latest: str) -> None:
+    alias = out / "latest"
+    require_build_marker(alias)
+    if alias.exists():
+        shutil.rmtree(alias)
+    alias.mkdir()
+    (alias / "build-info.json").write_text(
+        json.dumps({"alias": "latest", "target": latest}) + "\n"
+    )
+    for canonical in (out / latest).rglob("*.html"):
+        path = alias / canonical.relative_to(out / latest)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        href = os.path.relpath(canonical, path.parent).replace(os.sep, "/")
+        if href.endswith("/index.html"):
+            href = href.removesuffix("index.html")
+        path.write_text(redirect_html(href))
 
 
 def build(ref: str, label: str, out: Path, latest: str | None, font_dir: Path) -> None:
@@ -568,6 +771,7 @@ def build(ref: str, label: str, out: Path, latest: str | None, font_dir: Path) -
     date = git("show", "-s", "--format=%cs", sha)
     epoch = git("show", "-s", "--format=%ct", sha)
     destination = out / label
+    require_build_marker(destination)
     print(f"Build {label} from {revision}", flush=True)
     with tempfile.TemporaryDirectory(prefix="portolan-spec-") as tmp:
         workspace = Path(tmp)
@@ -588,8 +792,8 @@ def build(ref: str, label: str, out: Path, latest: str | None, font_dir: Path) -
             text = normalize_fences((tree / source).read_text())
             text = rewrite_links(
                 text,
-                lambda value: resolve_link(
-                    value, source, mapping, tree, revision, is_tag
+                lambda value, **options: resolve_link(
+                    value, source, mapping, tree, revision, is_tag, **options
                 ),
             )
             path = docs / target
@@ -640,7 +844,8 @@ def build(ref: str, label: str, out: Path, latest: str | None, font_dir: Path) -
         extra = {"version": {"provider": "mike"}}
         if label == "next":
             extra.update(
-                draft_version=package_version, latest_release=f"{SITE_URL}/{latest}/"
+                draft_title=draft_title(package_version, latest),
+                latest_release=f"{SITE_URL}/{latest}/" if latest else None,
             )
         additions = yaml.safe_dump(extra, sort_keys=False)
         template = template.replace(
@@ -664,6 +869,7 @@ def build(ref: str, label: str, out: Path, latest: str | None, font_dir: Path) -
             cwd=workspace,
             check=True,
         )
+        require_build_marker(destination)
         if destination.exists():
             shutil.rmtree(destination)
         shutil.copytree(workspace / "html", destination)
@@ -692,39 +898,47 @@ def main() -> int:
         parser.error("--label must be a single directory name")
     try:
         toolchain()
-        font_dir = fonts()
         tags = releases()
         latest = tags[-1] if tags else None
-        out = args.out.resolve()
+        out = output_root(args.out)
         out.mkdir(parents=True, exist_ok=True)
-        if args.all:
-            if not latest:
-                raise ValueError("No release tags at or above v0.2.0")
-            for tag in tags:
-                build(tag, tag, out, latest, font_dir)
-            build(main_ref(), "next", out, latest, font_dir)
-            versions = [
-                {
-                    "version": tag,
-                    "title": tag,
-                    "aliases": ["latest"] if tag == latest else [],
-                }
-                for tag in tags
-            ]
-            versions.append({"version": "next", "title": "next (draft)", "aliases": []})
-            (out / "versions.json").write_text(json.dumps(versions, indent=2) + "\n")
-            (out / "index.html").write_text(
-                f'<!doctype html><html lang="en"><head><meta charset="utf-8">'
-                f'<meta http-equiv="refresh" content="0; url={latest}/">'
-                f'<title>Portolan Specification</title></head><body><a href="{latest}/">'
-                f"Portolan Specification {html.escape(latest)}</a></body></html>\n"
-            )
-        else:
-            build(args.ref, args.label, out, latest, font_dir)
-        return 0
+        with tempfile.TemporaryDirectory(prefix="portolan-fonts-") as font_tmp:
+            font_dir = fonts(Path(font_tmp) / "fonts")
+            return build_selected(args, out, tags, latest, font_dir)
     except (ValueError, OSError, subprocess.CalledProcessError) as error:
         print(f"Build failed: {error}", file=sys.stderr)
         return 1
+
+
+def build_selected(
+    args, out: Path, tags: list[str], latest: str | None, font_dir: Path
+) -> int:
+    if args.all:
+        if not latest:
+            raise ValueError("No release tags at or above v0.2.0")
+        for tag in tags:
+            build(tag, tag, out, latest, font_dir)
+        build(main_ref(), "next", out, latest, font_dir)
+        versions = [
+            {
+                "version": tag,
+                "title": tag,
+                "aliases": ["latest"] if tag == latest else [],
+            }
+            for tag in reversed(tags)
+        ]
+        versions.insert(0, {"version": "next", "title": "next (draft)", "aliases": []})
+        (out / "versions.json").write_text(json.dumps(versions, indent=2) + "\n")
+        alias_redirects(out, latest)
+        (out / "index.html").write_text(redirect_html(f"{latest}/"))
+        (out / "404.html").write_text(
+            '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Page not found</title></head>'
+            f'<body><h1>Page not found</h1><p>Read <a href="/{latest}/">the newest release</a> '
+            'or <a href="/next/">the next draft</a>.</p></body></html>\n'
+        )
+    else:
+        build(args.ref, args.label, out, latest, font_dir)
+    return 0
 
 
 if __name__ == "__main__":
