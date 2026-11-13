@@ -15,7 +15,7 @@ reaches a third-party server, so this is safe to gate a pull request on. The
 upstream sources are proven separately by examples/tools/check_catalogs.py.
 
 Every check runs even after one fails, because a single failure should not hide
-the other eight.
+the others.
 
 Usage::
 

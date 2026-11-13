@@ -40,7 +40,7 @@ costs two range requests of roughly 0.4 MB, not the whole file.
 
 ```bash
 CPL_DEBUG=ON gdal_translate -srcwin 0 0 64 64 \
-  /vsicurl/https://data.source.coop/portolan/portolan-pipeline/portolan-reference/main/raster/sample-cog/sample-cog.tif \
+  /vsicurl/https://data.source.coop/portolan-mirrors/portolan-spec-examples/portolan-reference/main/raster/sample-cog/sample-cog.tif \
   /tmp/window.tif
 # VSICURL: Downloading 0-16383 ... 229376-655359
 ```

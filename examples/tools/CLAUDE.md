@@ -98,10 +98,13 @@ in every spatial SQL block, each block runs in a fresh connection, and never
 state an output in a comment without having run the query, the check proves
 blocks execute, not that quoted numbers are true.
 
-Publishing a built catalog to Source Cooperative needs `s5cmd` on PATH as well,
-and credentials for the Portolan repository in the environment or an AWS
-profile. Always dry-run first, the sync deletes what the local tree does not
-have.
+Publishing a built catalog to Source Cooperative needs credentials that the
+Source Cooperative data proxy issued, in
+`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`. The proxy
+seals the credentials it issues, so they work against `https://data.source.coop`
+and nowhere else. The Amazon Web Services (AWS) CLI comes from the script's
+own dependency header, so you install nothing else. Always dry-run first, the sync deletes what
+the local tree does not have.
 
 ```bash
 uv run examples/tools/publish_catalogs.py --list                     # the publishable stems
@@ -362,21 +365,64 @@ whenever one of them is briefly down, which says nothing about the PR. A failure
 opens an issue instead, or comments on the open one.
 
 `.github/workflows/publish-catalogs.yaml` builds each manifest and uploads the
-result to the Portolan repository on Source Cooperative with
+result to the `portolan-mirrors/portolan-spec-examples` product on Source Cooperative with
 `examples/tools/publish_catalogs.py`, so an example is readable at a real URL rather
 than only in git. It runs when a manifest, a generator module, or a committed
 rebuild lands on main, on every pull request, and on demand for one catalog or
-as a dry run. Transfers go through `s5cmd`, which handles a tree of many small
-JSON files far better than the AWS CLI. Nothing reaches a public URL
+as a dry run. Transfers go through the AWS CLI, pinned in the script's header
+and run as `python -m awscli`. Nothing reaches a public URL
 unvalidated, the same `check_catalogs.py` gate runs between the build and the
 upload, and afterwards the published `catalog.json` is refetched over HTTPS and
 its `id` checked.
 
-The prefix taxonomy is not ours. `CartoDB/portolan-pipeline` already publishes
-into the same Source Cooperative repository, so `publish_catalogs.py`
-reimplements its scheme from `docs/branch-versioning.md` rather than inventing a
-second one that would sit confusingly beside it. The layout is
-`<catalog id>/<namespace>`.
+The product contains only these example catalogs. `data.source.coop` resolves a path
+through a product record, so the product must exist for the public URL to serve
+what the S3 prefix holds. The layout is `<catalog id>/<namespace>`.
+
+Both jobs sign in with GitHub OpenID Connect (OIDC), through
+`aws-actions/configure-aws-credentials`, as the Source Cooperative service
+account `portolan-mirrors--spec-examples`. The role is
+`arn:aws:iam::portolan-mirrors--spec-examples:role/FullAccess`, the audience is
+`https://data.source.coop`, and the STS endpoint is
+`https://data.source.coop/.sts`. The service account trusts the subject
+`repo:portolan-sdi/portolan-spec:environment:source-coop`, so both jobs must
+keep `environment: source-coop`, and a rename there breaks the sign-in. The
+repository stores no keys, and the `SOURCE_COOP_ACCESS_KEY_ID` and
+`SOURCE_COOP_SECRET_ACCESS_KEY` environment secrets are no longer read. The
+credentials last one hour and nothing renews them, so the publish job signs in
+after the build, right before the upload.
+
+The credentials work only against the data proxy, so every transfer goes to
+`https://data.source.coop`. Through the proxy the account is the S3 bucket and
+the product is the first key segment, so a preview is at
+`s3://portolan-mirrors/portolan-spec-examples/<id>/PRs/<n>/`, the same path as
+its public URL. The proxy behaviours below fix that choice, and each one rules
+out s5cmd, which published here before.
+
+- The proxy's list response carries keys relative to the account,
+  `portolan-spec-examples/<id>/<rest>`, even when the product is in the URL path.
+  With the product as the bucket, a client reads every key as outside its
+  prefix. s5cmd then sees an empty remote, so `sync --delete` would keep stale
+  files and the teardown would delete nothing and pass.
+- A batch delete under the account alone, `POST /portolan-mirrors?delete`, gets
+  `NoSuchBucket`. s5cmd deletes only in batches. The AWS CLI deletes one object
+  at a time, at `/portolan-mirrors/portolan-spec-examples/<key>`, which maps.
+- The proxy forwards a plain PutObject to S3 on a presigned URL that signs
+  only the host, and S3 refused all 134 s5cmd uploads with "There were headers present
+  in the request which were not signed". The AWS CLI sends each upload
+  `aws-chunked`, which the proxy re-signs with its headers.
+  `publish_catalogs.py` pins `AWS_REQUEST_CHECKSUM_CALCULATION=when_supported`
+  for that reason.
+
+`publish_catalogs.py` does not trust a listing. It fails on a malformed one or
+one with keys outside the prefix, before a sync and before a teardown. After a
+sync the remote keys must equal the built files, and after a teardown the
+prefix must list empty. `check_publish_proxy.py` runs the real sync and
+teardown against a local stand-in that routes the way the proxy does. The
+stand-in serves HTTPS, since the CLI sends `aws-chunked` only over HTTPS. The
+check requires that form on every upload and part, no `Content-MD5`, and
+decoded bytes equal to the source files. A second sync with checksums set to
+`when_required` must fail that requirement.
 
 | git context | published prefix |
 | --- | --- |
@@ -392,12 +438,11 @@ of characters outside `[a-z0-9._-]` to one dash, so `feat/x` becomes `feat-x`
 and stays a single path segment. And the default-branch test runs on the raw
 ref, so a branch named `Main` lands in `branches/main` rather than overwriting
 the canonical catalog. That last one reads like an upstream oversight and is the
-safer behaviour, so it is matched deliberately. The ground-truth cases from
-their `tests/test_context.py` all pass against our implementation.
+safer behaviour, so it is kept deliberately. `check_publish_urls.py` covers the URL derivation.
 
-A pull request from a fork is skipped rather than run, since GitHub withholds
-secrets there and the build would burn its full runtime only to fail at the
-upload. `.github/workflows/teardown-previews.yaml` deletes a PR's previews when
+A pull request from a fork is skipped rather than run, since GitHub issues no
+OIDC token there and the build would burn its full runtime only to fail at the
+sign-in. `.github/workflows/teardown-previews.yaml` deletes a PR's previews when
 it closes, guarded so that only a numeric PR number resolving to a path that
 still contains `/PRs/<n>/` is ever deleted.
 

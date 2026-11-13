@@ -2,7 +2,7 @@
 
 *The keywords MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT,
 RECOMMENDED, MAY, and OPTIONAL in this document are to be interpreted as
-described in BCP 14 [RFC 2119] [RFC 8174] when, and only when, they appear in all
+described in BCP 14 [RFC 2119][] [RFC 8174][] when, and only when, they appear in all
 capitals, as shown here.*
 
 This document defines the requirements that apply to every Portolan catalog,
@@ -22,6 +22,7 @@ with any STAC tooling. But where STAC can be used with any data format and can
 be implemented as an API or files on cloud storage, Portolan requires well-formed 
 cloud-native formats, stored as files on browser-accessible online services. All
 Portolan implementations are [static catalogs](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#static-catalogs)
+
 - there is no 'Portolan API' like the STAC API, as many of the key benefits of Portolan,
 like scalability and lower cost, are achieved by the full embrace of cloud-native geospatial.
 
@@ -222,16 +223,15 @@ without one describes nothing.
 
 ## Assets
 
-Every asset MUST include an `href`, the URI to the data, with relative or absolute
-both allowed for now. Where an asset `href` is absolute, it MUST use `https`
-rather than `s3`, since browsers cannot fetch `s3` URLs directly. An asset SHOULD
-also provide `s3` or other cloud-native URLs through the
-[alternate](https://github.com/stac-extensions/alternate-assets) extension, so
-tools that prefer direct bucket access can use them. Portolan additionally
-requires a `type`, meaning the media type, and at least one role on every asset.
-STAC leaves both optional, but a validator and a browser cannot do their jobs
-without them, so Portolan makes them mandatory. The `title` and `description`
-fields are optional but recommended.
+Every asset MUST have an `href`. The `href` MAY be relative or absolute.
+Because browsers can't open `s3://` URLs or other bucket URLs, publishers
+SHOULD use `https` for an absolute `href`. If an absolute `href` uses another
+scheme, publishers MUST also add an HTTPS URL for the same data to the asset’s
+[`alternate`](https://github.com/stac-extensions/alternate-assets) field. If
+the `href` is an `https` URL or a relative path, and the same data also has an
+`s3://` or other bucket URL, publishers SHOULD add that URL to `alternate` too.
+Every asset MUST also have a `type` and at least one role. Every asset SHOULD
+have a `title` and a `description`.
 
 The required media type for each core format is:
 
@@ -386,30 +386,52 @@ Items SHOULD carry an explicit `datetime` (or a `start_datetime` /
 
 ## Data Storage
 
-Cloud-native formats depend on clients fetching only the bytes they need, so
-Portolan catalogs assume data is hosted in cloud object storage reachable over
-HTTP range requests (S3-compatible or otherwise).
+Clients read some formats in parts. They use byte-range requests to fetch only
+the bytes they need. The byte-range rules below apply to files with these
+partial-read media types:
 
-The requirements in this section apply to servers hosting the catalog's own
-cloud-native assets: the copies of the data that the publisher has uploaded and
-controls. They do not apply to upstream sources hosted by third parties.
+- COG: `image/tiff; application=geotiff; profile=cloud-optimized`
+- GeoParquet and Parquet: `application/vnd.apache.parquet`
+- PMTiles: `application/vnd.pmtiles`
+- COPC: `application/vnd.laszip+copc`
 
-A server hosting the catalog's cloud-native assets MUST support range
-requests: honor the `Range` header, return `206 Partial Content`, and advertise
-`Accept-Ranges: bytes`; HEAD requests MUST return an accurate `Content-Length`.
-The server MUST support HTTP/1.1 or greater; HTTP/2 or /3 is RECOMMENDED. Endpoints
-that compress or transform responses in ways that break range semantics are not
-conformant.
+Clients read other files in full, such as STAC JSON, Markdown, PNG thumbnails,
+and style JSON. Byte-range support is optional for those files.
 
-To let browser clients read data directly, a server hosting the catalog's
-cloud-native assets MUST also enable CORS on all
-metadata and asset files: `Access-Control-Allow-Origin: *` (or an equivalent
-read-permitting policy), allowed methods including `GET` and `HEAD`, allowed
-request headers including `Range`, `If-Match`, `If-Modified-Since`,
-`If-None-Match`, and `If-Unmodified-Since` (via
-`Access-Control-Allow-Headers`), and exposed response headers including
-`Content-Type`, `Content-Length`, `Content-Range`, `Accept-Ranges`, and `ETag`
-(via `Access-Control-Expose-Headers`).
+A metadata-only catalog on GitHub Pages that contains only STAC JSON and
+Markdown can conform without byte-range support. Its files still need
+to meet the CORS requirements below.
+
+These requirements apply only to metadata and asset files that the publisher
+uploads and controls.
+
+### Byte-range requests
+
+For a file with a partial-read media type, the server MUST honor
+byte-range requests for that file, return `206 Partial Content` for successful
+range requests, and advertise `Accept-Ranges: bytes`. The server MUST also
+return an accurate `Content-Length` for `HEAD` requests for that file.
+
+A server that hosts any metadata or asset files MUST support HTTP/1.1 or later. HTTP/2 or
+HTTP/3 is RECOMMENDED.
+Endpoints that compress or transform responses in ways that break range
+semantics are not conformant.
+
+### Cross-origin resource sharing (CORS)
+
+To let browsers read files directly, servers MUST allow cross-origin `GET` and
+`HEAD` requests for all metadata and asset files. Use
+`Access-Control-Allow-Origin: *` or an equivalent policy that permits reads.
+
+For a file with a partial-read media type, the server MUST also:
+
+- Allow `Range`, `If-Match`, `If-Modified-Since`, `If-None-Match`, and
+  `If-Unmodified-Since` through `Access-Control-Allow-Headers`.
+- Expose `Content-Range`, `Accept-Ranges`, and `ETag` through
+  `Access-Control-Expose-Headers`.
+
+Browsers can already read `Content-Type` and `Content-Length` across origins,
+so these headers don't need to be exposed.
 
 The conditional-request headers let a browser revalidate a cached range instead
 of refetching it, which keeps tile and range readers cheap on repeat views.
@@ -417,16 +439,20 @@ Provider-specific headers such as `x-amz-*` and `x-goog-*` fall outside this
 requirement, since reading a public catalog takes no signed request. Portolan
 leaves cloud-specific configuration to separate guidance.
 
+### Validation
+
 Catalogs also reference bytes that the publisher does not host, including
 upstream sources that a mirror complements and original files carried over from
 an upstream source. Because those servers are operated by third parties and are
 outside the publisher's control, the requirements above do not apply to them.
 
-A validator MUST probe the servers hosting the catalog's own cloud-native assets
-and MUST NOT require upstream servers to satisfy these requirements. An upstream
-server that does not support range requests or provide the required CORS headers
-limits the capabilities available to clients using that upstream copy, but does
-not make the catalog non-conformant.
+A validator MUST probe the servers that host the publisher's metadata and asset
+files. It MUST NOT require third-party servers to meet these requirements for
+upstream copies.
+
+If an upstream server lacks byte-range support or CORS headers, clients may
+have fewer ways to access that copy. The catalog's conformance depends on the
+publisher's copies.
 
 ## Providers
 
@@ -576,6 +602,9 @@ infrastructure, either by:
   for rendering, published as a collection-level asset with `roles: ["visual"]`;
   PMTiles is the recommended vector format today.
 
+[Raster](formats.md#raster) describes overview COGs for collections of
+multiple rasters.
+
 A consumer decides by inspection: use a `visual` asset if present, otherwise render
 from source. Non-geospatial collections are exempt. Whether an asset is small and
 simple enough to render from source is not decidable from metadata, so a validator
@@ -605,7 +634,12 @@ provides exactly one style, that style is the default and needs no marker, thoug
 carrying the `default` role there too is encouraged so a client can find the
 default the same way everywhere.
 
-The concrete style format is defined per data format in [`formats.md`](formats.md):
-for vector (PMTiles) it is a MapLibre GL style file, while raster styling is still
-under discussion (see
+The choice of style format depends on the data format (see
+[`formats.md`](formats.md)). For vector data (i.e., PMTiles), it is a MapLibre
+GL style file. A classified raster uses the color table embedded in its COG,
+with its classes described as in [Classified rasters](formats.md#raster).
+Styling for continuous and multiband rasters is still under discussion (see
 [`specs/incubating/raster-styling.md`](../incubating/raster-styling.md)).
+
+[RFC 2119]: https://www.rfc-editor.org/info/rfc2119
+[RFC 8174]: https://www.rfc-editor.org/info/rfc8174

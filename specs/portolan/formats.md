@@ -16,6 +16,10 @@ The requirements in this document apply to the catalog's own cloud-native assets
 
 A validator MUST apply the format requirements in this document to the catalog's own cloud-native assets and MUST NOT fail an asset for its format because it carries the `source` role. The `source` role identifies provenance, not hosting. The Data Storage requirements in core.md apply according to who hosts the bytes, as specified there, regardless of the roles an asset carries.
 
+Each data asset links to only one file. Its `href` MUST NOT contain `*` or `[`.
+It MAY include a query string. To link to many files, use `partition:glob` (see
+[Partitioned Collections](#partitioned-collections)).
+
 ## Vector
 
 Vector has no single complete cloud-native format yet, so Portolan pairs two strong
@@ -28,11 +32,20 @@ files, which gives an Iceberg engine a second way to read them. That convention 
 recorded in [Iceberg](../incubating/iceberg.md). It is optional and adds no
 requirement to this document.
 
-### GeoParquet
+### Parquet
 
-Data MUST be provided in GeoParquet 1.1 or 2.0, following the [Best Practices for
-Distributing GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so it can be
-queried without a server. Files SHOULD be compressed to stay small, with `zstd`
+Publishers MUST provide data as [GeoParquet 1.1](https://geoparquet.org/releases/v1.1.0/),
+[GeoParquet 2.0](https://geoparquet.org/releases/v2.0.0/), or Parquet with native
+[`GEOMETRY` or `GEOGRAPHY`](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
+logical types.
+Publishers SHOULD use GeoParquet 2.0 when their tools can write it. It adds the
+`geo` metadata to the native types, and the `geo` metadata holds the CRS as
+PROJJSON. A file without a `geo` key SHOULD give the CRS of each geometry
+column as inline PROJJSON or a `projjson:<key>` reference in the native `crs`
+field. Readers can then resolve the CRS from the file alone.
+Publishers SHOULD follow the [Best Practices for Distributing
+GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so readers can query
+the data without a server. Files SHOULD be compressed to stay small, with `zstd`
 RECOMMENDED.
 
 Rows MUST be spatially ordered so nearby features are nearby in the file. This rule
@@ -74,11 +87,13 @@ from metadata alone — either:
 
 - a GeoParquet 1.1 `bbox` covering column with Parquet min/max statistics on its
   leaf fields (a `bbox` column without statistics does not qualify); or
-- for GeoParquet 2.x / Parquet `GEOMETRY`, native `GeospatialStatistics` per
-  geometry column chunk.
+- for GeoParquet 2.x / Parquet `GEOMETRY` or `GEOGRAPHY`, native
+  `GeospatialStatistics` per geometry column chunk.
 
-For 2.x, a covering column remains RECOMMENDED even where native statistics exist,
-since it adds page-level min/max stats that enable finer-grained pruning.
+For GeoParquet 2.x, a covering column remains RECOMMENDED even where native
+statistics exist, since it adds page-level min/max stats that enable
+finer-grained pruning. A file without a `geo` key cannot declare a covering
+column, so native statistics alone meet the preceding requirement.
 
 Row groups MUST hold no more than 150,000 rows.
 
@@ -96,6 +111,11 @@ Without it the attribute names and types live only in the Parquet footer, so a
 client has to read the file to learn what the collection holds. Names and types
 can be generated from the Parquet schema. The descriptions are written once and
 belong in both the metadata and the README schema table.
+
+Every entry in `table:columns` SHOULD include a `description`. When the dataset
+is a mirror and no descriptions are available for the columns, this SHOULD be
+noted in the collection's `README.md`. Publishers SHOULD NOT include placeholder
+descriptions.
 
 ### PMTiles
 
@@ -132,30 +152,37 @@ PMTiles file (typically `../filename.pmtiles`), and `layers[].source` to `"data"
 
 ### Partitioned Collections
 
-Large files MAY be partitioned. Partitioning MUST be described per the
+Large files MAY be partitioned. Partitioning MUST follow the
 [partition extension](https://github.com/portolan-sdi/stac-partition-extension)
-(v1.0.0), with its schema declared in `stac_extensions` and its required fields
-carried — `partition:scheme`, `partition:keys`, and `partition:glob`. Field
-definitions live in the extension and are not restated here. Portolan adds the
-requirements the extension does not cover:
+v1.0.0. Declare its schema in `stac_extensions`, and set `partition:scheme`,
+`partition:keys`, and `partition:glob` (see the extension for the definition of
+these fields).
 
-- For a spatial scheme (`kdtree`, `h3`, `s2`, `quadkey`, or `a5`), file paths
-  MUST indicate each file's geographic extent. Readers can then skip files
-  without reading their metadata. Paths for `temporal` and `attribute`
-  partitions do not need to indicate spatial extent.
-- Use `partition:glob` for bulk access. The collection description SHOULD
-  also include the glob for human readers. Validators read the field only.
-- Bucket-native schemes (`s3://`, `gs://`) MAY be used when partition-aware
-  readers need them. These readers need to list the files that match the glob.
-- `partition:glob` MUST NOT use `http://` or `https://`. Plain HTTP does not
-  support listing the files that match a glob.
-- Every partition file MUST share a single Parquet schema — the same columns,
-  names, and types — so the glob can be queried as one table. This is validated
-  by tooling reading file footers, not by JSON schema.
+For spatial schemes (`kdtree`, `h3`, `s2`, `quadkey`, or `a5`), each file's
+path MUST show the area it covers, so that readers can skip files without
+opening them.
 
-Partition files MAY be represented as items when partitions are user-meaningful
-units (countries, regions); for opaque schemes (hilbert, s2, h3) or hundreds of
-partitions, items SHOULD NOT be created — the glob pattern is the access path.
+Clients read a partitioned dataset by listing the files in its bucket, then
+matching them against the glob. Because clients can't list files from a
+relative path or an `http://` or `https://` URL, `partition:glob` MUST be an
+absolute URL with a scheme that supports listing. Publishers SHOULD use
+`s3://`, `gs://`, or `az://`, which DuckDB, GDAL, and fsspec all support.
+Publishers SHOULD also put the glob URL in the collection's `description`.
+
+Clients assume an `s3://` URL refers to Amazon S3. For other S3-compatible
+services, such as Cloudflare R2 or MinIO, publishers SHOULD add a
+`storage:schemes` entry from the
+[STAC Storage Extension](https://github.com/stac-extensions/storage) v2.0.0.
+Set `type` to `custom-s3`, `platform` to the service's endpoint URL, and
+`bucket` to the bucket named in the glob.
+
+Every partition file MUST have the same Parquet schema, with the same columns,
+names, and types. Clients can then query the glob as one table.
+
+Partition files MAY be items when each partition has a clear meaning to users,
+such as one file per country. For schemes whose partitions mean nothing to
+users (such as hilbert, s2, or h3), or for hundreds of partitions, publishers
+SHOULD NOT create items.
 
 As a rough guide, consider partitioning files over ~2 GB, targeting 200 MB–1 GB per
 file — fewer, larger files outperform many small ones for DuckDB. This is not
@@ -236,6 +263,60 @@ The exact on-disk encoding (the TIFF `GDAL_METADATA` tag and its XML layout, and
 [`specs/incubating/geotiff-stats-headers.md`](../incubating/geotiff-stats-headers.md).
 Compliance is defined by the tag contents, not by use of GDAL.
 
+Collections of multiple rasters (i.e., two or more) that share the same bands
+and belong to the same time period, but together cover an area much larger than
+that of any individual item, SHOULD provide an overview COG. The overview COG is
+subject to all the COG requirements in this section and should be included as a
+collection-level asset with the `visual` and `overview` roles. This allows
+clients to show the whole mosaic without loading every item. Because the
+overview is mostly to help users understand what areas the collection covers, it
+can simply show the most recent or least cloudy items; complex pixel processing
+is not required.
+
+The overview SHOULD be an 8-bit RGB image, with an optional alpha band. It
+SHOULD use a projection that suits web maps, such as Web Mercator (EPSG:3857).
+The overview needs sufficient resolution to show what area the items cover, but
+does not need to have the full resolution of the items themselves.
+
+Collections with mosaics for several time periods SHOULD provide an overview
+for at least the most recent mosaic. They MAY provide an overview for each of
+the other periods. Each overview asset SHOULD have a `datetime`, or a
+`start_datetime` and `end_datetime`, so clients can match it to its items.
+
+**Classified rasters.** In a classified raster, the pixels represent categories
+(e.g., land cover classes). A classified raster SHOULD describe these classes
+with `classification:classes` from the STAC
+[classification extension](https://github.com/stac-extensions/classification).
+Determining whether a raster is classified depends on the producer's
+declaration; the presence of an embedded color table does not, on its own, make
+a raster classified, since continuous rasters like percent tree cover can also
+have a color table.
+
+For single-band rasters, the list of classes MUST accompany the data asset. For
+multi-band rasters, it MUST accompany the band it describes, in the STAC 1.1
+`bands` array of the data asset. In both cases, the list of classes is adjacent
+to the `nodata` value of the same object. A collection that models scenes as
+items SHOULD also put the list of classes in the same place on its `item_assets`
+definition, so that clients can render legends without needing to open the item
+itself. In addition to the `value`, `name`, and optional `color_hint` defined by
+the STAC classification extension, publishers MUST also include a human-readable
+`title` for every class.
+
+The COG's embedded color table (i.e., the TIFF `ColorMap` tag) is authoritative
+for rendering because any TIFF reader can draw it without needing to read the
+STAC metadata. Class names are provided by the class list. When a classified
+band has a color table, the `color_hint` for each class SHOULD correspond to the
+red, green, and blue components of the color table entry for that class value.
+Software that reads the catalog SHOULD draw the band based on the color table
+when the two differ. Tools that generate the metadata MAY set a missing
+`color_hint` from the color table.
+
+A class MUST be marked `nodata: true` if and only if its `value` equals the
+`nodata` value of the asset or band that has the list of classes. Clients SHOULD
+render that class as transparent and SHOULD exclude it from the legend.
+Continuous rasters, whose pixels are measurements such as elevation, SHOULD NOT
+include `classification:classes`.
+
 **Item mirror.** A raster collection that models scenes as items SHOULD also publish a
 [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) item mirror at
 `items.parquet` in the collection root. One range request then returns the whole
@@ -279,9 +360,16 @@ Zarr is a candidate raster format beside COG. The draft
 [Zarr profile](../incubating/zarr.md) states its rules, and it is not yet part
 of the conformance surface.
 
-Raster styling (colormaps, legends, continuous vs. categorical vs. multiband) is
-still under discussion — see
+Classified rasters are covered earlier in this section. Styling for continuous and multiband rasters
+is still under discussion in
 [`specs/incubating/raster-styling.md`](../incubating/raster-styling.md).
+
+### Imagery
+
+For satellite and aerial imagery, publishers SHOULD declare nodata, or include
+an alpha band, in each scene, so that clients don't draw empty pixels as
+black. Publishers SHOULD also use each scene's valid-data footprint as its item
+geometry.
 
 ## Tabular (Non-Geospatial)
 
