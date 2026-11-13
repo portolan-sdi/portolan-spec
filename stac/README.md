@@ -27,7 +27,7 @@ The schema encodes the specification's structural requirements that STAC core le
 - Every Catalog and Collection has a non-empty `title` and `description`; every `child` and `item` link carries a `title` (spec: Human-Readable Titles).
 - Structural links (`root`, `parent`, `child`, `item`, `collection`) carry `type: "application/json"` (`application/geo+json` for links to items) (spec: Links). The schema takes no position on relative versus absolute hrefs, and it accepts a `self` link. The schemas through v0.1.2 reject a `self` link and require a relative structural href. v0.2.0 drops both rules, following the specification.
 - Every asset has `href`, a media `type`, and at least one `role` (spec: Assets). `file:size` and `file:checksum` are SHOULD-level, so the schema checks their shape where present without requiring them; the checksum's multihash encoding, and whether either value matches the bytes, are verified by tooling rather than schema.
-- Absolute asset hrefs use `https` — `s3://` and other bucket schemes are rejected; relative hrefs are allowed (spec: Assets).
+- Absolute asset hrefs use `https`. Relative hrefs are allowed (spec: Assets). The spec also allows `s3://` and other schemes if the asset has an `https` alternate. The v0.2.0 schema still rejects them.
 - Every Collection declares `providers` with at least one `producer` and a `host` reachable through `url` or `email`; that the host is exactly one and listed last is checked by tooling (spec: Providers).
 - Collection `license` is never the deprecated `proprietary`; SPDX validity and the `rel: "license"` link required with `other` are checked by tooling (spec: License).
 - Every `bbox` — collection extent and item — contains only in-range WGS84 coordinates, with no sentinel "effectively infinite" values (spec: Bounding Boxes and Spatial Extent).
@@ -50,8 +50,9 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 | [Language][] | `https://stac-extensions.github.io/language/v1.0.0/schema.json`             | **MUST**    | When alternate-language trees are published: the `alternate` links, `language`, and `languages` (spec: Alternate-Language Trees) |
 | [Vector][] | `https://stac-extensions.github.io/vector/v0.1.0/schema.json`               | **MUST**    | When layer-level detail is provided |
 | [Partition][] | `https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json`              | **MUST**    | Partitioned collections: `partition:scheme`, `partition:keys`, `partition:glob` (spec: Partitioned Collections) |
+| [Alternate Assets][] | `https://stac-extensions.github.io/alternate-assets/v1.2.0/schema.json`     | **MUST**    | When an absolute asset `href` isn't `https`: add an `https` alternate. For an `https` `href`, SHOULD add `s3://` alternates (spec: Assets) |
 | [Table][] | `https://stac-extensions.github.io/table/v1.2.0/schema.json`                | SHOULD      | Vector and tabular collections: document columns with `table:columns` |
-| [Alternate Assets][] | `https://stac-extensions.github.io/alternate-assets/v1.2.0/schema.json`     | SHOULD      | Expose `s3://` alternates for absolute `https` asset hrefs |
+| [Classification][] | `https://stac-extensions.github.io/classification/v2.0.0/schema.json`       | SHOULD      | Classified (categorical) rasters, with `classification:classes` on the asset for one band and on the band in `bands` for more bands (spec: Raster, Classified rasters) |
 | [Render][] | `https://stac-extensions.github.io/render/v2.0.0/schema.json`               | SHOULD      | Continuous rasters rendering from source (draw-time colorization) |
 | [Projection][] | `https://stac-extensions.github.io/projection/v2.0.0/schema.json`           | MAY         | CRS / projection of the data |
 | [Scientific][] | `https://stac-extensions.github.io/scientific/v1.0.0/schema.json`           | MAY         | Citation / DOI |
@@ -76,6 +77,7 @@ As the profile grows, per-format requirement sets (vector, raster, tabular) may 
 [Projection]: https://github.com/stac-extensions/projection
 [Alternate Assets]: https://github.com/stac-extensions/alternate-assets
 [Render]: https://github.com/stac-extensions/render
+[Classification]: https://github.com/stac-extensions/classification
 [Scientific]: https://github.com/stac-extensions/scientific
 [Contacts]: https://github.com/stac-extensions/contacts
 [Attribution]: https://github.com/stac-extensions/attribution
@@ -144,13 +146,14 @@ Hosting requirements (HTTP Range support, CORS on all metadata and asset files) 
 
 Tracked in the specification and deliberately **not** settled by this schema:
 
-1. **Raster styling** — how raster styles are expressed (colormaps, legends, continuous vs. categorical vs. multiband) is under discussion in [`specs/incubating/raster-styling.md`](../specs/incubating/raster-styling.md); the MapLibre style requirements are vector-only for now.
+1. **Raster styling.** Classified rasters describe their classes with the classification extension and draw from the COG's embedded color table. How continuous and multiband rasters are styled is under discussion in [`specs/incubating/raster-styling.md`](../specs/incubating/raster-styling.md). The MapLibre style requirements are vector-only for now.
 
 ## Examples
 
 - [Root catalog](examples/catalog.json)
 - [Single-file vector collection](examples/vector-collection.json) — GeoParquet + PMTiles + style + thumbnail as collection-level assets
 - [Partitioned vector collection](examples/vector-partitioned-collection.json) and [partition item](examples/vector-partitioned-item.json)
+- [Classified raster collection](examples/raster-classified-collection.json), a single-band flood classification in one COG, with `classification:classes` on the asset
 
 The files are stored flat in `examples/` for convenience, but their relative hrefs describe the specification's canonical directory layout (`{collection_id}/collection.json`, `{item_id}/item.json` beneath it) — so href targets such as `../catalog.json`, `AGENTS.md`, and the data files are illustrative and not present in this repository. The examples carry no `self` links and use relative structural hrefs, the portable layout the [git-backed best practices](../specs/best-practices/git-backed-catalogs.md) recommend for a tracked tree.
 

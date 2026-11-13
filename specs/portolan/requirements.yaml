@@ -244,33 +244,47 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Every asset MUST include an `href`, the URI to the data, with relative
-      or absolute both allowed for now.
+      Every asset MUST have an `href`. The `href` MAY be relative or absolute.
 
   - id: PORTO-CORE-023
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Because browsers can't open `s3://` URLs or other bucket URLs,
+      publishers SHOULD use `https` for an absolute `href`.
+
+  - id: PORTO-CORE-087
     severity: MUST
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Where an asset `href` is absolute, it MUST use `https` rather than
-      `s3`, since browsers cannot fetch `s3` URLs directly.
+      If an absolute `href` uses another scheme, publishers MUST also add an
+      HTTPS URL for the same data to the asset’s
+      [`alternate`](https://github.com/stac-extensions/alternate-assets) field.
 
   - id: PORTO-CORE-024
     severity: SHOULD
     enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      An asset SHOULD also provide `s3` or other cloud-native URLs through
-      the [alternate](https://github.com/stac-extensions/alternate-assets)
-      extension, so tools that prefer direct bucket access can use them.
+      If the `href` is an `https` URL or a relative path, and the same data
+      also has an `s3://` or other bucket URL, publishers SHOULD add that URL
+      to `alternate` too.
 
   - id: PORTO-CORE-025
     severity: MUST
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      Portolan additionally requires a `type`, meaning the media type, and at
-      least one role on every asset.
+      Every asset MUST also have a `type` and at least one role.
+
+  - id: PORTO-CORE-088
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      Every asset SHOULD have a `title` and a `description`.
 
   - id: PORTO-CORE-026
     severity: MUST
@@ -473,34 +487,38 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      A server hosting the catalog's cloud-native assets MUST support range
-      requests: honor the `Range` header, return `206 Partial Content`, and
-      advertise `Accept-Ranges: bytes`; HEAD requests MUST return an accurate
-      `Content-Length`.
+      For a file with a partial-read media type, the server MUST honor
+      byte-range requests for that file, return `206 Partial Content` for successful
+      range requests, and advertise `Accept-Ranges: bytes`. The server MUST also
+      return an accurate `Content-Length` for `HEAD` requests for that file.
 
   - id: PORTO-CORE-044
     severity: MUST
     enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      The server MUST support HTTP/1.1 or greater; HTTP/2 or /3 is
-      RECOMMENDED.
+      A server that hosts any metadata or asset files MUST support HTTP/1.1 or
+      later. HTTP/2 or HTTP/3 is RECOMMENDED.
+
+  - id: PORTO-CORE-086
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/core.md
+    quote: >-
+      To let browsers read files directly, servers MUST allow cross-origin `GET` and
+      `HEAD` requests for all metadata and asset files. Use
+      `Access-Control-Allow-Origin: *` or an equivalent policy that permits reads.
 
   - id: PORTO-CORE-045
     severity: MUST
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      To let browser clients read data directly, a server hosting the
-      catalog's cloud-native assets MUST also enable CORS on all metadata and
-      asset files: `Access-Control-Allow-Origin: *`
-      (or an equivalent read-permitting policy), allowed methods including
-      `GET` and `HEAD`, allowed request headers including `Range`,
-      `If-Match`, `If-Modified-Since`, `If-None-Match`, and
-      `If-Unmodified-Since` (via `Access-Control-Allow-Headers`), and exposed
-      response headers including `Content-Type`, `Content-Length`,
-      `Content-Range`, `Accept-Ranges`, and `ETag` (via
-      `Access-Control-Expose-Headers`).
+      For a file with a partial-read media type, the server MUST also:
+      - Allow `Range`, `If-Match`, `If-Modified-Since`, `If-None-Match`, and
+      `If-Unmodified-Since` through `Access-Control-Allow-Headers`.
+      - Expose `Content-Range`, `Accept-Ranges`, and `ETag` through
+      `Access-Control-Expose-Headers`.
 
   # Numbered after the last core requirement because it was added to the Data
   # Storage section once the section's scope was stated; kept here in document
@@ -510,9 +528,9 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      A validator MUST probe the servers hosting the catalog's own
-      cloud-native assets and MUST NOT require upstream servers to satisfy
-      these requirements.
+      A validator MUST probe the servers that host the publisher's metadata and asset
+      files. It MUST NOT require third-party servers to meet these requirements for
+      upstream copies.
 
   - id: PORTO-CORE-046
     severity: MUST
@@ -822,6 +840,13 @@ requirements:
       catalog's own cloud-native assets and MUST NOT fail an asset for its
       format because it carries the `source` role.
 
+  - id: PORTO-FMT-065
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Its `href` MUST NOT contain `*` or `[`. It MAY include a query string.
+
   - id: PORTO-FMT-004
     severity: MUST
     enforcement: validator
@@ -841,7 +866,7 @@ requirements:
 
   # Numbered after the highest ID in open PRs (#188 uses PORTO-FMT-073). Before
   # this change, the guide was part of PORTO-FMT-004.
-  - id: PORTO-FMT-074
+  - id: PORTO-FMT-083
     severity: SHOULD
     enforcement: process
     file: specs/portolan/formats.md
@@ -850,7 +875,7 @@ requirements:
       GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so readers can query
       the data without a server.
 
-  - id: PORTO-FMT-055
+  - id: PORTO-FMT-080
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
@@ -859,7 +884,7 @@ requirements:
       metadata key. A validator MUST apply every requirement in this section to the
       file.
 
-  - id: PORTO-FMT-056
+  - id: PORTO-FMT-081
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
@@ -870,7 +895,7 @@ requirements:
       suggests. These formats are inline PROJJSON, `projjson:<key>`,
       `<authority>:<code>`, and `srid:<identifier>`.
 
-  - id: PORTO-FMT-057
+  - id: PORTO-FMT-082
     severity: SHOULD
     enforcement: validator
     file: specs/portolan/formats.md
@@ -1015,61 +1040,74 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Partitioning MUST be described per the [partition
+      Partitioning MUST follow the [partition
       extension](https://github.com/portolan-sdi/stac-partition-extension)
-      (v1.0.0), with its schema declared in `stac_extensions` and its
-      required fields carried — `partition:scheme`, `partition:keys`, and
-      `partition:glob`.
+      v1.0.0.
 
   - id: PORTO-FMT-018
     severity: MUST
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      For a spatial scheme (`kdtree`, `h3`, `s2`, `quadkey`, or `a5`), file
-      paths MUST indicate each file's geographic extent.
+      For spatial schemes (`kdtree`, `h3`, `s2`, `quadkey`, or `a5`), each
+      file's path MUST show the area it covers, so that readers can skip files
+      without opening them.
+
+  # PORTO-FMT-020 (bucket-native schemes such as s3:// and gs:// MAY be used
+  # for partition:glob) is retired. PORTO-FMT-064 now requires an absolute
+  # URL with a scheme that supports listing, and PORTO-FMT-075 recommends
+  # s3://, gs://, or az:// (#216).
+  - id: PORTO-FMT-064
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Because clients can't list files from a relative path or an `http://`
+      or `https://` URL, `partition:glob` MUST be an absolute URL with a
+      scheme that supports listing.
+
+  - id: PORTO-FMT-075
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Publishers SHOULD use `s3://`, `gs://`, or `az://`, which DuckDB, GDAL,
+      and fsspec all support.
 
   - id: PORTO-FMT-019
     severity: SHOULD
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      The collection description SHOULD also include the glob for human
-      readers.
+      Publishers SHOULD also put the glob URL in the collection's
+      `description`.
 
-  - id: PORTO-FMT-020
-    severity: MAY
-    enforcement: validator
+  - id: PORTO-FMT-066
+    severity: SHOULD
+    enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      Bucket-native schemes (`s3://`, `gs://`) MAY be used when
-      partition-aware readers need them.
-
-  - id: PORTO-FMT-064
-    severity: MUST
-    enforcement: validator
-    file: specs/portolan/formats.md
-    quote: >-
-      `partition:glob` MUST NOT use `http://` or `https://`.
+      For other S3-compatible services, such as Cloudflare R2 or MinIO,
+      publishers SHOULD add a `storage:schemes` entry from the [STAC Storage
+      Extension](https://github.com/stac-extensions/storage) v2.0.0.
 
   - id: PORTO-FMT-021
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Every partition file MUST share a single Parquet schema — the same
-      columns, names, and types — so the glob can be queried as one table.
-      This is validated by tooling reading file footers, not by JSON schema.
+      Every partition file MUST have the same Parquet schema, with the same
+      columns, names, and types.
 
   - id: PORTO-FMT-022
     severity: SHOULD
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      Partition files MAY be represented as items when partitions are
-      user-meaningful units (countries, regions); for opaque schemes
-      (hilbert, s2, h3) or hundreds of partitions, items SHOULD NOT be
-      created — the glob pattern is the access path.
+      Partition files MAY be items when each partition has a clear meaning to
+      users, such as one file per country. For schemes whose partitions mean
+      nothing to users (such as hilbert, s2, or h3), or for hundreds of
+      partitions, publishers SHOULD NOT create items.
 
   - id: PORTO-FMT-023
     severity: MUST
@@ -1161,6 +1199,100 @@ requirements:
       | Approximate flag (`STATISTICS_APPROXIMATE = YES`) | MUST when
       estimated |
 
+  - id: PORTO-FMT-049
+    severity: SHOULD
+    # Whether pixels are categories is a producer fact that only the producer
+    # declares. A color table is not proof, since continuous rasters such as
+    # percent tree cover have one, so a validator cannot check this.
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      A classified raster SHOULD describe these classes with
+      `classification:classes` from the STAC [classification
+      extension](https://github.com/stac-extensions/classification).
+
+  - id: PORTO-FMT-050
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      For single-band rasters, the list of classes MUST accompany the data
+      asset. For multi-band rasters, it MUST accompany the band it describes, in
+      the STAC 1.1 `bands` array of the data asset.
+
+  - id: PORTO-FMT-051
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A collection that models scenes as items SHOULD also put the list of
+      classes in the same place on its `item_assets` definition, so that clients
+      can render legends without needing to open the item itself.
+
+  # The classification extension defines `value`, `name`, and the format of
+  # `color_hint`. Portolan does not repeat those rules. PORTO-FMT-053 is not
+  # in use.
+  - id: PORTO-FMT-052
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      In addition to the `value`, `name`, and optional `color_hint` defined by
+      the STAC classification extension, publishers MUST also include a
+      human-readable `title` for every class.
+
+  - id: PORTO-FMT-054
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      When a classified band has a color table, the `color_hint` for each class
+      SHOULD correspond to the red, green, and blue components of the color
+      table entry for that class value.
+
+  - id: PORTO-FMT-055
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Software that reads the catalog SHOULD draw the band based on the color
+      table when the two differ.
+
+  - id: PORTO-FMT-056
+    severity: MAY
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Tools that generate the metadata MAY set a missing `color_hint` from the
+      color table.
+
+  - id: PORTO-FMT-057
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A class MUST be marked `nodata: true` if and only if its `value` equals
+      the `nodata` value of the asset or band that has the list of classes.
+
+  # PORTO-FMT-060 is not in use. PORTO-FMT-057 states both directions.
+  - id: PORTO-FMT-058
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Clients SHOULD render that class as transparent and SHOULD exclude it from
+      the legend.
+
+  - id: PORTO-FMT-059
+    severity: SHOULD
+    # Whether pixels are measurements is a producer fact a validator cannot
+    # read from the bytes.
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Continuous rasters, whose pixels are measurements such as elevation,
+      SHOULD NOT include `classification:classes`.
+
   - id: PORTO-FMT-033
     severity: MUST
     # The validator consumes this property (tabular identification drives
@@ -1230,6 +1362,70 @@ requirements:
       Point cloud support is not yet implemented; when complete, data MUST be
       provided as Cloud-Optimized Point Cloud (COPC).
 
+  - id: PORTO-FMT-067
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Collections of multiple rasters (i.e., two or more) that share the same
+      bands and belong to the same time period, but together cover an area much
+      larger than that of any individual item, SHOULD provide an overview COG.
+
+  - id: PORTO-FMT-068
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      The overview SHOULD be an 8-bit RGB image, with an optional alpha band.
+
+  - id: PORTO-FMT-069
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      It SHOULD use a projection that suits web maps, such as Web Mercator
+      (EPSG:3857).
+
+  - id: PORTO-FMT-070
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Collections with mosaics for several time periods SHOULD provide an
+      overview for at least the most recent mosaic.
+
+  - id: PORTO-FMT-071
+    severity: MAY
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      They MAY provide an overview for each of the other periods.
+
+  - id: PORTO-FMT-072
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Each overview asset SHOULD have a `datetime`, or a `start_datetime` and
+      `end_datetime`, so clients can match it to its items.
+
+  - id: PORTO-FMT-073
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      For satellite and aerial imagery, publishers SHOULD declare nodata, or
+      include an alpha band, in each scene, so that clients don't draw empty
+      pixels as black.
+
+  - id: PORTO-FMT-074
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Publishers SHOULD also use each scene's valid-data footprint as its item
+      geometry.
+
   - id: PORTO-FMT-040
     severity: SHOULD
     enforcement: validator
@@ -1293,13 +1489,35 @@ requirements:
       A collection whose data assets describe differing schemas MAY declare
       `table:columns` per asset instead.
 
+  - id: PORTO-FMT-077
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Every entry in `table:columns` SHOULD include a `description`.
+
+  - id: PORTO-FMT-078
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      When the dataset is a mirror and no descriptions are available for the
+      columns, this SHOULD be noted in the collection's `README.md`.
+
+  - id: PORTO-FMT-079
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Publishers SHOULD NOT include placeholder descriptions.
+
 exclusions:
   # RFC 2119 preamble: keyword mentions, not requirements.
   - file: specs/portolan/core.md
     quote: >-
       *The keywords MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD,
       SHOULD NOT, RECOMMENDED, MAY, and OPTIONAL in this document are to be
-      interpreted as described in BCP 14 [RFC 2119] [RFC 8174] when, and only
+      interpreted as described in BCP 14 [RFC 2119][] [RFC 8174][] when, and only
       when, they appear in all capitals, as shown here.*
 
   # Cross-reference to the Temporal Metadata SHOULD, not itself a requirement.
