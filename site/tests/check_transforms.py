@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["markdown==3.11.3", "pymdown-extensions==13.1", "pyyaml==6.0.3", "tinycss2==1.5.1", "pypdf==7.1.0"]
+# dependencies = ["markdown==3.11.3", "pymdown-extensions==13.1", "pyyaml==6.0.3", "tinycss2==1.5.1", "pypdf==7.1.0", "markdown-it-py==4.3.0"]
 # ///
 """Exercise build transforms and validator failures against HEAD or --ref."""
 
@@ -121,6 +121,29 @@ def check_links():
             and "[after](https://github.com/" in rewritten
         )
         assert build.normalize_fences(inline) == inline
+        # CommonMark list continuations and nested items remain prose.
+        list_mapping = {**mapping, "specs/portolan/core.md": "specs/portolan/core.md"}
+
+        def list_resolve(value, **options):
+            return build.resolve_link(
+                value,
+                "specs/portolan/core.md",
+                list_mapping,
+                tree,
+                "v0.2.0",
+                True,
+                **options,
+            )
+
+        continuation = "1. Item\n\n    See [home](../../README.md)"
+        assert (
+            build.rewrite_links(continuation, list_resolve)
+            == "1. Item\n\n    See [home](../../index.md)"
+        )
+        nested = "- Parent\n\n    - Child [home](../../README.md)\n\n        See [home](../../README.md)\n\n            [code](../keep.py)\n"
+        rewritten = build.rewrite_links(nested, list_resolve)
+        assert rewritten.count("[home](../../index.md)") == 2
+        assert "            [code](../keep.py)" in rewritten
         # Raw HTML supports quoted and unquoted attributes, internal pages, and images.
         raw = '<a href="../specs/core.md#links">Core</a> <img src="examples/map.png"> <a href=check.py>x</a>'
         rewritten = build.rewrite_links(raw, resolve)
@@ -166,6 +189,12 @@ def check_fences():
     assert (
         build.normalize_fences("    ```yaml id=x\n    a: 1\n    ```\n")
         == "    ```yaml id=x\n    a: 1\n    ```\n"
+    )
+    assert (
+        build.normalize_fences(
+            '1. Item\n\n    ```yaml id="sample"\n    a: 1\n    ```\n'
+        )
+        == "1. Item\n\n    ```yaml\n    a: 1\n    ```\n"
     )
 
 
@@ -298,16 +327,60 @@ def check_fragment_targets():
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         (root / "specs/core").mkdir(parents=True)
-        (root / "specs/core/index.html").write_text('<h2 id="assets">Assets</h2>')
+        target = root / "specs/core/index.html"
+        target.write_text('<h2 id="assets">Assets</h2>')
         home = root / "index.html"
-        home.write_text(
-            '<a href="specs/core/?a=1&amp;b=2#assets">Assets</a><a href="#self">Self</a>'
-            '<a href="https://example.org/core/#external">External</a>'
+        original = '<a href="specs/core/?a=1&amp;b=2#assets">Assets</a>'
+        home.write_text(original)
+        assert (
+            check_site.local_target(root, home, "specs/core/?a=1&b=2#assets") == target
         )
-        build.explicit_fragment_targets(root, "next")
-        assert 'href="specs/core/index.html?a=1&amp;b=2#assets"' in home.read_text()
-        assert 'href="#self"' in home.read_text()
-        assert 'href="https://example.org/core/#external"' in home.read_text()
+        assert check_site.local_target(root, home, "/specs/core/#assets") == target
+        assert "assets" in check_site.Document(target.read_text()).ids
+        assert home.read_text() == original
+
+
+def check_root_guards():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        fresh = build.prepare_output_root(root / "fresh")
+        assert (
+            json.loads((fresh / build.ROOT_MARKER_NAME).read_text())
+            == build.ROOT_MARKER
+        )
+        (fresh / "index.html").write_text("generated")
+        assert build.prepare_output_root(fresh) == fresh
+        empty = root / "empty"
+        empty.mkdir()
+        assert build.prepare_output_root(empty) == empty
+        unowned = root / "unowned"
+        unowned.mkdir()
+        for name in ("index.html", "404.html", "versions.json"):
+            (unowned / name).write_text(f"keep {name}")
+        before = {p.name: p.read_bytes() for p in unowned.iterdir()}
+        fails(lambda: build.prepare_output_root(unowned), "root build marker")
+        with (
+            patch.object(build, "toolchain"),
+            patch.object(build, "fonts") as font_download,
+            patch.object(
+                sys, "argv", ["site/build.py", "--all", "--out", str(unowned)]
+            ),
+        ):
+            with contextlib.redirect_stderr(io.StringIO()):
+                assert build.main() == 1
+            font_download.assert_not_called()
+        assert {p.name: p.read_bytes() for p in unowned.iterdir()} == before
+        marker = unowned / build.ROOT_MARKER_NAME
+        for invalid in (
+            "not JSON",
+            "{}",
+            json.dumps({"generator": "other-tool", "format": 1}),
+        ):
+            marker.write_text(invalid)
+            fails(lambda: build.prepare_output_root(unowned), "root build marker")
+        marker.unlink()
+        marker.symlink_to(fresh / build.ROOT_MARKER_NAME)
+        fails(lambda: build.prepare_output_root(unowned), "root build marker")
 
 
 def check_main_selection():
@@ -458,6 +531,23 @@ def check_html_validator_failures():
         ):
             home.write_text(valid)
             assert check_site.check(root) == []
+            (root / "specs/core").mkdir(parents=True)
+            (root / "specs/core/index.html").write_text(
+                styles + banner + '<h2 id="assets">Assets</h2>'
+            )
+            home.write_text(valid + '<a href="specs/core/#assets">Assets</a>')
+            assert check_site.check(root) == []
+            assert 'href="specs/core/#assets"' in home.read_text()
+            home.write_text(valid + '<a href="specs/core/#missing">Missing</a>')
+            assert any(
+                "missing local anchor" in error for error in check_site.check(root)
+            )
+            home.write_text(
+                valid + '<a href="specs/core/index.html#assets">Noncanonical</a>'
+            )
+            assert any(
+                "non-canonical page URL" in error for error in check_site.check(root)
+            )
             home.write_text(valid + '<img src="missing.png">')
             assert any(
                 "missing local href or src missing.png" in error
@@ -491,6 +581,7 @@ if __name__ == "__main__":
     check_banner()
     check_tags()
     check_output_guards()
+    check_root_guards()
     check_main_selection()
     check_fragment_targets()
     check_validator_failures()

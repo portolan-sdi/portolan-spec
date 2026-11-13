@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["zensical==0.1.1", "pymdown-extensions==13.1", "pyyaml==6.0.3"]
+# dependencies = ["zensical==0.1.1", "pymdown-extensions==13.1", "pyyaml==6.0.3", "markdown-it-py==4.3.0"]
 # ///
 """Build archived versions of the specification and its PDF and EPUB editions."""
 
@@ -23,11 +23,14 @@ from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 import markdown
 import yaml
+from markdown_it import MarkdownIt
 
 SITE = Path(__file__).resolve().parent
 ROOT = SITE.parent
 SITE_URL = "https://spec.portolan-sdi.org"
 PINS = {"pandoc": "3.14", "typst": "0.15.1"}
+ROOT_MARKER_NAME = "site-build.json"
+ROOT_MARKER = {"generator": "portolan-spec/site/build.py", "format": 1}
 FONTS_SHA = "fb2d675eec61b618208fed311b7bf951de03a206"
 FONT_HASHES = {
     "hanken-grotesk-400.ttf": "5f85843c961d2d954442918d2875ba9106230e1123522156d509a51141bf0e8d",
@@ -53,7 +56,6 @@ INLINE_LINK = re.compile(
     r"(!?\[(?:[^\[\]]|\[[^\]]*\])*\]\(\s*)(<[^>]*>|(?:[^\s()]+|\([^()]*\))+)"
 )
 REFERENCE = re.compile(r"(^ {0,3}\[[^\]\n]+\]:[ \t]*)(<[^>]*>|\S+)", re.MULTILINE)
-FENCE = re.compile(r"^( {0,3})(`{3,}|~{3,})([^\r\n]*)$")
 HTML_TAG = re.compile(r"<[A-Za-z][^>]*>")
 HTML_URL = re.compile(
     r"((?<![\w:-])(href|src)\s*=\s*)([\"'])(.*?)\3|(?P<bare>(?<![\w:-])(?P<attr>href|src)\s*=\s*)(?P<url>[^\s>]+)",
@@ -133,69 +135,46 @@ def fonts(destination: Path) -> Path:
     return destination
 
 
+def code_blocks(text: str):
+    """Use CommonMark block types and source ranges, including list context."""
+    return [
+        token
+        for token in MarkdownIt("commonmark").parse(text)
+        if token.type in {"fence", "code_block"}
+    ]
+
+
 def fenced_parts(text: str):
-    """Protect CommonMark fences and four-space or tab-indented code blocks."""
+    """Yield prose and code without confusing list continuations with code."""
     lines = text.splitlines(keepends=True)
-    prose = []
-    index = 0
-    previous_blank = True
-    while index < len(lines):
-        line = lines[index]
-        match = FENCE.match(line.rstrip("\r\n"))
-        opens = match and (match[2][0] != "`" or "`" not in match[3])
-        indented = (
-            (line.startswith("    ") or line.startswith("\t"))
-            and line.strip()
-            and previous_blank
-        )
-        if not opens and not indented:
-            prose.append(line)
-            previous_blank = not line.strip()
-            index += 1
-            continue
-        if prose:
-            yield False, "".join(prose)
-            prose = []
-        code = [line]
-        index += 1
-        if opens:
-            marker = match[2]
-            while index < len(lines):
-                line = lines[index]
-                code.append(line)
-                index += 1
-                closing = FENCE.match(line.rstrip("\r\n"))
-                if (
-                    closing
-                    and closing[2][0] == marker[0]
-                    and len(closing[2]) >= len(marker)
-                    and not closing[3].strip()
-                ):
-                    break
-        else:
-            while index < len(lines) and (
-                not lines[index].strip() or lines[index].startswith(("    ", "\t"))
-            ):
-                code.append(lines[index])
-                index += 1
-        yield True, "".join(code)
-        previous_blank = not code[-1].strip()
-    if prose:
-        yield False, "".join(prose)
+    cursor = 0
+    for token in code_blocks(text):
+        start, end = token.map
+        if start > cursor:
+            yield False, "".join(lines[cursor:start])
+        yield True, "".join(lines[start:end])
+        cursor = end
+    if cursor < len(lines):
+        yield False, "".join(lines[cursor:])
 
 
 def normalize_fences(text: str) -> str:
-    blocks = []
-    for code, block in fenced_parts(text):
-        lines = block.splitlines(keepends=True)
-        match = FENCE.match(lines[0].rstrip("\r\n")) if code else None
-        if match:
-            info = match[3].strip().split()
-            language = info[0] if info else ""
-            lines[0] = f"{match[1]}{match[2]}{language}\n"
-            block = "".join(lines)
-        blocks.append(block)
-    return "".join(blocks)
+    lines = text.splitlines(keepends=True)
+    for token in code_blocks(text):
+        if token.type != "fence":
+            continue
+        start = token.map[0]
+        prefix = lines[start][: lines[start].index(token.markup)]
+        language = token.info.strip().split()[0] if token.info.strip() else ""
+        ending = (
+            "\r\n"
+            if lines[start].endswith("\r\n")
+            else "\n"
+            if lines[start].endswith("\n")
+            else ""
+        )
+        lines[start] = f"{prefix}{token.markup}{language}{ending}"
+    return "".join(lines)
 
 
 def rewrite_links(text: str, resolve) -> str:
@@ -723,6 +702,33 @@ def output_root(out: Path) -> Path:
     return out
 
 
+def require_root_marker(out: Path) -> None:
+    marker = out / ROOT_MARKER_NAME
+    if not marker.is_symlink() and marker.is_file():
+        try:
+            if json.loads(marker.read_text()) == ROOT_MARKER:
+                return
+        except (OSError, ValueError):
+            pass
+    raise ValueError(
+        f"Refuse to write into {out}: missing or invalid {ROOT_MARKER_NAME} root build marker"
+    )
+
+
+def prepare_output_root(out: Path) -> Path:
+    out = output_root(out)
+    if out.exists():
+        if not out.is_dir():
+            raise ValueError(f"Refuse --out that is not a directory: {out}")
+        if any(out.iterdir()):
+            require_root_marker(out)
+            return out
+    else:
+        out.mkdir(parents=True)
+    (out / ROOT_MARKER_NAME).write_text(json.dumps(ROOT_MARKER, sort_keys=True) + "\n")
+    return out
+
+
 def require_build_marker(destination: Path) -> None:
     if destination.is_symlink():
         raise ValueError(f"Refuse output symlink: {destination}")
@@ -743,56 +749,6 @@ def redirect_html(href: str) -> str:
         f"<script>window.location.replace({json.dumps(href)} + window.location.search + window.location.hash);</script>"
         f'</head><body>Redirecting to <a href="{escaped}">{escaped}</a>.</body></html>\n'
     )
-
-
-def explicit_fragment_targets(directory: Path, label: str) -> None:
-    """Keep directory pages, but name their index for offline fragment checkers."""
-    for path in directory.rglob("*.html"):
-
-        def tag(match):
-            def attribute(attr):
-                name = attr[2] or attr["attr"]
-                value = attr[4] if attr[1] else attr["url"]
-                parts = urlsplit(html.unescape(value))
-                if (
-                    name.lower() != "href"
-                    or parts.scheme
-                    or parts.netloc
-                    or not parts.path
-                    or not parts.fragment
-                ):
-                    return attr[0]
-                local = unquote(parts.path)
-                if local.startswith("/"):
-                    prefix = f"/{label}/"
-                    if not local.startswith(prefix):
-                        return attr[0]
-                    target = directory / local.removeprefix(prefix)
-                else:
-                    target = path.parent / local
-                if not target.is_dir() or not (target / "index.html").is_file():
-                    return attr[0]
-                destination = urlunsplit(
-                    (
-                        "",
-                        "",
-                        parts.path.rstrip("/") + "/index.html",
-                        parts.query,
-                        parts.fragment,
-                    )
-                )
-                prefix = attr[1] or attr["bare"]
-                delimiter = attr[3] if attr[1] else '"'
-                return (
-                    prefix
-                    + delimiter
-                    + html.escape(destination, quote=True)
-                    + delimiter
-                )
-
-            return HTML_URL.sub(attribute, match[0])
-
-        path.write_text(HTML_TAG.sub(tag, path.read_text()))
 
 
 def alias_redirects(out: Path, latest: str) -> None:
@@ -919,7 +875,6 @@ def build(ref: str, label: str, out: Path, latest: str | None, font_dir: Path) -
             cwd=workspace,
             check=True,
         )
-        explicit_fragment_targets(workspace / "html", label)
         require_build_marker(destination)
         if destination.exists():
             shutil.rmtree(destination)
@@ -951,8 +906,7 @@ def main() -> int:
         toolchain()
         tags = releases()
         latest = tags[-1] if tags else None
-        out = output_root(args.out)
-        out.mkdir(parents=True, exist_ok=True)
+        out = prepare_output_root(args.out)
         with tempfile.TemporaryDirectory(prefix="portolan-fonts-") as font_tmp:
             font_dir = fonts(Path(font_tmp) / "fonts")
             return build_selected(args, out, tags, latest, font_dir)
@@ -964,6 +918,7 @@ def main() -> int:
 def build_selected(
     args, out: Path, tags: list[str], latest: str | None, font_dir: Path
 ) -> int:
+    require_root_marker(out)
     if args.all:
         if not latest:
             raise ValueError("No release tags at or above v0.2.0")
@@ -979,6 +934,7 @@ def build_selected(
             for tag in reversed(tags)
         ]
         versions.insert(0, {"version": "next", "title": "next (draft)", "aliases": []})
+        require_root_marker(out)
         (out / "versions.json").write_text(json.dumps(versions, indent=2) + "\n")
         alias_redirects(out, latest)
         (out / "index.html").write_text(redirect_html(f"{latest}/"))

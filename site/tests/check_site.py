@@ -253,6 +253,24 @@ def alias_errors(directory: Path, latest: str) -> list[str]:
     return errors
 
 
+def local_target(directory: Path, source: Path, href: str) -> Path:
+    """Resolve local directory URLs to their index without changing the HTML."""
+    local_path = unquote(urlsplit(href).path)
+    if local_path.startswith("/"):
+        if (directory / "build-info.json").is_file():
+            prefix = f"/{directory.name}/"
+            target = (
+                (directory / local_path.removeprefix(prefix)).resolve()
+                if local_path.startswith(prefix)
+                else Path(local_path)
+            )
+        else:
+            target = (directory / local_path.lstrip("/")).resolve()
+    else:
+        target = (source.parent / local_path).resolve() if local_path else source
+    return (target / "index.html").resolve() if target.is_dir() else target
+
+
 def check(directory: Path) -> list[str]:
     errors = []
     versions_file = directory / "versions.json"
@@ -410,24 +428,18 @@ def check(directory: Path) -> list[str]:
                 continue
             if "stac/json-schema/" in unquote(parts.path):
                 errors.append(f"{path}: relative schema link {href}")
-            local_path = unquote(parts.path)
-            if local_path.startswith("/"):
-                if (directory / "build-info.json").is_file():
-                    prefix = f"/{directory.name}/"
-                    target = (
-                        (directory / local_path.removeprefix(prefix)).resolve()
-                        if local_path.startswith(prefix)
-                        else Path(local_path)
-                    )
-                else:
-                    target = (directory / local_path.lstrip("/")).resolve()
-            else:
-                target = (path.parent / local_path).resolve() if local_path else path
+            if (
+                parts.fragment
+                and parts.path
+                and posixpath.basename(parts.path) == "index.html"
+            ):
+                errors.append(
+                    f"{path}: non-canonical page URL {href}; use a directory URL"
+                )
+            target = local_target(directory, path, href)
             if not target.is_relative_to(boundary):
                 errors.append(f"{path}: href or src leaves the site: {href}")
                 continue
-            if target.is_dir():
-                target /= "index.html"
             if not target.is_file():
                 errors.append(f"{path}: missing local href or src {href}")
             elif (
