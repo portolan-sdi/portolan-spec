@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["pyyaml>=6.0.3"]
+# dependencies = ["pyyaml>=6.0.3", "awscli==1.46.3"]
 # ///
 """Publish a built example catalog to the Portolan Mirrors organization on Source Cooperative.
 
@@ -20,11 +20,25 @@ not the file name. Name each manifest after the id it declares, so
 `portolan-reference.yaml` builds `catalog/portolan-reference/` and publishes to
 `portolan-reference/`, one name everywhere.
 
-Transfers run through s5cmd rather than the AWS CLI. A catalog is a few hundred
-small JSON files next to a handful of large Parquet and COG assets, and s5cmd
-saturates that shape far better. `sync --delete` is scoped to one catalog's own
+Transfers run through the AWS CLI, pinned in the header above and run as
+`python -m awscli`, so the client version is the one this script declares and
+nothing has to be on PATH. `sync --delete` is scoped to one catalog's own
 prefix, so a stale file from an earlier build is removed while everything else
 published under portolan-mirrors/portolan-spec-examples/ is left alone.
+
+The AWS CLI replaced s5cmd, which cannot work through the data proxy. Three
+proxy behaviours decide it. The proxy forwards a plain PutObject to S3 on a
+presigned URL that signs only the host, and S3 refused every s5cmd upload with
+"There were headers present in the request which were not signed". The AWS CLI
+sends PutObject as an aws-chunked upload instead, which the proxy re-signs with
+its headers. The proxy's LIST returns keys relative to the account, so the
+account has to be the bucket, and s5cmd then batch deletes under the account
+alone, which the proxy cannot map. The AWS CLI deletes one object at a time.
+
+The CLI finishes every transfer it can and then exits non-zero if any failed,
+and this script then fails. After a sync it lists the prefix again and requires
+the remote keys to equal the local files, so a stale file that survived or an
+upload that went missing fails the run rather than passing quietly.
 
 Every transfer goes through Source Cooperative's data proxy at
 https://data.source.coop, with the credentials in the environment. In CI they
@@ -51,8 +65,8 @@ import argparse
 import json
 import os
 import re
-import shutil
 import subprocess
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -70,17 +84,15 @@ PROXY = "https://data.source.coop"
 # must exist for PUBLIC_BASE to serve what the upload writes.
 ACCOUNT = "portolan-mirrors"
 PRODUCT = "portolan-spec-examples"
-# s5cmd reaches the proxy with the account folded into the endpoint and the
-# product as the bucket. The proxy maps a request to a product only when its
-# path starts with /<account>/<product>. With the account as the bucket, s5cmd
-# sends a batch delete to POST /<account>?delete, and the proxy answers that
-# with NoSuchBucket. Both `sync --delete` and the teardown batch delete. s5cmd
-# switches to path-style addressing for any custom endpoint, so every request,
-# the batch delete included, lands under /<account>/<product>.
-S3_ENDPOINT = f"{PROXY}/{ACCOUNT}"
-BUCKET = f"s3://{PRODUCT}"
-# The same bytes over HTTPS. The proxy serves both, so the S3 key and the URL
-# path share one <catalog id>/<namespace> tail under one product.
+# Through the proxy the account is the S3 bucket and the product is the first
+# segment of every key. That is the only addressing the proxy's LIST answers
+# consistently, since it returns account-relative keys even when the product is
+# in the URL path. The AWS CLI uses path-style addressing for a custom endpoint,
+# so a key lands at /<account>/<product>/<rest>, which the proxy maps.
+S3_ENDPOINT = PROXY
+BUCKET = ACCOUNT
+# The same bytes over HTTPS. The proxy serves both, so the S3 URL path and the
+# public URL path are identical.
 PUBLIC_BASE = f"{PROXY}/{ACCOUNT}/{PRODUCT}"
 # The two human-facing views of the same bytes. `data.` serves the objects,
 # the bare domain serves Source Cooperative's file browser, and STAC Browser
@@ -208,7 +220,15 @@ def destination(catalog_id: str, ns: str) -> tuple[str, str]:
     if not catalog_id or "/" in catalog_id or ".." in catalog_id:
         raise SystemExit(f"refusing to publish catalog id {catalog_id!r}")
     tail = f"{catalog_id}/{ns}"
-    return f"{BUCKET}/{tail}/", f"{PUBLIC_BASE}/{tail}/"
+    return f"s3://{BUCKET}/{PRODUCT}/{tail}/", f"{PUBLIC_BASE}/{tail}/"
+
+
+def key_prefix(target: str) -> str:
+    """The S3 key prefix of an s3:// target, the part after the bucket."""
+    head = f"s3://{BUCKET}/"
+    if not target.startswith(head):
+        raise SystemExit(f"target {target!r} is not in bucket {BUCKET!r}")
+    return target.removeprefix(head)
 
 
 def review_urls(public_url: str) -> tuple[str, str]:
@@ -236,47 +256,118 @@ def tree_summary(tree: Path) -> tuple[int, int]:
     return len(files), sum(path.stat().st_size for path in files)
 
 
-def s5cmd(dry_run: bool) -> list[str]:
-    """The s5cmd prefix every transfer shares, pointed at the data proxy.
+def aws(*args: str) -> list[str]:
+    """An AWS CLI command line pointed at the data proxy.
 
-    s5cmd reads its endpoint from `--endpoint-url` or S3_ENDPOINT_URL and never
-    from AWS_ENDPOINT_URL, so the flag is passed explicitly. The credentials
-    come from the environment, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and
-    AWS_SESSION_TOKEN, which the sign-in step in CI exports.
+    The endpoint is passed on every call rather than through AWS_ENDPOINT_URL,
+    so a stray environment cannot send these credentials anywhere else. The
+    credentials come from the environment, AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY and AWS_SESSION_TOKEN, which the sign-in step in CI
+    exports.
     """
-    command = ["s5cmd", "--endpoint-url", S3_ENDPOINT]
-    if dry_run:
-        command.append("--dry-run")
-    return command
+    return [sys.executable, "-m", "awscli", "--endpoint-url", S3_ENDPOINT, *args]
 
 
-def require_s5cmd() -> None:
-    if shutil.which("s5cmd") is None:
-        raise SystemExit("s5cmd is not on PATH, see https://github.com/peak/s5cmd")
+def run(command: list[str], echo: bool = True) -> subprocess.CompletedProcess:
+    """Run one CLI command, echoing it, and fail on any non-zero exit.
+
+    The CLI exits 1 when any transfer failed and 2 when it skipped a file, and
+    both are failures here. Nothing is half-published without the run going red.
+    """
+    print(f"$ {' '.join(command[1:])}", flush=True)
+    # Pinned rather than left to the environment. With checksums on, the CLI
+    # sends each upload aws-chunked, the one form the proxy re-signs whole.
+    env = {**os.environ, "AWS_REQUEST_CHECKSUM_CALCULATION": "when_supported"}
+    completed = subprocess.run(
+        command, capture_output=True, text=True, check=False, env=env
+    )
+    if echo:
+        print(completed.stdout, end="")
+    if completed.returncode != 0:
+        print(completed.stderr, end="")
+        raise SystemExit(f"aws exited {completed.returncode}: {' '.join(command[3:6])}")
+    return completed
+
+
+def remote_keys(prefix: str) -> set[str]:
+    """Every key under `prefix`, relative to it, from a fresh listing.
+
+    The listing is checked rather than trusted. A response that is not the
+    shape the CLI documents, or a key outside the prefix that was asked for,
+    means the proxy's addressing no longer matches this script, and every
+    decision made from that listing would be wrong. Both fail here. An empty
+    set means the listing returned no keys at all under the prefix.
+    """
+    completed = run(
+        aws(
+            "s3api", "list-objects-v2",
+            "--bucket", BUCKET,
+            "--prefix", prefix,
+            "--output", "json",
+        ),
+        echo=False,
+    )
+    text = completed.stdout.strip()
+    try:
+        listing = json.loads(text) if text else {}
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"listing of {prefix!r} is not JSON, {exc}") from exc
+    if not isinstance(listing, dict):
+        raise SystemExit(f"listing of {prefix!r} is not an object, {listing!r}")
+    echoed = listing.get("Prefix")
+    if echoed not in (None, prefix):
+        raise SystemExit(f"listing of {prefix!r} answered for prefix {echoed!r}")
+    contents = listing.get("Contents") or []
+    if not isinstance(contents, list):
+        raise SystemExit(f"listing of {prefix!r} has malformed Contents")
+    keys = set()
+    for entry in contents:
+        key = entry.get("Key") if isinstance(entry, dict) else None
+        if not isinstance(key, str) or not key.startswith(prefix):
+            raise SystemExit(
+                f"listing of {prefix!r} returned key {key!r} outside the prefix, "
+                "the proxy's key addressing has changed"
+            )
+        keys.add(key.removeprefix(prefix))
+    return keys
+
+
+def local_files(tree: Path) -> set[str]:
+    """The relative paths of a built tree, as they will be published."""
+    return {
+        path.relative_to(tree).as_posix()
+        for path in tree.rglob("*")
+        if path.is_file() and path.name not in EXCLUDED_NAMES
+    }
 
 
 def sync(tree: Path, target: str, dry_run: bool) -> None:
-    """Mirror one built catalog tree onto its own prefix."""
-    require_s5cmd()
-    command = s5cmd(dry_run)
-    command += [
-        # A catalog is mostly small JSON, so the win is in request concurrency.
-        "--numworkers", "64",
-        "sync",
-        # Scoped to this catalog's own prefix, so a file dropped from the
-        # manifest disappears and nothing else in the bucket is touched.
-        "--delete",
-        # Without this a failed object is logged and the run still exits 0.
-        "--exit-on-error",
-    ]
+    """Mirror one built catalog tree onto its own prefix, then prove it."""
+    prefix = key_prefix(target)
+    # `sync --delete` decides what to delete from the CLI's own listing, and
+    # trusts it. Checking the same listing first means a proxy that changed its
+    # key addressing fails here, before the CLI deletes keys it misread.
+    remote_keys(prefix)
+    # Scoped to this catalog's own prefix, so a file dropped from the manifest
+    # disappears and nothing else in the bucket is touched.
+    command = aws("s3", "sync", f"{tree}/", target, "--delete", "--no-progress")
     for name in sorted(EXCLUDED_NAMES):
         # A leading star, since the pattern is matched against the whole path.
         command += ["--exclude", f"*{name}"]
-    command += [f"{tree}/", target]
-    print(f"$ {' '.join(command)}")
-    completed = subprocess.run(command, check=False)
-    if completed.returncode != 0:
-        raise SystemExit(f"s5cmd failed with exit {completed.returncode}, {target}")
+    if dry_run:
+        command.append("--dryrun")
+    run(command)
+    if dry_run:
+        return
+    remote = remote_keys(prefix)
+    local = local_files(tree)
+    stale, missing = sorted(remote - local), sorted(local - remote)
+    if stale or missing:
+        raise SystemExit(
+            f"{target} does not mirror {tree} after the sync, "
+            f"{len(stale)} stale {stale[:5]}, {len(missing)} missing {missing[:5]}"
+        )
+    print(f"{target} holds exactly the {len(local)} built files")
 
 
 def verify(public_url: str, expected_id: str) -> None:
@@ -320,20 +411,32 @@ def teardown(catalog_ids: list[str], number: str, dry_run: bool) -> int:
     """
     if not number.isdigit():
         raise SystemExit(f"refusing to tear down, PR number is not numeric, {number!r}")
-    require_s5cmd()
 
     for catalog_id in catalog_ids:
         target, _ = destination(catalog_id, f"PRs/{number}")
         if f"/PRs/{number}/" not in target:
             raise SystemExit(f"refusing to tear down, unexpected target {target!r}")
+        prefix = key_prefix(target)
         # A prefix with nothing under it is normal, a PR that never published.
-        command = s5cmd(dry_run) + ["rm", f"{target}*"]
-        print(f"$ {' '.join(command)}")
-        completed = subprocess.run(command, capture_output=True, text=True, check=False)
-        print(completed.stdout, end="")
-        if completed.returncode != 0 and "no object found" not in completed.stderr:
-            raise SystemExit(completed.stderr.strip())
-        print(f"torn down {target}")
+        # It counts only when the listing itself is sound, remote_keys fails on
+        # a malformed or mismatched one.
+        before = remote_keys(prefix)
+        if not before:
+            print(f"nothing under {target}")
+            continue
+        command = aws("s3", "rm", target, "--recursive", "--only-show-errors")
+        if dry_run:
+            run(command + ["--dryrun"])
+            print(f"dry run, {len(before)} objects would be deleted from {target}")
+            continue
+        run(command)
+        left = remote_keys(prefix)
+        if left:
+            raise SystemExit(
+                f"{len(left)} objects survived the teardown of {target}, "
+                f"{sorted(left)[:5]}"
+            )
+        print(f"torn down {target}, {len(before)} objects")
     return 0
 
 

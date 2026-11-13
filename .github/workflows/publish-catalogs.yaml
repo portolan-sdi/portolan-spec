@@ -152,15 +152,6 @@ jobs:
           sudo apt-get install -y --no-install-recommends tippecanoe
           tippecanoe --version
 
-      # A local action rather than peak/action-setup-s5cmd. That one resolves
-      # the download through the unauthenticated GitHub releases API, which is
-      # rate limited per runner IP and takes the publish down with it when the
-      # IP arrives spent. The local one fetches a pinned release asset by URL
-      # and checks its digest, so this job depends on no API and on no mutable
-      # third-party ref while holding publishing credentials.
-      - name: Install s5cmd
-        uses: ./.github/actions/setup-s5cmd
-
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
@@ -203,15 +194,15 @@ jobs:
       # Trades the job's OIDC token at the data proxy for credentials as the
       # service account, and exports them as AWS_ACCESS_KEY_ID,
       # AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN, and AWS_REGION. The audience
-      # is the one the service account trusts. The proxy accepts any region.
-      # One is set so that s5cmd signs with it rather than probe the bucket.
+      # is the one the service account trusts. The proxy accepts any region,
+      # but the AWS CLI does not sign without one.
       #
       # It runs after the build on purpose. The credentials last one hour and
-      # s5cmd never renews them, so the clock starts here rather than before a
+      # nothing renews them, so the clock starts here rather than before a
       # build that can take most of that hour.
       #
-      # AWS_ENDPOINT_URL is not exported for the job. s5cmd ignores it, and
-      # publish_catalogs.py passes the proxy to s5cmd itself.
+      # AWS_ENDPOINT_URL is not exported for the job. publish_catalogs.py runs
+      # the AWS CLI it pins and passes it the proxy on every call.
       - name: Sign in to Source Cooperative as portolan-mirrors--spec-examples
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:

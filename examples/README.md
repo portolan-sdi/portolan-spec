@@ -148,9 +148,10 @@ longer used. See
 [Automated Access](https://docs.source.coop/automated-access) in the Source
 Cooperative docs.
 
-Publishing by hand needs `s5cmd` on your PATH, and credentials that the data
-proxy issued in `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and
-`AWS_SESSION_TOKEN`.
+Uploads and deletes run through the Amazon Web Services (AWS) CLI, which the
+publish script pins in its own header, so you install nothing else. Publishing by hand needs
+credentials that the data proxy issued, in `AWS_ACCESS_KEY_ID`,
+`AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`.
 
 ```bash
 uv run examples/tools/publish_catalogs.py --list                        # publishable stems

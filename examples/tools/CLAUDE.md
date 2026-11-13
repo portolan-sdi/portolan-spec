@@ -98,12 +98,13 @@ in every spatial SQL block, each block runs in a fresh connection, and never
 state an output in a comment without having run the query, the check proves
 blocks execute, not that quoted numbers are true.
 
-Publishing a built catalog to Source Cooperative needs `s5cmd` on PATH as well,
-and credentials that the Source Cooperative data proxy issued, in
+Publishing a built catalog to Source Cooperative needs credentials that the
+Source Cooperative data proxy issued, in
 `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`. The proxy
 seals the credentials it issues, so they work against `https://data.source.coop`
-and nowhere else. Always dry-run first, the sync deletes what the local tree
-does not have.
+and nowhere else. The Amazon Web Services (AWS) CLI comes from the script's
+own dependency header, so you install nothing else. Always dry-run first, the sync deletes what
+the local tree does not have.
 
 ```bash
 uv run examples/tools/publish_catalogs.py --list                     # the publishable stems
@@ -368,8 +369,8 @@ result to the `portolan-mirrors/portolan-spec-examples` product on Source Cooper
 `examples/tools/publish_catalogs.py`, so an example is readable at a real URL rather
 than only in git. It runs when a manifest, a generator module, or a committed
 rebuild lands on main, on every pull request, and on demand for one catalog or
-as a dry run. Transfers go through `s5cmd`, which handles a tree of many small
-JSON files far better than the AWS CLI. Nothing reaches a public URL
+as a dry run. Transfers go through the AWS CLI, pinned in the script's header
+and run as `python -m awscli`. Nothing reaches a public URL
 unvalidated, the same `check_catalogs.py` gate runs between the build and the
 upload, and afterwards the published `catalog.json` is refetched over HTTPS and
 its `id` checked.
@@ -388,20 +389,36 @@ account `portolan-mirrors--spec-examples`. The role is
 keep `environment: source-coop`, and a rename there breaks the sign-in. The
 repository stores no keys, and the `SOURCE_COOP_ACCESS_KEY_ID` and
 `SOURCE_COOP_SECRET_ACCESS_KEY` environment secrets are no longer read. The
-credentials last one hour and s5cmd does not renew them, so the publish job
-signs in after the build, right before the upload.
+credentials last one hour and nothing renews them, so the publish job signs in
+after the build, right before the upload.
 
-The credentials work only against the data proxy, so s5cmd talks to the proxy
-too. It gets `--endpoint-url https://data.source.coop/portolan-mirrors`, the
-account folded into the endpoint, and the bucket is the product,
-`s3://portolan-spec-examples/<id>/<namespace>/`. The obvious form,
-`s3://portolan-mirrors/portolan-spec-examples/<id>/` against the bare proxy,
-uploads fine and then fails on the first delete. s5cmd sends a batch delete to
-`POST /<bucket>?delete`, and the proxy maps a request to a product only when the
-path starts with `/<account>/<product>`. It answers `POST /portolan-mirrors?delete`
-with `NoSuchBucket`. Both `sync --delete` and the teardown batch delete. s5cmd
-uses path-style addressing for any custom endpoint, and never reads
-`AWS_ENDPOINT_URL`, so `publish_catalogs.py` passes the flag itself.
+The credentials work only against the data proxy, so every transfer goes to
+`https://data.source.coop`. Through the proxy the account is the S3 bucket and
+the product is the first key segment, so a preview is at
+`s3://portolan-mirrors/portolan-spec-examples/<id>/PRs/<n>/`, the same path as
+its public URL. The proxy behaviours below fix that choice, and each one rules
+out s5cmd, which published here before.
+
+- The proxy's list response carries keys relative to the account,
+  `portolan-spec-examples/<id>/<rest>`, even when the product is in the URL path.
+  With the product as the bucket, a client reads every key as outside its
+  prefix. s5cmd then sees an empty remote, so `sync --delete` would keep stale
+  files and the teardown would delete nothing and pass.
+- A batch delete under the account alone, `POST /portolan-mirrors?delete`, gets
+  `NoSuchBucket`. s5cmd deletes only in batches. The AWS CLI deletes one object
+  at a time, at `/portolan-mirrors/portolan-spec-examples/<key>`, which maps.
+- The proxy forwards a plain PutObject to S3 on a presigned URL that signs
+  only the host, and S3 refused all 134 s5cmd uploads with "There were headers present
+  in the request which were not signed". The AWS CLI sends each upload
+  `aws-chunked`, which the proxy re-signs with its headers.
+  `publish_catalogs.py` pins `AWS_REQUEST_CHECKSUM_CALCULATION=when_supported`
+  for that reason.
+
+`publish_catalogs.py` does not trust a listing. It fails on a malformed one or
+one with keys outside the prefix, before a sync and before a teardown. After a
+sync the remote keys must equal the built files, and after a teardown the
+prefix must list empty. `check_publish_proxy.py` runs the real sync and
+teardown against a local stand-in that routes the way the proxy does.
 
 | git context | published prefix |
 | --- | --- |
