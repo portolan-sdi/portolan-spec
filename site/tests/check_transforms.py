@@ -156,15 +156,17 @@ def check_links():
             'href="https://github.com/portolan-sdi/portolan-spec/blob/v0.2.0/stac/check.py"'
             in rewritten
         )
-        assert "raw.githubusercontent.com" in build.rewrite_links(
-            "![map](examples/map.png)", resolve
-        )
-        assert "raw.githubusercontent.com" in build.rewrite_links(
+        raw_map = "https://raw.githubusercontent.com/portolan-sdi/portolan-spec/v0.2.0/stac/examples/map.png"
+        assert raw_map in build.rewrite_links("![map](examples/map.png)", resolve)
+        assert raw_map in build.rewrite_links(
             "![map][image]\n\n[image]: examples/map.png", resolve
         )
-        assert "raw.githubusercontent.com" in resolve(
-            "https://github.com/portolan-sdi/portolan-spec/blob/v0.2.0/stac/examples/map.png",
-            image=True,
+        assert (
+            resolve(
+                "https://github.com/portolan-sdi/portolan-spec/blob/v0.2.0/stac/examples/map.png",
+                image=True,
+            )
+            == raw_map
         )
         fails(
             lambda: resolve("../../escape.md"),
