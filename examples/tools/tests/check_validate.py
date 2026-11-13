@@ -124,6 +124,18 @@ def check_s3_href_without_https_alternate_flagged() -> None:
     assert _errors(s3_only), "an alternate with no https href should be flagged"
     http = _with_data_href("http://example.org/us-counties.parquet")
     assert _errors(http), "an http href with no alternate should be flagged"
+    # A URI with any scheme is absolute, with or without "//". STAC hrefs
+    # are URIs, so a drive path such as C:/x has the scheme "c".
+    for href in ("file:/tmp/us-counties.parquet", "C:/data/us-counties.parquet"):
+        obj = _with_data_href(href)
+        assert _errors(obj), f"{href!r} with no alternate should be flagged"
+    # The https alternate needs a nonempty host.
+    for alt in ("https://:443/us-counties.parquet", "https:///us-counties.parquet"):
+        obj = _with_data_href(
+            "s3://example-bucket/us-counties.parquet",
+            alternate={"https": {"href": alt}},
+        )
+        assert _errors(obj), f"alternate {alt!r} has no host and should be flagged"
 
 
 def check_partition_glob_bucket_url_passes() -> None:
@@ -147,20 +159,25 @@ def check_partition_glob_unlistable_flagged() -> None:
 
 
 def check_data_href_single_file_passes() -> None:
-    # PORTO-FMT-065: a query string and an IPv6 host are not globs.
-    for href in (
-        "./us-counties.parquet?version=2",
-        "https://[2001:db8::1]:8443/us-counties.parquet",
-    ):
-        obj = _with_data_href(href)
-        assert _errors(obj) == [], (href, _errors(obj))
+    # PORTO-FMT-065: a query string is allowed.
+    obj = _with_data_href("./us-counties.parquet?version=2")
+    assert _errors(obj) == [], _errors(obj)
+    # A source asset is an upstream original, exempt from the format rules.
+    obj = _load(VECTOR)
+    obj["assets"]["upstream"] = {
+        "href": "https://upstream.example.org/counties/*.parquet",
+        "type": "application/vnd.apache.parquet",
+        "roles": ["data", "source"],
+    }
+    assert _errors(obj) == [], _errors(obj)
 
 
 def check_data_href_glob_flagged() -> None:
     for href in (
         "./*.parquet",
         "./part-[0-9].parquet",
-        "https://[2001:db8::1]/part-[0-9].parquet",
+        # The rule has no IPv6 exception, so a bracketed host fails too.
+        "https://[2001:db8::1]/us-counties.parquet",
     ):
         obj = _with_data_href(href)
         assert _errors(obj), f"data href {href!r} should be flagged"
@@ -177,6 +194,32 @@ def check_pmtiles_without_visual_flagged() -> None:
     assert _errors(obj) == [], _errors(obj)
     pmtiles[0]["roles"] = ["data"]
     assert _errors(obj), "a PMTiles asset without visual should be flagged"
+    by_href = _load(VECTOR)
+    by_href["assets"]["tiles"] = {
+        "href": "./tiles.PMTiles?version=2",
+        "type": "application/octet-stream",
+        "roles": ["data"],
+    }
+    assert _errors(by_href), "a .pmtiles href without visual should be flagged"
+
+
+def check_pmtiles_rule_scope_passes() -> None:
+    # A source asset is exempt from the format rules (PORTO-FMT-045).
+    obj = _load(VECTOR)
+    obj["assets"]["upstream-tiles"] = {
+        "href": "https://upstream.example.org/counties.pmtiles",
+        "type": "application/vnd.pmtiles",
+        "roles": ["source"],
+    }
+    assert _errors(obj) == [], _errors(obj)
+    # Only the href path names the file type, not the query or fragment.
+    for href in (
+        "./sample-cog.tif?cache_key=original.pmtiles",
+        "./sample-cog.tif#original.pmtiles",
+    ):
+        raster = _load(RASTER)
+        raster["assets"]["data"]["href"] = href
+        assert _errors(raster) == [], (href, _errors(raster))
 
 
 def check_item_without_data_asset_flagged() -> None:
@@ -208,6 +251,11 @@ def check_band_classes_pass() -> None:
     del data["bands"][0]["classification:classes"]
     data["classification:classes"] = _classes("Water", "Land")
     assert _errors(obj) == [], _errors(obj)
+    # A source asset is exempt from the format rules (PORTO-FMT-045).
+    source = _load(RASTER)
+    source["assets"]["source"]["classification:classes"] = [{"value": 1, "name": "a"}]
+    source["assets"]["source"]["raster:bands"] = [{}, {}]
+    assert _errors(source) == [], _errors(source)
 
 
 def check_misplaced_or_untitled_classes_flagged() -> None:
@@ -226,6 +274,22 @@ def check_misplaced_or_untitled_classes_flagged() -> None:
     band["classification:classes"] = _classes("Water")
     del band["classification:classes"][0]["title"]
     assert _errors(untitled), "a class with no title should be flagged"
+
+    # Class lists go in STAC 1.1 bands, never in legacy raster:bands.
+    legacy = _load(RASTER)
+    legacy["assets"]["data"]["raster:bands"] = [
+        {"classification:classes": _classes("Water")}, {}, {},
+    ]
+    assert _errors(legacy), "classes in raster:bands should be flagged"
+    template = _load(RASTER)
+    template["item_assets"] = {
+        "data": {
+            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            "roles": ["data"],
+            "raster:bands": [{"classification:classes": _classes("Water")}],
+        }
+    }
+    assert _errors(template), "classes in item_assets raster:bands should be flagged"
 
 
 class _FakeLocator:
@@ -279,6 +343,7 @@ CHECKS = [
     check_data_href_single_file_passes,
     check_data_href_glob_flagged,
     check_pmtiles_without_visual_flagged,
+    check_pmtiles_rule_scope_passes,
     check_item_without_data_asset_flagged,
     check_band_classes_pass,
     check_misplaced_or_untitled_classes_flagged,
