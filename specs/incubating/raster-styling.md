@@ -12,7 +12,10 @@ Open questions:
 - **Colormaps** — how a continuous raster's color ramp is declared so a client can
   colorize it at draw time (e.g. via the STAC `render` extension and the required
   min/max statistics).
-- **Legends** — how a categorical raster maps pixel values to labels and colors.
+- **Legends** — how a categorical raster maps pixel values to labels and colors. The
+  vector side has a proposed answer in
+  [`maplibre-legend.md`](maplibre-legend.md), which a raster convention could follow
+  or deliberately diverge from.
 - **Continuous vs. categorical vs. multiband** — whether these need distinct style
   representations, and how a client tells them apart.
 
