@@ -4,7 +4,7 @@
 # ///
 """Measure pruning efficiency for a corpus of Parquet files.
 
-The script implements the spatial-order rule in formats.md from footers.
+The script implements the spatial-order method in specs/incubating/spatial-order.md from footers.
 It chooses row group i with probability rows_i / N.
 It places the query window's center uniformly within that group's box.
 The window spans 10% of each box dimension.
@@ -15,8 +15,8 @@ The ``--self-test`` option checks every layout vector in
 
 Usage::
 
-    uv run specs/portolan/abstract-tests/calibration/measure.py <dir> --out results.csv
-    uv run specs/portolan/abstract-tests/calibration/measure.py --self-test
+    uv run specs/incubating/spatial-order/calibration/measure.py <dir> --out results.csv
+    uv run specs/incubating/spatial-order/calibration/measure.py --self-test
 """
 
 from __future__ import annotations
@@ -255,7 +255,7 @@ def extent_window_efficiency(boxes: list[Box]) -> float | None:
 
 
 def verdict(count: int, size: int, efficiency: float | None) -> str:
-    """Return the footer verdict under the spatial-order rule in formats.md.
+    """Return the footer verdict under the spatial-order method in specs/incubating/spatial-order.md.
 
     A file with eight or more row groups and a defined efficiency takes the
     footer check. Every other file takes the row check. ``size`` is unused
@@ -268,7 +268,7 @@ def verdict(count: int, size: int, efficiency: float | None) -> str:
 
 
 def row_chunks(boxes: list) -> tuple[list[Box], list[float]]:
-    """Split per-row boxes into the PORTO-FMT-006 chunks. None marks a row without a box."""
+    """Split per-row boxes into the row-check chunks. None marks a row without a box."""
     n = len(boxes)
     chunks: list[Box] = []
     rows: list[float] = []
@@ -282,7 +282,7 @@ def row_chunks(boxes: list) -> tuple[list[Box], list[float]]:
 
 
 def row_verdict(n_rows: int, efficiency: float | None) -> str:
-    """Return the row-check verdict under the spatial-order rule in formats.md."""
+    """Return the row-check verdict under the spatial-order method in specs/incubating/spatial-order.md."""
     if n_rows < ROW_FLOOR:
         return "too-few-rows"
     if efficiency is None:

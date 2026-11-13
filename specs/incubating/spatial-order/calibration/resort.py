@@ -17,7 +17,7 @@ Use ``uv tool install geoparquet-io`` to install it.
 
 Usage::
 
-    uv run specs/portolan/abstract-tests/calibration/resort.py results.csv \\
+    uv run specs/incubating/spatial-order/calibration/resort.py results.csv \\
         --out resort.csv --below 0.80 --max-bytes 300000000
 """
 

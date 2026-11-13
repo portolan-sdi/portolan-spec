@@ -5,7 +5,7 @@ sort control below. It replaces the 0.70 bar from the earlier extent-window
 draft with 0.65. The row-check calibration on 2026-11-13 supports the two
 verdict paths.
 
-The [spatial-order rule](../../formats.md) uses pruning efficiency to compare
+The [spatial-order method](../../spatial-order.md) uses pruning efficiency to compare
 how much data a reader can skip with a reference grid.
 A row group is a set of rows that Parquet stores together.
 The reference grid divides the file's extent into cells for comparison.
@@ -29,7 +29,7 @@ data Parquet files per collection. It read file footers through HTTP range
 requests. The command was:
 
 ```bash
-uv run specs/portolan/abstract-tests/calibration/measure.py --registry <portolan-registry checkout> --per-collection 3
+uv run specs/incubating/spatial-order/calibration/measure.py --registry <portolan-registry checkout> --per-collection 3
 ```
 
 The results are in `results-registry-2026-11.csv` in
@@ -70,7 +70,7 @@ It selected files with a score under 0.85 and a compressed size under
 The command was:
 
 ```bash
-uv run specs/portolan/abstract-tests/calibration/resort.py results-registry-2026-11.csv --below 0.85 --max-bytes 300000000
+uv run specs/incubating/spatial-order/calibration/resort.py results-registry-2026-11.csv --below 0.85 --max-bytes 300000000
 ```
 
 The results are in `resort-registry-2026-11.csv` in the same gist.
@@ -191,14 +191,14 @@ It reads only footers and writes one CSV row per file.
 For a local corpus, use:
 
 ```bash
-uv run specs/portolan/abstract-tests/calibration/measure.py <directory> --out results.csv
+uv run specs/incubating/spatial-order/calibration/measure.py <directory> --out results.csv
 ```
 
 For a registry checkout, use `--registry` as in the survey command.
 The script records the file's row-group count and compressed bytes.
 It also records the achieved and achievable skip rates, efficiency, and area
 sum. The skip rate is the share of bytes that a query avoids.
-The achievable rate is the reference grid's rate.
+The achievable rate is the skip rate of the reference grid.
 The area sum divides the sum of box areas by the extent's area.
 The script writes `no-statistics` in `note` when a file lacks per-row-group
 spatial statistics.
@@ -214,7 +214,7 @@ To check the formula implementation against
 [`../spatial-metric-vectors.json`](../spatial-metric-vectors.json), run:
 
 ```bash
-uv run specs/portolan/abstract-tests/calibration/measure.py --self-test
+uv run specs/incubating/spatial-order/calibration/measure.py --self-test
 ```
 
 To propose another bar or floor, open a pull request that changes the
