@@ -1212,10 +1212,9 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      To allow clients to show the whole mosaic without loading every item,
-      collections containing spatial mosaics SHOULD provide an
-      overview COG (subject to all the COG requirements in this section) as a
-      collection-level asset with the `visual` and `overview` roles.
+      Collections of multiple rasters (i.e., two or more) that share the same
+      bands and belong to the same time period, but together cover an area much
+      larger than that of any individual item, SHOULD provide an overview COG.
 
   - id: PORTO-FMT-068
     severity: SHOULD

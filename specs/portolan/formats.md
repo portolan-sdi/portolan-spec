@@ -236,18 +236,20 @@ The exact on-disk encoding (the TIFF `GDAL_METADATA` tag and its XML layout, and
 [`specs/incubating/geotiff-stats-headers.md`](../incubating/geotiff-stats-headers.md).
 Compliance is defined by the tag contents, not by use of GDAL.
 
-**Spatial mosaics.** A spatial mosaic is a set of raster items that share the
-same bands and belong to the same time period, but together cover an area much
-larger than that of any individual item. To allow clients to show the whole
-mosaic without loading every item, collections containing spatial
-mosaics SHOULD provide an overview COG (subject to all the COG requirements in
-this section) as a collection-level asset with the `visual` and `overview`
-roles. Because the overview is mostly to help users understand what areas the
+**Spatial mosaics.** Collections of multiple rasters (i.e., two or more) that
+share the same bands and belong to the same time period, but together cover an
+area much larger than that of any individual item, SHOULD provide an overview
+COG. The overview COG is subject to all the COG requirements in this section and
+should be included as a collection-level asset with the `visual` and `overview`
+roles. This allows clients to show the whole mosaic without loading every item.
+Because the overview is mostly to help users understand what areas the
 collection covers, it can simply show the most recent or least cloudy items;
 complex pixel processing is not required.
 
 The overview SHOULD be an 8-bit RGB image, with an optional alpha band. It
 SHOULD use a projection that suits web maps, such as Web Mercator (EPSG:3857).
+The overview needs sufficient resolution to show what area the items cover, but
+does not need to have the full resolution of the items themselves.
 
 Collections with mosaics for several time periods SHOULD provide an overview
 for at least the most recent mosaic. They MAY provide an overview for each of
