@@ -11,31 +11,71 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Added
 
+- **Collections of multiple rasters should have an overview COG**
+  (`PORTO-FMT-067` through `PORTO-FMT-072`). This applies to two or more
+  rasters with the same bands and time period that together cover a much
+  larger area than any one item. The overview is an 8-bit RGB COG in a web map
+  projection. Collections with mosaics for several time periods should have an
+  overview for the most recent one (#114).
+
+- **Imagery scenes should declare nodata and use valid-data footprints**
+  (`PORTO-FMT-073`, `PORTO-FMT-074`). Clients then do not draw empty pixels
+  as black (#114).
+
+- **Table columns should have descriptions** (`PORTO-FMT-077` through
+  `PORTO-FMT-079`). Every `table:columns` entry should include a
+  `description`. A mirror whose source has no column descriptions should note
+  this in the collection's `README.md`. Publishers should not include
+  placeholder descriptions.
+
 - **Classified rasters describe their classes with the classification
-  extension** (`PORTO-FMT-049` to `PORTO-FMT-060`,
+  extension** (`PORTO-FMT-049` to `PORTO-FMT-059`,
   [`specs/portolan/formats.md`](specs/portolan/formats.md#raster)).
-  A raster whose pixels are categories SHOULD carry `classification:classes`
-  from the STAC classification extension. The class list MUST sit on the data
-  asset for a single-band raster and on the band in STAC 1.1 `bands` for a
-  multiband raster, next to `nodata`. The extension defines the class object,
-  and Portolan adds that each class MUST carry a `title`. The color table
-  embedded in the COG stays authoritative for rendering, so a `color_hint`
-  SHOULD match it. A class marked `nodata` MUST use the `nodata` value of its
-  asset or band, a class with that value MUST be marked `nodata`, and clients
-  draw it transparent and leave it out of the legend. Continuous rasters carry no classes, and
-  their styling is still under discussion (#41).
-- **Requirements manifest**: 146 requirements, now 98 MUST, 29 SHOULD, and
-  19 MAY.
+  A raster whose pixels are categories should list its classes in
+  `classification:classes` from the STAC classification extension. The list
+  goes on the data asset for a single-band raster and on the band in STAC 1.1
+  `bands` for a multi-band raster, next to `nodata`. Each class must have a
+  `title`. The color table embedded in the COG is authoritative for
+  rendering, so a `color_hint` should match it. A class is marked
+  `nodata: true` if and only if its value is the `nodata` value of its asset
+  or band. Clients draw that class transparent and leave it out of the
+  legend. Continuous rasters have no classes, and their styling is still
+  under discussion (#41).
 
 ### Changed
+
+- **Asset hrefs can use `s3://` and other schemes with an https alternate**
+  (`PORTO-CORE-023`, `PORTO-CORE-087`). Absolute hrefs should use https.
+  Other schemes need an https `alternate` for the same data (#213).
+
+- **Assets should have a `title` and a `description`** (`PORTO-CORE-088`).
+  The spec recommended them before. Now they are a SHOULD (#240).
+
+- **Metadata-only hosts no longer need range support**
+  (`PORTO-CORE-043`, `PORTO-CORE-045`, `PORTO-CORE-073`, `PORTO-CORE-086`).
+  Range requests and range-related CORS now apply only to COG, Parquet,
+  PMTiles, and COPC files, listed by media type. CORS still applies to all
+  metadata and asset files. Servers no longer need to expose `Content-Type`
+  and `Content-Length` (#183).
 
 - **Tabular bounding boxes have regional examples**. Use the bounds of Europe
   for a table about Europe, or the country's bounds for a tabular collection
   in a country catalog (#198).
 
-- **Partition globs cannot use HTTP or HTTPS** (`PORTO-FMT-064`). Readers
-  need to list the files that match a glob. Plain HTTP does not support
-  file listing (#166).
+- **Partition globs must be absolute URLs that clients can list**
+  (`PORTO-FMT-064`, `PORTO-FMT-075`). Readers need to list the files that
+  match a glob. HTTP URLs and relative paths cannot be listed. Globs should
+  use `s3://`, `gs://`, or `az://`. This breaks catalogs with
+  relative globs, 9 of 37 registry collections in October 2026. To fix one,
+  replace the relative glob with the absolute bucket URL (#166, #216).
+
+- **Data asset paths cannot contain globs** (`PORTO-FMT-065`). Each data
+  asset links to one file. The rule applies to every data asset, not only
+  partitioned collections (#216).
+
+- **S3-compatible servers outside AWS should be described with the STAC
+  storage extension** (`PORTO-FMT-066`). Without it, clients assume Amazon
+  S3. Set `type` to `custom-s3` (#216).
 
 - **The STAC profile uses Contacts v1.0.0** instead of v0.1.1
   (#53, part 7a).
@@ -74,6 +114,9 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
+- **Requirements manifest**: 161 requirements, now 99 MUST, 43 SHOULD, and
+  19 MAY.
+
 - **PMTiles assets need the `visual` role and a reference to their source
   GeoParquet data in the same collection** (`PORTO-FMT-062`). Use an asset
   with the `data` role or `partition:glob` for the reference. PMTiles alone
@@ -86,6 +129,9 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   guidance on how to build a catalog. It is now the `catalog-grader` skill in
   [portolan-skills](https://github.com/portolan-sdi/portolan-skills), where it
   runs and can be tested. No requirement changes.
+
+- **`PORTO-FMT-020` is retired.** It allowed bucket schemes such as `s3://`
+  for partition globs. `PORTO-FMT-064` now requires them (#216).
 
 ## 0.2.0 - 2026-08-28
 

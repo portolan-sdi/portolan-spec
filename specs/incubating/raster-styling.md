@@ -13,8 +13,10 @@ Open questions:
   colorize it at draw time (e.g. via the STAC `render` extension and the required
   min/max statistics).
 - **Legends** (settled for categorical rasters). A classified raster lists its
-  classes in `classification:classes`, on the asset for one band and on the band
-  for more, and its embedded color table stays authoritative. See [Raster](../portolan/formats.md#raster) in formats.
+  classes in `classification:classes`. This is done at the asset level when the
+  raster has one band, and at the band level when it has more than one band.
+  The raster's embedded color table is authoritative. See
+  [Raster](../portolan/formats.md#raster) in formats.
 - **Continuous vs. categorical vs. multiband** — whether these need distinct style
   representations, and how a client tells them apart.
 
