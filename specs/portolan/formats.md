@@ -32,11 +32,20 @@ files, which gives an Iceberg engine a second way to read them. That convention 
 recorded in [Iceberg](../incubating/iceberg.md). It is optional and adds no
 requirement to this document.
 
-### GeoParquet
+### Parquet
 
-Data MUST be provided in GeoParquet 1.1 or 2.0, following the [Best Practices for
-Distributing GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so it can be
-queried without a server. Files SHOULD be compressed to stay small, with `zstd`
+Publishers MUST provide data as [GeoParquet 1.1](https://geoparquet.org/releases/v1.1.0/),
+[GeoParquet 2.0](https://geoparquet.org/releases/v2.0.0/), or Parquet with native
+[`GEOMETRY` or `GEOGRAPHY`](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
+logical types.
+Publishers SHOULD use GeoParquet 2.0 when their tools can write it. It adds the
+`geo` metadata to the native types, and the `geo` metadata holds the CRS as
+PROJJSON. A file without a `geo` key SHOULD give the CRS of each geometry
+column as inline PROJJSON or a `projjson:<key>` reference in the native `crs`
+field. Readers can then resolve the CRS from the file alone.
+Publishers SHOULD follow the [Best Practices for Distributing
+GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so readers can query
+the data without a server. Files SHOULD be compressed to stay small, with `zstd`
 RECOMMENDED.
 
 Rows MUST be spatially ordered so nearby features are nearby in the file. This rule
@@ -78,11 +87,13 @@ from metadata alone — either:
 
 - a GeoParquet 1.1 `bbox` covering column with Parquet min/max statistics on its
   leaf fields (a `bbox` column without statistics does not qualify); or
-- for GeoParquet 2.x / Parquet `GEOMETRY`, native `GeospatialStatistics` per
-  geometry column chunk.
+- for GeoParquet 2.x / Parquet `GEOMETRY` or `GEOGRAPHY`, native
+  `GeospatialStatistics` per geometry column chunk.
 
-For 2.x, a covering column remains RECOMMENDED even where native statistics exist,
-since it adds page-level min/max stats that enable finer-grained pruning.
+For GeoParquet 2.x, a covering column remains RECOMMENDED even where native
+statistics exist, since it adds page-level min/max stats that enable
+finer-grained pruning. A file without a `geo` key cannot declare a covering
+column, so native statistics alone meet the preceding requirement.
 
 Row groups MUST hold no more than 150,000 rows.
 
