@@ -840,6 +840,13 @@ requirements:
       catalog's own cloud-native assets and MUST NOT fail an asset for its
       format because it carries the `source` role.
 
+  - id: PORTO-FMT-065
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Its `href` MUST NOT contain `*` or `[`. It MAY include a query string.
+
   - id: PORTO-FMT-004
     severity: MUST
     enforcement: validator
@@ -992,61 +999,74 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Partitioning MUST be described per the [partition
+      Partitioning MUST follow the [partition
       extension](https://github.com/portolan-sdi/stac-partition-extension)
-      (v1.0.0), with its schema declared in `stac_extensions` and its
-      required fields carried — `partition:scheme`, `partition:keys`, and
-      `partition:glob`.
+      v1.0.0.
 
   - id: PORTO-FMT-018
     severity: MUST
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      For a spatial scheme (`kdtree`, `h3`, `s2`, `quadkey`, or `a5`), file
-      paths MUST indicate each file's geographic extent.
+      For spatial schemes (`kdtree`, `h3`, `s2`, `quadkey`, or `a5`), each
+      file's path MUST show the area it covers, so that readers can skip files
+      without opening them.
+
+  # PORTO-FMT-020 (bucket-native schemes such as s3:// and gs:// MAY be used
+  # for partition:glob) is retired. PORTO-FMT-064 now requires an absolute
+  # URL with a scheme that supports listing, and PORTO-FMT-075 recommends
+  # s3://, gs://, or az:// (#216).
+  - id: PORTO-FMT-064
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Because clients can't list files from a relative path or an `http://`
+      or `https://` URL, `partition:glob` MUST be an absolute URL with a
+      scheme that supports listing.
+
+  - id: PORTO-FMT-075
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Publishers SHOULD use `s3://`, `gs://`, or `az://`, which DuckDB, GDAL,
+      and fsspec all support.
 
   - id: PORTO-FMT-019
     severity: SHOULD
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      The collection description SHOULD also include the glob for human
-      readers.
+      Publishers SHOULD also put the glob URL in the collection's
+      `description`.
 
-  - id: PORTO-FMT-020
-    severity: MAY
-    enforcement: validator
+  - id: PORTO-FMT-066
+    severity: SHOULD
+    enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      Bucket-native schemes (`s3://`, `gs://`) MAY be used when
-      partition-aware readers need them.
-
-  - id: PORTO-FMT-064
-    severity: MUST
-    enforcement: validator
-    file: specs/portolan/formats.md
-    quote: >-
-      `partition:glob` MUST NOT use `http://` or `https://`.
+      For other S3-compatible services, such as Cloudflare R2 or MinIO,
+      publishers SHOULD add a `storage:schemes` entry from the [STAC Storage
+      Extension](https://github.com/stac-extensions/storage) v2.0.0.
 
   - id: PORTO-FMT-021
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Every partition file MUST share a single Parquet schema — the same
-      columns, names, and types — so the glob can be queried as one table.
-      This is validated by tooling reading file footers, not by JSON schema.
+      Every partition file MUST have the same Parquet schema, with the same
+      columns, names, and types.
 
   - id: PORTO-FMT-022
     severity: SHOULD
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
-      Partition files MAY be represented as items when partitions are
-      user-meaningful units (countries, regions); for opaque schemes
-      (hilbert, s2, h3) or hundreds of partitions, items SHOULD NOT be
-      created — the glob pattern is the access path.
+      Partition files MAY be items when each partition has a clear meaning to
+      users, such as one file per country. For schemes whose partitions mean
+      nothing to users (such as hilbert, s2, or h3), or for hundreds of
+      partitions, publishers SHOULD NOT create items.
 
   - id: PORTO-FMT-023
     severity: MUST

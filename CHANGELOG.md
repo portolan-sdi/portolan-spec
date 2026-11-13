@@ -42,9 +42,20 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   for a table about Europe, or the country's bounds for a tabular collection
   in a country catalog (#198).
 
-- **Partition globs cannot use HTTP or HTTPS** (`PORTO-FMT-064`). Readers
-  need to list the files that match a glob. Plain HTTP does not support
-  file listing (#166).
+- **Partition globs must be absolute URLs that clients can list**
+  (`PORTO-FMT-064`, `PORTO-FMT-075`). Readers need to list the files that
+  match a glob. HTTP URLs and relative paths cannot be listed. Globs should
+  use `s3://`, `gs://`, or `az://`. This breaks catalogs with
+  relative globs, 9 of 37 registry collections in October 2026. To fix one,
+  replace the relative glob with the absolute bucket URL (#166, #216).
+
+- **Data asset paths cannot contain globs** (`PORTO-FMT-065`). Each data
+  asset links to one file. The rule applies to every data asset, not only
+  partitioned collections (#216).
+
+- **S3-compatible servers outside AWS should be described with the STAC
+  storage extension** (`PORTO-FMT-066`). Without it, clients assume Amazon
+  S3. Set `type` to `custom-s3` (#216).
 
 - **The STAC profile uses Contacts v1.0.0** instead of v0.1.1
   (#53, part 7a).
@@ -83,8 +94,8 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 146 requirements, now 95 MUST, 32 SHOULD, and
-  19 MAY.
+- **Requirements manifest**: 148 requirements, now 96 MUST, 34 SHOULD, and
+  18 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source
   GeoParquet data in the same collection** (`PORTO-FMT-062`). Use an asset
@@ -98,6 +109,9 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   guidance on how to build a catalog. It is now the `catalog-grader` skill in
   [portolan-skills](https://github.com/portolan-sdi/portolan-skills), where it
   runs and can be tested. No requirement changes.
+
+- **`PORTO-FMT-020` is retired.** It allowed bucket schemes such as `s3://`
+  for partition globs. `PORTO-FMT-064` now requires them (#216).
 
 ## 0.2.0 - 2026-08-28
 

@@ -16,6 +16,10 @@ The requirements in this document apply to the catalog's own cloud-native assets
 
 A validator MUST apply the format requirements in this document to the catalog's own cloud-native assets and MUST NOT fail an asset for its format because it carries the `source` role. The `source` role identifies provenance, not hosting. The Data Storage requirements in core.md apply according to who hosts the bytes, as specified there, regardless of the roles an asset carries.
 
+Each data asset links to only one file. Its `href` MUST NOT contain `*` or `[`.
+It MAY include a query string. To link to many files, use `partition:glob` (see
+[Partitioned Collections](#partitioned-collections)).
+
 ## Vector
 
 Vector has no single complete cloud-native format yet, so Portolan pairs two strong
@@ -132,30 +136,37 @@ PMTiles file (typically `../filename.pmtiles`), and `layers[].source` to `"data"
 
 ### Partitioned Collections
 
-Large files MAY be partitioned. Partitioning MUST be described per the
+Large files MAY be partitioned. Partitioning MUST follow the
 [partition extension](https://github.com/portolan-sdi/stac-partition-extension)
-(v1.0.0), with its schema declared in `stac_extensions` and its required fields
-carried — `partition:scheme`, `partition:keys`, and `partition:glob`. Field
-definitions live in the extension and are not restated here. Portolan adds the
-requirements the extension does not cover:
+v1.0.0. Declare its schema in `stac_extensions`, and set `partition:scheme`,
+`partition:keys`, and `partition:glob` (see the extension for the definition of
+these fields).
 
-- For a spatial scheme (`kdtree`, `h3`, `s2`, `quadkey`, or `a5`), file paths
-  MUST indicate each file's geographic extent. Readers can then skip files
-  without reading their metadata. Paths for `temporal` and `attribute`
-  partitions do not need to indicate spatial extent.
-- Use `partition:glob` for bulk access. The collection description SHOULD
-  also include the glob for human readers. Validators read the field only.
-- Bucket-native schemes (`s3://`, `gs://`) MAY be used when partition-aware
-  readers need them. These readers need to list the files that match the glob.
-- `partition:glob` MUST NOT use `http://` or `https://`. Plain HTTP does not
-  support listing the files that match a glob.
-- Every partition file MUST share a single Parquet schema — the same columns,
-  names, and types — so the glob can be queried as one table. This is validated
-  by tooling reading file footers, not by JSON schema.
+For spatial schemes (`kdtree`, `h3`, `s2`, `quadkey`, or `a5`), each file's
+path MUST show the area it covers, so that readers can skip files without
+opening them.
 
-Partition files MAY be represented as items when partitions are user-meaningful
-units (countries, regions); for opaque schemes (hilbert, s2, h3) or hundreds of
-partitions, items SHOULD NOT be created — the glob pattern is the access path.
+Clients read a partitioned dataset by listing the files in its bucket, then
+matching them against the glob. Because clients can't list files from a
+relative path or an `http://` or `https://` URL, `partition:glob` MUST be an
+absolute URL with a scheme that supports listing. Publishers SHOULD use
+`s3://`, `gs://`, or `az://`, which DuckDB, GDAL, and fsspec all support.
+Publishers SHOULD also put the glob URL in the collection's `description`.
+
+Clients assume an `s3://` URL refers to Amazon S3. For other S3-compatible
+services, such as Cloudflare R2 or MinIO, publishers SHOULD add a
+`storage:schemes` entry from the
+[STAC Storage Extension](https://github.com/stac-extensions/storage) v2.0.0.
+Set `type` to `custom-s3`, `platform` to the service's endpoint URL, and
+`bucket` to the bucket named in the glob.
+
+Every partition file MUST have the same Parquet schema, with the same columns,
+names, and types. Clients can then query the glob as one table.
+
+Partition files MAY be items when each partition has a clear meaning to users,
+such as one file per country. For schemes whose partitions mean nothing to
+users (such as hilbert, s2, or h3), or for hundreds of partitions, publishers
+SHOULD NOT create items.
 
 As a rough guide, consider partitioning files over ~2 GB, targeting 200 MB–1 GB per
 file — fewer, larger files outperform many small ones for DuckDB. This is not
