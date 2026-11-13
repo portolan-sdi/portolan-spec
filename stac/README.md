@@ -52,7 +52,7 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 | [Partition][] | `https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json`              | **MUST**    | Partitioned collections: `partition:scheme`, `partition:keys`, `partition:glob` (spec: Partitioned Collections) |
 | [Table][] | `https://stac-extensions.github.io/table/v1.2.0/schema.json`                | SHOULD      | Vector and tabular collections: document columns with `table:columns` |
 | [Alternate Assets][] | `https://stac-extensions.github.io/alternate-assets/v1.2.0/schema.json`     | SHOULD      | Expose `s3://` alternates for absolute `https` asset hrefs |
-| [Classification][] | `https://stac-extensions.github.io/classification/v2.0.0/schema.json`       | SHOULD      | Classified (categorical) rasters, with `classification:classes` on the band in `bands` (spec: Raster, Classified rasters) |
+| [Classification][] | `https://stac-extensions.github.io/classification/v2.0.0/schema.json`       | SHOULD      | Classified (categorical) rasters, with `classification:classes` on the asset for a single band and on the band in `bands` for multiband (spec: Raster, Classified rasters) |
 | [Render][] | `https://stac-extensions.github.io/render/v2.0.0/schema.json`               | SHOULD      | Continuous rasters rendering from source (draw-time colorization) |
 | [Projection][] | `https://stac-extensions.github.io/projection/v2.0.0/schema.json`           | MAY         | CRS / projection of the data |
 | [Scientific][] | `https://stac-extensions.github.io/scientific/v1.0.0/schema.json`           | MAY         | Citation / DOI |
@@ -153,7 +153,7 @@ Tracked in the specification and deliberately **not** settled by this schema:
 - [Root catalog](examples/catalog.json)
 - [Single-file vector collection](examples/vector-collection.json) — GeoParquet + PMTiles + style + thumbnail as collection-level assets
 - [Partitioned vector collection](examples/vector-partitioned-collection.json) and [partition item](examples/vector-partitioned-item.json)
-- [Classified raster collection](examples/raster-classified-collection.json), a flood classification in one COG, with `classification:classes` on the band
+- [Classified raster collection](examples/raster-classified-collection.json), a single-band flood classification in one COG, with `classification:classes` on the asset
 
 The files are stored flat in `examples/` for convenience, but their relative hrefs describe the specification's canonical directory layout (`{collection_id}/collection.json`, `{item_id}/item.json` beneath it) — so href targets such as `../catalog.json`, `AGENTS.md`, and the data files are illustrative and not present in this repository. The examples carry no `self` links and use relative structural hrefs, the portable layout the [git-backed best practices](../specs/best-practices/git-backed-catalogs.md) recommend for a tracked tree.
 

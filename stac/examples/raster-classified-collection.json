@@ -7,7 +7,7 @@
   ],
   "id": "valencia-2024",
   "title": "Flood classification, Valencia, Spain, October 2024 (GEP SAR Features, Sentinel-1)",
-  "description": "Flood classification over Valencia and l'Albufera after the 29 October 2024 DANA, from the GEP SAR Features service using Sentinel-1 backscatter and coherence. It is a single-COG collection with one discrete uint8 band with an embedded color table, 20 m, EPSG:32630. The class list sits on the band, and each color_hint matches the color table entry for its value.",
+  "description": "Flood classification over Valencia and l'Albufera after the 29 October 2024 DANA, from the GEP SAR Features service using Sentinel-1 backscatter and coherence. It is a single-COG collection with one discrete uint8 band with an embedded color table, 20 m, EPSG:32630. The raster has one band, so the class list sits on the asset, and each color_hint matches the color table entry for its value.",
   "license": "other",
   "keywords": [
     "flood",
@@ -63,43 +63,38 @@
       "roles": [
         "data"
       ],
-      "bands": [
+      "data_type": "uint8",
+      "nodata": 0,
+      "classification:classes": [
         {
-          "name": "band_1",
-          "data_type": "uint8",
-          "nodata": 0,
-          "classification:classes": [
-            {
-              "value": 0,
-              "name": "other",
-              "title": "Other",
-              "nodata": true
-            },
-            {
-              "value": 1,
-              "name": "urban",
-              "title": "Urban",
-              "color_hint": "000000"
-            },
-            {
-              "value": 2,
-              "name": "permanent-water",
-              "title": "Permanent water",
-              "color_hint": "0000FF"
-            },
-            {
-              "value": 3,
-              "name": "bare-soil-flood",
-              "title": "Flooded bare soil",
-              "color_hint": "00FF00"
-            },
-            {
-              "value": 4,
-              "name": "urban-flood",
-              "title": "Flooded urban area",
-              "color_hint": "00FFFF"
-            }
-          ]
+          "value": 0,
+          "name": "other",
+          "title": "Other",
+          "nodata": true
+        },
+        {
+          "value": 1,
+          "name": "urban",
+          "title": "Urban",
+          "color_hint": "000000"
+        },
+        {
+          "value": 2,
+          "name": "permanent-water",
+          "title": "Permanent water",
+          "color_hint": "0000FF"
+        },
+        {
+          "value": 3,
+          "name": "bare-soil-flood",
+          "title": "Flooded bare soil",
+          "color_hint": "00FF00"
+        },
+        {
+          "value": 4,
+          "name": "urban-flood",
+          "title": "Flooded urban area",
+          "color_hint": "00FFFF"
         }
       ]
     },

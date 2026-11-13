@@ -1137,8 +1137,9 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      The class list MUST sit on the band it describes, in the STAC 1.1
-      `bands` array of the data asset, next to that band's `nodata`.
+      The class list MUST sit on the data asset for a single-band raster, and
+      on the band it describes, in the STAC 1.1 `bands` array of the data
+      asset, for a multiband raster.
 
   - id: PORTO-FMT-051
     severity: SHOULD
@@ -1146,33 +1147,27 @@ requirements:
     file: specs/portolan/formats.md
     quote: >-
       A collection that models scenes as items SHOULD also carry the class
-      list on the matching band of its `item_assets` definition, so a client
-      can build a legend without opening an item.
+      list in the same place on its `item_assets` definition, so a client can
+      build a legend without opening an item.
 
+  # The classification extension defines `value`, `name`, and the format of
+  # `color_hint`. Portolan does not repeat those rules. PORTO-FMT-053 is not
+  # in use.
   - id: PORTO-FMT-052
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Each class MUST carry an integer `value`, a `name` that matches
-      `^[0-9A-Za-z-_]+$`, and a human-readable `title`.
-
-  - id: PORTO-FMT-053
-    severity: MUST
-    enforcement: validator
-    file: specs/portolan/formats.md
-    quote: >-
-      When present, it MUST be six hexadecimal digits with no leading `#`,
-      such as `0000FF`.
+      Each class MUST carry a human-readable `title`.
 
   - id: PORTO-FMT-054
-    severity: MUST
+    severity: SHOULD
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      When a band has both a color table and classes, each class
-      `color_hint` MUST equal the red, green, and blue components of the
-      color table entry for that class value.
+      When a classified band has a color table, each class `color_hint`
+      SHOULD equal the red, green, and blue components of the color table
+      entry for that class value.
 
   - id: PORTO-FMT-055
     severity: SHOULD
@@ -1195,15 +1190,16 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A class whose `nodata` is `true` MUST have the band's `nodata` value as
-      its `value`.
+      A class whose `nodata` is `true` MUST have as its `value` the `nodata`
+      value of the asset or band that carries the class list.
 
   - id: PORTO-FMT-060
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      A class whose value is the band's nodata MUST be marked `nodata: true`.
+      A class whose value is that `nodata` value MUST be marked `nodata:
+      true`.
 
   - id: PORTO-FMT-058
     severity: SHOULD

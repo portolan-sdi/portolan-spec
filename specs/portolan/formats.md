@@ -242,37 +242,43 @@ SHOULD describe its classes with `classification:classes` from the STAC
 [classification extension](https://github.com/stac-extensions/classification).
 Whether a raster is classified is the producer's declaration. An embedded color
 table alone does not make a raster classified, since continuous rasters such as
-water occurrence percentages also ship one. The
-class list MUST sit on the band it describes, in the STAC 1.1 `bands` array of the
-data asset, next to that band's `nodata`. A collection that models scenes as items
-SHOULD also carry the class list on the matching band of its `item_assets`
-definition, so a client can build a legend without opening an item.
+water occurrence percentages also ship one.
 
-Each class MUST carry an integer `value`, a `name` that matches `^[0-9A-Za-z-_]+$`,
-and a human-readable `title`. A `color_hint` is optional. When present, it MUST be
-six hexadecimal digits with no leading `#`, such as `0000FF`.
+The class list sits where the classification extension puts it. The class list
+MUST sit on the data asset for a single-band raster, and on the band it describes,
+in the STAC 1.1 `bands` array of the data asset, for a multiband raster. In both
+places the class list is next to the `nodata` value of the same object. A
+collection that models scenes as items SHOULD also carry the class list in the
+same place on its `item_assets` definition, so a client can build a legend without
+opening an item.
+
+The classification extension defines the class object, with its `value`, its
+`name`, and the format of its optional `color_hint`. Portolan adds one rule. Each
+class MUST carry a human-readable `title`.
 
 The color table embedded in the COG (the TIFF `ColorMap` tag) is authoritative for
 rendering, because any TIFF reader can draw it without reading STAC. The class list
-adds the names. When a band has both a color table and classes, each class
-`color_hint` MUST equal the red, green, and blue components of the color table
-entry for that class value. Software that reads the catalog SHOULD draw from the
-color table when the two differ. A tool that writes the metadata MAY fill a missing
-`color_hint` from the color table.
+adds the names. When a classified band has a color table, each class `color_hint`
+SHOULD equal the red, green, and blue components of the color table entry for that
+class value. Software that reads the catalog SHOULD draw from the color table when
+the two differ. A tool that writes the metadata MAY fill a missing `color_hint`
+from the color table.
 
-A class whose `nodata` is `true` MUST have the band's `nodata` value as its `value`.
-A class whose value is the band's nodata MUST be marked `nodata: true`.
+A class whose `nodata` is `true` MUST have as its `value` the `nodata` value of
+the asset or band that carries the class list. A class whose value is that
+`nodata` value MUST be marked `nodata: true`.
 Clients SHOULD draw that class transparent and SHOULD leave it out of a legend.
 
 A continuous raster, whose pixels are measurements such as elevation or
 temperature, SHOULD NOT carry `classification:classes`. How a continuous raster is
 colorized is still under discussion.
 
-The classification extension's v2.0.0 schema checks classes only under the older
-`raster:bands` field, not under STAC 1.1 `bands`. A validator applies the class rules
-in this section to `bands` directly. The [classified raster
-example](../../stac/examples/raster-classified-collection.json) shows a flood
-classification with five classes.
+The classification extension's v2.0.0 schema checks classes on the asset and under
+the older `raster:bands` field, not under STAC 1.1 `bands`. For a multiband raster,
+a validator applies the extension's class schema to `bands` directly. The
+[classified raster
+example](../../stac/examples/raster-classified-collection.json) shows a single-band
+flood classification with five classes on the asset.
 
 **Item mirror.** A raster collection that models scenes as items SHOULD also publish a
 [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) item mirror at

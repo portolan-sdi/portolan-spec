@@ -11,12 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The extension registry lists the [Classification](https://github.com/stac-extensions/classification)
   extension at `v2.0.0`, SHOULD for classified rasters, with
-  `classification:classes` on the band (#41).
+  `classification:classes` on the asset for a single-band raster and on the
+  band for a multiband raster (#41).
 - A [classified raster example](examples/raster-classified-collection.json),
   the GEP SAR Features flood classification over Valencia, October 2024.
-- `check-portolan` checks the class objects in STAC 1.1 `bands` against the
-  classification schema and the Portolan class rules. The classification
-  `v2.0.0` schema checks only `raster:bands`.
+- `check-portolan` applies the Portolan class rules to classes on an asset
+  and in STAC 1.1 `bands`. It also checks classes in `bands` against the
+  classification schema, because the `v2.0.0` schema checks the asset and
+  `raster:bands` only.
 
 ### Changed
 

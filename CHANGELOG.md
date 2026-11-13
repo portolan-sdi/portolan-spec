@@ -11,18 +11,20 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Added
 
-- **Classified rasters describe their classes on the band** (`PORTO-FMT-049`
-  to `PORTO-FMT-060`, [`specs/portolan/formats.md`](specs/portolan/formats.md#raster)).
+- **Classified rasters describe their classes with the classification
+  extension** (`PORTO-FMT-049` to `PORTO-FMT-060`,
+  [`specs/portolan/formats.md`](specs/portolan/formats.md#raster)).
   A raster whose pixels are categories SHOULD carry `classification:classes`
-  from the STAC classification extension, and the class list MUST sit on the
-  band in STAC 1.1 `bands`, next to `nodata`. Each class has a `value`, a
-  `name`, and a `title`. The color table embedded in the COG stays
-  authoritative for rendering, so a `color_hint` MUST match it. A class marked
-  `nodata` MUST use the band's `nodata` value, a class with that value MUST be
-  marked `nodata`, and clients draw it transparent
-  and leave it out of the legend. Continuous rasters carry no classes, and
+  from the STAC classification extension. The class list MUST sit on the data
+  asset for a single-band raster and on the band in STAC 1.1 `bands` for a
+  multiband raster, next to `nodata`. The extension defines the class object,
+  and Portolan adds that each class MUST carry a `title`. The color table
+  embedded in the COG stays authoritative for rendering, so a `color_hint`
+  SHOULD match it. A class marked `nodata` MUST use the `nodata` value of its
+  asset or band, a class with that value MUST be marked `nodata`, and clients
+  draw it transparent and leave it out of the legend. Continuous rasters carry no classes, and
   their styling is still under discussion (#41).
-- **Requirements manifest**: 147 requirements, now 100 MUST, 28 SHOULD, and
+- **Requirements manifest**: 146 requirements, now 98 MUST, 29 SHOULD, and
   19 MAY.
 
 ### Changed
