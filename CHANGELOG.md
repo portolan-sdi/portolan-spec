@@ -22,6 +22,12 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   (`PORTO-FMT-073`, `PORTO-FMT-074`). Clients then do not draw empty pixels
   as black (#114).
 
+- **Table columns should have descriptions** (`PORTO-FMT-077` through
+  `PORTO-FMT-079`). Every `table:columns` entry should include a
+  `description`. A mirror whose source has no column descriptions should note
+  this in the collection's `README.md`. Publishers should not include
+  placeholder descriptions.
+
 ### Changed
 
 - **Asset hrefs can use `s3://` and other schemes with an https alternate**
@@ -94,7 +100,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 148 requirements, now 96 MUST, 34 SHOULD, and
+- **Requirements manifest**: 151 requirements, now 96 MUST, 37 SHOULD, and
   18 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source

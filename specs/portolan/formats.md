@@ -101,6 +101,11 @@ client has to read the file to learn what the collection holds. Names and types
 can be generated from the Parquet schema. The descriptions are written once and
 belong in both the metadata and the README schema table.
 
+Every entry in `table:columns` SHOULD include a `description`. When the dataset
+is a mirror and no descriptions are available for the columns, this SHOULD be
+noted in the collection's `README.md`. Publishers SHOULD NOT include placeholder
+descriptions.
+
 ### PMTiles
 
 A PMTiles file SHOULD be provided as the visualization derivative,
