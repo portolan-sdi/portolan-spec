@@ -2,7 +2,7 @@
 
 *The keywords MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT,
 RECOMMENDED, MAY, and OPTIONAL in this document are to be interpreted as
-described in BCP 14 [RFC 2119] [RFC 8174] when, and only when, they appear in all
+described in BCP 14 [RFC 2119][] [RFC 8174][] when, and only when, they appear in all
 capitals, as shown here.*
 
 This document defines the requirements that apply to every Portolan catalog,
@@ -22,6 +22,7 @@ with any STAC tooling. But where STAC can be used with any data format and can
 be implemented as an API or files on cloud storage, Portolan requires well-formed 
 cloud-native formats, stored as files on browser-accessible online services. All
 Portolan implementations are [static catalogs](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#static-catalogs)
+
 - there is no 'Portolan API' like the STAC API, as many of the key benefits of Portolan,
 like scalability and lower cost, are achieved by the full embrace of cloud-native geospatial.
 
@@ -637,3 +638,6 @@ The concrete style format is defined per data format in [`formats.md`](formats.m
 for vector (PMTiles) it is a MapLibre GL style file, while raster styling is still
 under discussion (see
 [`specs/incubating/raster-styling.md`](../incubating/raster-styling.md)).
+
+[RFC 2119]: https://www.rfc-editor.org/info/rfc2119
+[RFC 8174]: https://www.rfc-editor.org/info/rfc8174
