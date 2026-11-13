@@ -45,6 +45,7 @@ abandoning it.
 
 | Column | Type | Description |
 |---|---|---|
+| `fid` | bigint | Feature id from the source GeoPackage layer, 1 to 12. Unique in this file. |
 | `identificatie` | varchar | Province identifier PV20 through PV31, PV plus the CBS province code. The join key to CBS StatLine regional tables. |
 | `naam` | varchar | Official province name. Fryslân carries its official Frisian spelling, a filter on Friesland returns nothing. |
 | `code` | varchar | Two-digit CBS province code as a string, 20 through 31. Joins to ligt_in_provincie_code in the source's municipality layer. |
@@ -53,7 +54,7 @@ abandoning it.
 | `geom` | geometry('epsg:28992') | Province geometry, multipolygon, in the Dutch national grid EPSG:28992 in meters. |
 | `bbox` | struct(xmin double, ymin double, xmax double, ymax double) | Per-feature bounding box struct in RD New meters, the GeoParquet covering. |
 
-The table has 8 columns in all. The full list with types lives in `table:columns` on the collection.
+The same descriptions live in `table:columns` on the collection, so tools that read STAC see them too.
 
 ## Join the National Statistics
 

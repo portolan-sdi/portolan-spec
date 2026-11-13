@@ -69,7 +69,8 @@
   "table:columns": [
     {
       "name": "fid",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "معرف المعلم من طبقة GeoPackage المصدر، من 1 إلى 12. فريد داخل هذا الملف."
     },
     {
       "name": "identificatie",

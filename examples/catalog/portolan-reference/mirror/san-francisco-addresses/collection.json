@@ -68,7 +68,8 @@
   "table:columns": [
     {
       "name": "fid",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "Feature id that GDAL assigned when the generator read the source layer. Unique in this file. It is not an upstream key."
     },
     {
       "name": "street_full_street_name",
@@ -92,7 +93,8 @@
     },
     {
       "name": "supdistpad",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Supervisor District number with zero padding, such as 01 or 02."
     },
     {
       "name": "complete_landmark_name",
@@ -131,7 +133,8 @@
     },
     {
       "name": "supdist",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Full name of the Supervisorial District."
     },
     {
       "name": "eas_baseid",
@@ -150,11 +153,13 @@
     },
     {
       "name": "supname",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Last name of the current Supervisor of the District."
     },
     {
       "name": "eas_address_id",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "DataSF describes it as the id that uniquely identifies the address that is the object of the address data transaction."
     },
     {
       "name": "street_type",
@@ -203,7 +208,8 @@
     },
     {
       "name": "numbertext",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Supervisor District number as text, such as ONE or TWO."
     },
     {
       "name": "data_as_of",
@@ -212,7 +218,8 @@
     },
     {
       "name": "landmark_aliases",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Colloquial or official landmark name associated with the address."
     },
     {
       "name": "geom",

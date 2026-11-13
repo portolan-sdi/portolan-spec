@@ -60,7 +60,8 @@
   "table:columns": [
     {
       "name": "fid",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "Feature id that GDAL assigned when the generator read the source layer. Unique in this file. It is not an upstream key."
     },
     {
       "name": "SCALERANK",
@@ -87,11 +88,13 @@
     },
     {
       "name": "NAMEPAR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Other name in common use. Natural Earth sets it only when one such name exists."
     },
     {
       "name": "NAMEALT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Alternate names as a list, where Natural Earth finds them appropriate."
     },
     {
       "name": "NAMEASCII",
@@ -105,7 +108,8 @@
     },
     {
       "name": "CAPIN",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Kind of capital, such as Administrative or De facto capita. Natural Earth sets it only for a country capital. The values are cut at 15 characters."
     },
     {
       "name": "WORLDCITY",
@@ -119,11 +123,13 @@
     },
     {
       "name": "SOV0NAME",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name of the Natural Earth sovereign state that the point falls in."
     },
     {
       "name": "SOV_A3",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Code of the Natural Earth sovereign state that the point falls in."
     },
     {
       "name": "ADM0NAME",
@@ -142,7 +148,8 @@
     },
     {
       "name": "ISO_A2",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "ISO alpha-2 code of the Natural Earth country that the point falls in."
     },
     {
       "name": "NOTE",
@@ -172,11 +179,13 @@
     },
     {
       "name": "RANK_MAX",
-      "type": "integer"
+      "type": "integer",
+      "description": "Population rank from 0 to 14, where 14 is more than 10 million people. Natural Earth calculates it from POP_MAX with a formula that it publishes."
     },
     {
       "name": "RANK_MIN",
-      "type": "integer"
+      "type": "integer",
+      "description": "Population rank from 0 to 14, where 14 is more than 10 million people. Natural Earth calculates it from POP_MIN with a formula that it publishes."
     },
     {
       "name": "MEGANAME",
@@ -371,7 +380,8 @@
     },
     {
       "name": "WOF_ID",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "Who's On First id of the place, where one is available."
     },
     {
       "name": "CAPALT",
@@ -379,31 +389,38 @@
     },
     {
       "name": "NAME_EN",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in English. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_DE",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in German. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_ES",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Spanish. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_FR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in French. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_PT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Portuguese. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_RU",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Russian. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_ZH",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Simplified Chinese. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "LABEL",
@@ -411,59 +428,73 @@
     },
     {
       "name": "NAME_AR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Arabic. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_BN",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Bengali. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_EL",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Greek. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_HI",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Hindi. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_HU",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Hungarian. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_ID",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Indonesian. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_IT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Italian. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_JA",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Japanese. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_KO",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Korean. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_NL",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Dutch. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_PL",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Polish. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_SV",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Swedish. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_TR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Turkish. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_VI",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Vietnamese. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NE_ID",
@@ -472,23 +503,28 @@
     },
     {
       "name": "NAME_FA",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Farsi. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_HE",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Hebrew. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_UK",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Ukrainian. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_UR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Urdu. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "NAME_ZHT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Name in Traditional Chinese. Natural Earth takes its localized names from Wikidata."
     },
     {
       "name": "GEONAMESID",
@@ -497,135 +533,168 @@
     },
     {
       "name": "FCLASS_ISO",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the ISO point of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_US",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of the United States. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_FR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of France. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_RU",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Russia. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_ES",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Spain. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_CN",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of China. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_TW",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Taiwan. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_IN",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of India. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_NP",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Nepal. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_PK",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Pakistan. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_DE",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Germany. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_GB",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of the United Kingdom. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_BR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Brazil. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_IL",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Israel. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_PS",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Palestine. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_SA",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Saudi Arabia. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_EG",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Egypt. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_MA",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Morocco. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_PT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Portugal. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_AR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Argentina. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_JP",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Japan. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_KO",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of South Korea. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_VN",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Vietnam. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_TR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Turkey. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_ID",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Indonesia. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_PL",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Poland. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_GR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Greece. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_IT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Italy. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_NL",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of the Netherlands. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_SE",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Sweden. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_BD",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Bangladesh. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_UA",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the point of view of Ukraine. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     },
     {
       "name": "FCLASS_TLC",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Feature class from the top-level-country (TLC) point of view. Null where that point of view sets no class."
     },
     {
       "name": "geom",

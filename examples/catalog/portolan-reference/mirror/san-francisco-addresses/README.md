@@ -49,10 +49,12 @@ curl 'https://data.sfgov.org/resource/ramy-di5m.json?$select=count(*)'
 
 | Column | Type | Description |
 |---|---|---|
+| `fid` | bigint | Feature id that GDAL assigned when the generator read the source layer. Unique in this file. It is not an upstream key. |
 | `street_full_street_name` | varchar | Street name and type together. |
 | `zip_code` | varchar | Five-digit ZIP code as a string. |
 | `latitude` | varchar | Latitude as text. Prefer the geometry column. |
 | `address_number_suffix` | varchar | Street number suffix such as A, null for nearly all rows. |
+| `supdistpad` | varchar | Supervisor District number with zero padding, such as 01 or 02. |
 | `complete_landmark_name` | varchar | Landmark name for the few rows that carry one, Millennium Tower. |
 | `eas_fullid` | varchar | Unique row identifier, base id, sub id, and parcel link id joined with dashes. The only column unique per row. |
 | `direct_source` | varchar | Where the record entered the EAS, SF DBI, State of CA, or The Presidio Trust. |
@@ -60,9 +62,12 @@ curl 'https://data.sfgov.org/resource/ramy-di5m.json?$select=count(*)'
 | `data_loaded_at` | timestamp with time zone | When the portal loaded the record. |
 | `longitude` | varchar | Longitude as text. Prefer the geometry column. |
 | `street_name` | varchar | Parsed street name. |
+| `supdist` | varchar | Full name of the Supervisorial District. |
 | `eas_baseid` | varchar | Identifier of the base address, the building. Units share it, so count distinct eas_baseid for buildings. |
 | `nhood` | varchar | DataSF analysis neighborhood name, joins to the Analysis Neighborhoods dataset by name. |
 | `block` | varchar | Assessor block number as a string. |
+| `supname` | varchar | Last name of the current Supervisor of the District. |
+| `eas_address_id` | varchar | DataSF describes it as the id that uniquely identifies the address that is the object of the address data transaction. |
 | `street_type` | varchar | Parsed street type, ST or AVE. Null for streets like BROADWAY that have no type. |
 | `eas_subid` | varchar | Identifier of the sub-address, a unit or apartment, within its base. |
 | `lot` | varchar | Assessor lot number as a string. |
@@ -72,11 +77,13 @@ curl 'https://data.sfgov.org/resource/ramy-di5m.json?$select=count(*)'
 | `data_updated_at` | timestamp with time zone | Record update timestamp, with a 1970 epoch sentinel on never-updated rows. |
 | `address_number` | varchar | Street number. |
 | `parcel_number` | varchar | Assessor parcel number, block plus lot. Null on 32 percent of rows, a parcel join drops them silently. |
+| `numbertext` | varchar | Supervisor District number as text, such as ONE or TWO. |
 | `data_as_of` | timestamp with time zone | Snapshot timestamp of the upstream export, July 24, 2026 for every row here. |
+| `landmark_aliases` | varchar | Colloquial or official landmark name associated with the address. |
 | `geom` | geometry | Address point, WGS84 longitude and latitude. Units stack on their building's single point. |
 | `bbox` | struct(xmin double, ymin double, xmax double, ymax double) | Per-feature bounding box struct, the GeoParquet covering. |
 
-The table has 33 columns in all. The full list with types lives in `table:columns` on the collection.
+The same descriptions live in `table:columns` on the collection, so tools that read STAC see them too.
 
 ## Suggested Uses
 

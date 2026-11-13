@@ -281,6 +281,84 @@ collections:
       WIKIDATAID: Wikidata QID, present on all 177 rows.
       geom: Country geometry, polygon or multipolygon, WGS84 longitude and latitude.
       bbox: Per-feature bounding box struct, the GeoParquet covering used for spatial predicate pushdown.
+      fid: "Feature id that GDAL assigned when the generator read the source layer. Unique in this file. It is not an upstream key."
+      SOV_A3: "Natural Earth three-letter code of the sovereign state. Natural Earth states that the code is unique to its own coding system and somewhat follows the ISO alpha-3 codes."
+      GU_A3: "Natural Earth three-letter code of the geographic unit. Natural Earth states that the code is unique to its own coding system and somewhat follows the ISO alpha-3 codes."
+      SU_A3: "Natural Earth three-letter code of the administrative sub-unit. Natural Earth states that it is like an ISO alpha-3 code, but different."
+      GEOU_DIF: "Flag that states if the geographic unit is different from its parent administrative unit. Natural Earth provides it so that a map does not repeat labels. The value is 0 in every row of this file."
+      NOTE_ADM0: "Short note that gives context to the sovereignty of the feature, such as Fr. or U.K. Null for most rows."
+      NOTE_BRK: "Note that gives context to the sovereignty of a breakaway or disputed feature, such as Self admin.; Claimed by Cyprus. Null for most rows."
+      NAME_SORT: "Name for sorted lists. Natural Earth provides it so that a list can ignore a prefix such as The."
+      MAPCOLOR7: "Map color index. Natural Earth states that its map color derives from a US State Department political world map, where no neighboring countries have the same color and all territories of a sovereign state share one color."
+      MAPCOLOR8: "Map color index. Natural Earth states that its map color derives from a US State Department political world map, where no neighboring countries have the same color and all territories of a sovereign state share one color."
+      MAPCOLOR9: "Map color index. Natural Earth states that its map color derives from a US State Department political world map, where no neighboring countries have the same color and all territories of a sovereign state share one color."
+      MAPCOLOR13: "Map color index. Natural Earth states that its map color derives from a US State Department political world map, where no neighboring countries have the same color and all territories of a sovereign state share one color."
+      ADM0_ISO: "Country code in the ISO point of view. Natural Earth renamed it from adm0_a3_iso in version 5.1.0."
+      ADM0_TLC: "Country code in the top-level-country (TLC) point of view, which Natural Earth added in version 5.1.0."
+      TLC: "Flag for the top-level-country (TLC) point of view. Natural Earth describes TLC as a superset of ISO. The value is 1 in 176 rows and null in one row."
+      MIN_ZOOM: "Minimum web map zoom at which to show the feature. Natural Earth optimizes it for the web Mercator projection."
+      MIN_LABEL: "Minimum zoom at which to show the label. Natural Earth provides it where the label appears later than the geometry."
+      MAX_LABEL: "Zoom at which the label stops."
+      NAME_AR: "Name in Arabic. Natural Earth takes its localized names from Wikidata."
+      NAME_BN: "Name in Bengali. Natural Earth takes its localized names from Wikidata."
+      NAME_DE: "Name in German. Natural Earth takes its localized names from Wikidata."
+      NAME_EN: "Name in English. Natural Earth takes its localized names from Wikidata."
+      NAME_ES: "Name in Spanish. Natural Earth takes its localized names from Wikidata."
+      NAME_FA: "Name in Farsi. Natural Earth takes its localized names from Wikidata."
+      NAME_FR: "Name in French. Natural Earth takes its localized names from Wikidata."
+      NAME_EL: "Name in Greek. Natural Earth takes its localized names from Wikidata."
+      NAME_HE: "Name in Hebrew. Natural Earth takes its localized names from Wikidata."
+      NAME_HI: "Name in Hindi. Natural Earth takes its localized names from Wikidata."
+      NAME_HU: "Name in Hungarian. Natural Earth takes its localized names from Wikidata."
+      NAME_ID: "Name in Indonesian. Natural Earth takes its localized names from Wikidata."
+      NAME_IT: "Name in Italian. Natural Earth takes its localized names from Wikidata."
+      NAME_JA: "Name in Japanese. Natural Earth takes its localized names from Wikidata."
+      NAME_KO: "Name in Korean. Natural Earth takes its localized names from Wikidata."
+      NAME_NL: "Name in Dutch. Natural Earth takes its localized names from Wikidata."
+      NAME_PL: "Name in Polish. Natural Earth takes its localized names from Wikidata."
+      NAME_PT: "Name in Portuguese. Natural Earth takes its localized names from Wikidata."
+      NAME_RU: "Name in Russian. Natural Earth takes its localized names from Wikidata."
+      NAME_SV: "Name in Swedish. Natural Earth takes its localized names from Wikidata."
+      NAME_TR: "Name in Turkish. Natural Earth takes its localized names from Wikidata."
+      NAME_UK: "Name in Ukrainian. Natural Earth takes its localized names from Wikidata."
+      NAME_UR: "Name in Urdu. Natural Earth takes its localized names from Wikidata."
+      NAME_VI: "Name in Vietnamese. Natural Earth takes its localized names from Wikidata."
+      NAME_ZH: "Name in Simplified Chinese. Natural Earth takes its localized names from Wikidata."
+      NAME_ZHT: "Name in Traditional Chinese. Natural Earth takes its localized names from Wikidata."
+      FCLASS_ISO: "Feature class from the ISO point of view. Natural Earth lists the values Admin-0 country, Admin-0 dependency, Admin-1 states provinces, and Unrecognized."
+      TLC_DIFF: "Flag that Natural Earth added with the top-level-country (TLC) point of view. The value is 1 in 4 rows and null in the others."
+      FCLASS_TLC: "Feature class from the top-level-country (TLC) point of view. This file contains Admin-0 country, Admin-0 dependency, and Unrecognized."
+      FCLASS_US: "Feature class from the point of view of the United States. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_FR: "Feature class from the point of view of France. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_RU: "Feature class from the point of view of Russia. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_ES: "Feature class from the point of view of Spain. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_CN: "Feature class from the point of view of China. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_TW: "Feature class from the point of view of Taiwan. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_IN: "Feature class from the point of view of India. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_NP: "Feature class from the point of view of Nepal. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_PK: "Feature class from the point of view of Pakistan. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_DE: "Feature class from the point of view of Germany. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_GB: "Feature class from the point of view of the United Kingdom. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_BR: "Feature class from the point of view of Brazil. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_IL: "Feature class from the point of view of Israel. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_PS: "Feature class from the point of view of Palestine. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_SA: "Feature class from the point of view of Saudi Arabia. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_EG: "Feature class from the point of view of Egypt. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_MA: "Feature class from the point of view of Morocco. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_PT: "Feature class from the point of view of Portugal. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_AR: "Feature class from the point of view of Argentina. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_JP: "Feature class from the point of view of Japan. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_KO: "Feature class from the point of view of South Korea. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_VN: "Feature class from the point of view of Vietnam. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_TR: "Feature class from the point of view of Turkey. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_ID: "Feature class from the point of view of Indonesia. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_PL: "Feature class from the point of view of Poland. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_GR: "Feature class from the point of view of Greece. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_IT: "Feature class from the point of view of Italy. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_NL: "Feature class from the point of view of the Netherlands. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_SE: "Feature class from the point of view of Sweden. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_BD: "Feature class from the point of view of Bangladesh. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_UA: "Feature class from the point of view of Ukraine. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     docs:
       readme: |
         [Natural Earth](https://www.naturalearthdata.com) is the public domain
@@ -307,9 +385,15 @@ collections:
 
         {{quickstart}}
 
-        ## Schema, the Columns That Matter
+        ## Schema
 
-        Twenty-two of the 171 columns do most of the work.
+        Natural Earth publishes no data dictionary, and its maintainer
+        [declined to write one](https://github.com/nvkelso/natural-earth-vector/issues/153).
+        The table lists every column that has a description. A description
+        comes from the Natural Earth release notes, changelog, or maintainer,
+        or from values that this file shows. The other columns have no
+        description because the source defines none. They are in
+        `table:columns` with a name and a type only.
 
         {{schema}}
 
@@ -513,6 +597,75 @@ collections:
       GEONAMESID: GeoNames id, missing for 43 rows.
       geom: Point geometry, WGS84 longitude and latitude. Use it instead of the legacy LATITUDE and LONGITUDE columns.
       bbox: Per-feature bounding box struct, the GeoParquet covering.
+      fid: "Feature id that GDAL assigned when the generator read the source layer. Unique in this file. It is not an upstream key."
+      NAMEPAR: "Other name in common use. Natural Earth sets it only when one such name exists."
+      NAMEALT: "Alternate names as a list, where Natural Earth finds them appropriate."
+      CAPIN: "Kind of capital, such as Administrative or De facto capita. Natural Earth sets it only for a country capital. The values are cut at 15 characters."
+      SOV0NAME: "Name of the Natural Earth sovereign state that the point falls in."
+      SOV_A3: "Code of the Natural Earth sovereign state that the point falls in."
+      ISO_A2: "ISO alpha-2 code of the Natural Earth country that the point falls in."
+      RANK_MAX: "Population rank from 0 to 14, where 14 is more than 10 million people. Natural Earth calculates it from POP_MAX with a formula that it publishes."
+      RANK_MIN: "Population rank from 0 to 14, where 14 is more than 10 million people. Natural Earth calculates it from POP_MIN with a formula that it publishes."
+      WOF_ID: "Who's On First id of the place, where one is available."
+      NAME_AR: "Name in Arabic. Natural Earth takes its localized names from Wikidata."
+      NAME_BN: "Name in Bengali. Natural Earth takes its localized names from Wikidata."
+      NAME_DE: "Name in German. Natural Earth takes its localized names from Wikidata."
+      NAME_EN: "Name in English. Natural Earth takes its localized names from Wikidata."
+      NAME_ES: "Name in Spanish. Natural Earth takes its localized names from Wikidata."
+      NAME_FA: "Name in Farsi. Natural Earth takes its localized names from Wikidata."
+      NAME_FR: "Name in French. Natural Earth takes its localized names from Wikidata."
+      NAME_EL: "Name in Greek. Natural Earth takes its localized names from Wikidata."
+      NAME_HE: "Name in Hebrew. Natural Earth takes its localized names from Wikidata."
+      NAME_HI: "Name in Hindi. Natural Earth takes its localized names from Wikidata."
+      NAME_HU: "Name in Hungarian. Natural Earth takes its localized names from Wikidata."
+      NAME_ID: "Name in Indonesian. Natural Earth takes its localized names from Wikidata."
+      NAME_IT: "Name in Italian. Natural Earth takes its localized names from Wikidata."
+      NAME_JA: "Name in Japanese. Natural Earth takes its localized names from Wikidata."
+      NAME_KO: "Name in Korean. Natural Earth takes its localized names from Wikidata."
+      NAME_NL: "Name in Dutch. Natural Earth takes its localized names from Wikidata."
+      NAME_PL: "Name in Polish. Natural Earth takes its localized names from Wikidata."
+      NAME_PT: "Name in Portuguese. Natural Earth takes its localized names from Wikidata."
+      NAME_RU: "Name in Russian. Natural Earth takes its localized names from Wikidata."
+      NAME_SV: "Name in Swedish. Natural Earth takes its localized names from Wikidata."
+      NAME_TR: "Name in Turkish. Natural Earth takes its localized names from Wikidata."
+      NAME_UK: "Name in Ukrainian. Natural Earth takes its localized names from Wikidata."
+      NAME_UR: "Name in Urdu. Natural Earth takes its localized names from Wikidata."
+      NAME_VI: "Name in Vietnamese. Natural Earth takes its localized names from Wikidata."
+      NAME_ZH: "Name in Simplified Chinese. Natural Earth takes its localized names from Wikidata."
+      NAME_ZHT: "Name in Traditional Chinese. Natural Earth takes its localized names from Wikidata."
+      FCLASS_ISO: "Feature class from the ISO point of view. Null where that point of view sets no class."
+      FCLASS_TLC: "Feature class from the top-level-country (TLC) point of view. Null where that point of view sets no class."
+      FCLASS_US: "Feature class from the point of view of the United States. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_FR: "Feature class from the point of view of France. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_RU: "Feature class from the point of view of Russia. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_ES: "Feature class from the point of view of Spain. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_CN: "Feature class from the point of view of China. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_TW: "Feature class from the point of view of Taiwan. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_IN: "Feature class from the point of view of India. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_NP: "Feature class from the point of view of Nepal. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_PK: "Feature class from the point of view of Pakistan. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_DE: "Feature class from the point of view of Germany. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_GB: "Feature class from the point of view of the United Kingdom. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_BR: "Feature class from the point of view of Brazil. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_IL: "Feature class from the point of view of Israel. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_PS: "Feature class from the point of view of Palestine. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_SA: "Feature class from the point of view of Saudi Arabia. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_EG: "Feature class from the point of view of Egypt. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_MA: "Feature class from the point of view of Morocco. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_PT: "Feature class from the point of view of Portugal. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_AR: "Feature class from the point of view of Argentina. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_JP: "Feature class from the point of view of Japan. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_KO: "Feature class from the point of view of South Korea. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_VN: "Feature class from the point of view of Vietnam. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_TR: "Feature class from the point of view of Turkey. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_ID: "Feature class from the point of view of Indonesia. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_PL: "Feature class from the point of view of Poland. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_GR: "Feature class from the point of view of Greece. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_IT: "Feature class from the point of view of Italy. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_NL: "Feature class from the point of view of the Netherlands. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_SE: "Feature class from the point of view of Sweden. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_BD: "Feature class from the point of view of Bangladesh. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
+      FCLASS_UA: "Feature class from the point of view of Ukraine. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class."
     docs:
       readme: |
         City and town points at 1:50m scale from
@@ -552,9 +705,15 @@ collections:
         ORDER BY POP_MAX DESC LIMIT 5;
         ```
 
-        ## Schema, the Columns That Matter
+        ## Schema
 
-        Nineteen of the 140 columns cover most uses.
+        Natural Earth publishes no data dictionary, and its maintainer
+        [declined to write one](https://github.com/nvkelso/natural-earth-vector/issues/153).
+        The table lists every column that has a description. A description
+        comes from the Natural Earth release notes, changelog, or maintainer,
+        or from values that this file shows. The other columns have no
+        description because the source defines none. They are in
+        `table:columns` with a name and a type only.
 
         {{schema}}
 
@@ -735,6 +894,7 @@ collections:
       AWATER: Water area in square meters, including territorial water that lies outside the clipped shoreline geometry.
       geom: County geometry clipped to the shoreline, NAD83 longitude and latitude.
       bbox: Per-feature bounding box struct, the GeoParquet covering.
+      fid: "Feature id that GDAL assigned when the generator read the source layer. Unique in this file. It is not an upstream key."
     docs:
       readme: |
         Every county and county equivalent in the United States and its
@@ -985,6 +1145,8 @@ collections:
       ShapeSTLen: ArcGIS-computed perimeter in meters.
       geom: Site geometry, WGS84 longitude and latitude.
       bbox: Per-feature bounding box struct, the GeoParquet covering.
+      fid: "Feature id that GDAL assigned when the generator read the source layer. Unique in this file. It is not an upstream key."
+      OBJECTID: "Esri object ID that ArcGIS assigns to each row of the source layer. Unique in this file."
     docs:
       readme: |
         Every open space of conservation and recreation interest in Boston,
@@ -1225,6 +1387,7 @@ collections:
       ligt_in_land_naam: Country name, the constant Nederland.
       geom: Province geometry, multipolygon, in the Dutch national grid EPSG:28992 in meters.
       bbox: Per-feature bounding box struct in RD New meters, the GeoParquet covering.
+      fid: "Feature id from the source GeoPackage layer, 1 to 12. Unique in this file."
     docs:
       readme: |
         [Kadaster](https://www.kadaster.nl), the Dutch cadastral agency,
@@ -1465,6 +1628,13 @@ collections:
       data_loaded_at: When the portal loaded the record.
       geom: Address point, WGS84 longitude and latitude. Units stack on their building's single point.
       bbox: Per-feature bounding box struct, the GeoParquet covering.
+      fid: "Feature id that GDAL assigned when the generator read the source layer. Unique in this file. It is not an upstream key."
+      eas_address_id: "DataSF describes it as the id that uniquely identifies the address that is the object of the address data transaction."
+      supdist: "Full name of the Supervisorial District."
+      supdistpad: "Supervisor District number with zero padding, such as 01 or 02."
+      numbertext: "Supervisor District number as text, such as ONE or TWO."
+      supname: "Last name of the current Supervisor of the District."
+      landmark_aliases: "Colloquial or official landmark name associated with the address."
     docs:
       readme: |
         Five thousand records from the
