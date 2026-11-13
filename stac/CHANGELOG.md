@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The STAC profile uses Contacts v1.0.0 instead of v0.1.1 (#53).
 
+### Fixed
+
+- The [partitioned collection example](examples/vector-partitioned-collection.json)
+  has an `s3://` value for `partition:glob`. The `https://` value did not
+  agree with `PORTO-FMT-064` (#245).
+
 ## 0.2.0 - 2026-08-28
 
 The schema is published at
