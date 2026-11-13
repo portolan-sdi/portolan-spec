@@ -26,6 +26,13 @@ saturates that shape far better. `sync --delete` is scoped to one catalog's own
 prefix, so a stale file from an earlier build is removed while everything else
 published under portolan-mirrors/portolan-spec-examples/ is left alone.
 
+Every transfer goes through Source Cooperative's data proxy at
+https://data.source.coop, with the credentials in the environment. In CI they
+come from a GitHub OIDC sign-in as the service account
+portolan-mirrors--spec-examples, so the repository stores no keys. The proxy
+seals the credentials it issues, so they work against the proxy and nowhere
+else.
+
 After the upload it refetches the published catalog.json over HTTPS and checks
 that it parses and still carries the id that was uploaded. A sync that reported
 success but published nothing readable is the failure worth catching.
@@ -53,18 +60,33 @@ from pathlib import Path
 
 import yaml
 
-BUCKET = "s3://us-west-2.opendata.source.coop"
-# The Source Cooperative product, portolan-mirrors/portolan-spec-examples. Both
-# halves of this pair have to move together, they address the same bytes over S3
-# and over HTTPS. data.source.coop resolves a path through the product record,
-# so the product must exist for PUBLIC_BASE to serve what REPO_PREFIX holds.
-REPO_PREFIX = "portolan-mirrors/portolan-spec-examples"
-PUBLIC_BASE = "https://data.source.coop/portolan-mirrors/portolan-spec-examples"
+# Source Cooperative's data proxy. It serves the public reads and it takes the
+# writes as well. CI signs in at the proxy with a GitHub OIDC token, and the
+# credentials it gets back are sealed to the proxy, so they are refused by
+# s3.amazonaws.com. Every transfer therefore goes through the proxy.
+PROXY = "https://data.source.coop"
+# The Source Cooperative product, portolan-mirrors/portolan-spec-examples.
+# data.source.coop resolves a path through the product record, so the product
+# must exist for PUBLIC_BASE to serve what the upload writes.
+ACCOUNT = "portolan-mirrors"
+PRODUCT = "portolan-spec-examples"
+# s5cmd reaches the proxy with the account folded into the endpoint and the
+# product as the bucket. The proxy maps a request to a product only when its
+# path starts with /<account>/<product>. With the account as the bucket, s5cmd
+# sends a batch delete to POST /<account>?delete, and the proxy answers that
+# with NoSuchBucket. Both `sync --delete` and the teardown batch delete. s5cmd
+# switches to path-style addressing for any custom endpoint, so every request,
+# the batch delete included, lands under /<account>/<product>.
+S3_ENDPOINT = f"{PROXY}/{ACCOUNT}"
+BUCKET = f"s3://{PRODUCT}"
+# The same bytes over HTTPS. The proxy serves both, so the S3 key and the URL
+# path share one <catalog id>/<namespace> tail under one product.
+PUBLIC_BASE = f"{PROXY}/{ACCOUNT}/{PRODUCT}"
 # The two human-facing views of the same bytes. `data.` serves the objects,
 # the bare domain serves Source Cooperative's file browser, and STAC Browser
 # renders the catalog. All three are derived from PUBLIC_BASE in review_urls,
 # never reassembled, so moving the repository moves all of them together.
-SOURCE_COOP_BASE = "https://source.coop/portolan-mirrors/portolan-spec-examples"
+SOURCE_COOP_BASE = f"https://source.coop/{ACCOUNT}/{PRODUCT}"
 BROWSER_BASE = "https://browser.portolan-sdi.org/#/external/"
 
 # The namespace taxonomy is main, branches/<slug>, and PRs/<number>.
@@ -185,8 +207,8 @@ def destination(catalog_id: str, ns: str) -> tuple[str, str]:
     """
     if not catalog_id or "/" in catalog_id or ".." in catalog_id:
         raise SystemExit(f"refusing to publish catalog id {catalog_id!r}")
-    tail = f"{REPO_PREFIX}/{catalog_id}/{ns}"
-    return f"{BUCKET}/{tail}/", f"{PUBLIC_BASE}/{catalog_id}/{ns}/"
+    tail = f"{catalog_id}/{ns}"
+    return f"{BUCKET}/{tail}/", f"{PUBLIC_BASE}/{tail}/"
 
 
 def review_urls(public_url: str) -> tuple[str, str]:
@@ -214,13 +236,29 @@ def tree_summary(tree: Path) -> tuple[int, int]:
     return len(files), sum(path.stat().st_size for path in files)
 
 
-def sync(tree: Path, target: str, dry_run: bool) -> None:
-    """Mirror one built catalog tree onto its own prefix."""
-    if shutil.which("s5cmd") is None:
-        raise SystemExit("s5cmd is not on PATH, see https://github.com/peak/s5cmd")
-    command = ["s5cmd"]
+def s5cmd(dry_run: bool) -> list[str]:
+    """The s5cmd prefix every transfer shares, pointed at the data proxy.
+
+    s5cmd reads its endpoint from `--endpoint-url` or S3_ENDPOINT_URL and never
+    from AWS_ENDPOINT_URL, so the flag is passed explicitly. The credentials
+    come from the environment, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and
+    AWS_SESSION_TOKEN, which the sign-in step in CI exports.
+    """
+    command = ["s5cmd", "--endpoint-url", S3_ENDPOINT]
     if dry_run:
         command.append("--dry-run")
+    return command
+
+
+def require_s5cmd() -> None:
+    if shutil.which("s5cmd") is None:
+        raise SystemExit("s5cmd is not on PATH, see https://github.com/peak/s5cmd")
+
+
+def sync(tree: Path, target: str, dry_run: bool) -> None:
+    """Mirror one built catalog tree onto its own prefix."""
+    require_s5cmd()
+    command = s5cmd(dry_run)
     command += [
         # A catalog is mostly small JSON, so the win is in request concurrency.
         "--numworkers", "64",
@@ -282,18 +320,14 @@ def teardown(catalog_ids: list[str], number: str, dry_run: bool) -> int:
     """
     if not number.isdigit():
         raise SystemExit(f"refusing to tear down, PR number is not numeric, {number!r}")
-    if shutil.which("s5cmd") is None:
-        raise SystemExit("s5cmd is not on PATH, see https://github.com/peak/s5cmd")
+    require_s5cmd()
 
     for catalog_id in catalog_ids:
         target, _ = destination(catalog_id, f"PRs/{number}")
         if f"/PRs/{number}/" not in target:
             raise SystemExit(f"refusing to tear down, unexpected target {target!r}")
-        command = ["s5cmd"]
-        if dry_run:
-            command.append("--dry-run")
         # A prefix with nothing under it is normal, a PR that never published.
-        command += ["rm", f"{target}*"]
+        command = s5cmd(dry_run) + ["rm", f"{target}*"]
         print(f"$ {' '.join(command)}")
         completed = subprocess.run(command, capture_output=True, text=True, check=False)
         print(completed.stdout, end="")

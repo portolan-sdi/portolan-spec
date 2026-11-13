@@ -99,9 +99,11 @@ state an output in a comment without having run the query, the check proves
 blocks execute, not that quoted numbers are true.
 
 Publishing a built catalog to Source Cooperative needs `s5cmd` on PATH as well,
-and credentials for the Portolan repository in the environment or an AWS
-profile. Always dry-run first, the sync deletes what the local tree does not
-have.
+and credentials that the Source Cooperative data proxy issued, in
+`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`. The proxy
+seals the credentials it issues, so they work against `https://data.source.coop`
+and nowhere else. Always dry-run first, the sync deletes what the local tree
+does not have.
 
 ```bash
 uv run examples/tools/publish_catalogs.py --list                     # the publishable stems
@@ -376,6 +378,31 @@ The product contains only these example catalogs. `data.source.coop` resolves a 
 through a product record, so the product must exist for the public URL to serve
 what the S3 prefix holds. The layout is `<catalog id>/<namespace>`.
 
+Both jobs sign in with GitHub OpenID Connect (OIDC), through
+`aws-actions/configure-aws-credentials`, as the Source Cooperative service
+account `portolan-mirrors--spec-examples`. The role is
+`arn:aws:iam::portolan-mirrors--spec-examples:role/FullAccess`, the audience is
+`https://data.source.coop`, and the STS endpoint is
+`https://data.source.coop/.sts`. The service account trusts the subject
+`repo:portolan-sdi/portolan-spec:environment:source-coop`, so both jobs must
+keep `environment: source-coop`, and a rename there breaks the sign-in. The
+repository stores no keys, and the `SOURCE_COOP_ACCESS_KEY_ID` and
+`SOURCE_COOP_SECRET_ACCESS_KEY` environment secrets are no longer read. The
+credentials last one hour and s5cmd does not renew them, so the publish job
+signs in after the build, right before the upload.
+
+The credentials work only against the data proxy, so s5cmd talks to the proxy
+too. It gets `--endpoint-url https://data.source.coop/portolan-mirrors`, the
+account folded into the endpoint, and the bucket is the product,
+`s3://portolan-spec-examples/<id>/<namespace>/`. The obvious form,
+`s3://portolan-mirrors/portolan-spec-examples/<id>/` against the bare proxy,
+uploads fine and then fails on the first delete. s5cmd sends a batch delete to
+`POST /<bucket>?delete`, and the proxy maps a request to a product only when the
+path starts with `/<account>/<product>`. It answers `POST /portolan-mirrors?delete`
+with `NoSuchBucket`. Both `sync --delete` and the teardown batch delete. s5cmd
+uses path-style addressing for any custom endpoint, and never reads
+`AWS_ENDPOINT_URL`, so `publish_catalogs.py` passes the flag itself.
+
 | git context | published prefix |
 | --- | --- |
 | push to `main` or `master` | `<id>/main/` |
@@ -392,9 +419,9 @@ ref, so a branch named `Main` lands in `branches/main` rather than overwriting
 the canonical catalog. That last one reads like an upstream oversight and is the
 safer behaviour, so it is kept deliberately. `check_publish_urls.py` covers the URL derivation.
 
-A pull request from a fork is skipped rather than run, since GitHub withholds
-secrets there and the build would burn its full runtime only to fail at the
-upload. `.github/workflows/teardown-previews.yaml` deletes a PR's previews when
+A pull request from a fork is skipped rather than run, since GitHub issues no
+OIDC token there and the build would burn its full runtime only to fail at the
+sign-in. `.github/workflows/teardown-previews.yaml` deletes a PR's previews when
 it closes, guarded so that only a numeric PR number resolving to a path that
 still contains `/PRs/<n>/` is ever deleted.
 

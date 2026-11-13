@@ -25,7 +25,16 @@ name: Publish Catalogs
 # rewritten in place on each push, so a reviewer opens the built catalog in
 # STAC Browser rather than reading a diff of Parquet, COG, and PMTiles.
 #
-# The `source-coop` environment is declared so required reviewers can be added
+# The job signs in with GitHub OIDC as the Source Cooperative service account
+# portolan-mirrors--spec-examples and writes through the data proxy at
+# https://data.source.coop. No keys are stored. The SOURCE_COOP_ACCESS_KEY_ID
+# and SOURCE_COOP_SECRET_ACCESS_KEY secrets are no longer read.
+#
+# The `source-coop` environment is load bearing. The service account trusts
+# only tokens whose subject is
+# repo:portolan-sdi/portolan-spec:environment:source-coop, and GitHub writes the
+# environment name into that subject. Rename the environment, or drop it from
+# the job, and the sign-in is refused. It also lets required reviewers be added
 # later without touching this file.
 
 on:
@@ -76,11 +85,11 @@ jobs:
     outputs:
       catalogs: ${{ steps.pick.outputs.catalogs }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: astral-sh/setup-uv@v10.3.3
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
           # publish_catalogs.py carries its own PEP 723 dependencies, so the key
@@ -108,20 +117,20 @@ jobs:
 
   publish:
     needs: discover
-    # A pull request from a fork gets no secrets, so the publish step would run
-    # the whole build and then fail at the upload with an auth error. Skip it
-    # instead. Everything that validates a fork's change still runs in
-    # examples-checks.yaml, which needs no credentials.
+    # A pull request from a fork gets no OIDC token, so the job would run the
+    # whole build and then fail at the sign-in. Skip it instead. Everything
+    # that validates a fork's change still runs in examples-checks.yaml, which
+    # needs no credentials.
     if: >-
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    # Write is scoped to this job and to pull requests alone, for the review
-    # comment below. Nothing here needs to write contents.
+    # Scoped to this job. Nothing here needs to write contents.
     permissions:
       contents: read
-      pull-requests: write
+      id-token: write # the sign-in step asks GitHub for an OIDC token
+      pull-requests: write # the review comment below
     strategy:
       fail-fast: false
       matrix:
@@ -130,7 +139,7 @@ jobs:
       name: source-coop
       url: ${{ steps.publish.outputs.url }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -152,7 +161,7 @@ jobs:
       - name: Install s5cmd
         uses: ./.github/actions/setup-s5cmd
 
-      - uses: astral-sh/setup-uv@v10.3.3
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
           # Each entrypoint carries its own PEP 723 dependencies, so the cache
@@ -162,7 +171,7 @@ jobs:
       # The upstream downloads dominate the build. Keyed on the manifest, since
       # that is what names the sources.
       - name: Cache the upstream downloads
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: examples/.cache
           key: sources-${{ matrix.catalog }}-${{ hashFiles(format('examples/manifests/{0}.*', matrix.catalog)) }}
@@ -191,12 +200,29 @@ jobs:
           CATALOG: ${{ matrix.catalog }}
         run: uv run examples/tools/check_catalogs.py --catalog "$CATALOG"
 
+      # Trades the job's OIDC token at the data proxy for credentials as the
+      # service account, and exports them as AWS_ACCESS_KEY_ID,
+      # AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN, and AWS_REGION. The audience
+      # is the one the service account trusts. The proxy accepts any region.
+      # One is set so that s5cmd signs with it rather than probe the bucket.
+      #
+      # It runs after the build on purpose. The credentials last one hour and
+      # s5cmd never renews them, so the clock starts here rather than before a
+      # build that can take most of that hour.
+      #
+      # AWS_ENDPOINT_URL is not exported for the job. s5cmd ignores it, and
+      # publish_catalogs.py passes the proxy to s5cmd itself.
+      - name: Sign in to Source Cooperative as portolan-mirrors--spec-examples
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: arn:aws:iam::portolan-mirrors--spec-examples:role/FullAccess
+          audience: https://data.source.coop
+          sts-endpoint: https://data.source.coop/.sts
+          aws-region: us-west-2
+
       - name: Publish to Source Cooperative
         id: publish
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.SOURCE_COOP_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.SOURCE_COOP_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-west-2
           CATALOG: ${{ matrix.catalog }}
           DRY_RUN: ${{ inputs.dry_run || false }}
         run: |
