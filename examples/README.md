@@ -199,9 +199,9 @@ hypsometric tint, a hillshade, and 3D terrain, and it loads that Collection's
 published style assets directly to show they stand on their own.
 
 It is a client example rather than a catalog, so the generator and its checks
-skip it. The catalog it reads lives in another repository and awaits its first
-data publish, so the page explains the missing data instead of showing an empty
-map. For raster styles the spec has no definition yet. The example records what
+skip it. Another repository holds the catalog it reads. That catalog awaits its
+first data publish, so the page explains the missing data instead of showing an
+empty map. For raster styles the spec has no definition yet. The example records what
 it decided without a rule. See
 <!-- vale ai-tells.GrowthMetaphors = NO -->
 <!-- The rule matches the directory name in the path below, not prose. -->
