@@ -122,6 +122,11 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   with the `data` role or `partition:glob` for the reference. PMTiles alone
   is insufficient as a collection's primary data (#225).
 
+- **Each profile schema version is published from its release tag.** `main`
+  holds one draft schema, `stac/json-schema/schema.json`, for the next version.
+  A normative PR edits it next to its prose and does not bump the version. The
+  published schemas do not change (#244).
+
 ### Removed
 
 - **The catalog grader leaves the specification**
