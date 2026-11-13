@@ -1,0 +1,13 @@
+# Repo additions to the org rules in portolan-ops lychee/org.toml.
+#
+# The rendered spec site (site/) publishes directory URLs such as
+# specs/portolan/core/#links, and Zensical writes each page as
+# core/index.html. Resolve a directory to its index.html, so the site-links
+# job can check those fragments. "." keeps a bare directory link valid in
+# the Markdown sources, where a folder has a README.md, not an index.html.
+index_files = ["index.html", "."]
+
+# site/overrides and site/pandoc hold templates, not pages. Their links are
+# Jinja placeholders and font paths that site/build.py fills in at build
+# time, so they resolve only in the built site, which site-links checks.
+exclude_path = ["site/overrides", "site/pandoc"]
