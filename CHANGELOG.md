@@ -11,11 +11,12 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Added
 
-- **Spatial mosaics should have an overview COG** (`PORTO-FMT-067` through
-  `PORTO-FMT-072`). A spatial mosaic is a set of raster items with the same
-  bands and time period that together cover a much larger area than any one
-  item. The overview is an 8-bit RGB COG in a web map projection. Collections
-  with several mosaics should have an overview for the most recent one (#114).
+- **Collections of multiple rasters should have an overview COG**
+  (`PORTO-FMT-067` through `PORTO-FMT-072`). This applies to two or more
+  rasters with the same bands and time period that together cover a much
+  larger area than any one item. The overview is an 8-bit RGB COG in a web map
+  projection. Collections with mosaics for several time periods should have an
+  overview for the most recent one (#114).
 
 - **Imagery scenes should declare nodata and use valid-data footprints**
   (`PORTO-FMT-073`, `PORTO-FMT-074`). Clients then do not draw empty pixels
