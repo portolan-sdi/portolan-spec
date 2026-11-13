@@ -70,7 +70,8 @@ fonts and retains its embedded fallback faces.
 - `mkdocs.yml` defines Zensical's theme and Markdown extensions, with its native
   mike version picker.
 - `assets/` holds logos and styles. Load `_brand-vars.css` before `extra.css`.
-- `overrides/` adds the draft notice to the theme's 404 page.
+- `overrides/` adds the draft notice to the theme's 404 page, and a kicker
+  with the nav group name above each page title.
 - `pandoc/` defines book typography, EPUB styles, and the template license.
 - `tests/check_site.py` checks versions, aliases, requirement anchors, Git
   targets, images, PDF content, EPUB links, draft notices, and brand styles.
