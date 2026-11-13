@@ -85,7 +85,7 @@ jobs:
               if [ "$tag" = "$VERSION" ]; then found=true; fi
             done
             if [ "$found" != true ]; then
-              echo "::error::release ${VERSION} is not a vX.Y.Z tag"
+              echo "::error::release ${VERSION} is not a vX.Y.Z tag in this repository"
               exit 1
             fi
           fi
