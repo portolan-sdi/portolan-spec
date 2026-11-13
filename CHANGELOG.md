@@ -44,6 +44,17 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **Raster statistics are required only where clients need them to render**
+  (`PORTO-FMT-026`, `PORTO-FMT-083`, `PORTO-FMT-084`,
+  [`specs/portolan/formats.md`](specs/portolan/formats.md#raster-statistics)).
+  A COG with any band of more than 8 bits per sample must include embedded
+  pixel statistics, unless the raster is classified. Tile servers and browser
+  clients rescale wide bands from the embedded minimum and maximum, and they
+  render washed-out or black output without them. All other COGs, such as
+  8-bit RGB and classified rasters, should still include statistics. A COG
+  that includes statistics must include them for every band, because clients
+  ignore partial statistics (#256).
+
 - **Portolan accepts native geospatial Parquet** (`PORTO-FMT-004`,
   `PORTO-FMT-080`, `PORTO-FMT-081`,
   [`specs/portolan/formats.md`](specs/portolan/formats.md)). Publishers can
@@ -135,7 +146,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 164 requirements, now 99 MUST, 46 SHOULD, and
+- **Requirements manifest**: 166 requirements, now 100 MUST, 47 SHOULD, and
   19 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source

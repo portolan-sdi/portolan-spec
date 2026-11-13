@@ -1129,7 +1129,23 @@ requirements:
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      COGs MUST include pixel statistics for rendering.
+      A COG with any band of more than 8 bits per sample MUST include pixel
+      statistics for rendering, unless the raster is
+      [classified](#classified-rasters).
+
+  - id: PORTO-FMT-083
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      All other COGs SHOULD include pixel statistics.
+
+  - id: PORTO-FMT-084
+    severity: MUST
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      A COG that includes statistics MUST include them for every band.
 
   - id: PORTO-FMT-027
     severity: MUST
