@@ -9,6 +9,19 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+### Added
+
+- **Collections of multiple rasters should have an overview COG**
+  (`PORTO-FMT-067` through `PORTO-FMT-072`). This applies to two or more
+  rasters with the same bands and time period that together cover a much
+  larger area than any one item. The overview is an 8-bit RGB COG in a web map
+  projection. Collections with mosaics for several time periods should have an
+  overview for the most recent one (#114).
+
+- **Imagery scenes should declare nodata and use valid-data footprints**
+  (`PORTO-FMT-073`, `PORTO-FMT-074`). Clients then do not draw empty pixels
+  as black (#114).
+
 ### Changed
 
 - **Asset hrefs can use `s3://` and other schemes with an https alternate**
@@ -70,8 +83,8 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 138 requirements, now 95 MUST, 25 SHOULD, and
-  18 MAY.
+- **Requirements manifest**: 146 requirements, now 95 MUST, 32 SHOULD, and
+  19 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source
   GeoParquet data in the same collection** (`PORTO-FMT-062`). Use an asset

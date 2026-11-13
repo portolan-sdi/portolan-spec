@@ -236,6 +236,26 @@ The exact on-disk encoding (the TIFF `GDAL_METADATA` tag and its XML layout, and
 [`specs/incubating/geotiff-stats-headers.md`](../incubating/geotiff-stats-headers.md).
 Compliance is defined by the tag contents, not by use of GDAL.
 
+Collections of multiple rasters (i.e., two or more) that share the same bands
+and belong to the same time period, but together cover an area much larger than
+that of any individual item, SHOULD provide an overview COG. The overview COG is
+subject to all the COG requirements in this section and should be included as a
+collection-level asset with the `visual` and `overview` roles. This allows
+clients to show the whole mosaic without loading every item. Because the
+overview is mostly to help users understand what areas the collection covers, it
+can simply show the most recent or least cloudy items; complex pixel processing
+is not required.
+
+The overview SHOULD be an 8-bit RGB image, with an optional alpha band. It
+SHOULD use a projection that suits web maps, such as Web Mercator (EPSG:3857).
+The overview needs sufficient resolution to show what area the items cover, but
+does not need to have the full resolution of the items themselves.
+
+Collections with mosaics for several time periods SHOULD provide an overview
+for at least the most recent mosaic. They MAY provide an overview for each of
+the other periods. Each overview asset SHOULD have a `datetime`, or a
+`start_datetime` and `end_datetime`, so clients can match it to its items.
+
 **Item mirror.** A raster collection that models scenes as items SHOULD also publish a
 [stac-geoparquet](https://github.com/stac-utils/stac-geoparquet) item mirror at
 `items.parquet` in the collection root. One range request then returns the whole
@@ -278,6 +298,13 @@ entire catalog's collections, remain incubating. See
 Raster styling (colormaps, legends, continuous vs. categorical vs. multiband) is
 still under discussion — see
 [`specs/incubating/raster-styling.md`](../incubating/raster-styling.md).
+
+### Imagery
+
+For satellite and aerial imagery, publishers SHOULD declare nodata, or include
+an alpha band, in each scene, so that clients don't draw empty pixels as
+black. Publishers SHOULD also use each scene's valid-data footprint as its item
+geometry.
 
 ## Tabular (Non-Geospatial)
 

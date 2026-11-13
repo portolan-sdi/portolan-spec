@@ -1207,6 +1207,70 @@ requirements:
       Point cloud support is not yet implemented; when complete, data MUST be
       provided as Cloud-Optimized Point Cloud (COPC).
 
+  - id: PORTO-FMT-067
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Collections of multiple rasters (i.e., two or more) that share the same
+      bands and belong to the same time period, but together cover an area much
+      larger than that of any individual item, SHOULD provide an overview COG.
+
+  - id: PORTO-FMT-068
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      The overview SHOULD be an 8-bit RGB image, with an optional alpha band.
+
+  - id: PORTO-FMT-069
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      It SHOULD use a projection that suits web maps, such as Web Mercator
+      (EPSG:3857).
+
+  - id: PORTO-FMT-070
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Collections with mosaics for several time periods SHOULD provide an
+      overview for at least the most recent mosaic.
+
+  - id: PORTO-FMT-071
+    severity: MAY
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      They MAY provide an overview for each of the other periods.
+
+  - id: PORTO-FMT-072
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Each overview asset SHOULD have a `datetime`, or a `start_datetime` and
+      `end_datetime`, so clients can match it to its items.
+
+  - id: PORTO-FMT-073
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      For satellite and aerial imagery, publishers SHOULD declare nodata, or
+      include an alpha band, in each scene, so that clients don't draw empty
+      pixels as black.
+
+  - id: PORTO-FMT-074
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Publishers SHOULD also use each scene's valid-data footprint as its item
+      geometry.
+
   - id: PORTO-FMT-040
     severity: SHOULD
     enforcement: validator

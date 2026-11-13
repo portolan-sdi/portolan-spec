@@ -601,6 +601,9 @@ infrastructure, either by:
   for rendering, published as a collection-level asset with `roles: ["visual"]`;
   PMTiles is the recommended vector format today.
 
+[Raster](formats.md#raster) describes overview COGs for collections of
+multiple rasters.
+
 A consumer decides by inspection: use a `visual` asset if present, otherwise render
 from source. Non-geospatial collections are exempt. Whether an asset is small and
 simple enough to render from source is not decidable from metadata, so a validator
