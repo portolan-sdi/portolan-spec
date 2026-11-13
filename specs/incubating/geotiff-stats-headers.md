@@ -3,7 +3,8 @@
 **Status: encoding detail for a normative requirement.**
 
 The requirement that COGs carry embedded per-band statistics is normative and lives
-in [`formats.md` → Raster](../portolan/formats.md#raster). This document specifies
+in [`formats.md` → Raster statistics](../portolan/formats.md#raster-statistics),
+with the table of required statistics and their severities. This document specifies
 the exact on-disk encoding. It is incubating because there is no official standard (Portolan follows the de-facto GDAL convention) and the encoding may be refined.
 
 ## Encoding
@@ -32,11 +33,14 @@ band index:
   block so they arrive in a reader's first range request.
 - Compliance is defined by the tag contents, not by use of GDAL. Any tool that
   writes an equivalent `GDAL_METADATA` tag conforms.
+- One command that writes these statistics at creation time is
+  `gdal_translate -of COG -stats`.
 
-## Required statistics
+## Nodata
 
-| Statistic | Requirement |
-|-----------|-------------|
-| Minimum, maximum, mean, standard deviation | **MUST** |
-| Valid percent | SHOULD (MUST when the band has a nodata value) |
-| Approximate flag (`STATISTICS_APPROXIMATE = YES`) | MUST when estimated |
+For a non-finite nodata value, use the corresponding string in the band's
+`nodata` field: `"nan"`, `"inf"`, or `"-inf"`. These strings are specified in
+[STAC 1.1.0 common metadata](https://github.com/radiantearth/stac-spec/blob/v1.1.0/commons/common-metadata.md#bands).
+Do not use `null` or an unquoted `NaN` in this field.
+
+A valid-percent statistic is required even when the nodata value is non-finite.
