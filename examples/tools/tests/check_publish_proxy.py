@@ -34,7 +34,6 @@ from __future__ import annotations
 
 import base64
 import os
-import re
 import ssl
 import sys
 import tempfile
@@ -243,9 +242,10 @@ def make_handler(proxy: FakeProxy):
                 if len(segments) == 1:
                     # The proxy cannot map a batch delete under the account.
                     return self._send(404, _error("NoSuchBucket", f"bucket not found: {segments[0]}"))
+                # Split, not a regex, so the parse stays linear in the body.
                 keys = [
-                    f"{segments[1]}/{m.decode()}"
-                    for m in re.findall(rb"<Key>(.*?)</Key>", body)
+                    f"{segments[1]}/{chunk.split(b'</Key>', 1)[0].decode()}"
+                    for chunk in body.split(b"<Key>")[1:]
                 ]
                 with proxy.lock:
                     for key in keys:
@@ -295,6 +295,7 @@ def throwaway_tls(workdir: Path) -> ssl.SSLContext:
     """A server context for 127.0.0.1, with the CLI told to trust its CA."""
     ca = trustme.CA()
     context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
     ca.issue_cert("127.0.0.1").configure_cert(context)
     bundle = workdir / "ca.pem"
     ca.cert_pem.write_to_path(str(bundle))
