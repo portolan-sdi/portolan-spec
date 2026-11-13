@@ -11,6 +11,11 @@
 #   process   - not machine-checkable from the catalog or its bytes
 #               (publish-time behavior, upstream knowledge, guidance).
 #
+# status is optional. `status: incubating` marks a requirement from a document
+# in specs/incubating/. Such a requirement is outside the conformance surface
+# of the current version. The validator checks it and reports a failure as a
+# warning at most. The changelog census does not count it.
+#
 # Run `uv run specs/tools/check_requirements.py` after editing the spec or this
 # file; it fails when a quote no longer anchors or a keyword occurrence is
 # not covered by a requirement or exclusion.
@@ -18,6 +23,7 @@
 files:
   - specs/portolan/core.md
   - specs/portolan/formats.md
+  - specs/incubating/zarr.md
 
 requirements:
   # ---------------------------------------------------------------- core.md
@@ -1251,6 +1257,229 @@ requirements:
     quote: >-
       A collection whose data assets describe differing schemas MAY declare
       `table:columns` per asset instead.
+
+  # ------------------------------------------------ incubating/zarr.md
+  - id: PORTO-ZARR-001
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      A store MUST be Zarr v3.
+
+  - id: PORTO-ZARR-002
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      It MUST declare these conventions in `zarr_conventions` and conform to
+      them:
+
+  - id: PORTO-ZARR-003
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      The store MUST be served over `https`, with an
+      `Access-Control-Allow-Origin` header that permits cross-origin reads.
+
+  - id: PORTO-ZARR-004
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      The STAC asset MUST follow the [asset
+      organization](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-zarr.md#asset-organization)
+      rules of the STAC Zarr Best Practices, with media type
+      `application/vnd.zarr; version=3`.
+
+  - id: PORTO-ZARR-005
+    severity: MAY
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      An `s3://` href MAY be given beside the `https` one.
+
+  - id: PORTO-ZARR-006
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      Every renderable array MUST have an affine
+      [`spatial:transform`](https://github.com/zarr-conventions/spatial#spatialtransform).
+
+  - id: PORTO-ZARR-007
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      The spatial axes MUST be the last two dimensions of every renderable
+      array, Y before X.
+
+  - id: PORTO-ZARR-008
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      Arrays MUST be stored row-major (C order).
+
+  - id: PORTO-ZARR-009
+    severity: SHOULD
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      The store SHOULD carry `proj:code`.
+
+  - id: PORTO-ZARR-010
+    severity: SHOULD
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      A store without `proj:code` SHOULD carry `proj:projjson`.
+
+  - id: PORTO-ZARR-011
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      A store whose finest level needs more than 4 chunks to cover its full
+      extent MUST provide a multiscale pyramid.
+
+  - id: PORTO-ZARR-012
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      The coarsest level MUST fit in 4 chunks or fewer.
+
+  - id: PORTO-ZARR-013
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      Each `layout` entry MUST carry `spatial:transform` and `spatial:shape`
+
+  - id: PORTO-ZARR-014
+    severity: SHOULD
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      Levels SHOULD step by a factor of 2.
+
+  - id: PORTO-ZARR-015
+    severity: MUST
+    enforcement: process
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      An append to a pyramided store MUST target the level-0 group, not the
+      store root.
+
+  - id: PORTO-ZARR-016
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      A store with more than one data variable MUST declare
+      `cube:variables`
+
+  - id: PORTO-ZARR-017
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      Every renderable array MUST carry at least one of:
+
+  - id: PORTO-ZARR-018
+    severity: SHOULD
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      A renderable array SHOULD declare `nodata` on its `bands` entry.
+
+  - id: PORTO-ZARR-019
+    severity: SHOULD
+    enforcement: process
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      A store with partial coverage SHOULD carry an alpha band named `alpha`
+      instead.
+
+  - id: PORTO-ZARR-020
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      A store MUST NOT require a client to read more than 8 samples for every
+      sample it draws, for one timestep at full resolution.
+
+  - id: PORTO-ZARR-021
+    severity: SHOULD
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      Non-spatial dimensions SHOULD have a chunk length of 1.
+
+  - id: PORTO-ZARR-022
+    severity: SHOULD
+    enforcement: process
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      A store chunked for time-series access SHOULD be published beside a
+      display-chunked copy.
+
+  - id: PORTO-ZARR-023
+    severity: SHOULD
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      Chunks SHOULD be 256 to 1024 samples on X and Y.
+
+  - id: PORTO-ZARR-024
+    severity: MAY
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      A shard MAY be larger on X and Y.
+
+  - id: PORTO-ZARR-025
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      A shard MUST NOT span the non-spatial dimensions by a product of more
+      than 8.
+
+  - id: PORTO-ZARR-026
+    severity: SHOULD
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      Every codec in the chain SHOULD have a JavaScript implementation.
 
 exclusions:
   # RFC 2119 preamble: keyword mentions, not requirements.
