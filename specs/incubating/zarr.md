@@ -32,6 +32,8 @@ This document uses these terms:
   chunk that holds inner chunks.
 - The **spatial dimensions** are the two dimensions that `spatial:dimensions`
   names.
+- A **band dimension** is a non-spatial dimension that holds the bands of
+  one image.
 
 ## Store
 
@@ -49,8 +51,8 @@ A convention is identified by its UUID.
 
 - The store MUST be served over `https`, with an
   `Access-Control-Allow-Origin` header that permits cross-origin reads. This
-  rule applies to every host that serves the store, including a host that a
-  third party runs.
+  rule applies to the store of every `data` asset, on any host. The store of
+  a `source` asset is exempt.
 - The STAC asset MUST follow the
   [asset organization](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-zarr.md#asset-organization)
   rules of the STAC Zarr Best Practices, with media type
@@ -103,7 +105,8 @@ Every renderable array MUST carry at least one of:
 - a `rescale` in a `renders` entry, per the
   [render](https://github.com/stac-extensions/render) extension.
 
-A store that is 8-bit with three or more bands is exempt.
+An 8-bit array with three or more bands is exempt. The bands are the entries
+of `bands` or the positions of a band dimension.
 
 Band `statistics` and band `nodata` describe the stored values, per the STAC
 [bands](https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md#bands)
@@ -113,19 +116,28 @@ in `renders`.
 ## No data
 
 A renderable array SHOULD declare `nodata` on its `bands` entry. A store with
-partial coverage SHOULD carry an alpha band named `alpha` instead.
+partial coverage SHOULD carry an alpha band instead. An alpha band is a band
+named `alpha`, or the fourth band of a four-band variable. An array with an
+alpha band is exempt from the `nodata` rule.
 
 ## Chunking
 
 - A store MUST NOT require a client to read more than 8 samples for every
   sample it draws, for one timestep at full resolution. The factor is the
   product of the chunk lengths along the non-spatial dimensions.
-- Non-spatial dimensions SHOULD have a chunk length of 1.
+- Non-spatial dimensions SHOULD have a chunk length of 1. A band dimension is
+  exempt.
 - A store chunked for time-series access SHOULD be published beside a
   display-chunked copy.
 - Chunks SHOULD be 256 to 1024 samples on X and Y. The lower bound does not
   apply to an axis shorter than 256 samples. A shard MAY be larger on X and Y.
 - A shard MUST NOT span the non-spatial dimensions by a product of more than 8.
+
+## Size and checksum
+
+The `file:size` of a Zarr store asset is the total size in bytes of all
+objects in the store. The `file:checksum` recommendation of
+[`core.md`](../portolan/core.md) does not apply to a Zarr store asset.
 
 ## Codecs
 
