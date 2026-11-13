@@ -242,7 +242,7 @@ SHOULD describe its classes with `classification:classes` from the STAC
 [classification extension](https://github.com/stac-extensions/classification).
 Whether a raster is classified is the producer's declaration. An embedded color
 table alone does not make a raster classified, since continuous rasters such as
-water occurrence percentages also ship one.
+water occurrence percentages also have one.
 
 The class list sits where the classification extension puts it. The class list
 MUST sit on the data asset for a single-band raster, and on the band it describes,
@@ -270,8 +270,8 @@ the asset or band that carries the class list. A class whose value is that
 Clients SHOULD draw that class transparent and SHOULD leave it out of a legend.
 
 A continuous raster, whose pixels are measurements such as elevation or
-temperature, SHOULD NOT carry `classification:classes`. How a continuous raster is
-colorized is still under discussion.
+temperature, SHOULD NOT carry `classification:classes`. The colorization of a
+continuous raster is still under discussion.
 
 The classification extension's v2.0.0 schema checks classes on the asset and under
 the older `raster:bands` field, not under STAC 1.1 `bands`. For a multiband raster,

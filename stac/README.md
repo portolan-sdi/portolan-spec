@@ -52,7 +52,7 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 | [Partition][] | `https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json`              | **MUST**    | Partitioned collections: `partition:scheme`, `partition:keys`, `partition:glob` (spec: Partitioned Collections) |
 | [Table][] | `https://stac-extensions.github.io/table/v1.2.0/schema.json`                | SHOULD      | Vector and tabular collections: document columns with `table:columns` |
 | [Alternate Assets][] | `https://stac-extensions.github.io/alternate-assets/v1.2.0/schema.json`     | SHOULD      | Expose `s3://` alternates for absolute `https` asset hrefs |
-| [Classification][] | `https://stac-extensions.github.io/classification/v2.0.0/schema.json`       | SHOULD      | Classified (categorical) rasters, with `classification:classes` on the asset for a single band and on the band in `bands` for multiband (spec: Raster, Classified rasters) |
+| [Classification][] | `https://stac-extensions.github.io/classification/v2.0.0/schema.json`       | SHOULD      | Classified (categorical) rasters, with `classification:classes` on the asset for one band and on the band in `bands` for more bands (spec: Raster, Classified rasters) |
 | [Render][] | `https://stac-extensions.github.io/render/v2.0.0/schema.json`               | SHOULD      | Continuous rasters rendering from source (draw-time colorization) |
 | [Projection][] | `https://stac-extensions.github.io/projection/v2.0.0/schema.json`           | MAY         | CRS / projection of the data |
 | [Scientific][] | `https://stac-extensions.github.io/scientific/v1.0.0/schema.json`           | MAY         | Citation / DOI |

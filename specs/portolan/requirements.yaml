@@ -1124,7 +1124,7 @@ requirements:
     severity: SHOULD
     # Whether pixels are categories is a producer fact that only the producer
     # declares. A color table is not proof, since continuous rasters such as
-    # water occurrence percentages ship one, so a validator cannot check this.
+    # water occurrence percentages have one, so a validator cannot check this.
     enforcement: process
     file: specs/portolan/formats.md
     quote: >-
