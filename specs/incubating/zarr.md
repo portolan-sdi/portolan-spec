@@ -43,10 +43,14 @@ A store MUST be Zarr v3. It MUST declare these conventions in
 - [multiscales](https://github.com/zarr-conventions/multiscales), where
   [Overviews](#overviews) requires a pyramid.
 
+A convention is identified by its UUID.
+
 ## Access
 
 - The store MUST be served over `https`, with an
-  `Access-Control-Allow-Origin` header that permits cross-origin reads.
+  `Access-Control-Allow-Origin` header that permits cross-origin reads. This
+  rule applies to every host that serves the store, including a host that a
+  third party runs.
 - The STAC asset MUST follow the
   [asset organization](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-zarr.md#asset-organization)
   rules of the STAC Zarr Best Practices, with media type
@@ -74,7 +78,8 @@ same names.
 ## Overviews
 
 - A store whose finest level needs more than 4 chunks to cover its full extent
-  MUST provide a multiscale pyramid.
+  MUST provide a multiscale pyramid. Only the `layout` form of the
+  multiscales convention declares a pyramid.
 - The coarsest level MUST fit in 4 chunks or fewer.
 - Each `layout` entry MUST carry `spatial:transform` and `spatial:shape`, per
   the spatial convention's
@@ -118,15 +123,16 @@ partial coverage SHOULD carry an alpha band named `alpha` instead.
 - Non-spatial dimensions SHOULD have a chunk length of 1.
 - A store chunked for time-series access SHOULD be published beside a
   display-chunked copy.
-- Chunks SHOULD be 256 to 1024 samples on X and Y. A shard MAY be larger on X
-  and Y.
+- Chunks SHOULD be 256 to 1024 samples on X and Y. The lower bound does not
+  apply to an axis shorter than 256 samples. A shard MAY be larger on X and Y.
 - A shard MUST NOT span the non-spatial dimensions by a product of more than 8.
 
 ## Codecs
 
 Every codec in the chain SHOULD have a JavaScript implementation. `blosc`,
-`lz4`, `zstd`, `gzip`, `zlib`, `shuffle`, `delta`, `scale_offset`,
-`transpose`, `bytes`, `crc32c`, and `sharding_indexed` qualify.
+`lz4`, `zstd`, `gzip`, `zlib`, `numcodecs.shuffle`, `numcodecs.delta`,
+`scale_offset`, `transpose`, `bytes`, `crc32c`, and `sharding_indexed`
+qualify.
 
 ## Open questions
 
