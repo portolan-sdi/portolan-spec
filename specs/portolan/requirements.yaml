@@ -259,8 +259,8 @@ requirements:
     enforcement: validator
     file: specs/portolan/core.md
     quote: >-
-      If they use another scheme, they MUST also add an HTTPS URL for the
-      same data to the asset’s
+      If an absolute `href` uses another scheme, publishers MUST also add an
+      HTTPS URL for the same data to the asset’s
       [`alternate`](https://github.com/stac-extensions/alternate-assets) field.
 
   - id: PORTO-CORE-024

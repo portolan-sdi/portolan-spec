@@ -224,8 +224,8 @@ without one describes nothing.
 
 Every asset MUST have an `href`. The `href` MAY be relative or absolute.
 Because browsers can't open `s3://` URLs or other bucket URLs, publishers
-SHOULD use `https` for an absolute `href`. If they use another scheme, they
-MUST also add an HTTPS URL for the same data to the asset’s
+SHOULD use `https` for an absolute `href`. If an absolute `href` uses another
+scheme, publishers MUST also add an HTTPS URL for the same data to the asset’s
 [`alternate`](https://github.com/stac-extensions/alternate-assets) field. If
 the `href` is an `https` URL or a relative path, and the same data also has an
 `s3://` or other bucket URL, publishers SHOULD add that URL to `alternate` too.
