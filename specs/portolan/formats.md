@@ -330,8 +330,8 @@ statistics, and row groups MUST contain no more than 150,000 rows. Clients query
 mirror spatially just as they query any other GeoParquet dataset.
 
 A collection containing only a single COG has no items and therefore publishes no item
-mirror. Item mirrors for other collection types, and STAC-GeoParquet mirrors covering an
-entire catalog's collections, remain incubating. See
+mirror. The catalog index, a STAC-GeoParquet file with a row for each catalog and
+collection of a catalog, is incubating. See
 [`specs/incubating/stac-geoparquet.md`](../incubating/stac-geoparquet.md).
 
 Classified rasters are covered earlier in this section. Styling for continuous and multiband rasters
