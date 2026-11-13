@@ -907,7 +907,7 @@ requirements:
       Its byte count s_i equals that row count. With all ten chunks present,
       the reference grid divides their extent into 4 + 4 + 2 cells. The rows
       pass at the same bar as any layout. The row floor in formats.md
-      requires ten chunks of twenty rows. Below that floor, the validator
+      requires ten chunks of twenty boxed rows. Below that floor, the validator
       reports that the file has too few rows to judge and gives no verdict.
 
   - id: PORTO-FMT-053

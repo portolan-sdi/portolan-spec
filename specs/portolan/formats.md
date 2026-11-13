@@ -62,6 +62,7 @@ A bbox covering stores each row's bounding box in separate fields.
 
 A validator judges spatial order with pruning efficiency on one of two paths.
 A file with eight or more row groups takes the footer check.
+The count includes only row groups with a bounding box.
 A file with fewer than eight row groups takes the row check.
 Both checks use the same metric and the same pass bar.[^paths]
 A conformance validator gives a verdict on every file that has enough rows.
@@ -176,7 +177,7 @@ the row check.
 per-row-group spatial statistics, the validator applies the abstract test for `PORTO-FMT-006` in the [requirements
 manifest](requirements.yaml). This test computes the same efficiency on ten
 chunks of rows in file order. It weights each chunk by its row count.
-The test needs 200 rows. Below that count, a validator MUST report that the
+The test needs 200 rows with a bounding box. Below that count, a validator MUST report that the
 file has too few rows to judge. It MUST NOT withhold that message.
 
 **Reporting.** A validator MUST start its verdict with the expected share of
