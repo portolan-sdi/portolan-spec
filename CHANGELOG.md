@@ -11,19 +11,19 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Added
 
-- **Column descriptions** (`PORTO-FMT-049`,
+- **Column descriptions** (`PORTO-FMT-077`,
   [`specs/portolan/formats.md`](specs/portolan/formats.md)). Every
-  `table:columns` entry should include a `description`. The existing vector
+  `table:columns` entry should include a `description` when a source defines
+  the column. The existing vector
   and tabular recommendations mention names, types, and descriptions, but a
   validator could accept entries with only names and types. Both already
   appear in the Parquet footer. The separate description requirement gives
   validators a specific requirement to check.
-- **Descriptions for columns without a sourced definition** (`PORTO-FMT-050`).
-  If no source defines a column, state that in its description. This lets
-  mirrors document data from publishers without a data dictionary. Readers
-  then know they do not need to keep searching for a definition. Invented
-  definitions introduce errors that downstream users cannot detect and can
-  lead agents to give confident but incorrect answers.
+- **Columns without a sourced definition** (`PORTO-FMT-078`). When no source
+  defines a column, leave out its description and name the column in the
+  collection README. This lets mirrors document data from publishers without a
+  data dictionary, without a "not documented" note on each column. Invented
+  definitions introduce errors that downstream users cannot detect.
 
 ### Changed
 
