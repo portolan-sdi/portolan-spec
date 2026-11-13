@@ -745,6 +745,56 @@ def redirect_html(href: str) -> str:
     )
 
 
+def explicit_fragment_targets(directory: Path, label: str) -> None:
+    """Keep directory pages, but name their index for offline fragment checkers."""
+    for path in directory.rglob("*.html"):
+
+        def tag(match):
+            def attribute(attr):
+                name = attr[2] or attr["attr"]
+                value = attr[4] if attr[1] else attr["url"]
+                parts = urlsplit(html.unescape(value))
+                if (
+                    name.lower() != "href"
+                    or parts.scheme
+                    or parts.netloc
+                    or not parts.path
+                    or not parts.fragment
+                ):
+                    return attr[0]
+                local = unquote(parts.path)
+                if local.startswith("/"):
+                    prefix = f"/{label}/"
+                    if not local.startswith(prefix):
+                        return attr[0]
+                    target = directory / local.removeprefix(prefix)
+                else:
+                    target = path.parent / local
+                if not target.is_dir() or not (target / "index.html").is_file():
+                    return attr[0]
+                destination = urlunsplit(
+                    (
+                        "",
+                        "",
+                        parts.path.rstrip("/") + "/index.html",
+                        parts.query,
+                        parts.fragment,
+                    )
+                )
+                prefix = attr[1] or attr["bare"]
+                delimiter = attr[3] if attr[1] else '"'
+                return (
+                    prefix
+                    + delimiter
+                    + html.escape(destination, quote=True)
+                    + delimiter
+                )
+
+            return HTML_URL.sub(attribute, match[0])
+
+        path.write_text(HTML_TAG.sub(tag, path.read_text()))
+
+
 def alias_redirects(out: Path, latest: str) -> None:
     alias = out / "latest"
     require_build_marker(alias)
@@ -869,6 +919,7 @@ def build(ref: str, label: str, out: Path, latest: str | None, font_dir: Path) -
             cwd=workspace,
             check=True,
         )
+        explicit_fragment_targets(workspace / "html", label)
         require_build_marker(destination)
         if destination.exists():
             shutil.rmtree(destination)

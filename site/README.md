@@ -29,6 +29,7 @@ The root redirect points to the newest release. `versions.json` follows
 and releases in descending order. The newest release has the `latest` alias.
 Each HTML page has a matching alias redirect that preserves its path, query,
 and fragment. The root 404 page links to the newest release and `next`.
+Cross-page fragment links name `index.html` so offline checks can resolve them.
 
 Each build exports its ref with `git archive` and changes temporary copies.
 Links outside the document set point to that ref on GitHub. Images use raw

@@ -294,6 +294,22 @@ def check_output_guards():
         build.alias_redirects(path, "v0.2.0")  # A marked output can be rebuilt.
 
 
+def check_fragment_targets():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        (root / "specs/core").mkdir(parents=True)
+        (root / "specs/core/index.html").write_text('<h2 id="assets">Assets</h2>')
+        home = root / "index.html"
+        home.write_text(
+            '<a href="specs/core/?a=1&amp;b=2#assets">Assets</a><a href="#self">Self</a>'
+            '<a href="https://example.org/core/#external">External</a>'
+        )
+        build.explicit_fragment_targets(root, "next")
+        assert 'href="specs/core/index.html?a=1&amp;b=2#assets"' in home.read_text()
+        assert 'href="#self"' in home.read_text()
+        assert 'href="https://example.org/core/#external"' in home.read_text()
+
+
 def check_main_selection():
     with tempfile.TemporaryDirectory() as tmp, patch.object(build, "ROOT", Path(tmp)):
 
@@ -476,6 +492,7 @@ if __name__ == "__main__":
     check_tags()
     check_output_guards()
     check_main_selection()
+    check_fragment_targets()
     check_validator_failures()
     check_html_validator_failures()
     print(
