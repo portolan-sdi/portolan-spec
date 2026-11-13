@@ -153,6 +153,9 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   The test needs 200 rows. Below that count, a validator MUST report that
   the file has too few rows to judge. It MUST NOT withhold that message.
   The row check applies to every file with fewer than eight row groups.
+  A row's box is its bbox covering. A file without a covering uses the
+  minimum and maximum of each row's coordinates, so native files from #226
+  receive a verdict.
 
 - **Validators must reproduce the abstract test vectors** (new `PORTO-FMT-054`,
   [`specs/portolan/abstract-tests/spatial-metric-vectors.json`](specs/portolan/abstract-tests/spatial-metric-vectors.json)).

@@ -11,7 +11,7 @@
   "area_sum is null when the extent has no area (0/0). It is never 0.0 in that case.",
   "below_bar is null wherever efficiency is null.",
   "The layouts entries score sets of boxes directly. The rows entries list per-row boxes in file order.",
-  "A null entry represents a row without a bbox covering. The test splits rows into ten chunks by floor(k*N/10) <= i < floor((k+1)*N/10).",
+  "A null entry represents a row without a box: a null bbox covering, or a null or empty geometry. The test splits rows into ten chunks by floor(k*N/10) <= i < floor((k+1)*N/10).",
   "A null row keeps its chunk position and does not extend the chunk box. The test omits chunks with no boxed rows.",
   "Each chunk uses its count of boxed rows for both row and byte weights. The number of chunks with a box is n.",
   "expected_chunks lists the chunk boxes.",

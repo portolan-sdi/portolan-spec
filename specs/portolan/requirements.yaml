@@ -898,8 +898,11 @@ requirements:
       The validator takes the N rows in file order and splits them into ten
       chunks. Chunk k, for k from 0 to 9, contains rows with zero-based
       index i such that floor(k * N / 10) <= i < floor((k + 1) * N / 10). A
-      chunk's box is the union of its rows' bounding boxes. A row with a
-      null bbox covering keeps its position in its file-order chunk. It does
+      row's bounding box is its bbox covering when the file has one.
+      Otherwise, it is the minimum and maximum of the row's coordinates in
+      the primary geometry column. A chunk's box is the union of its rows'
+      bounding boxes. A row with a null bbox covering, or a null or empty
+      geometry, keeps its position in its file-order chunk. It does
       not extend the chunk's box. The validator omits any chunk with no
       boxed rows from the layout. The number of chunks with a box is n. The
       validator computes the pruning efficiency from formats.md on these

@@ -174,11 +174,20 @@ When the efficiency of the row-group boxes is undefined, the validator applies
 the row check.
 
 **Row check.** For a file with fewer than eight row groups, or without
-per-row-group spatial statistics, the validator applies the abstract test for `PORTO-FMT-006` in the [requirements
-manifest](requirements.yaml). This test computes the same efficiency on ten
-chunks of rows in file order. It weights each chunk by its row count.
-The test needs 200 rows with a bounding box. Below that count, a validator MUST report that the
-file has too few rows to judge. It MUST NOT withhold that message.
+per-row-group spatial statistics, the validator applies the abstract test for
+`PORTO-FMT-006` in the [requirements manifest](requirements.yaml). This test
+computes the same efficiency on ten chunks of rows in file order. It weights
+each chunk by its row count.
+A row's box is its bbox covering when the file has one.
+Otherwise, the box is the minimum and maximum of the row's coordinates in the
+primary geometry column.
+This rule lets the row check judge native files without a covering.
+For `GEOGRAPHY`, the coordinate box is an approximation, because geodesic
+edges can extend past their vertices.
+A row with a null covering, or a null or empty geometry, has no box.
+The test needs 200 rows with a bounding box. Below that count, a validator
+MUST report that the file has too few rows to judge. It MUST NOT withhold that
+message.
 
 **Reporting.** A validator MUST start its verdict with the expected share of
 the file's bytes that the query window reads.
