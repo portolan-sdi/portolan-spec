@@ -1,0 +1,12 @@
+{% extends "main.html" %}
+{% block content %}
+  {% if config.extra.draft_version %}
+    <div class="admonition warning">
+      <p class="admonition-title">Draft of v{{ config.extra.draft_version }}</p>
+      <p>This text is not released. Read
+        <a href="{{ config.extra.latest_release }}">the newest release</a>.
+      </p>
+    </div>
+  {% endif %}
+  <h1>404 - Not found</h1>
+{% endblock %}

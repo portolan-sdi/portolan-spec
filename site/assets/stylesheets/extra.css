@@ -1,0 +1,199 @@
+/* Portolan brand styles for the documentation site.
+
+   The brand kit in portolan-ops owns every value. The sync copies
+   `_brand-vars.css` into this directory, and `mkdocs.yml` loads it before
+   this file. Read a role token such as `--color-accent` first. Reach for a
+   `--palette-*` token only when the intent is a literal brand color.
+
+   Four standing rules shape this file. Light mode only. Square corners.
+   Flat surfaces separated by rules, not by cards or shadows. No gradients
+   anywhere. */
+
+:root {
+  /* Material overrides */
+  --md-primary-fg-color: var(--color-accent);
+  --md-primary-fg-color--light: var(--color-accent);
+  --md-primary-fg-color--dark: var(--color-link-hover);
+  --md-accent-fg-color: var(--color-link-hover);
+  --md-accent-fg-color--transparent: color-mix(
+    in srgb,
+    var(--palette-primary) 10%,
+    transparent
+  );
+
+  --md-primary-bg-color: var(--color-background);
+  --md-primary-bg-color--light: color-mix(
+    in srgb,
+    var(--palette-surface) 70%,
+    transparent
+  );
+
+  --md-default-bg-color: var(--color-background);
+  --md-text-color: var(--color-text);
+  --md-typeset-color: var(--color-text);
+}
+
+/* The header is a solid blue band. The mark and the text sit on it in cream. */
+.md-header {
+  background-color: var(--palette-primary);
+  box-shadow: none;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.md-header__title,
+.md-header__button,
+.md-header-nav__button {
+  color: var(--color-background);
+}
+
+.md-header__button.md-logo {
+  padding: 0;
+  margin: 0.2rem;
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 1.2rem;
+  width: auto;
+}
+
+.md-tabs {
+  background-color: var(--palette-primary);
+}
+
+.md-tabs__link {
+  color: color-mix(in srgb, var(--palette-surface) 80%, transparent);
+}
+
+.md-tabs__link:hover,
+.md-tabs__link--active {
+  color: var(--color-background);
+}
+
+/* Search sits inside the band, so it takes a cream rule rather than a fill. */
+.md-search__form {
+  background-color: color-mix(
+    in srgb,
+    var(--palette-surface) 15%,
+    transparent
+  );
+  border-radius: 0;
+}
+
+.md-search__form:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--palette-surface) 25%,
+    transparent
+  );
+}
+
+.md-search__input::placeholder {
+  color: color-mix(in srgb, var(--palette-surface) 70%, transparent);
+}
+
+.md-search__input {
+  color: var(--color-background);
+}
+
+/* Headings are ink. The gradient text effect is gone. */
+.md-typeset h1 {
+  color: var(--color-text);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.md-typeset h1 + p > strong:first-child {
+  font-size: 1.2rem;
+  color: var(--color-text);
+}
+
+/* Corners are square everywhere. */
+.md-typeset .md-button,
+.md-typeset code,
+.md-typeset pre,
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid.cards > ol > li,
+.md-typeset .grid > .card,
+.md-search__output,
+.md-search-result__meta {
+  border-radius: 0;
+}
+
+.md-typeset .md-button {
+  font-weight: 500;
+  padding: 0.6rem 1.2rem;
+  margin: 0.25rem;
+}
+
+.md-typeset .md-button--primary {
+  background-color: var(--palette-primary);
+  border: 1px solid var(--palette-primary);
+  color: var(--color-background);
+}
+
+.md-typeset .md-button--primary:hover {
+  background-color: var(--color-link-hover);
+  border-color: var(--color-link-hover);
+  box-shadow: none;
+}
+
+.md-typeset .md-button:not(.md-button--primary) {
+  border: 1px solid var(--color-rule);
+  color: var(--color-text);
+}
+
+.md-typeset .md-button:not(.md-button--primary):hover {
+  background-color: var(--palette-primary);
+  border-color: var(--palette-primary);
+  color: var(--color-background);
+}
+
+/* Cards are bordered blocks, never raised ones. */
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid.cards > ol > li,
+.md-typeset .grid > .card {
+  border: 1px solid var(--color-rule);
+  transition: border-color 0.2s;
+}
+
+.md-typeset .grid.cards > ul > li:hover,
+.md-typeset .grid.cards > ol > li:hover,
+.md-typeset .grid > .card:hover {
+  border-color: var(--palette-primary);
+  box-shadow: none;
+}
+
+.md-typeset .grid.cards .lg {
+  font-size: 2rem;
+  color: var(--color-accent);
+}
+
+/* The border of a code block is a structural rule, so it takes ink. The kit
+   reserves `rule_soft` for a separator inside a block that already has a
+   border. */
+.md-typeset pre {
+  border: 1px solid var(--color-rule);
+}
+
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-color: var(--palette-primary);
+}
+
+.md-typeset .tip > .admonition-title,
+.md-typeset .tip > summary {
+  background-color: color-mix(in srgb, var(--palette-primary) 10%, transparent);
+}
+
+.md-footer {
+  background-color: var(--palette-ink);
+}
+
+.md-typeset a {
+  color: var(--color-link);
+}
+
+.md-typeset a:hover {
+  color: var(--color-link-hover);
+}
