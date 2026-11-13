@@ -1,17 +1,17 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["pyyaml>=6.0.3"]
+# dependencies = ["pyyaml>=6.0.3", "awscli==1.46.3"]
 # ///
-"""Publish a built example catalog to the Portolan repository on Source Cooperative.
+"""Publish a built example catalog to the Portolan Mirrors organization on Source Cooperative.
 
 examples/manifests/*.yaml each describe one whole catalog, and build.py turns a
 manifest into a complete catalog tree under examples/catalog/<stem>/. This
-uploads that tree to https://data.source.coop/portolan/portolan-pipeline/ so the
+uploads that tree to the portolan-mirrors/portolan-spec-examples product,
+https://data.source.coop/portolan-mirrors/portolan-spec-examples/, so the
 example is reachable at a real URL, which is the only way to exercise a Portolan
 catalog the way a client actually reads one, over HTTP range requests.
 
-portolan-pipeline already publishes into this same repository, so the prefix
-taxonomy here is its taxonomy rather than a second one. The layout is
+The product holds only these example catalogs. The layout is
 <catalog id>/<namespace>, where the namespace is `main` for main or master,
 `branches/<slug>` for any other branch, and `PRs/<number>` for a pull request.
 A PR number is stable across a force-push where a branch name is not, and it is
@@ -20,11 +20,32 @@ not the file name. Name each manifest after the id it declares, so
 `portolan-reference.yaml` builds `catalog/portolan-reference/` and publishes to
 `portolan-reference/`, one name everywhere.
 
-Transfers run through s5cmd rather than the AWS CLI. A catalog is a few hundred
-small JSON files next to a handful of large Parquet and COG assets, and s5cmd
-saturates that shape far better. `sync --delete` is scoped to one catalog's own
+Transfers run through the AWS CLI, pinned in the header above and run as
+`python -m awscli`, so the client version is the one this script declares and
+nothing has to be on PATH. `sync --delete` is scoped to one catalog's own
 prefix, so a stale file from an earlier build is removed while everything else
-published under portolan/portolan-pipeline/ is left alone.
+published under portolan-mirrors/portolan-spec-examples/ is left alone.
+
+The AWS CLI replaced s5cmd, which cannot work through the data proxy. Three
+proxy behaviours decide it. The proxy forwards a plain PutObject to S3 on a
+presigned URL that signs only the host, and S3 refused every s5cmd upload with
+"There were headers present in the request which were not signed". The AWS CLI
+sends PutObject as an aws-chunked upload instead, which the proxy re-signs with
+its headers. The proxy's LIST returns keys relative to the account, so the
+account has to be the bucket, and s5cmd then batch deletes under the account
+alone, which the proxy cannot map. The AWS CLI deletes one object at a time.
+
+The CLI finishes every transfer it can and then exits non-zero if any failed,
+and this script then fails. After a sync it lists the prefix again and requires
+the remote keys to equal the local files, so a stale file that survived or an
+upload that went missing fails the run rather than passing quietly.
+
+Every transfer goes through Source Cooperative's data proxy at
+https://data.source.coop, with the credentials in the environment. In CI they
+come from a GitHub OIDC sign-in as the service account
+portolan-mirrors--spec-examples, so the repository stores no keys. The proxy
+seals the credentials it issues, so they work against the proxy and nowhere
+else.
 
 After the upload it refetches the published catalog.json over HTTPS and checks
 that it parses and still carries the id that was uploaded. A sync that reported
@@ -44,8 +65,8 @@ import argparse
 import json
 import os
 import re
-import shutil
 import subprocess
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -53,20 +74,40 @@ from pathlib import Path
 
 import yaml
 
-BUCKET = "s3://us-west-2.opendata.source.coop"
-# The Source Cooperative repository. Both halves of this pair have to move
-# together, they address the same bytes over S3 and over HTTPS.
-REPO_PREFIX = "portolan/portolan-pipeline"
-PUBLIC_BASE = "https://data.source.coop/portolan/portolan-pipeline"
+# Source Cooperative's data proxy. It serves the public reads and it takes the
+# writes as well. CI signs in at the proxy with a GitHub OIDC token, and the
+# credentials it gets back are sealed to the proxy, so they are refused by
+# s3.amazonaws.com. Every transfer therefore goes through the proxy.
+PROXY = "https://data.source.coop"
+# The Source Cooperative product, portolan-mirrors/portolan-spec-examples.
+# data.source.coop resolves a path through the product record, so the product
+# must exist for PUBLIC_BASE to serve what the upload writes.
+ACCOUNT = "portolan-mirrors"
+PRODUCT = "portolan-spec-examples"
+# Through the proxy the account is the S3 bucket and the product is the first
+# segment of every key. That is the only addressing the proxy's LIST answers
+# consistently, since it returns account-relative keys even when the product is
+# in the URL path. The AWS CLI uses path-style addressing for a custom endpoint,
+# so a key lands at /<account>/<product>/<rest>, which the proxy maps.
+S3_ENDPOINT = PROXY
+BUCKET = ACCOUNT
+# Set for every CLI call rather than left to the environment. With checksums on,
+# the CLI sends each upload and part over HTTPS as aws-chunked with a checksum
+# trailer, the one form the proxy re-signs whole. With them off it sends a
+# plain body, which the proxy forwards on a host-only presigned URL that S3
+# refuses. check_publish_proxy.py asserts the form on every upload.
+CHECKSUM_CALCULATION = "when_supported"
+# The same bytes over HTTPS. The proxy serves both, so the S3 URL path and the
+# public URL path are identical.
+PUBLIC_BASE = f"{PROXY}/{ACCOUNT}/{PRODUCT}"
 # The two human-facing views of the same bytes. `data.` serves the objects,
 # the bare domain serves Source Cooperative's file browser, and STAC Browser
 # renders the catalog. All three are derived from PUBLIC_BASE in review_urls,
 # never reassembled, so moving the repository moves all of them together.
-SOURCE_COOP_BASE = "https://source.coop/portolan/portolan-pipeline"
+SOURCE_COOP_BASE = f"https://source.coop/{ACCOUNT}/{PRODUCT}"
 BROWSER_BASE = "https://browser.portolan-sdi.org/#/external/"
 
-# portolan-pipeline publishes into this same repository, so its prefix taxonomy
-# is the one to match rather than invent a second. See its docs/branch-versioning.md.
+# The namespace taxonomy is main, branches/<slug>, and PRs/<number>.
 DEFAULT_BRANCHES = {"main", "master"}
 # Everything outside this set collapses to a single dash, so a branch name is
 # one path segment. `feat/x` becomes `feat-x`, never a nested directory.
@@ -108,7 +149,7 @@ def manifest_catalogs(root: Path) -> dict[str, str]:
 
 
 def slugify_ref(ref: str) -> str:
-    """Turn a git ref into one safe path segment, as portolan-pipeline does."""
+    """Turn a git ref into one safe path segment, by lowercasing and collapsing unsafe runs to a dash."""
     slug = UNSAFE_IN_SLUG.sub("-", ref.strip().lower()).strip("-./")
     return slug or "unnamed"
 
@@ -180,12 +221,20 @@ def destination(catalog_id: str, ns: str) -> tuple[str, str]:
     """The s3:// target and the public https:// URL for one catalog and run.
 
     Keyed on the catalog id rather than the manifest file name, since the id is
-    what the published catalog calls itself and what portolan-pipeline keys on.
+    what the published catalog calls itself.
     """
     if not catalog_id or "/" in catalog_id or ".." in catalog_id:
         raise SystemExit(f"refusing to publish catalog id {catalog_id!r}")
-    tail = f"{REPO_PREFIX}/{catalog_id}/{ns}"
-    return f"{BUCKET}/{tail}/", f"{PUBLIC_BASE}/{catalog_id}/{ns}/"
+    tail = f"{catalog_id}/{ns}"
+    return f"s3://{BUCKET}/{PRODUCT}/{tail}/", f"{PUBLIC_BASE}/{tail}/"
+
+
+def key_prefix(target: str) -> str:
+    """The S3 key prefix of an s3:// target, the part after the bucket."""
+    head = f"s3://{BUCKET}/"
+    if not target.startswith(head):
+        raise SystemExit(f"target {target!r} is not in bucket {BUCKET!r}")
+    return target.removeprefix(head)
 
 
 def review_urls(public_url: str) -> tuple[str, str]:
@@ -213,31 +262,116 @@ def tree_summary(tree: Path) -> tuple[int, int]:
     return len(files), sum(path.stat().st_size for path in files)
 
 
+def aws(*args: str) -> list[str]:
+    """An AWS CLI command line pointed at the data proxy.
+
+    The endpoint is passed on every call rather than through AWS_ENDPOINT_URL,
+    so a stray environment cannot send these credentials anywhere else. The
+    credentials come from the environment, AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY and AWS_SESSION_TOKEN, which the sign-in step in CI
+    exports.
+    """
+    return [sys.executable, "-m", "awscli", "--endpoint-url", S3_ENDPOINT, *args]
+
+
+def run(command: list[str], echo: bool = True) -> subprocess.CompletedProcess:
+    """Run one CLI command, echoing it, and fail on any non-zero exit.
+
+    The CLI exits 1 when any transfer failed and 2 when it skipped a file, and
+    both are failures here. Nothing is half-published without the run going red.
+    """
+    print(f"$ {' '.join(command[1:])}", flush=True)
+    env = {**os.environ, "AWS_REQUEST_CHECKSUM_CALCULATION": CHECKSUM_CALCULATION}
+    completed = subprocess.run(
+        command, capture_output=True, text=True, check=False, env=env
+    )
+    if echo:
+        print(completed.stdout, end="")
+    if completed.returncode != 0:
+        print(completed.stderr, end="")
+        raise SystemExit(f"aws exited {completed.returncode}: {' '.join(command[3:6])}")
+    return completed
+
+
+def remote_keys(prefix: str) -> set[str]:
+    """Every key under `prefix`, relative to it, from a fresh listing.
+
+    The listing is checked rather than trusted. A response that is not the
+    shape the CLI documents, or a key outside the prefix that was asked for,
+    means the proxy's addressing no longer matches this script, and every
+    decision made from that listing would be wrong. Both fail here. An empty
+    set means the listing returned no keys at all under the prefix.
+    """
+    completed = run(
+        aws(
+            "s3api", "list-objects-v2",
+            "--bucket", BUCKET,
+            "--prefix", prefix,
+            "--output", "json",
+        ),
+        echo=False,
+    )
+    text = completed.stdout.strip()
+    try:
+        listing = json.loads(text) if text else {}
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"listing of {prefix!r} is not JSON, {exc}") from exc
+    if not isinstance(listing, dict):
+        raise SystemExit(f"listing of {prefix!r} is not an object, {listing!r}")
+    echoed = listing.get("Prefix")
+    if echoed not in (None, prefix):
+        raise SystemExit(f"listing of {prefix!r} answered for prefix {echoed!r}")
+    contents = listing.get("Contents") or []
+    if not isinstance(contents, list):
+        raise SystemExit(f"listing of {prefix!r} has malformed Contents")
+    keys = set()
+    for entry in contents:
+        key = entry.get("Key") if isinstance(entry, dict) else None
+        if not isinstance(key, str) or not key.startswith(prefix):
+            raise SystemExit(
+                f"listing of {prefix!r} returned key {key!r} outside the prefix, "
+                "the proxy's key addressing has changed"
+            )
+        keys.add(key.removeprefix(prefix))
+    return keys
+
+
+def local_files(tree: Path) -> set[str]:
+    """The relative paths of a built tree, as they will be published."""
+    return {
+        path.relative_to(tree).as_posix()
+        for path in tree.rglob("*")
+        if path.is_file() and path.name not in EXCLUDED_NAMES
+    }
+
+
 def sync(tree: Path, target: str, dry_run: bool) -> None:
-    """Mirror one built catalog tree onto its own prefix."""
-    if shutil.which("s5cmd") is None:
-        raise SystemExit("s5cmd is not on PATH, see https://github.com/peak/s5cmd")
-    command = ["s5cmd"]
-    if dry_run:
-        command.append("--dry-run")
-    command += [
-        # A catalog is mostly small JSON, so the win is in request concurrency.
-        "--numworkers", "64",
-        "sync",
-        # Scoped to this catalog's own prefix, so a file dropped from the
-        # manifest disappears and nothing else in the bucket is touched.
-        "--delete",
-        # Without this a failed object is logged and the run still exits 0.
-        "--exit-on-error",
-    ]
+    """Mirror one built catalog tree onto its own prefix, then prove it."""
+    prefix = key_prefix(target)
+    # `sync --delete` decides what to delete from the CLI's own listing, and
+    # trusts it. Checking the same listing first means a proxy that changed its
+    # key addressing fails here, before the CLI deletes keys it misread.
+    remote_keys(prefix)
+    # Scoped to this catalog's own prefix, so a file dropped from the manifest
+    # disappears and nothing else in the bucket is touched.
+    command = aws("s3", "sync", f"{tree}/", target, "--delete", "--no-progress")
     for name in sorted(EXCLUDED_NAMES):
         # A leading star, since the pattern is matched against the whole path.
         command += ["--exclude", f"*{name}"]
-    command += [f"{tree}/", target]
-    print(f"$ {' '.join(command)}")
-    completed = subprocess.run(command, check=False)
-    if completed.returncode != 0:
-        raise SystemExit(f"s5cmd failed with exit {completed.returncode}, {target}")
+    if dry_run:
+        command.append("--dryrun")
+    run(command)
+    if dry_run:
+        return
+    remote = remote_keys(prefix)
+    local = local_files(tree)
+    stale, missing = sorted(remote - local), sorted(local - remote)
+    if stale or missing:
+        raise SystemExit(
+            f"{target} does not mirror {tree} after the sync, "
+            f"{len(stale)} stale {stale[:5]}, {len(missing)} missing {missing[:5]}"
+        )
+    print(f"{target} holds exactly the {len(local)} built files")
 
 
 def verify(public_url: str, expected_id: str) -> None:
@@ -281,24 +415,32 @@ def teardown(catalog_ids: list[str], number: str, dry_run: bool) -> int:
     """
     if not number.isdigit():
         raise SystemExit(f"refusing to tear down, PR number is not numeric, {number!r}")
-    if shutil.which("s5cmd") is None:
-        raise SystemExit("s5cmd is not on PATH, see https://github.com/peak/s5cmd")
 
     for catalog_id in catalog_ids:
         target, _ = destination(catalog_id, f"PRs/{number}")
         if f"/PRs/{number}/" not in target:
             raise SystemExit(f"refusing to tear down, unexpected target {target!r}")
-        command = ["s5cmd"]
-        if dry_run:
-            command.append("--dry-run")
+        prefix = key_prefix(target)
         # A prefix with nothing under it is normal, a PR that never published.
-        command += ["rm", f"{target}*"]
-        print(f"$ {' '.join(command)}")
-        completed = subprocess.run(command, capture_output=True, text=True, check=False)
-        print(completed.stdout, end="")
-        if completed.returncode != 0 and "no object found" not in completed.stderr:
-            raise SystemExit(completed.stderr.strip())
-        print(f"torn down {target}")
+        # It counts only when the listing itself is sound, remote_keys fails on
+        # a malformed or mismatched one.
+        before = remote_keys(prefix)
+        if not before:
+            print(f"nothing under {target}")
+            continue
+        command = aws("s3", "rm", target, "--recursive", "--only-show-errors")
+        if dry_run:
+            run(command + ["--dryrun"])
+            print(f"dry run, {len(before)} objects would be deleted from {target}")
+            continue
+        run(command)
+        left = remote_keys(prefix)
+        if left:
+            raise SystemExit(
+                f"{len(left)} objects survived the teardown of {target}, "
+                f"{sorted(left)[:5]}"
+            )
+        print(f"torn down {target}, {len(before)} objects")
     return 0
 
 
