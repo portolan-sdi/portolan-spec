@@ -13,8 +13,7 @@ const fs = require('fs');
 const path = require('path');
 const Ajv = require('ajv');
 
-const version = require('../package.json').version;
-const schemaPath = path.join(__dirname, '..', 'json-schema', `v${version}`, 'schema.json');
+const schemaPath = path.join(__dirname, '..', 'json-schema', 'schema.json');
 const examplesDir = path.join(__dirname, '..', 'examples');
 
 const ajv = new Ajv({ allErrors: true, strict: false });
