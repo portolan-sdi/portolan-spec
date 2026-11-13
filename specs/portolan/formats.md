@@ -148,9 +148,10 @@ opening them.
 
 Clients read a partitioned dataset by listing the files in its bucket, then
 matching them against the glob. Because clients can't list files from a
-relative path or an `https://` URL, `partition:glob` MUST be an absolute
-`s3://`, `gs://`, or `az://` URL. Publishers SHOULD also put the glob URL in
-the collection's `description`.
+relative path or an `http://` or `https://` URL, `partition:glob` MUST be an
+absolute URL with a scheme that supports listing. Publishers SHOULD use
+`s3://`, `gs://`, or `az://`, which DuckDB, GDAL, and fsspec all support.
+Publishers SHOULD also put the glob URL in the collection's `description`.
 
 Clients assume an `s3://` URL refers to Amazon S3. For other S3-compatible
 services, such as Cloudflare R2 or MinIO, publishers SHOULD add a

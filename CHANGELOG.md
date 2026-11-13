@@ -42,9 +42,10 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   for a table about Europe, or the country's bounds for a tabular collection
   in a country catalog (#198).
 
-- **Partition globs must be absolute `s3://`, `gs://`, or `az://` URLs**
-  (`PORTO-FMT-064`). Readers need to list the files that match a glob. HTTP
-  URLs and relative paths cannot be listed. This breaks catalogs with
+- **Partition globs must be absolute URLs that clients can list**
+  (`PORTO-FMT-064`, `PORTO-FMT-075`). Readers need to list the files that
+  match a glob. HTTP URLs and relative paths cannot be listed. Globs should
+  use `s3://`, `gs://`, or `az://`. This breaks catalogs with
   relative globs, 9 of 37 registry collections in October 2026. To fix one,
   replace the relative glob with the absolute bucket URL (#166, #216).
 
@@ -93,7 +94,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 147 requirements, now 96 MUST, 33 SHOULD, and
+- **Requirements manifest**: 148 requirements, now 96 MUST, 34 SHOULD, and
   18 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source

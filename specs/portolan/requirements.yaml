@@ -1014,15 +1014,24 @@ requirements:
 
   # PORTO-FMT-020 (bucket-native schemes such as s3:// and gs:// MAY be used
   # for partition:glob) is retired. PORTO-FMT-064 now requires an absolute
-  # s3://, gs://, or az:// URL (#216).
+  # URL with a scheme that supports listing, and PORTO-FMT-075 recommends
+  # s3://, gs://, or az:// (#216).
   - id: PORTO-FMT-064
     severity: MUST
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      Because clients can't list files from a relative path or an `https://`
-      URL, `partition:glob` MUST be an absolute `s3://`, `gs://`, or `az://`
-      URL.
+      Because clients can't list files from a relative path or an `http://`
+      or `https://` URL, `partition:glob` MUST be an absolute URL with a
+      scheme that supports listing.
+
+  - id: PORTO-FMT-075
+    severity: SHOULD
+    enforcement: validator
+    file: specs/portolan/formats.md
+    quote: >-
+      Publishers SHOULD use `s3://`, `gs://`, or `az://`, which DuckDB, GDAL,
+      and fsspec all support.
 
   - id: PORTO-FMT-019
     severity: SHOULD
