@@ -42,7 +42,11 @@ for (const [name, ext] of Object.entries(extensions)) {
 // classes on the asset and under raster:bands. It does not check STAC 1.1
 // bands, so this script applies the class schema to bands. This script also
 // applies the Portolan class rules (PORTO-FMT-052, PORTO-FMT-057,
-// PORTO-FMT-060) in both places.
+// PORTO-FMT-060) in both places. A class list in the legacy raster:bands
+// array is in the wrong place. An asset with the source role is an upstream
+// original, and the format rules do not apply to it (PORTO-FMT-045). The
+// profile schema makes the same placement, title, and source decisions. The
+// drift cases at the end of this script fail the run if the two disagree.
 const classificationUri = 'https://stac-extensions.github.io/classification/v2.0.0/schema.json';
 const classificationCache = path.join(
   __dirname, '..', '.schema-cache', 'stac-extensions', 'classification', 'v2.0.0', 'schema.json',
@@ -79,7 +83,15 @@ function classErrors(doc) {
   for (const [group, assets] of Object.entries(groups)) {
     for (const [key, asset] of Object.entries(assets)) {
       const where = `${group}/${key}`;
+      const roles = Array.isArray(asset.roles) ? asset.roles : [];
+      if (roles.includes('source')) continue;
       const bands = Array.isArray(asset.bands) ? asset.bands : [];
+      const legacyBands = Array.isArray(asset['raster:bands']) ? asset['raster:bands'] : [];
+      legacyBands.forEach((band, i) => {
+        if (band && band['classification:classes'] !== undefined) {
+          errors.push(`${where}/raster:bands/${i}: classes belong in the STAC 1.1 bands array, not raster:bands (PORTO-FMT-050)`);
+        }
+      });
       if (asset['classification:classes'] !== undefined && bands.length > 1) {
         errors.push(`${where}: multiband raster has its classes on the asset, not on the band (PORTO-FMT-050)`);
       }
@@ -140,6 +152,77 @@ for (const name of names) {
     for (const e of errors) console.error(`    ${e}`);
   } else {
     console.log(`✓ ${name}`);
+  }
+}
+
+// Drift cases. Each case changes the classified example in one way. The
+// profile schema and the class rules above must both give the expected
+// result, so a change to one without the other fails the run.
+const classified = JSON.parse(
+  fs.readFileSync(path.join(examplesDir, 'raster-classified-collection.json'), 'utf8'),
+);
+const untitled = [{ value: 1, name: 'water' }];
+const titled = [{ value: 1, name: 'water', title: 'Water' }];
+const driftCases = [
+  {
+    name: 'a source asset with misplaced and untitled classes passes',
+    valid: true,
+    change: (doc) => {
+      doc.assets.upstream = {
+        href: 'https://upstream.example.org/flood.tif',
+        type: 'image/tiff',
+        roles: ['source'],
+        bands: [{}, {}],
+        'classification:classes': untitled,
+        'raster:bands': [{ 'classification:classes': untitled }],
+      };
+    },
+  },
+  {
+    name: 'a class list in raster:bands of an asset fails',
+    valid: false,
+    change: (doc) => {
+      doc.assets.data['raster:bands'] = [{ 'classification:classes': titled }];
+    },
+  },
+  {
+    name: 'a class list in raster:bands of item_assets fails',
+    valid: false,
+    change: (doc) => {
+      doc.item_assets = {
+        data: {
+          type: doc.assets.data.type,
+          roles: ['data'],
+          'raster:bands': [{ 'classification:classes': titled }],
+        },
+      };
+    },
+  },
+  {
+    name: 'a class list on the asset of a multiband raster fails',
+    valid: false,
+    change: (doc) => {
+      doc.assets.data.bands = [{}, {}];
+    },
+  },
+  {
+    name: 'a class with no title fails',
+    valid: false,
+    change: (doc) => {
+      delete doc.assets.data['classification:classes'][1].title;
+    },
+  },
+];
+for (const testCase of driftCases) {
+  const doc = JSON.parse(JSON.stringify(classified));
+  testCase.change(doc);
+  const bySchema = validate(doc);
+  const byScript = classErrors(doc).length === 0;
+  if (bySchema === testCase.valid && byScript === testCase.valid) {
+    console.log(`✓ drift: ${testCase.name}`);
+  } else {
+    failed = true;
+    console.error(`✗ drift: ${testCase.name}: schema says ${bySchema}, class rules say ${byScript}, expected ${testCase.valid}`);
   }
 }
 

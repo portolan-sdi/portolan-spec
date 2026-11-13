@@ -179,7 +179,7 @@ npm test
 - **check-markdown** — remark lint over the profile documents.
 - **check-version** — every versioned Portolan schema URI reference (schema `$id`, READMEs, examples, spec documents) matches the `package.json` version, and the `$id` of `json-schema/schema.json` names that version.
 - **check-examples** — [stac-node-validator](https://github.com/stac-utils/stac-node-validator) validates the examples, applying the schema where `stac_extensions` declares it.
-- **check-portolan** — validates every example directly against the schema with ajv, the way the Portolan validator does. This is what exercises the schema's item rules — items never declare the schema URI, so `check-examples` alone would never apply it to them. It also applies the pinned extension schemas to every example that declares them, and verifies the examples' `file:checksum` values are well-formed sha2-256 multihashes, which the schema deliberately delegates to tooling.
+- **check-portolan** — validates every example directly against the schema with ajv, the way the Portolan validator does. This is what exercises the schema's item rules — items never declare the schema URI, so `check-examples` alone would never apply it to them. It also applies the pinned extension schemas to every example that declares them, and verifies the examples' `file:checksum` values are well-formed sha2-256 multihashes, which the schema deliberately delegates to tooling. Its drift cases change the classified raster example in one way each. The schema and the script's class rules must give the same result for each case, so the two cannot disagree on class placement, titles, or `source` assets.
 
 ## Contributing
 
