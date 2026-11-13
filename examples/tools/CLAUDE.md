@@ -418,7 +418,11 @@ out s5cmd, which published here before.
 one with keys outside the prefix, before a sync and before a teardown. After a
 sync the remote keys must equal the built files, and after a teardown the
 prefix must list empty. `check_publish_proxy.py` runs the real sync and
-teardown against a local stand-in that routes the way the proxy does.
+teardown against a local stand-in that routes the way the proxy does. The
+stand-in serves HTTPS, since the CLI sends `aws-chunked` only over HTTPS. The
+check requires that form on every upload and part, no `Content-MD5`, and
+decoded bytes equal to the source files. A second sync with checksums set to
+`when_required` must fail that requirement.
 
 | git context | published prefix |
 | --- | --- |

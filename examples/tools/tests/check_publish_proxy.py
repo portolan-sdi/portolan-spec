@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["pyyaml>=6.0.3", "awscli==1.46.3"]
+# dependencies = ["pyyaml>=6.0.3", "awscli==1.46.3", "trustme==1.2.1"]
 # ///
 """Standalone check that publish_catalogs.py syncs and tears down through the proxy.
 
@@ -19,12 +19,23 @@ a stale file, that the teardown removes a whole preview, that neighbouring
 prefixes survive both, and that a listing with keys outside the prefix fails
 the teardown rather than passing it as empty.
 
+The stand-in serves HTTPS with a throwaway certificate, because the pinned
+botocore sends aws-chunked uploads with a checksum trailer only over HTTPS.
+That form is the one the real proxy re-signs whole, and a plain body is the
+form S3 refused. So every PutObject and UploadPart must arrive aws-chunked,
+no request may carry Content-MD5, and every decoded payload must equal its
+source file byte for byte and match its CRC32 trailer. A negative run with
+checksums set to when_required must break that assertion, which proves the
+check can see the regression it guards against.
+
 Offline, no credentials. Run: uv run examples/tools/tests/check_publish_proxy.py
 """
 from __future__ import annotations
 
+import base64
 import os
 import re
+import ssl
 import sys
 import tempfile
 import threading
@@ -32,6 +43,9 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from xml.sax.saxutils import escape
+import zlib
+
+import trustme
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import publish_catalogs as pc  # noqa: E402
@@ -53,16 +67,48 @@ class FakeProxy:
         self.parts: dict[str, dict[int, bytes]] = {}
         self.requests: list[tuple[str, str, dict[str, str]]] = []
         self.list_shape = "account-relative"
+        # Faults in an upload's encoding, found as it arrives.
+        self.problems: list[str] = []
         self.lock = threading.Lock()
 
 
-def _list_xml(account: str, prefix: str, keys: list[str]) -> bytes:
+STREAMING = "STREAMING-UNSIGNED-PAYLOAD-TRAILER"
+
+
+def decode_aws_chunked(raw: bytes) -> tuple[bytes, dict[str, str]]:
+    """The payload and trailers of an aws-chunked body, or ValueError."""
+    out = bytearray()
+    pos = 0
+    while True:
+        eol = raw.index(b"\r\n", pos)
+        size = int(raw[pos:eol].split(b";")[0], 16)
+        pos = eol + 2
+        if size == 0:
+            break
+        out += raw[pos : pos + size]
+        pos += size
+        if raw[pos : pos + 2] != b"\r\n":
+            raise ValueError(f"chunk of {size} bytes is not terminated")
+        pos += 2
+    trailers = {}
+    for line in raw[pos:].split(b"\r\n"):
+        if line:
+            name, _, value = line.partition(b":")
+            trailers[name.strip().lower().decode()] = value.strip().decode()
+    return bytes(out), trailers
+
+
+def crc32_b64(data: bytes) -> str:
+    return base64.b64encode(zlib.crc32(data).to_bytes(4, "big")).decode()
+
+
+def _list_xml(account: str, prefix: str, keys: list[tuple[str, int]]) -> bytes:
     contents = "".join(
         f"<Contents><Key>{escape(key)}</Key>"
         "<LastModified>2026-01-01T00:00:00.000Z</LastModified>"
-        f'<ETag>"e"</ETag><Size>1</Size><StorageClass>STANDARD</StorageClass>'
+        f'<ETag>"e"</ETag><Size>{size}</Size><StorageClass>STANDARD</StorageClass>'
         "</Contents>"
-        for key in keys
+        for key, size in keys
     )
     return (
         '<?xml version="1.0" encoding="UTF-8"?>'
@@ -119,12 +165,39 @@ def make_handler(proxy: FakeProxy):
                 proxy.requests.append((self.command, self.path, dict(self.headers)))
             return query, segments
 
-        def _keys_under(self, prefix: str) -> list[str]:
+        def _keys_under(self, prefix: str) -> list[tuple[str, int]]:
             with proxy.lock:
-                keys = sorted(k for k in proxy.objects if k.startswith(prefix))
+                keys = sorted(
+                    (k, len(v)) for k, v in proxy.objects.items() if k.startswith(prefix)
+                )
             if proxy.list_shape == "product-relative":
-                keys = [k.split("/", 1)[1] for k in keys]
+                keys = [(k.split("/", 1)[1], n) for k, n in keys]
             return keys
+
+        def _payload(self, label: str) -> bytes:
+            """The decoded body of an upload, noting any fault in its form."""
+            raw = self._body()
+            sha = self.headers.get("x-amz-content-sha256", "")
+            encoding = self.headers.get("Content-Encoding", "")
+            faults = []
+            if sha != STREAMING:
+                faults.append(f"x-amz-content-sha256 is {sha!r}")
+            if "aws-chunked" not in encoding:
+                faults.append(f"Content-Encoding is {encoding!r}")
+            body = raw
+            if "aws-chunked" in encoding:
+                try:
+                    body, trailers = decode_aws_chunked(raw)
+                except ValueError as exc:
+                    faults.append(f"aws-chunked body does not decode, {exc}")
+                else:
+                    sent = trailers.get("x-amz-checksum-crc32")
+                    if sent != crc32_b64(body):
+                        faults.append(f"CRC32 trailer {sent!r} does not match the payload")
+            if faults:
+                with proxy.lock:
+                    proxy.problems.append(f"{label}: {', '.join(faults)}")
+            return body
 
         def do_GET(self):  # noqa: N802 - BaseHTTPRequestHandler's interface
             query, segments = self._route()
@@ -151,7 +224,7 @@ def make_handler(proxy: FakeProxy):
 
         def do_PUT(self):  # noqa: N802
             query, segments = self._route()
-            body = self._body()
+            body = self._payload(f"PUT {self.path}")
             if len(segments) != 3 or segments[0] != ACCOUNT:
                 return self._send(400, _error("InvalidRequest", "missing object key"))
             key = f"{segments[1]}/{segments[2]}"
@@ -211,10 +284,39 @@ def make_handler(proxy: FakeProxy):
     return Handler
 
 
-def start(proxy: FakeProxy) -> tuple[ThreadingHTTPServer, str]:
+def start(proxy: FakeProxy, tls: ssl.SSLContext) -> tuple[ThreadingHTTPServer, str]:
     server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(proxy))
+    server.socket = tls.wrap_socket(server.socket, server_side=True)
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    return server, f"http://127.0.0.1:{server.server_address[1]}"
+    return server, f"https://127.0.0.1:{server.server_address[1]}"
+
+
+def throwaway_tls(workdir: Path) -> ssl.SSLContext:
+    """A server context for 127.0.0.1, with the CLI told to trust its CA."""
+    ca = trustme.CA()
+    context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    ca.issue_cert("127.0.0.1").configure_cert(context)
+    bundle = workdir / "ca.pem"
+    ca.cert_pem.write_to_path(str(bundle))
+    os.environ["AWS_CA_BUNDLE"] = str(bundle)
+    return context
+
+
+def upload_problems(proxy: FakeProxy, sources: dict[str, bytes]) -> list[str]:
+    """Every way the uploads differ from the form and bytes the proxy needs."""
+    problems = list(proxy.problems)
+    puts = [r for r in proxy.requests if r[0] == "PUT"]
+    if not puts:
+        problems.append("no upload reached the stand-in")
+    for method, path, headers in proxy.requests:
+        if any(name.lower() == "content-md5" for name in headers):
+            problems.append(f"{method} {path} carries Content-MD5")
+    for key, data in sources.items():
+        got = proxy.objects.get(key)
+        if got != data:
+            size = "missing" if got is None else f"{len(got)} bytes"
+            problems.append(f"{key} is {size}, the source is {len(data)} bytes")
+    return problems
 
 
 def isolate_cli_env() -> None:
@@ -235,6 +337,8 @@ def isolate_cli_env() -> None:
 def main() -> int:
     failures: list[str] = []
     isolate_cli_env()
+    certs = tempfile.TemporaryDirectory()
+    tls = throwaway_tls(Path(certs.name))
 
     preview = f"{PRODUCT}/cat/PRs/7/"
     neighbours = {
@@ -243,7 +347,7 @@ def main() -> int:
         f"{PRODUCT}/other/PRs/7/catalog.json": b"other",
     }
     proxy = FakeProxy({f"{preview}stale.json": b"old", **neighbours})
-    server, endpoint = start(proxy)
+    server, endpoint = start(proxy, tls)
     pc.S3_ENDPOINT = endpoint
 
     def under(prefix: str) -> set[str]:
@@ -272,8 +376,27 @@ def main() -> int:
             want = {"catalog.json", "sub/item.json", "sub/big.bin"}
             if under(preview) != want:
                 failures.append(f"after sync the preview holds {sorted(under(preview))}")
-            if len(proxy.objects.get(f"{preview}sub/big.bin", b"")) != 9 * 1024 * 1024:
-                failures.append("the multipart upload did not reassemble")
+            sources = {f"{preview}{rel}": (tree / rel).read_bytes() for rel in want}
+            failures += upload_problems(proxy, sources)
+
+            # The same sync with checksums off must break the upload assertion,
+            # or the assertion cannot see the regression it exists to catch.
+            negative = FakeProxy({})
+            neg_server, pc.S3_ENDPOINT = start(negative, tls)
+            production = pc.CHECKSUM_CALCULATION
+            pc.CHECKSUM_CALCULATION = "when_required"
+            try:
+                pc.sync(tree, target, dry_run=False)
+            finally:
+                pc.CHECKSUM_CALCULATION = production
+                pc.S3_ENDPOINT = endpoint
+                neg_server.shutdown()
+            negative_sources = {f"{preview}{rel}": (tree / rel).read_bytes() for rel in want}
+            caught = upload_problems(negative, negative_sources)
+            if caught:
+                print(f"when_required caught as expected, {caught[0]}")
+            else:
+                failures.append("with when_required the upload assertion still passed")
 
             # A dry run must leave every object where it is.
             pc.teardown(["cat"], "7", dry_run=True)
@@ -299,6 +422,7 @@ def main() -> int:
             proxy.list_shape = "account-relative"
     finally:
         server.shutdown()
+        certs.cleanup()
 
     batch = [path for method, path, _ in proxy.requests if method == "POST" and "delete" in path]
     if batch:

@@ -91,6 +91,12 @@ PRODUCT = "portolan-spec-examples"
 # so a key lands at /<account>/<product>/<rest>, which the proxy maps.
 S3_ENDPOINT = PROXY
 BUCKET = ACCOUNT
+# Set for every CLI call rather than left to the environment. With checksums on,
+# the CLI sends each upload and part over HTTPS as aws-chunked with a checksum
+# trailer, the one form the proxy re-signs whole. With them off it sends a
+# plain body, which the proxy forwards on a host-only presigned URL that S3
+# refuses. check_publish_proxy.py asserts the form on every upload.
+CHECKSUM_CALCULATION = "when_supported"
 # The same bytes over HTTPS. The proxy serves both, so the S3 URL path and the
 # public URL path are identical.
 PUBLIC_BASE = f"{PROXY}/{ACCOUNT}/{PRODUCT}"
@@ -275,9 +281,7 @@ def run(command: list[str], echo: bool = True) -> subprocess.CompletedProcess:
     both are failures here. Nothing is half-published without the run going red.
     """
     print(f"$ {' '.join(command[1:])}", flush=True)
-    # Pinned rather than left to the environment. With checksums on, the CLI
-    # sends each upload aws-chunked, the one form the proxy re-signs whole.
-    env = {**os.environ, "AWS_REQUEST_CHECKSUM_CALCULATION": "when_supported"}
+    env = {**os.environ, "AWS_REQUEST_CHECKSUM_CALCULATION": CHECKSUM_CALCULATION}
     completed = subprocess.run(
         command, capture_output=True, text=True, check=False, env=env
     )
