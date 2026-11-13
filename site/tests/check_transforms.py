@@ -1,37 +1,57 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["markdown==3.11.3", "pymdown-extensions==13.1", "pyyaml==6.0.3"]
+# dependencies = ["markdown==3.11.3", "pymdown-extensions==13.1", "pyyaml==6.0.3", "tinycss2==1.5.1", "pypdf==7.1.0"]
 # ///
-"""Exercise staging transforms and all requirements in the main Git tree."""
+"""Exercise build transforms and validator failures against HEAD or --ref."""
 
+import argparse
+import contextlib
+import io
+import json
+import shutil
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 import yaml
+from pypdf import PdfWriter
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import build  # noqa: E402
+import check_site  # noqa: E402
+
+
+def fails(call, message):
+    try:
+        call()
+    except ValueError as error:
+        assert message in str(error), str(error)
+    else:
+        assert False, f"Expected failure containing {message}"
 
 
 def check_links():
     with tempfile.TemporaryDirectory() as tmp:
         tree = Path(tmp)
         (tree / "stac/examples").mkdir(parents=True)
+        (tree / "stac/json-schema/v0.1.2").mkdir(parents=True)
+        (tree / "stac/json-schema/schema.json").write_text("{}")
         mapping = {
             "README.md": "index.md",
             "stac/README.md": "stac/index.md",
             "specs/core.md": "specs/core.md",
         }
 
-        def resolve(value):
+        def resolve(value, **options):
             return build.resolve_link(
-                value, "stac/README.md", mapping, tree, "v0.2.0", True
+                value, "stac/README.md", mapping, tree, "v0.2.0", True, **options
             )
 
         text = (
             "[Home](../README.md#intro) [Core](../specs/core.md#links) [Files](examples/)\n"
-            "[Schema](json-schema/v0.2.0/schema.json#properties)\n"
+            "[Schema](json-schema/v0.1.2/schema.json#properties)\n"
             "[Data][data] [`script`](check.py)\n[data]: examples/a.json#field\n"
             '[script]: <check.py> "Title"\n'
             "`[code](check.py)` and ``[code](check.py) `literal` ``\n"
@@ -42,7 +62,7 @@ def check_links():
         assert "[Core](../specs/core.md#links)" in output
         assert "tree/v0.2.0/stac/examples" in output
         assert (
-            "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json#properties"
+            "https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json#properties"
             in output
         )
         assert (
@@ -65,6 +85,17 @@ def check_links():
         assert resolve("https://example.org/a#b") == "https://example.org/a#b"
         assert resolve("//example.org/a") == "//example.org/a"
         assert resolve("../stac/") == "index.md"
+        assert (
+            resolve("json-schema/schema.json")
+            == "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json"
+        )
+        assert resolve("json-schema/").endswith("/tree/v0.2.0/stac/json-schema")
+        assert resolve("json-schema/v0.1.2/").endswith(
+            "/tree/v0.2.0/stac/json-schema/v0.1.2"
+        )
+        assert resolve("json-schema/notes.txt").endswith(
+            "/blob/v0.2.0/stac/json-schema/notes.txt"
+        )
         draft = build.resolve_link(
             "json-schema/v0.2.0/schema.json",
             "stac/README.md",
@@ -76,6 +107,48 @@ def check_links():
         assert f"/blob/{'a' * 40}/stac/json-schema/" in draft
         assert build.rewrite_links("[x](../requirements.yaml#one)", resolve).endswith(
             "/requirements.yaml#one)"
+        )
+        # Indented examples and inline backtick spans are not document links.
+        indented = (
+            'Before.\n\n    [code](check.py)\n    <img src="missing.png">\n\nAfter.\n'
+        )
+        assert build.rewrite_links(indented, resolve) == indented
+        inline = "```[inline](check.py)``` and [real](check.py)\n[after](check.py)\n"
+        rewritten = build.rewrite_links(inline, resolve)
+        assert rewritten.startswith("```[inline](check.py)```")
+        assert (
+            "[real](https://github.com/" in rewritten
+            and "[after](https://github.com/" in rewritten
+        )
+        assert build.normalize_fences(inline) == inline
+        # Raw HTML supports quoted and unquoted attributes, internal pages, and images.
+        raw = '<a href="../specs/core.md#links">Core</a> <img src="examples/map.png"> <a href=check.py>x</a>'
+        rewritten = build.rewrite_links(raw, resolve)
+        assert 'href="../specs/core/#links"' in rewritten
+        assert (
+            'src="https://raw.githubusercontent.com/portolan-sdi/portolan-spec/v0.2.0/stac/examples/map.png"'
+            in rewritten
+        )
+        assert (
+            'href="https://github.com/portolan-sdi/portolan-spec/blob/v0.2.0/stac/check.py"'
+            in rewritten
+        )
+        assert "raw.githubusercontent.com" in build.rewrite_links(
+            "![map](examples/map.png)", resolve
+        )
+        assert "raw.githubusercontent.com" in build.rewrite_links(
+            "![map][image]\n\n[image]: examples/map.png", resolve
+        )
+        assert "raw.githubusercontent.com" in resolve(
+            "https://github.com/portolan-sdi/portolan-spec/blob/v0.2.0/stac/examples/map.png",
+            image=True,
+        )
+        fails(
+            lambda: resolve("../../escape.md"),
+            "stac/README.md: link climbs above repository root: ../../escape.md",
+        )
+        fails(
+            lambda: resolve("%2e%2e/%2e%2e/escape.md"), "climbs above repository root"
         )
 
 
@@ -90,69 +163,321 @@ def check_fences():
         == "````md\n```nested\n````\n"
     )
     assert build.normalize_fences("```\na\n```\n") == "```\na\n```\n"
+    assert (
+        build.normalize_fences("    ```yaml id=x\n    a: 1\n    ```\n")
+        == "    ```yaml id=x\n    a: 1\n    ```\n"
+    )
 
 
-def check_requirements():
-    for ref in dict.fromkeys(["main", build.main_ref()]):
-        manifest = yaml.safe_load(
-            build.git("show", f"{ref}:specs/portolan/requirements.yaml")
-        )
-        assert len(manifest["requirements"]) >= 135, (
-            "The main census must cover the baseline"
-        )
-        for entry in manifest["requirements"]:
-            text = build.git("show", f"{ref}:{entry['file']}")
-            anchor = build.quote_section(text, entry["quote"])
-            assert anchor in {heading["id"] for heading in build.toc(text)}, entry["id"]
-        print(f"OK: {ref} has {len(manifest['requirements'])} requirement sections")
+def check_requirements(ref):
+    baseline = yaml.safe_load(
+        (build.ROOT / "specs/portolan/requirements.yaml").read_text()
+    )
+    floor = len(baseline["requirements"])
+    manifest = yaml.safe_load(
+        build.git("show", f"{ref}:specs/portolan/requirements.yaml")
+    )
+    resolved = set()
+    for entry in manifest["requirements"]:
+        text = build.git("show", f"{ref}:{entry['file']}")
+        anchor = build.quote_section(text, entry["quote"])
+        assert anchor in {heading["id"] for heading in build.toc(text)}, entry["id"]
+        resolved.add(entry["id"])
+    assert len(resolved) >= floor, (
+        f"Expected at least {floor} requirement sections from the checkout manifest"
+    )
+    print(f"OK: {ref} has {len(resolved)} requirement sections; checkout floor {floor}")
     sample = "# Title\n\n## A `code` heading\n\nA sentence\nwith space.\n\n## A `code` heading\n\nOther text.\n"
     assert build.quote_section(sample, "A sentence with   space.") == "a-code-heading"
     assert build.quote_section(sample, "Other text.") == "a-code-heading_1"
-    try:
-        build.quote_section(sample, "Missing quote")
-    except ValueError:
-        pass
-    else:
-        assert False, "A missing quote must fail"
-
-
-def check_semver():
-    tags = [
-        "v0.2.0",
-        "v0.2.1",
-        "v0.3.0-alpha",
-        "v0.3.0-alpha.1",
-        "v0.3.0-alpha.2",
-        "v0.3.0-alpha.10",
-        "v0.3.0-beta",
-        "v0.3.0-rc.1",
-        "v0.3.0",
-        "v0.10.0",
-        "v1.0.0",
-    ]
-    assert sorted(reversed(tags), key=build.semver_key) == tags
-    assert build.semver_key("v1.0.0+build.2") == build.semver_key("v1.0.0")
-    assert build.semver_key("v01.0.0") is None
-    assert build.semver_key("v1.0.0-01") is None
-    assert build.semver_key("version-one") is None
+    fails(lambda: build.quote_section(sample, "Missing quote"), "quote not found")
+    # Check that section links belong to the same metadata line as each requirement.
+    with tempfile.TemporaryDirectory() as tmp:
+        tree = Path(tmp)
+        (tree / "specs/portolan").mkdir(parents=True)
+        (tree / "specs/portolan/core.md").write_text(sample)
+        (tree / "specs/portolan/requirements.yaml").write_text(
+            yaml.safe_dump(
+                {
+                    "requirements": [
+                        {
+                            "id": "PORTO-CORE-001",
+                            "severity": "MUST",
+                            "enforcement": "validator",
+                            "file": "specs/portolan/core.md",
+                            "quote": "A sentence with space.",
+                        }
+                    ]
+                }
+            )
+        )
+        page, _ = build.requirements_page(
+            tree, {"specs/portolan/core.md": "specs/portolan/core.md"}, "HEAD", False
+        )
+        assert (
+            "Severity: **MUST** · Enforcement: **validator** · Section: [A code heading](specs/portolan/core.md#a-code-heading)"
+            in page
+        )
+        assert "Specification section" not in page
+        assert page.index("Section:") < page.index("> A sentence")
 
 
 def check_banner():
+    assert build.draft_title("0.3.0", "v0.2.0") == "Draft of v0.3.0"
+    assert build.draft_title("0.2.0", "v0.2.0") == "Unreleased changes after v0.2.0"
+    assert build.draft_title("0.2.0", "v0.02.0") == "Unreleased changes after v0.02.0"
+    assert build.draft_title("0.1.0", "v0.2.0") == "Unreleased changes after v0.2.0"
+    assert (
+        build.draft_title("0.3.0-beta.1", "v0.3.0") == "Unreleased changes after v0.3.0"
+    )
     text = build.draft_banner("0.3.0", "v0.2.0")
     assert text.startswith('!!! warning "Draft of v0.3.0"\n\n    ')
-    assert "This text is not released." in text
-    assert "https://spec.portolan-sdi.org/v0.2.0/" in text
+    assert (
+        "This text is not released." in text
+        and "https://spec.portolan-sdi.org/v0.2.0/" in text
+    )
     rendered = build.markdown.markdown(text, extensions=build.MD_EXTENSIONS)
-    assert '<div class="admonition warning">' in rendered
     assert '<p class="admonition-title">Draft of v0.3.0</p>' in rendered
+    no_release = build.draft_banner("0.3.0", None)
+    assert "/None/" not in no_release and "[the newest release]" not in no_release
+    assert "Read " not in no_release
+
+
+def check_tags():
+    with patch.object(
+        build,
+        "git",
+        return_value="v0.1.2\nv0.2.0\nv0.10.0\nv0.3.0\nv9.0.0-rc.1\nv3.0\nv2.0.0+build.1",
+    ):
+        notice = io.StringIO()
+        with contextlib.redirect_stdout(notice):
+            assert build.releases() == ["v0.2.0", "v0.3.0", "v0.10.0"]
+        for skipped in ("v9.0.0-rc.1", "v3.0", "v2.0.0+build.1"):
+            assert f"Skip tag {skipped}" in notice.getvalue()
+
+
+def check_output_guards():
+    for path in (
+        build.ROOT,
+        build.ROOT / "site",
+        build.ROOT / "specs/output",
+        build.ROOT / "stac",
+        build.ROOT / "examples",
+    ):
+        fails(lambda: build.output_root(path), "Refuse --out inside the source tree")
+    assert build.output_root(build.ROOT / "_site") == build.ROOT / "_site"
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp)
+        fails(lambda: build.require_build_marker(path), "missing build-info.json")
+        (path / "keep.txt").write_text("keep")
+        (path / "latest").mkdir()
+        (path / "latest/keep.txt").write_text("keep alias")
+        fails(lambda: build.alias_redirects(path, "v0.2.0"), "missing build-info.json")
+        assert (path / "latest/keep.txt").read_text() == "keep alias"
+        (path / "latest/build-info.json").write_text("{}")
+        assert (path / "keep.txt").read_text() == "keep"
+        (path / "build-info.json").write_text("{}")
+        build.require_build_marker(path)
+        link = path / "symlink"
+        link.symlink_to(path, target_is_directory=True)
+        fails(lambda: build.require_build_marker(link), "Refuse output symlink")
+        (path / "v0.2.0/specs/core").mkdir(parents=True)
+        (path / "v0.2.0/specs/core/index.html").write_text("core")
+        (path / "v0.2.0/index.html").write_text("home")
+        build.alias_redirects(path, "v0.2.0")
+        redirect = (path / "latest/specs/core/index.html").read_text()
+        assert "../../../v0.2.0/specs/core/" in redirect
+        assert (
+            "window.location.search" in redirect and "window.location.hash" in redirect
+        )
+        assert check_site.alias_errors(path, "v0.2.0") == []
+        build.alias_redirects(path, "v0.2.0")  # A marked output can be rebuilt.
+
+
+def check_main_selection():
+    with tempfile.TemporaryDirectory() as tmp, patch.object(build, "ROOT", Path(tmp)):
+
+        def git(*args):
+            return subprocess.check_output(["git", "-C", tmp, *args], text=True).strip()
+
+        git("init", "-q")
+        git("config", "user.name", "Site test")
+        git("config", "user.email", "site-test@example.org")
+        git("symbolic-ref", "HEAD", "refs/heads/test")
+        git("commit", "--allow-empty", "-qm", "test: base")
+        base = git("rev-parse", "HEAD")
+        fails(build.main_ref, "Neither main nor origin/main exists")
+        git("update-ref", "refs/remotes/origin/main", base)
+        assert build.main_ref() == "origin/main"  # CI often has no local main.
+        git("update-ref", "refs/heads/main", base)
+        assert build.main_ref() == "origin/main"
+        git("commit", "--allow-empty", "-qm", "test: local descendant")
+        child = git("rev-parse", "HEAD")
+        git("update-ref", "refs/heads/main", child)
+        assert build.main_ref() == "main"
+        git("update-ref", "refs/remotes/origin/main", child)
+        git("update-ref", "refs/heads/main", base)
+        assert build.main_ref() == "origin/main"
+        git("reset", "--soft", base)
+        git("commit", "--allow-empty", "-qm", "test: divergent descendant")
+        git("update-ref", "refs/heads/main", git("rev-parse", "HEAD"))
+        fails(build.main_ref, "main and origin/main diverge")
+        git("update-ref", "-d", "refs/remotes/origin/main")
+        assert build.main_ref() == "main"
+
+
+def check_validator_failures():
+    colors = [
+        "#fff",
+        "#12345678",
+        "rgb(1, 2, 3)",
+        "rgba(1, 2, 3, 0.5)",
+        "hsl(1 2% 3%)",
+        "hsla(1, 2%, 3%, 0.5)",
+        "hwb(1 2% 3%)",
+        "lab(1 2 3)",
+        "lch(1 2 3)",
+        "oklch(1 2 3)",
+        "oklab(1 2 3)",
+        "color(srgb 1 0 0)",
+        "red",
+        "RebeccaPurple",
+        "LightGoldenRodYellow",
+        "papayawhip",
+    ]
+    for color in colors:
+        for property_name in (
+            "fill",
+            "stroke",
+            "box-shadow",
+            "--custom-token",
+            "border",
+            "background",
+        ):
+            assert check_site.literal_colors(f"a {{ {property_name}: {color}; }}"), (
+                property_name,
+                color,
+            )
+    assert check_site.literal_colors("@media print { a { box-shadow: 0 0 2px red; } }")
+    assert check_site.literal_colors("a { fill: var(--color-text, red); }")
+    assert not check_site.literal_colors(
+        'a { content: "red #fff"; background: url("red.png"); fill: var(--color-text); color: currentColor; border-color: transparent; stroke: inherit; --a: initial; --b: unset; }'
+    )
+    assert (
+        check_site.github_error(
+            "https://github.com/portolan-sdi/portolan-spec/blob/HEAD/README.md"
+        )
+        is None
+    )
+    assert (
+        check_site.github_error(
+            "https://github.com/portolan-sdi/portolan-spec/tree/HEAD/specs"
+        )
+        is None
+    )
+    assert check_site.github_error(
+        "https://github.com/portolan-sdi/portolan-spec/blob/HEAD/no-such-file.txt"
+    )
+    assert check_site.github_error(
+        "https://github.com/portolan-sdi/portolan-spec/tree/HEAD/README.md"
+    )
+    assert check_site.github_error(
+        "https://raw.githubusercontent.com/portolan-sdi/portolan-spec/HEAD/no-such-image.png"
+    )
+    assert check_site.Document('<img src="missing.png"><img>').images == [
+        "missing.png",
+        "",
+    ]
+    with tempfile.TemporaryDirectory() as tmp:
+        pdf = Path(tmp) / "short.pdf"
+        writer = PdfWriter()
+        writer.add_blank_page(width=100, height=100)
+        writer.write(pdf)
+        errors = check_site.pdf_errors(pdf, ["PORTO-FIRST-001", "PORTO-LAST-999"])
+        assert any("more than 20 pages" in error for error in errors)
+        assert any("PORTO-FIRST-001" in error for error in errors)
+        assert any("PORTO-LAST-999" in error for error in errors)
+
+
+def check_html_validator_failures():
+    """Exercise whole-site HTML checks while isolated PDF/EPUB tests cover books."""
+    manifest = yaml.safe_load(
+        build.git("show", "HEAD:specs/portolan/requirements.yaml")
+    )
+    package = json.loads(build.git("show", "HEAD:stac/package.json"))["version"]
+    tags = check_site.release_tags()
+    latest = tags[0] if tags else None
+    banner = build.markdown.markdown(
+        build.draft_banner(package, latest), extensions=build.MD_EXTENSIONS
+    )
+    styles = (
+        '<link rel="stylesheet" href="/next/assets/stylesheets/_brand-vars.css">'
+        '<link rel="stylesheet" href="/next/assets/stylesheets/extra.css">'
+    )
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp) / "next"
+        (root / "requirements").mkdir(parents=True)
+        (root / "downloads").mkdir()
+        shutil.copytree(build.SITE / "assets/stylesheets", root / "assets/stylesheets")
+        # An incorrect metadata version must not affect the banner oracle.
+        (root / "build-info.json").write_text(
+            json.dumps({"ref": "HEAD", "version": "9999.0.0"})
+        )
+        identifiers = [entry["id"] for entry in manifest["requirements"]]
+        (root / "requirements.json").write_text(
+            json.dumps([{"id": value} for value in identifiers])
+        )
+        (root / "requirements/index.html").write_text(
+            styles
+            + banner
+            + "".join(f'<h2 id="{value.lower()}">{value}</h2>' for value in identifiers)
+        )
+        (root / "downloads/portolan-spec-next.pdf").write_bytes(b"%PDFfixture")
+        (root / "downloads/portolan-spec-next.epub").write_bytes(b"fixture")
+        home = root / "index.html"
+        valid = styles + banner + '<a href="">Home</a>'
+        with (
+            patch.object(check_site, "pdf_errors", return_value=[]),
+            patch.object(check_site, "epub_errors", return_value=[]),
+        ):
+            home.write_text(valid)
+            assert check_site.check(root) == []
+            home.write_text(valid + '<img src="missing.png">')
+            assert any(
+                "missing local href or src missing.png" in error
+                for error in check_site.check(root)
+            )
+            home.write_text(valid + "<img>")
+            assert any("image has no src" in error for error in check_site.check(root))
+            home.write_text(valid + '<img src="../../outside.png">')
+            assert any("leaves the site" in error for error in check_site.check(root))
+            home.write_text(
+                valid
+                + '<a href="https://github.com/portolan-sdi/portolan-spec/blob/HEAD/no-such-file.txt">Bad</a>'
+            )
+            assert any("Missing Git blob" in error for error in check_site.check(root))
+            home.write_text(
+                styles
+                + '<p class="admonition-title">Draft of v9999.0.0</p>This text is not released.'
+            )
+            assert any(
+                "incorrect draft banner" in error for error in check_site.check(root)
+            )
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--ref", default="HEAD")
+    args = parser.parse_args()
     check_links()
     check_fences()
-    check_requirements()
+    check_requirements(args.ref)
     check_banner()
-    check_semver()
+    check_tags()
+    check_output_guards()
+    check_main_selection()
+    check_validator_failures()
+    check_html_validator_failures()
     print(
-        "OK: link transforms, fences, all main requirement sections, and draft banner"
+        "OK: Markdown, requirement sections, banners, tags, aliases, guards, ancestry, and validator failures"
     )
