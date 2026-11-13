@@ -2,12 +2,12 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #   "pyyaml>=6.0.3",
-#   "duckdb>=1.5.5",
+#   "duckdb>=1.5.5,<2",
 #   "jsonschema>=4.26.0",
 #   "pyarrow>=25",
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
 #   "rasterio>=1.5",
-#   "rashid[data]>=0.1.6,<0.2.0",
+#   "rashid[data]>=0.1.8,<0.2.0",
 #   "rio-cogeo>=5.3",
 #   "Pillow>=11",
 # ]
@@ -29,7 +29,8 @@ The generator is a small set of plain sibling modules under examples/tools/, run
 through this build.py entrypoint. config holds the static constants, common the
 shared helpers, fetch the downloader, convert the format conversions,
 derivatives the PMTiles and MapLibre styles, thumbnails the previews, stacio the
-STAC assembly and catalog builders, and validate the conformance checks.
+STAC assembly and catalog builders, translations the alternate-language trees,
+and validate the conformance checks.
 
 Prerequisites (FOSS, on PATH): tippecanoe and uv. The data and thumbnail paths
 run on DuckDB spatial, rasterio, and rio-cogeo, which vendor their own GDAL
@@ -48,6 +49,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from stacio import load_manifest, build_catalog, regen_styles, regen_docs
+from translations import build_translations
 from validate import validate
 
 
@@ -67,7 +69,7 @@ def main() -> int:
     ap.add_argument("--cache", default=root / "examples/.cache", type=Path)
     ap.add_argument("--catalog", default=None, help="build only the manifest with this file stem")
     ap.add_argument("--only", default=None, help="build only this collection id")
-    ap.add_argument("--schema", default=root / "stac/json-schema/v0.1.1/schema.json", type=Path)
+    ap.add_argument("--schema", default=root / "stac/json-schema/v0.2.0/schema.json", type=Path)
     ap.add_argument("--no-validate", action="store_true")
     ap.add_argument("--styles-only", action="store_true",
                     help="re-author MapLibre styles and their assets against "
@@ -91,12 +93,21 @@ def main() -> int:
         cat_out = args.out / mf.stem
         if args.styles_only:
             regen_styles(manifest, cat_out)
+            build_translations(manifest, mf, cat_out)
             continue
         if args.docs_only:
             regen_docs(manifest, cat_out, args.cache)
+            build_translations(manifest, mf, cat_out)
             continue
         build_catalog(manifest, cat_out, args.cache, args.only)
-        if not args.no_validate and not args.only:
+        if args.only:
+            # --only rebuilds one Collection and leaves the group and root
+            # catalogs alone, so the whole-tree steps have nothing complete to
+            # read. Run a full build to refresh the language trees.
+            print(f"--only skips the language trees for {mf.stem}", file=sys.stderr)
+            continue
+        build_translations(manifest, mf, cat_out)
+        if not args.no_validate:
             validate(cat_out, args.schema)
     print("done", file=sys.stderr)
     return 0

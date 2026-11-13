@@ -21,7 +21,7 @@ specification - every Portolan implementation is a STAC catalog, and can be used
 with any STAC tooling. But where STAC can be used with any data format and can 
 be implemented as an API or files on cloud storage, Portolan requires well-formed 
 cloud-native formats, stored as files on browser-accessible online services. All
-Portolan implementaions are [static catalogs](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#static-catalogs)
+Portolan implementations are [static catalogs](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#static-catalogs)
 - there is no 'Portolan API' like the STAC API, as many of the key benefits of Portolan,
 like scalability and lower cost, are achieved by the full embrace of cloud-native geospatial.
 
@@ -78,7 +78,7 @@ versioned schema URI carries the specification version the object was authored
 against.
 
 Every catalog and collection MUST declare the versioned Portolan schema URI (e.g.
-`https://schemas.portolan-sdi.org/portolan/v0.1.1/schema.json`) in its `stac_extensions`
+`https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json`) in its `stac_extensions`
 array. The schema URI is the single signal of specification version; no separate
 version property is defined. Declaration happens at the catalog and collection
 level only, since assets cannot carry `stac_extensions`, and items inherit
@@ -97,7 +97,10 @@ Declaring the Portolan extension is a claim of conformance, not proof of it. An
 object conforms to this specification only by passing the Portolan validator.
 Validation runs in separable passes:
 
-- **Structural validation** against the STAC 1.1.0 schemas.
+- **Structural validation** against the STAC 1.1.0 schemas, and against the
+  schemas of the STAC extensions each object declares. An object that declares
+  an extension makes a claim about its own shape; this pass checks the claim.
+  The extension registry governs which version's schema applies.
 - **Portolan metadata validation**, covering every requirement checkable from
   metadata alone.
 - **Portolan data validation**, covering requirements that require reading asset
@@ -134,6 +137,15 @@ directory MUST contain a `collection.json` and holds one subdirectory per item.
 Collection IDs SHOULD contain only lowercase letters, numbers, hyphens, and
 underscores, start with a letter, and be unique within the catalog.
 
+A collection MUST refer to its primary data. Use one of these references:
+
+- An asset with the `data` role, on the collection or its items.
+- `partition:glob`, for a partitioned collection (see
+  [Partitioned Collections](formats.md#partitioned-collections)).
+
+Thumbnail, style, metadata, and PMTiles assets alone are not sufficient.
+Clients need a reference to the primary data files.
+
 ### Single-File Collections
 
 When a collection holds a single data file (e.g. one GeoParquet file), that data
@@ -167,7 +179,9 @@ collection holds an intermediate (thematic) `catalog.json`, a data directory hol
 the leaf `collection.json`, and a subdirectory within a collection may hold a
 `catalog.json` that organizes many items. Deep nesting is allowed, with every
 level above the leaf a catalog; a catalog may also appear below a collection to
-organize its items (for example, a raster collection grouping items by year).
+organize its items (for example, a raster collection grouping items by year). A
+catalog or collection with twenty or more children SHOULD organize them into
+subcatalogs, thematic or otherwise, so users can browse the data.
 
 ```
 environment/
@@ -201,6 +215,10 @@ A partitioned collection MAY represent each partition as an item, but this is no
 required — see [Partitioned Collections](formats.md#partitioned-collections) for
 when it is worthwhile. An ordinary collection with multiple distinct data files represents
 each as an item.
+
+Where items do exist, each one MUST carry at least one asset with the `data`
+role. An item exists to attach per-file metadata to a data file, so an item
+without one describes nothing.
 
 ## Assets
 
@@ -241,12 +259,18 @@ Portolan reuses existing extensions rather than restating their fields: `file` f
 layer detail, `license` for per-asset license, and `scientific` for citation or
 DOI.
 
-Assets SHOULD carry `file:size` and `file:checksum` from the [file
-extension](https://github.com/stac-extensions/file). Both are cheap to compute for
-bytes the publisher uploads, and they let a client budget a download and verify
-what it received. Neither is required, because a catalog that describes data it
-does not host cannot always produce them, and a fabricated value is worse than an
-absent one.
+If an asset's `href` points to the STAC object that contains it, the publisher
+MUST omit `file:size` and `file:checksum` from that asset's metadata.
+Adding a checksum to the same `collection.json` changes the file.
+The checksum would then be incorrect.
+
+Other assets SHOULD include `file:size` and `file:checksum` from the [file
+extension](https://github.com/stac-extensions/file). Clients use the size to
+plan a download and the checksum to verify the downloaded bytes.
+
+Publishers can compute both at little cost for files they upload.
+They cannot always compute them for data they catalog but do not host.
+The fields are optional. Omit a field if a valid value is unavailable.
 
 A `file:checksum` MUST use multihash encoding, not a raw sha256 string. Any
 `file:size` and `file:checksum` an asset carries MUST match the bytes its `href`
@@ -267,12 +291,22 @@ every object it contains; an item MUST include `root`, `parent`, and `collection
 links. Every structural link MUST carry a `type` of `application/json` (or
 `application/geo+json` for links to items).
 
-All structural links MUST be relative, and objects MUST NOT include a `self` link.
-This keeps a catalog fully portable: it can be created, validated, moved between
-local, staging, and production environments, or rehosted at a new URL without
-rewriting any file. This choice follows pystac's `SELF_CONTAINED` convention and
-may be revisited in a future version if absolute self links prove necessary for
-published catalogs.
+Structural links can be relative or absolute; Portolan takes no position.
+Relative links keep a catalog portable, so the same tree of files validates
+locally, in staging, and in production without a rewrite. Absolute links name
+their location outright, which some hosts and clients handle more reliably.
+The [STAC best practices on the use of
+links](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-catalog-and-collection.md#use-of-links)
+walk through the choice, and [Git-Backed
+Catalogs](../best-practices/git-backed-catalogs.md#links-and-the-publish-step)
+covers how it plays out for a catalog maintained in git.
+
+A catalog served over the internet from a single fixed URL SHOULD carry an
+absolute `self` link on its root catalog. The link records the canonical
+location, so someone holding a downloaded copy can see where it came from, and
+a tool can resolve the catalog's relative references into URLs from the
+metadata alone. STAC requires that a `self` link be
+[absolute](https://github.com/radiantearth/stac-spec/blob/master/commons/links.md#relation-types).
 
 Every link in a catalog MUST resolve. A validator MUST resolve each relative link
 against the catalog's own file tree, whether on a local filesystem or on object
@@ -280,7 +314,41 @@ storage, and confirm the referenced file is present and is the correct object,
 rather than merely checking that the `href` is present or well-formed. A link that
 fails to resolve, or resolves to the wrong object, is a conformance failure.
 
+A validator resolves an absolute structural link through the base that the root
+`self` link names. It strips that base from the `href`. It then resolves the
+remainder against the file tree, as it does for a relative href.
+
+A catalog that carries absolute structural links without a root `self` link
+gives a validator no base. The validator reports nothing for those links,
+because it cannot place them. An `href` that does not start with the base gets
+the same treatment. A root catalog that links a child in a different bucket
+therefore gets no check on that link.
+
+The requirement to resolve still holds. A publisher who wants the check keeps a
+root `self` link.
+
 Provenance (`via`) links are covered under [Source Provenance](#source-provenance).
+
+### Alternate-Language Trees
+
+A catalog MAY publish one STAC object tree for each language. The root catalog links
+to each translated root with an `alternate` link, as defined by the STAC
+[Language](https://github.com/stac-extensions/language) extension. The profile's
+extension registry pins the version of that extension to declare.
+
+A translated tree represents the same catalog in another language. It is not part of
+the containment tree. A catalog MUST NOT link to a translated root with `child` or
+`item`.
+
+Each language tree has its own root catalog. That root has no `parent` link. Every
+`root` link in the tree points to that root catalog. Equivalent objects keep the same
+ID across language trees.
+
+A validator MUST treat a translated root as the start of a separate language tree. It
+MUST NOT report missing containment links or duplicate IDs between language trees.
+
+Publishers choose which languages and objects to translate. [Multilingual
+Catalogs](../best-practices/multilingual-catalogs.md) gives maintenance guidance.
 
 ## Human-Readable Titles
 
@@ -403,23 +471,34 @@ organization; it is a mirror when they differ. An organization hosting data it d
 not produce is a mirror under this definition even when it is the primary
 distributor; the `via` link then simply records where the data originated.
 
-A mirror MUST include a `via` link (type `text/html`) pointing to the original
-source. When that source publishes its own STAC catalog, the mirror MUST also
-include a `canonical` link pointing to the source's STAC, so consumers and agents
-can follow the chain to the authoritative metadata, not just a landing page.
-Whether the source publishes a STAC catalog cannot be determined from the mirror's
-metadata alone, so a validator MAY surface a mirror without a `canonical` link as
-informational, never as a failure. The
-`via` and `canonical` links MAY both be present and point at different targets (a
-human page and a STAC root). An official catalog carries no `via` or `canonical`
-link to an upstream source, because it is the source.
+A mirror MUST include at least one `via` link to the original source's HTML
+page, with `type` set to `text/html`. Additional `via` links MAY reference
+upstream services that supply the data, with `type` set to the media type
+returned by each service.
 
-A mirror MUST record when it was last synced from its source by setting the
-top-level `updated` field (RFC 3339) at each synced catalog and collection to the
-time of the sync. A sync is a metadata update, so this reuses the core STAC field
-with no Portolan-specific addition; a consumer judges the freshness of a copy by
-comparing `updated` against the source. Sync cadence and richer source-freshness
-metadata are deferred to a future version.
+If the original source publishes a STAC catalog, the mirror MUST also include
+a `canonical` link to that catalog. Users and agents can follow this link to
+the authoritative metadata.
+
+A validator cannot determine from the mirror's metadata alone whether the
+source publishes a STAC catalog. A validator MAY report a missing `canonical`
+link as informational, but never as a failure.
+
+The `via` and `canonical` links MAY both be present and point to different
+targets, such as a human-readable page and a STAC root.
+
+An official catalog has no upstream `via` or `canonical` link because its
+publisher is the original source.
+
+During a mirror sync, the tool MUST set the top-level `updated` field on every
+catalog and collection it checks. Use the sync time in RFC 3339 format.
+Set the value even if the source has not changed.
+Leave `updated` unchanged on catalogs and collections outside that sync.
+
+Syncing updates the metadata, so the existing STAC field is sufficient.
+Consumers can compare `updated` with the source to check how current the copy is.
+Sync frequency and more detailed source-freshness metadata are deferred to a
+future version.
 
 ## License
 
@@ -452,9 +531,8 @@ title, description, license, and data provenance.
 
 ## Catalog Logo
 
-A registry lists many catalogs side by side. A logo makes each one recognizable
-before the reader has read a word. The root catalog MAY publish a logo as a link
-with `rel: "icon"`.
+Logos help readers recognize catalogs in a registry listing. A catalog,
+collection, or item MAY include a logo link with `rel: "icon"`.
 
 STAC defines no `logo` relation. `icon` is registered with IANA, and stac-js and
 STAC Browser already read it. STAC uses `preview` for a preview of the data

@@ -49,7 +49,14 @@ def main() -> int:
     for script in checks:
         print(f"::group::{script.name}", flush=True)
         started = time.monotonic()
-        completed = subprocess.run(["uv", "run", str(script)], check=False)
+        # check_validate.py pins rashid, and that pin bump lands in the same
+        # pull request as the rashid release. A warm uv cache can hold a PyPI
+        # index page from before that version exists. Refresh the one
+        # package. See #155.
+        completed = subprocess.run(
+            ["uv", "run", "--refresh-package", "rashid", str(script)],
+            check=False,
+        )
         elapsed = time.monotonic() - started
         print("::endgroup::", flush=True)
         results.append((script.name, completed.returncode == 0, elapsed))

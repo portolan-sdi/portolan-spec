@@ -9,6 +9,159 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+### Changed
+
+- **Tabular bounding boxes have regional examples**. Use the bounds of Europe
+  for a table about Europe, or the country's bounds for a tabular collection
+  in a country catalog (#198).
+
+- **Partition globs cannot use HTTP or HTTPS** (`PORTO-FMT-064`). Readers
+  need to list the files that match a glob. Plain HTTP does not support
+  file listing (#166).
+
+- **The STAC profile uses Contacts v1.0.0** instead of v0.1.1
+  (#53, part 7a).
+
+- **Catalogs, collections, and items can include logo links**
+  (`PORTO-CORE-074`). Links with `rel: "icon"` are now allowed in the prose
+  for all three object types, consistent with the schema (#151).
+
+- **Sync tools set `updated` on every mirror catalog and collection they
+  check** (`PORTO-CORE-057`), including when the source has not changed.
+  Tools leave the value unchanged on catalogs and collections outside that
+  sync (#206).
+
+- **Embedded raster statistics describe full-resolution pixel values in
+  each band** (`PORTO-FMT-063`, enforced through the publication process).
+  Estimates are allowed if the approximate flag is set (#163).
+
+- **Self-referencing assets omit `file:size` and `file:checksum`**
+  (`PORTO-CORE-028`, `PORTO-CORE-085`). This applies when an asset's `href`
+  points to the STAC object that contains it. Adding a checksum to that
+  object would change its contents and invalidate the checksum (#176).
+
+- **Mirrors need at least one `via` link with `type` set to `text/html`**
+  (`PORTO-CORE-053`, `PORTO-CORE-084`). Additional `via` links can reference
+  source services using their actual media types, such as XML (#122).
+
+- **Documentation guidance now covers scenes containing only nodata pixels**.
+  Exclude these scenes and state in the README how many you excluded and
+  why (#177).
+
+- **The raster note clarifies non-finite nodata values in STAC**. It lists
+  the valid strings for `nodata` and confirms that the valid-percent
+  statistic is required for bands with these values (#205).
+
+- **Only spatial partition schemes need paths that indicate geographic
+  extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
+  partitions do not need to indicate spatial extent (#196).
+
+- **Requirements manifest**: 135 requirements, now 94 MUST, 23 SHOULD, and
+  18 MAY.
+
+- **PMTiles assets need the `visual` role and a reference to their source
+  GeoParquet data in the same collection** (`PORTO-FMT-062`). Use an asset
+  with the `data` role or `partition:glob` for the reference. PMTiles alone
+  is insufficient as a collection's primary data (#225).
+
+### Removed
+
+- **The catalog grader leaves the specification**
+  (`specs/best-practices/grader.md`). A grading rubric is a procedure, not
+  guidance on how to build a catalog. It is now the `catalog-grader` skill in
+  [portolan-skills](https://github.com/portolan-sdi/portolan-skills), where it
+  runs and can be tested. No requirement changes.
+
+## 0.2.0 - 2026-08-28
+
+A catalog declares this version by carrying
+`https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json` in `stac_extensions`.
+The `v0.1.0`, `v0.1.1`, and `v0.1.2` schemas stay published unchanged, so a
+catalog authored against any of them keeps validating against it.
+
+This release is breaking, and it bumps MINOR under the pre-1.0 policy. Every
+catalog that conformed to `v0.1.2` still conforms. A validator built against
+`v0.1.2` does not. It reports an error for a `self` link and for an absolute
+structural `href`. `v0.2.0` allows both. rashid 0.1.8 is the first
+release that carries the new rules.
+
+### Changed
+
+- **Core takes no position on relative versus absolute links**
+  (`PORTO-CORE-034` retired,
+  [`specs/portolan/core.md`](specs/portolan/core.md)): the rule that all
+  structural links be relative, and that objects carry no `self` link, is gone.
+  Both link styles have sound uses. Relative links keep a catalog portable, and
+  absolute links name a location some hosts and clients handle more reliably,
+  so the choice belongs to the publisher rather than the standard (#159). The
+  Links section now points to the [STAC best practices on the use of
+  links](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-catalog-and-collection.md#use-of-links)
+  for the trade-offs.
+- **Requirements manifest**: 130 requirements, now 90 MUST, 23 SHOULD, and
+  17 MAY.
+- **The versioning policy defines `misvalidate`** ([`README.md`](README.md#versioning)):
+  the breaking rule tested both catalogs and tools, and the non-breaking rule
+  tested only catalogs, so the two rules were not opposites and a relaxation
+  matched both (#182). A tool now misvalidates when it reports an error against
+  a conforming catalog, or reports no error against a non-conforming one. Under
+  that definition a relaxation is breaking, because a released tool rejects what
+  the new version allows. A table lists the verdict for each kind of change.
+  After `1.0.0`, a relaxation bumps MINOR rather than MAJOR.
+
+### Added
+
+- **Every collection and item MUST refer to its data** (`PORTO-CORE-082`,
+  `PORTO-CORE-083`, [`specs/portolan/core.md`](specs/portolan/core.md)): a
+  collection MUST refer to its primary data through a collection-level `data`
+  asset, item `data` assets, or `partition:glob`, and an item MUST carry at
+  least one `data` asset. A thumbnail, style, or metadata asset alone does not
+  qualify. Before this rule a collection with only a thumbnail asset passed
+  validation, and a client could find the collection but no data file (#202).
+- **A published root catalog SHOULD carry a `self` link** (`PORTO-CORE-081`,
+  [`specs/portolan/core.md`](specs/portolan/core.md)): a catalog served over
+  the internet from a single fixed URL SHOULD carry an absolute `self` link on
+  its root catalog, matching the STAC best practice. The link records the
+  canonical location, so a downloaded copy still says where it came from and a
+  tool can turn relative references into URLs from the metadata alone.
+  Enforcement is `process`: whether a catalog is served from a fixed URL is a
+  publisher fact a validator cannot see in the files.
+- **Guidance on links for git-backed catalogs**
+  ([`specs/best-practices/git-backed-catalogs.md`](specs/best-practices/git-backed-catalogs.md)):
+  a new "Links and the publish step" section. It recommends relative links and
+  no `self` link in the tracked tree, so the same files validate in the
+  repository, in a preview, and in production, and it has the publish step
+  write the absolute `self` link onto the root catalog from the `public_base`
+  it already holds. It also notes where absolute asset hrefs serve clients
+  better, such as the Source Cooperative file listing.
+
+## 0.1.2 - 2026-08-20
+
+A catalog declares this version by carrying
+`https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json` in `stac_extensions`.
+The `v0.1.0` and `v0.1.1` schemas stay published unchanged, so a catalog authored
+against either version keeps validating against it.
+
+Nothing in this release asks more of a catalog that already conforms. The
+fan-out guidance is a SHOULD that rashid reports as a warning, and the
+multilingual rules permit a structure the profile previously left unspecified.
+The schema carries no change beyond its own `$id`.
+
+### Added
+
+- `PORTO-CORE-078`: a catalog or collection with twenty or more children SHOULD
+  organize them into subcatalogs, thematic or otherwise. A flat list of dozens
+  of children is hard to browse, and the profile already allows a catalog at
+  every level above a leaf, including below a collection. rashid reports the
+  fan-out as a warning (`PTL-CAT-001`).
+- **Multilingual catalogs** (`PORTO-CORE-079`, `PORTO-CORE-080`): catalogs can
+  publish a separate STAC tree for each language. `alternate` links connect the
+  trees without adding them to the catalog hierarchy. Each tree has its own root,
+  while equivalent objects use the same IDs.
+- **Multilingual catalog guidance**: a new best-practices page explains how to
+  structure, link, translate, and maintain the language trees.
+- **Requirements manifest**: 128 requirements, now 89 MUST, 22 SHOULD, and
+  17 MAY.
+
 ## 0.1.1 - 2026-08-14
 
 A catalog declares this version by carrying

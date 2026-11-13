@@ -6,7 +6,7 @@ Non-geospatial companion tables published as Parquet.
 
 | Collection | Contents | Description |
 |---|---|---|
-| [Eurostat Electricity Prices for Household Consumers](./eurostat-electricity-prices/README.md) | 65,412 rows | 65,412 semi-annual household electricity prices for 41 European countries from 2007 on, the official record of the 2022 energy crisis. |
+| [Eurostat Electricity Prices for Household Consumers](./eurostat-electricity-prices/README.md) | 65,466 rows | 65,412 semi-annual household electricity prices for 41 European countries from 2007 on, the official record of the 2022 energy crisis. |
 
 ## Where the Data Comes From
 

@@ -6,18 +6,18 @@ understand the data and query it directly. Publishing works the same way whether
 you are a satellite company releasing a planetary archive or a city publishing
 local cadastral data. There are no servers, no databases, and no accounts.
 
-Under the hood, Portolan is an opinionated standard for cloud-native geospatial
-catalogs, plus the tooling around it. A catalog is a directory of open-format
-data on any S3-compatible bucket, described by structured
+Under the hood, Portolan is an opinionated specification for cloud-native
+geospatial catalogs, plus the tooling around it. A catalog is a directory of
+open-format data on any S3-compatible bucket, described by structured
 [STAC](https://stacspec.org/) metadata and built on
 [COG](https://cogeo.org/), [GeoParquet](https://geoparquet.org/),
 [PMTiles](https://github.com/protomaps/pmtiles), [COPC](https://copc.io/), and
 [GeoZarr](https://geozarr.org/). Each part of the tooling raises the value of the
 others:
 
-- **The standard** defines what a great catalog looks like. It lives here.
+- **The specification** defines what a great catalog looks like. It lives here.
 - **[rashid](https://github.com/portolan-sdi/rashid)**, the validator, proves a
-  catalog meets the standard.
+  catalog meets the specification.
 - **[portolan-cli](https://github.com/portolan-sdi/portolan-cli)** makes catalogs
   easy to build.
 - **[The registry](https://github.com/portolan-sdi/portolan-registry)** connects
@@ -27,9 +27,9 @@ If Portolan disappeared tomorrow, every file in a catalog would still work in th
 tools people already use.
 
 Portolan is not a platform. There is nothing to log into and nothing to depend
-on. It is not a paid product either. The standard and the tools are open source
-under Apache-2.0, and your only costs are storage and egress, paid to your cloud
-provider.
+on. It is not a paid product either. The specification and the tools are open
+source under Apache-2.0, and your only costs are storage and egress, paid to
+your cloud provider.
 
 This repository holds the specification. It is pre-1.0 and under active
 development, and contributions are welcome.
@@ -73,7 +73,7 @@ and documentation, so people and agents can use a catalog directly from storage
 with no server in between. The point is a higher quality bar. Working with any
 Portolan catalog should be a good experience.
 
-The standard is prescriptive where that supports interoperability, and it is
+The specification is prescriptive where that supports interoperability, and it is
 meant to evolve as cloud-native tooling matures. Core standards like STAC and
 GeoParquet were built for long-term stability. Portolan sits on top of them and
 moves faster. Each version states what the community currently believes a great
@@ -84,21 +84,21 @@ Every normative statement carries a stable ID in
 [`requirements.yaml`](specs/portolan/requirements.yaml), and CI proves that
 rashid enforces each one.
 
-Where the current landscape has gaps, Portolan will incubate new standards or
-write down practices that until now have been informal. Usually that means
+Where the current landscape has gaps, Portolan will incubate new specifications
+or write down practices that until now have been informal. Usually that means
 contributing to STAC extensions or adding new ones. It can also mean small,
 independent specifications that capture current practice, which live in
 [`specs/incubating/`](specs/incubating/) until they stabilize.
 
 People and agents are treated as equals throughout. The best practices for
-guiding agents are moving fast, so this part of the standard will keep changing,
-but the aim is constant. A Portolan catalog should be low-friction for a human
-analyst and an automated one alike. Building or mirroring a catalog should be
-easy too, including with AI tools, because lowering the effort to publish is how
-more good data gets published.
+guiding agents are moving fast, so this part of the specification will keep
+changing, but the aim is constant. A Portolan catalog should be low-friction for
+a human analyst and an automated one alike. Building or mirroring a catalog
+should be easy too, including with AI tools, because lowering the effort to
+publish is how more good data gets published.
 
-The standard leaves some judgment calls open, such as what one catalog should
-contain and how to organize it.
+The specification leaves some judgment calls open, such as what one catalog
+should contain and how to organize it.
 [`specs/best-practices/philosophy.md`](specs/best-practices/philosophy.md) covers
 those.
 
@@ -125,7 +125,7 @@ defined in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and
 | [`specs/portolan/core.md`](specs/portolan/core.md) | The normative spec: catalog structure, conformance, links, providers, provenance, licensing, documentation, visualization. |
 | [`specs/portolan/formats.md`](specs/portolan/formats.md) | Format requirements: vector (GeoParquet + PMTiles), raster (COG), tabular (Parquet), point cloud (COPC). |
 | [`specs/incubating/`](specs/incubating/) | Ad-hoc specs formalized but not yet normative (raster styling, point clouds, GeoTIFF stats encoding, STAC-GeoParquet). |
-| [`specs/best-practices/`](specs/best-practices/) | Non-normative guidance for people and agents, and the future home of the catalog grader. |
+| [`specs/best-practices/`](specs/best-practices/) | Non-normative guidance for people and agents. |
 | [`specs/portolan/requirements.yaml`](specs/portolan/requirements.yaml) | The requirements manifest: a stable ID, severity, and quote for every normative statement, checked against the prose in CI. |
 | [`stac/`](stac/) | The Portolan STAC profile and its JSON schemas. |
 | [`examples/`](examples/) | Working reference catalogs, generated by [`examples/tools/build.py`](examples/tools/build.py). |
@@ -136,19 +136,35 @@ defined in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and
 The specification is versioned with [SemVer](https://semver.org/), starting
 pre-1.0. A catalog declares the version it was authored against through the
 **Portolan STAC profile schema URI** in its `stac_extensions` array, e.g.
-`https://schemas.portolan-sdi.org/portolan/v0.1.1/schema.json`. That schema URI
+`https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json`. That schema URI
 is the single signal of specification version, and there is no separate version
 file (see
 [Conformance and Versioning](specs/portolan/core.md#conformance-and-versioning)).
 
 **Bump policy while pre-1.0:** any breaking change bumps the MINOR version (e.g.
 `0.1.0` → `0.2.0`), and non-breaking changes bump PATCH. Once the spec reaches
-`1.0.0`, normal SemVer applies. A change is **breaking** when a catalog that
-conformed to the previous version may no longer conform, or when a tool built
-against the previous version may misvalidate. Raising a rule's severity, adding
-a new required field, and removing or renaming a field or accepted value are all
-breaking. A change is **non-breaking** when previously-conforming catalogs still
-conform, as with adding a warning, relaxing a constraint, or clarifying wording.
+`1.0.0`, normal SemVer applies, with the carve-out below.
+
+A change is **breaking** when a catalog that conformed to the previous version
+may no longer conform, or when a tool built against the previous version may
+misvalidate. A tool **misvalidates** when it reports an error against a
+conforming catalog, or reports no error against a non-conforming one. A change
+is **non-breaking** when neither test finds anything. Previously-conforming
+catalogs still conform, and a tool built against the previous version returns
+the verdicts it returned before.
+
+| Change | What an old tool does | Verdict |
+| --- | --- | --- |
+| Raise a rule's severity | misses an error that is now due | breaking |
+| Add a required field | misses an error that is now due | breaking |
+| Remove or rename a field or accepted value | misses an error that is now due | breaking |
+| Relax a constraint | reports an error against a catalog that now conforms | breaking |
+| Add a warning | emits no warning, and no error was due | non-breaking |
+| Clarify wording | returns the same verdicts | non-breaking |
+
+**After `1.0.0`, a relaxation bumps MINOR, not MAJOR.** Normal SemVer maps a
+break to MAJOR. A relaxation breaks tools alone, and every catalog that
+conformed still conforms, so MINOR carries the signal at the right cost.
 
 **A released schema is immutable.** Once a version is tagged, the JSON Schema
 served at its URI never changes, so a catalog validates the same way in a year

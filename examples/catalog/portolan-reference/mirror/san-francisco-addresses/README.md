@@ -76,7 +76,7 @@ curl 'https://data.sfgov.org/resource/ramy-di5m.json?$select=count(*)'
 | `geom` | geometry | Address point, WGS84 longitude and latitude. Units stack on their building's single point. |
 | `bbox` | struct(xmin double, ymin double, xmax double, ymax double) | Per-feature bounding box struct, the GeoParquet covering. |
 
-The table has 32 columns in all. The full list with types lives in `table:columns` on the collection.
+The table has 33 columns in all. The full list with types lives in `table:columns` on the collection.
 
 ## Suggested Uses
 

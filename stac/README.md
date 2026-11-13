@@ -3,8 +3,8 @@
 > **Work in Progress** — This profile is under active development. Requirement levels and the schema URL may change before the first stable release.
 
 - **Title:** Portolan
-- **Identifier:** <https://schemas.portolan-sdi.org/portolan/v0.1.1/schema.json>
-- **Field Name Prefix:** portolan (reserved; no fields defined in v0.1)
+- **Identifier:** <https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json>
+- **Field Name Prefix:** portolan (reserved; no fields defined yet)
 - **Scope:** Catalog, Collection — Items inherit conformance from their collection
 - **[Extension Maturity Classification](https://github.com/radiantearth/stac-spec/tree/master/extensions#extension-maturity):** Proposal
 
@@ -25,7 +25,7 @@ The `portolan:` prefix stays reserved for future use.
 The schema encodes the specification's structural requirements that STAC core leaves optional:
 
 - Every Catalog and Collection has a non-empty `title` and `description`; every `child` and `item` link carries a `title` (spec: Human-Readable Titles).
-- No object carries a `self` link, and structural links (`root`, `parent`, `child`, `item`, `collection`) are relative and carry `type: "application/json"` (`application/geo+json` for links to items), keeping a catalog fully portable (spec: Links).
+- Structural links (`root`, `parent`, `child`, `item`, `collection`) carry `type: "application/json"` (`application/geo+json` for links to items) (spec: Links). The schema takes no position on relative versus absolute hrefs, and it accepts a `self` link. The schemas through v0.1.2 reject a `self` link and require a relative structural href. v0.2.0 drops both rules, following the specification.
 - Every asset has `href`, a media `type`, and at least one `role` (spec: Assets). `file:size` and `file:checksum` are SHOULD-level, so the schema checks their shape where present without requiring them; the checksum's multihash encoding, and whether either value matches the bytes, are verified by tooling rather than schema.
 - Absolute asset hrefs use `https` — `s3://` and other bucket schemes are rejected; relative hrefs are allowed (spec: Assets).
 - Every Collection declares `providers` with at least one `producer` and a `host` reachable through `url` or `email`; that the host is exactly one and listed last is checked by tooling (spec: Providers).
@@ -42,11 +42,12 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 
 | Name                | Schema URI for `stac_extensions`                                            | Requirement | When / Usage |
 | ------------------- | --------------------------------------------------------------------------- | ----------- | ------------ |
-| [Portolan][] | `https://schemas.portolan-sdi.org/portolan/v0.1.1/schema.json` | **MUST**    | Always — every catalog and collection; items inherit conformance |
+| [Portolan][] | `https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json` | **MUST**    | Always — every catalog and collection; items inherit conformance |
 | [File Info][] | `https://stac-extensions.github.io/file/v2.1.0/schema.json`                 | **MUST**    | When an asset carries `file:size` or `file:checksum`, both of which are SHOULD-level per asset (checksum as multihash) |
 | [Web Map Links][] | `https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json`        | **MUST**    | When PMTiles are provided: the `rel: "pmtiles"` link |
 | [Version][] | `https://stac-extensions.github.io/version/v1.2.0/schema.json`              | **MUST**    | When dataset versioning is used (never `portolan:` fields) |
 | [Raster][] | `https://stac-extensions.github.io/raster/v2.0.0/schema.json`               | **MUST**    | When band-level detail is provided |
+| [Language][] | `https://stac-extensions.github.io/language/v1.0.0/schema.json`             | **MUST**    | When alternate-language trees are published: the `alternate` links, `language`, and `languages` (spec: Alternate-Language Trees) |
 | [Vector][] | `https://stac-extensions.github.io/vector/v0.1.0/schema.json`               | **MUST**    | When layer-level detail is provided |
 | [Partition][] | `https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json`              | **MUST**    | Partitioned collections: `partition:scheme`, `partition:keys`, `partition:glob` (spec: Partitioned Collections) |
 | [Table][] | `https://stac-extensions.github.io/table/v1.2.0/schema.json`                | SHOULD      | Vector and tabular collections: document columns with `table:columns` |
@@ -54,9 +55,10 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 | [Render][] | `https://stac-extensions.github.io/render/v2.0.0/schema.json`               | SHOULD      | Continuous rasters rendering from source (draw-time colorization) |
 | [Projection][] | `https://stac-extensions.github.io/projection/v2.0.0/schema.json`           | MAY         | CRS / projection of the data |
 | [Scientific][] | `https://stac-extensions.github.io/scientific/v1.0.0/schema.json`           | MAY         | Citation / DOI |
-| [Contacts][] | `https://stac-extensions.github.io/contacts/v0.1.1/schema.json`             | MAY         | Richer contact info; never replaces url-or-email on the host provider |
+| [Contacts][] | `https://stac-extensions.github.io/contacts/v1.0.0/schema.json`             | MAY         | Additional contact details. A URL or email address is still required on the host provider. |
 | [Attribution][] | `https://stac-extensions.github.io/attribution/v0.1.0/schema.json`          | MAY         | Display attribution |
 | [Themes][] | `https://stac-extensions.github.io/themes/v1.0.0/schema.json`               | MAY         | Thematic classification |
+| [Iceberg][] | `https://schemas.portolan-sdi.org/incubating/iceberg/v1.1.0/schema.json`     | MAY         | Collection also published as a static Iceberg v3 table over the same files (spec: [Iceberg](../specs/incubating/iceberg.md)) |
 
 Note that `item_assets` needs no extension — it is a core field in STAC 1.1.
 
@@ -69,6 +71,7 @@ As the profile grows, per-format requirement sets (vector, raster, tabular) may 
 [Raster]: https://github.com/stac-extensions/raster
 [Vector]: https://github.com/stac-extensions/vector
 [Partition]: https://github.com/portolan-sdi/stac-partition-extension
+[Iceberg]: https://github.com/portolan-sdi/stac-iceberg-extension
 [Table]: https://github.com/stac-extensions/table
 [Projection]: https://github.com/stac-extensions/projection
 [Alternate Assets]: https://github.com/stac-extensions/alternate-assets
@@ -77,18 +80,20 @@ As the profile grows, per-format requirement sets (vector, raster, tabular) may 
 [Contacts]: https://github.com/stac-extensions/contacts
 [Attribution]: https://github.com/stac-extensions/attribution
 [Themes]: https://github.com/stac-extensions/themes
+[Language]: https://github.com/stac-extensions/language
 
 ## Profile
 
 ### Link relations
 
-Objects MUST NOT include a `self` link, and all structural links MUST be relative (pystac `SELF_CONTAINED` convention), so a catalog can be moved or rehosted without rewriting any file.
+Structural links can be relative or absolute; the specification takes no position, and the [STAC best practices on the use of links](https://github.com/radiantearth/stac-best-practices/blob/main/best-practices-catalog-and-collection.md#use-of-links) cover the trade-offs. A catalog served over the internet from a single fixed URL SHOULD carry an absolute `self` link on its root catalog (spec: Links).
 
 | `rel` | Where | Notes |
 | ----- | ----- | ----- |
-| `root`, `parent` | All objects (root catalog has no `parent`) | Relative; `type: "application/json"` |
-| `child` / `item` | Catalogs and collections, one per child | Relative, typed (`application/geo+json` for items); MUST carry a `title` |
-| `collection` | Items | Relative; `type: "application/json"` |
+| `root`, `parent` | All objects (root catalog has no `parent`) | `type: "application/json"` |
+| `child` / `item` | Catalogs and collections, one per child | Typed (`application/geo+json` for items); MUST carry a `title` |
+| `collection` | Items | `type: "application/json"` |
+| `self` | Root catalog | Absolute; SHOULD when the catalog is served from a single fixed URL |
 | `agents` | Catalog, Collection | Points to `AGENTS.md`, `type: "text/markdown"` |
 | `describedby` | Catalog, Collection | Points to `README.md`, `type: "text/markdown"` |
 | `via` | Collection | Mirror only: the original source, `type: "text/html"` |
@@ -147,7 +152,7 @@ Tracked in the specification and deliberately **not** settled by this schema:
 - [Single-file vector collection](examples/vector-collection.json) — GeoParquet + PMTiles + style + thumbnail as collection-level assets
 - [Partitioned vector collection](examples/vector-partitioned-collection.json) and [partition item](examples/vector-partitioned-item.json)
 
-The files are stored flat in `examples/` for convenience, but their relative hrefs describe the specification's canonical directory layout (`{collection_id}/collection.json`, `{item_id}/item.json` beneath it) — so href targets such as `../catalog.json`, `AGENTS.md`, and the data files are illustrative and not present in this repository. Per the spec's Links section the examples carry no `self` links and use only relative structural hrefs.
+The files are stored flat in `examples/` for convenience, but their relative hrefs describe the specification's canonical directory layout (`{collection_id}/collection.json`, `{item_id}/item.json` beneath it) — so href targets such as `../catalog.json`, `AGENTS.md`, and the data files are illustrative and not present in this repository. The examples carry no `self` links and use relative structural hrefs, the portable layout the [git-backed best practices](../specs/best-practices/git-backed-catalogs.md) recommend for a tracked tree.
 
 ## Building and Testing
 
@@ -160,7 +165,7 @@ npm install
 npm test
 ```
 
-`npm test` runs (after a `pretest` step that fetches the pinned extension schemas into the gitignored `.schema-cache/`):
+`npm test` runs after a `pretest` step that fetches pinned extension schemas into the gitignored `.schema-cache/`. This cache includes Portolan extensions and third-party schemas that the examples require.
 
 - **check-markdown** — remark lint over the profile documents.
 - **check-version** — every versioned Portolan schema URI reference (schema `$id`, READMEs, examples, spec documents) matches the `package.json` version, and the matching `json-schema/v<version>/` directory exists.

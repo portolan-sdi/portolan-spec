@@ -100,6 +100,6 @@ incompatible table, never splice them.
 License, CC-BY-4.0. Attribution, Source, Eurostat.
 Providers, Eurostat (producer, licensor), Portolan SDI (host).
 Original source, https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/nrg_pc_204/?format=SDMX-CSV&compressed=false .
-Rows, 65,412. Columns, 13. Cloud-native asset, eurostat-electricity-prices.parquet (Parquet).
+Rows, 65,466. Columns, 13. Cloud-native asset, eurostat-electricity-prices.parquet (Parquet).
 Non-geospatial table, the bounding box is the area of interest the data pertains to, [-31.5, 34.0, 46.5, 71.5].
 The upstream source is a live endpoint, so it is referenced by URL only and not archived as a source asset.

@@ -1,0 +1,380 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
+  ],
+  "id": "mirror/san-francisco-addresses",
+  "title": "عناوين سان فرانسيسكو من EAS",
+  "description": "نقاط عناوين من نظام العناوين المؤسسي في سان فرانسيسكو. تنشر المجموعة عينة من 5000 سجل بصيغ GeoParquet وPMTiles.",
+  "license": "PDDL-1.0",
+  "keywords": [
+    "عناوين",
+    "نقاط",
+    "سان فرانسيسكو",
+    "DataSF",
+    "EAS"
+  ],
+  "providers": [
+    {
+      "name": "City and County of San Francisco",
+      "url": "https://www.sf.gov",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "DataSF",
+      "url": "https://datasf.org/opendata/",
+      "roles": [
+        "processor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -122.510927,
+          37.708391,
+          -122.365902,
+          37.828697
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2018-10-12T00:00:00Z",
+          null
+        ]
+      ]
+    }
+  },
+  "table:columns": [
+    {
+      "name": "fid",
+      "type": "bigint"
+    },
+    {
+      "name": "street_full_street_name",
+      "type": "varchar",
+      "description": "اسم الشارع ونوعه معا."
+    },
+    {
+      "name": "zip_code",
+      "type": "varchar",
+      "description": "الرمز البريدي ZIP من خمسة أرقام كنص."
+    },
+    {
+      "name": "latitude",
+      "type": "varchar",
+      "description": "خط العرض كنص. يفضل استخدام عمود الهندسة."
+    },
+    {
+      "name": "address_number_suffix",
+      "type": "varchar",
+      "description": "لاحقة رقم الشارع مثل A، وهي فارغة في معظم الصفوف تقريبا."
+    },
+    {
+      "name": "supdistpad",
+      "type": "varchar"
+    },
+    {
+      "name": "complete_landmark_name",
+      "type": "varchar",
+      "description": "اسم المعلم للصفوف القليلة التي تحمله، مثل Millennium Tower."
+    },
+    {
+      "name": "eas_fullid",
+      "type": "varchar",
+      "description": "معرف صف فريد يتكون من المعرف الأساسي والفرعي ومعرف رابط القطعة مفصولة بشرطات. وهو العمود الوحيد الفريد لكل صف."
+    },
+    {
+      "name": "direct_source",
+      "type": "varchar",
+      "description": "المصدر الذي دخل منه السجل إلى EAS: ‏SF DBI أو State of CA أو The Presidio Trust."
+    },
+    {
+      "name": "cnn",
+      "type": "varchar",
+      "description": "رقم شبكة خط الوسط، وهو مفتاح مقطع الشارع في خريطة المدينة الأساسية ويربط مع خطوط وسط الشوارع في DataSF."
+    },
+    {
+      "name": "data_loaded_at",
+      "type": "timestamp with time zone",
+      "description": "وقت تحميل البوابة للسجل."
+    },
+    {
+      "name": "longitude",
+      "type": "varchar",
+      "description": "خط الطول كنص. يفضل استخدام عمود الهندسة."
+    },
+    {
+      "name": "street_name",
+      "type": "varchar",
+      "description": "اسم الشارع بعد التحليل."
+    },
+    {
+      "name": "supdist",
+      "type": "varchar"
+    },
+    {
+      "name": "eas_baseid",
+      "type": "varchar",
+      "description": "معرف العنوان الأساسي، أي المبنى. تشترك الوحدات فيه، لذلك احسب القيم المميزة في eas_baseid لعد المباني."
+    },
+    {
+      "name": "nhood",
+      "type": "varchar",
+      "description": "اسم حي التحليل في DataSF، ويربط بالاسم مع مجموعة بيانات Analysis Neighborhoods."
+    },
+    {
+      "name": "block",
+      "type": "varchar",
+      "description": "رقم كتلة المقيم العقاري كنص."
+    },
+    {
+      "name": "supname",
+      "type": "varchar"
+    },
+    {
+      "name": "eas_address_id",
+      "type": "varchar"
+    },
+    {
+      "name": "street_type",
+      "type": "varchar",
+      "description": "نوع الشارع بعد التحليل، مثل ST أو AVE. يكون فارغا لشوارع مثل BROADWAY التي لا تحمل نوعا."
+    },
+    {
+      "name": "eas_subid",
+      "type": "varchar",
+      "description": "معرف العنوان الفرعي، أي الوحدة أو الشقة، داخل عنوانه الأساسي."
+    },
+    {
+      "name": "lot",
+      "type": "varchar",
+      "description": "رقم قطعة المقيم العقاري كنص."
+    },
+    {
+      "name": "address",
+      "type": "varchar",
+      "description": "نص العنوان الكامل، مع الوحدة كلحقة تبدأ بعلامة # عند وجودها."
+    },
+    {
+      "name": "unit_number",
+      "type": "varchar",
+      "description": "معرف الوحدة، وهو فارغ في صفوف العنوان الأساسي."
+    },
+    {
+      "name": "supervisor",
+      "type": "varchar",
+      "description": "رقم دائرة المشرف كنص."
+    },
+    {
+      "name": "data_updated_at",
+      "type": "timestamp with time zone",
+      "description": "الطابع الزمني لتحديث السجل، مع قيمة حارسة من حقبة 1970 للصفوف التي لم تحدث قط."
+    },
+    {
+      "name": "address_number",
+      "type": "varchar",
+      "description": "رقم الشارع."
+    },
+    {
+      "name": "parcel_number",
+      "type": "varchar",
+      "description": "رقم قطعة المقيم العقاري، ويتكون من الكتلة والقطعة. يكون فارغا في 32 بالمئة من الصفوف، ولذلك يسقطها ربط القطع دون تنبيه."
+    },
+    {
+      "name": "numbertext",
+      "type": "varchar"
+    },
+    {
+      "name": "data_as_of",
+      "type": "timestamp with time zone",
+      "description": "الطابع الزمني للنسخة المصدرية، وهو 24 يوليو 2026 لكل صف هنا."
+    },
+    {
+      "name": "landmark_aliases",
+      "type": "varchar"
+    },
+    {
+      "name": "geom",
+      "type": "geometry",
+      "description": "نقطة العنوان بخطي الطول والعرض وفق WGS84. تتراص الوحدات على النقطة الواحدة لمبناها."
+    },
+    {
+      "name": "bbox",
+      "type": "struct(xmin double, ymin double, xmax double, ymax double)",
+      "description": "بنية صندوق الإحاطة لكل معلم، وهي تغطية GeoParquet."
+    }
+  ],
+  "table:primary_geometry": "geom",
+  "table:row_count": 5000,
+  "assets": {
+    "data": {
+      "href": "../../../mirror/san-francisco-addresses/san-francisco-addresses.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "البيانات",
+      "roles": [
+        "data"
+      ],
+      "file:size": 519086,
+      "file:checksum": "12203a5a8a1e839eb670238ea0ca1ee255aec1505a8e877c8797c9999d8ea2b97403",
+      "proj:code": "EPSG:4326"
+    },
+    "visual": {
+      "href": "../../../mirror/san-francisco-addresses/san-francisco-addresses.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "بلاطات خريطة الويب",
+      "roles": [
+        "visual"
+      ],
+      "file:size": 882826,
+      "file:checksum": "12202389cd1c165b2eab27e54efd2f0850a2f92fde292a083ea7e45877c7b26abd96"
+    },
+    "style-addresses": {
+      "href": "../../../mirror/san-francisco-addresses/styles/addresses.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "نقاط العناوين",
+      "roles": [
+        "style",
+        "default"
+      ],
+      "file:size": 552,
+      "file:checksum": "12208d45a18d45323c29a208824c770e5ff230871a2132ce57255395298fd0a513aa",
+      "description": "يعرض النمط جميع سجلات العناوين الخمسة آلاف في العينة كنقاط موحدة."
+    },
+    "style-sources": {
+      "href": "../../../mirror/san-francisco-addresses/styles/sources.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "مصدر إدخال كل سجل في EAS",
+      "roles": [
+        "style"
+      ],
+      "file:size": 888,
+      "file:checksum": "1220d70ecc51d61828ebe574013e0f98a00fd4edc93b0bc8c623b39610f8f113517f",
+      "description": "يفصل direct_source السجلات التي اعتمدتها DBI عن دفعة ولاية كاليفورنيا والسجلات القليلة من Presidio Trust."
+    },
+    "style-units": {
+      "href": "../../../mirror/san-francisco-addresses/styles/units.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "سجلات الوحدات مقابل العناوين الأساسية",
+      "roles": [
+        "style"
+      ],
+      "file:size": 930,
+      "file:checksum": "12209edf3bdc9344bccb0e3c68a1272d9f1bcaac1ec5c29d93afedb3801fa002bc64",
+      "description": "يستخدم النمط البرتقالي للسجل الذي يحمل unit_number، والأخضر المزرق للعناوين الأساسية. تحمي دالة coalesce من السمات الفارغة والغائبة."
+    },
+    "style-neighborhoods": {
+      "href": "../../../mirror/san-francisco-addresses/styles/neighborhoods.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "أحياء التحليل",
+      "roles": [
+        "style"
+      ],
+      "file:size": 2598,
+      "file:checksum": "1220528e5b370e60aecde996c7cc393ebfc075a5bf654b4c0fdabe3a697fad1c59b7",
+      "description": "يستخدم النمط nhood من لوحة ألوان الكتالوج الدورية. تتكرر الألوان بين الأحياء الأربعين، لكن التجاور يبقيها مقروءة."
+    },
+    "style-density": {
+      "href": "../../../mirror/san-francisco-addresses/styles/density.json",
+      "type": "application/vnd.mapbox.style+json",
+      "title": "خريطة حرارية لكثافة العناوين",
+      "roles": [
+        "style"
+      ],
+      "file:size": 603,
+      "file:checksum": "1220cb54b18d67e77ec5a630db226a0ff36cca1fd4516d1356a7c1ae925ee71d8eec",
+      "description": "يعرض النمط خريطة MapLibre حرارية فوق العينة. تعكس الكثافة الترتيب الداخلي للعينة، لا سان فرانسيسكو، كما يوضح تنبيه README."
+    },
+    "thumbnail": {
+      "href": "../../../mirror/san-francisco-addresses/thumbnail.png",
+      "type": "image/png",
+      "title": "صورة مصغرة",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 387962,
+      "file:checksum": "122055ac26345fbdd0b37c07f7682c7ee9ea72cd09310f0eb39b989af3aa098971a4"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "pmtiles",
+      "href": "../../../mirror/san-francisco-addresses/san-francisco-addresses.pmtiles",
+      "type": "application/vnd.pmtiles",
+      "title": "بلاطات خريطة الويب",
+      "pmtiles:layers": [
+        "san-francisco-addresses"
+      ]
+    },
+    {
+      "rel": "via",
+      "href": "https://data.sfgov.org/",
+      "type": "text/html",
+      "title": "المصدر الأصلي"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "إرشادات للوكلاء",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "وثائق قابلة للقراءة",
+      "hreflang": "ar"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../../mirror/san-francisco-addresses/collection.json",
+      "type": "application/json",
+      "title": "الإنجليزية",
+      "hreflang": "en"
+    }
+  ],
+  "updated": "2026-07-21T00:00:00Z",
+  "language": {
+    "code": "ar",
+    "name": "العربية",
+    "alternate": "Arabic",
+    "dir": "rtl"
+  },
+  "languages": [
+    {
+      "code": "en",
+      "name": "English"
+    }
+  ]
+}

@@ -80,7 +80,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: astral-sh/setup-uv@v9.0.0
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
           # publish_catalogs.py carries its own PEP 723 dependencies, so the key
@@ -152,7 +152,7 @@ jobs:
       - name: Install s5cmd
         uses: ./.github/actions/setup-s5cmd
 
-      - uses: astral-sh/setup-uv@v9.0.0
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
           # Each entrypoint carries its own PEP 723 dependencies, so the cache
@@ -177,7 +177,12 @@ jobs:
           # collection dropped from the manifest would otherwise survive there
           # and get published as though it were still current.
           rm -rf "examples/catalog/${CATALOG}"
-          uv run examples/tools/build.py --catalog "$CATALOG"
+          # The rashid pin bump and the rashid release land in the same pull
+          # request. A restored uv cache can hold a PyPI index page from
+          # before that version exists, and the resolve then fails. Refresh
+          # the one package. See #155.
+          uv run --refresh-package rashid \
+            examples/tools/build.py --catalog "$CATALOG"
 
       # Nothing unvalidated reaches a public URL. Errors and warnings both fail,
       # the same gate the weekly catalog-upstream run applies.

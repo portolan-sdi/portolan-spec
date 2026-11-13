@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- The STAC profile uses Contacts v1.0.0 instead of v0.1.1 (#53).
+
+## 0.2.0 - 2026-08-28
+
+The schema is published at
+<https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json>. The `v0.1.0`,
+`v0.1.1`, and `v0.1.2` schemas stay published unchanged.
+
+This is the first schema change since `v0.1.0`. `v0.1.1` and `v0.1.2` each
+carried a new `$id` and nothing else.
+
+### Changed
+
+- The `links_conformant` block accepts a `self` link. The branch that mapped
+  `rel: "self"` to `false` is gone, following the spec's retirement of
+  `PORTO-CORE-034` (#159).
+- The `links_conformant` block accepts an absolute structural `href`. The
+  `"not": {"pattern": "://"}` constraint is gone from the
+  `root`/`parent`/`child`/`collection` branch and from the `item` branch.
+  `PORTO-CORE-034` carried that rule too.
+
+The rest of the block is unchanged. Structural links still carry the required
+media type, `child` and `item` links still carry a title, and an `icon` link
+still declares a renderable media type.
+
+The new recommendation of a root `self` link (`PORTO-CORE-081`) is conditional
+on how the publisher serves the catalog, so the schema does not check it. A
+validator resolves an absolute structural link through the base that the root
+`self` link names, which the schema also cannot check.
+
+## 0.1.2 - 2026-08-20
+
+The schema is published at
+<https://schemas.portolan-sdi.org/portolan/v0.1.2/schema.json>. The `v0.1.0` and
+`v0.1.1` schemas stay published unchanged.
+
+### Changed
+
+- The schema is identical to `v0.1.1` apart from its `$id`. The specification
+  release adds `PORTO-CORE-078`, `PORTO-CORE-079`, and `PORTO-CORE-080`, none of
+  which the schema can check: the fan-out rule counts children across the tree,
+  and the multilingual rules govern `alternate` links between separate roots.
+  The version directory exists because the schema URI is the signal of
+  specification version, and a released schema is immutable.
+
 ## 0.1.1 - 2026-08-14
 
 The schema is published at

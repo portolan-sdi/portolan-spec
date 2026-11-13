@@ -95,7 +95,11 @@ def run_rashid(requirement: str, catalog: Path) -> dict:
     """rashid's JSON report for one catalog tree."""
     completed = subprocess.run(
         [
-            "uv", "run", "--with", requirement,
+            # The rashid pin bump and the rashid release land in the same
+            # pull request. A warm uv cache can hold a PyPI index page from
+            # before that version exists. Refresh the one package. A flag on
+            # the outer uv run does not reach this subprocess. See #155.
+            "uv", "run", "--refresh-package", "rashid", "--with", requirement,
             "rashid", "check", "--schema", "--all", "--json", str(catalog),
         ],
         capture_output=True,
