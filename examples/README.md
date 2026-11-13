@@ -1,6 +1,7 @@
 # Examples
 
-Working reference catalogs that exercise the spec end to end.
+Working reference catalogs that exercise the spec end to end, and client
+examples that read a published catalog the way a browser does.
 
 ## Portolan Reference Catalog
 
@@ -188,6 +189,21 @@ Done.
   Pillow writes the PNG.
 - The reference generator no longer requires the GDAL command-line tools at
   all. `tippecanoe` and `uv` are the only prerequisites on PATH now.
+
+## MapLibre terrain example
+
+[`maplibre-terrain/`](maplibre-terrain/) is a single self-contained page that
+reads elevation from a published Portolan Collection. It draws the
+terrarium-encoded PMTiles of GEM-15 as a MapLibre `raster-dem` source, with a
+hypsometric tint, a hillshade, and 3D terrain, and it loads that Collection's
+published style assets directly to show they stand on their own.
+
+It is a client example rather than a catalog, so the generator and its checks do
+not touch it. It also reads a catalog this repository does not publish, and that
+catalog is awaiting its first data publish, so the page explains the missing data
+rather than drawing an empty map. Raster styling is an open spec question, and
+the example documents what it had to decide in the absence of a rule. See
+[`specs/incubating/raster-styling.md`](../specs/incubating/raster-styling.md).
 
 The normative requirements are in [`specs/portolan/`](../specs/portolan/) and the
 profile is in [`stac/`](../stac/).

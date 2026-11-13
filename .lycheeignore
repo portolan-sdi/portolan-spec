@@ -12,3 +12,10 @@
 # Substack answers 403 to GitHub Actions runners. The same URL answers 200
 # from a browser and from lychee on other networks.
 ^https://[a-z0-9-]+\.substack\.com/
+
+# The gem-15-catalog Collection has not had its first data publish, so its
+# asset URLs answer 404. examples/maplibre-terrain/ cites them because the
+# published addresses are fixed and serve as soon as that catalog publishes.
+# Remove this once the publish lands. The catalog repository is
+# https://github.com/portolan-mirrors/gem-15-catalog
+^https://data\.source\.coop/portolan-mirrors/gem-15-catalog/

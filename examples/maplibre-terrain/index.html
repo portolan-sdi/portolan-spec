@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GEM-15 terrain, a Portolan raster-dem example</title>
+
+<!--
+  This page reads one Portolan Collection asset. The asset is the
+  terrarium-encoded elevation PMTiles of GEM-15. The page draws it three ways:
+  hypsometric tint, hillshade, and 3D terrain.
+
+  The page pins two dependencies from unpkg.
+
+  - pmtiles 4.5.0, dist/pmtiles.js. This build is an IIFE. It sets a global
+    named `pmtiles`, so a classic script tag loads it. The ESM build at
+    dist/esm/index.js imports `fflate` by bare specifier. A browser cannot
+    resolve that specifier without an import map.
+  - maplibre-gl 6.18.0, dist/maplibre-gl.mjs. MapLibre GL JS 6 ships ESM only.
+    It has named exports and no default export. A module script imports it as a
+    namespace. A classic script runs before a module script, so the pmtiles
+    global exists when the module runs.
+
+  The color-relief layer type requires MapLibre GL JS 5.6.0 or newer. The
+  hillshade-method property requires 5.5.0 or newer.
+-->
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.18.0/dist/maplibre-gl.css">
+<script src="https://unpkg.com/pmtiles@4.5.0/dist/pmtiles.js"></script>
+
+<style>
+  :root {
+    --panel-bg: rgba(255, 255, 255, 0.94);
+    --ink: #1c2529;
+    --muted: #5a666d;
+    --line: #d2dade;
+    --accent: #2f6f8f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+  }
+  #map { position: absolute; inset: 0; }
+
+  .panel {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 2;
+    width: 288px;
+    max-height: calc(100% - 24px);
+    overflow-y: auto;
+    padding: 14px 16px 16px;
+    background: var(--panel-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.16);
+  }
+  .panel h1 { margin: 0 0 2px; font-size: 15px; }
+  .panel .sub { margin: 0 0 12px; color: var(--muted); font-size: 12px; }
+  .panel h2 {
+    margin: 14px 0 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+  }
+  .panel select, .panel button {
+    width: 100%;
+    padding: 6px 8px;
+    font: inherit;
+    color: inherit;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+  }
+  .panel button { cursor: pointer; text-align: left; margin-bottom: 5px; }
+  .panel button:hover { border-color: var(--accent); color: var(--accent); }
+  .row { display: flex; align-items: center; gap: 8px; }
+  .row label { flex: 1; }
+  input[type="range"] { width: 100%; }
+  .val { font-variant-numeric: tabular-nums; color: var(--muted); }
+  .note { margin: 10px 0 0; font-size: 11.5px; color: var(--muted); }
+  .note a { color: var(--accent); }
+  fieldset { border: 0; margin: 0; padding: 0; }
+  fieldset[disabled] { opacity: 0.45; }
+
+  #banner {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: none;
+    max-width: 560px;
+    padding: 12px 16px;
+    background: #fff6e5;
+    border: 1px solid #e0b25f;
+    border-left: 4px solid #d9893b;
+    border-radius: 6px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+  }
+  #banner.show { display: block; }
+  #banner strong { display: block; margin-bottom: 4px; }
+  #banner p { margin: 0; font-size: 12.5px; color: #5c4420; }
+  #banner a { color: #8a5214; }
+
+  @media (max-width: 640px) {
+    .panel { width: auto; right: 12px; max-height: 50%; }
+  }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div id="banner" role="status" aria-live="polite">
+  <strong>The GEM-15 elevation tiles are not published yet.</strong>
+  <p>
+    This example reads the terrain PMTiles from the
+    <a href="https://source.coop/portolan-mirrors/gem-15-catalog" target="_blank" rel="noopener">gem-15-catalog</a>
+    Collection on Source Cooperative. That Collection has not had its first data
+    publish. The map controls below still work, and the page draws the terrain
+    as soon as the asset is there. Nothing has to change here when the data
+    lands, because the published address is fixed.
+  </p>
+</div>
+
+<div class="panel">
+  <h1>GEM-15 terrain</h1>
+  <p class="sub">A Portolan <code>raster-dem</code> Collection, drawn by MapLibre GL JS.</p>
+
+  <h2>Style</h2>
+  <select id="style-select">
+    <option value="builtin">Built in to this page</option>
+    <option value="hypsometric">Catalog: elevation tint</option>
+    <option value="hillshade">Catalog: hillshade</option>
+    <option value="terrain-3d">Catalog: 3D terrain</option>
+  </select>
+  <p class="note" id="style-note"></p>
+
+  <h2>3D terrain</h2>
+  <div class="row">
+    <label for="terrain-toggle">Raise the terrain</label>
+    <input type="checkbox" id="terrain-toggle">
+  </div>
+  <fieldset id="exaggeration-field" disabled>
+    <div class="row">
+      <label for="exaggeration">Exaggeration</label>
+      <span class="val" id="exaggeration-value">1.3</span>
+    </div>
+    <input type="range" id="exaggeration" min="0" max="4" step="0.1" value="1.3">
+  </fieldset>
+
+  <h2>Places</h2>
+  <div id="bookmarks"></div>
+
+  <p class="note">
+    GEM-15 is a 15 m surface model, so buildings and canopy are part of the
+    terrain. Elevations are metres above the EGM96 geoid. Coverage runs 84N to
+    61S and excludes Russia, China, Mongolia and Greenland.
+  </p>
+  <p class="note">
+    This dataset is produced by Google, licensed
+    <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC-BY-4.0</a>.
+    Catalog: <a href="https://source.coop/portolan-mirrors/gem-15-catalog" target="_blank" rel="noopener">gem-15-catalog</a>.
+    Paper: <a href="https://doi.org/10.31223/X55N75" target="_blank" rel="noopener">doi:10.31223/X55N75</a>.
+  </p>
+</div>
+
+<script type="module">
+import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.18.0/dist/maplibre-gl.mjs';
+
+// ---------------------------------------------------------------------------
+// The Collection
+// ---------------------------------------------------------------------------
+
+const CATALOG = 'https://data.source.coop/portolan-mirrors/gem-15-catalog/gem-15';
+
+// The global DSM in terrarium encoding, z0 to z13. The Collection also ships
+// gem-15-dsm-terrarium-demo-barcelona.pmtiles, a z0 to z14 file over Barcelona.
+const TERRAIN_PMTILES = `${CATALOG}/terrain/gem-15-dsm-terrarium.pmtiles`;
+
+// The Collection's own MapLibre styles on the object store. A Portolan style
+// asset is a complete MapLibre style document. A client gives the URL to
+// setStyle and does nothing else.
+const STYLE_URLS = {
+  hypsometric: `${CATALOG}/styles/hypsometric.json`,
+  hillshade: `${CATALOG}/styles/hillshade.json`,
+  'terrain-3d': `${CATALOG}/styles/terrain-3d.json`,
+};
+
+const STYLE_NOTES = {
+  builtin: 'This page declares the style below, so you can read how a raster-dem source and a color-relief layer fit together.',
+  hypsometric: 'Loaded from the Collection, style-hypsometric, the asset that carries the default role.',
+  hillshade: 'Loaded from the Collection, style-hillshade. Landform only, no elevation colour.',
+  'terrain-3d': 'Loaded from the Collection, style-terrain-3d. It declares the terrain and sky roots itself.',
+};
+
+const ATTRIBUTION =
+  'This dataset is produced by Google | CC-BY-4.0 | ' +
+  '<a href="https://source.coop/portolan-mirrors/gem-15-catalog" target="_blank" rel="noopener">gem-15-catalog</a>';
+
+const SOURCE_ID = 'gem15-dsm';
+
+// ---------------------------------------------------------------------------
+// The hypsometric ramp. The stops match the catalog's hypsometric.json. Each
+// stop is metres above the EGM96 geoid. GEM-15 writes NaN and ocean as 0 m.
+// The 0 m stop is a water tone. It is also the no-data tone.
+// ---------------------------------------------------------------------------
+
+const ELEVATION_RAMP = [
+  -430, '#0f3d2e', -5, '#1d5c42', 0, '#5d7f93', 1, '#2d6a3f',
+  100, '#4e8c4a', 300, '#7aa85a', 600, '#a8c06a', 900, '#cfcf7d',
+  1200, '#e2cf8c', 1600, '#d8b074', 2000, '#c0905c', 2400, '#a4744a',
+  2800, '#8a5c3e', 3200, '#745038', 3600, '#6d5b50', 4200, '#8a7d74',
+  4800, '#a99d95', 5400, '#c9c0ba', 6000, '#e6e2df', 6800, '#ffffff',
+  8849, '#ffffff',
+];
+
+function builtinStyle() {
+  return {
+    version: 8,
+    name: 'GEM-15 elevation tint, built in to this page',
+    sources: {
+      [SOURCE_ID]: {
+        type: 'raster-dem',
+        // The pmtiles protocol reads everything after pmtiles:// as the archive
+        // URL. This URL is absolute. The README explains why a raster style
+        // does not use the relative form.
+        url: `pmtiles://${TERRAIN_PMTILES}`,
+        encoding: 'terrarium',
+        tileSize: 256,
+        minzoom: 0,
+        maxzoom: 13,
+        attribution: ATTRIBUTION,
+      },
+    },
+    layers: [
+      { id: 'background', type: 'background', paint: { 'background-color': '#36454f' } },
+      {
+        id: 'elevation-tint',
+        type: 'color-relief',
+        source: SOURCE_ID,
+        paint: {
+          'color-relief-color': ['interpolate', ['linear'], ['elevation'], ...ELEVATION_RAMP],
+        },
+      },
+      {
+        id: 'hillshade',
+        type: 'hillshade',
+        source: SOURCE_ID,
+        paint: {
+          // The igor method keeps the tint legible under the shading. The
+          // hillshade layer has no opacity property. Translucent shadow and
+          // highlight colors reduce the shading instead.
+          'hillshade-method': 'igor',
+          'hillshade-exaggeration': 0.5,
+          'hillshade-illumination-direction': 335,
+          'hillshade-shadow-color': 'rgba(24, 22, 18, 0.55)',
+          'hillshade-highlight-color': 'rgba(255, 253, 245, 0.25)',
+          'hillshade-accent-color': 'rgba(0, 0, 0, 0)',
+        },
+      },
+    ],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Preset views. Every one is inside GEM-15 coverage.
+// ---------------------------------------------------------------------------
+
+const BOOKMARKS = [
+  {
+    label: 'Barcelona, Spain',
+    hint: 'City blocks rise from the terrain, because GEM-15 is a surface model.',
+    center: [2.165, 41.395], zoom: 13, pitch: 60, bearing: 20,
+  },
+  {
+    label: 'Matterhorn, Switzerland',
+    hint: 'High alpine relief across the top of the colour ramp.',
+    center: [7.6586, 45.9763], zoom: 12.5, pitch: 68, bearing: 160,
+  },
+  {
+    label: 'Grand Canyon, United States',
+    hint: 'Stacked benches and side canyons at 15 m.',
+    center: [-112.1129, 36.1069], zoom: 12, pitch: 62, bearing: 45,
+  },
+  {
+    label: 'Kalgoorlie Super Pit, Australia',
+    hint: 'The paper resolves the mining benches of a pit over 115 m deep.',
+    center: [121.5025, -30.7847], zoom: 14, pitch: 60, bearing: 300,
+  },
+  {
+    label: 'Christchurch, New Zealand',
+    hint: 'Individual rooftops, where a 30 m DEM is a near-uniform plane.',
+    center: [172.6362, -43.5321], zoom: 14.5, pitch: 55, bearing: 0,
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Set up
+// ---------------------------------------------------------------------------
+
+// This call adds pmtiles:// support to MapLibre. The registration is global to
+// the library. It survives every setStyle call below, so the page makes it
+// one time.
+const protocol = new pmtiles.Protocol();
+maplibregl.addProtocol('pmtiles', protocol.tile);
+
+const map = new maplibregl.Map({
+  container: 'map',
+  style: builtinStyle(),
+  center: [2.165, 41.395],
+  zoom: 11,
+  pitch: 0,
+  bearing: 0,
+  maxPitch: 85,
+  hash: true,
+  // The source stops at z13. That zoom is about the native 15 m. MapLibre
+  // overzooms past z13 and does not request tiles that do not exist.
+  maxZoom: 17,
+});
+
+map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
+map.addControl(new maplibregl.AttributionControl({ compact: false }), 'bottom-right');
+
+// ---------------------------------------------------------------------------
+// The case where the data is not published
+// ---------------------------------------------------------------------------
+
+const banner = document.getElementById('banner');
+
+function showBanner() {
+  banner.classList.add('show');
+}
+
+// A pmtiles archive starts with a 127 byte header. A short range request checks
+// that the asset exists. The catalog answers 404 before its first publish. The
+// banner then explains the empty map.
+async function checkArchive() {
+  try {
+    const res = await fetch(TERRAIN_PMTILES, { headers: { Range: 'bytes=0-15' } });
+    if (!res.ok) showBanner();
+  } catch {
+    showBanner();
+  }
+}
+checkArchive();
+
+// MapLibre reports a failed tile or a failed style request here. The banner
+// covers both cases.
+map.on('error', (e) => {
+  console.warn('MapLibre error:', e && e.error ? e.error.message : e);
+  showBanner();
+});
+
+// ---------------------------------------------------------------------------
+// 3D terrain and exaggeration
+// ---------------------------------------------------------------------------
+
+const terrainToggle = document.getElementById('terrain-toggle');
+const exaggerationField = document.getElementById('exaggeration-field');
+const exaggeration = document.getElementById('exaggeration');
+const exaggerationValue = document.getElementById('exaggeration-value');
+
+function applyTerrain() {
+  const on = terrainToggle.checked;
+  exaggerationField.disabled = !on;
+  exaggerationValue.textContent = Number(exaggeration.value).toFixed(1);
+
+  // setTerrain requires the raster-dem source in the current style. Every style
+  // this page shows declares the same source id, so the call does not change.
+  if (!map.getSource(SOURCE_ID)) return;
+
+  if (on) {
+    map.setTerrain({ source: SOURCE_ID, exaggeration: Number(exaggeration.value) });
+  } else {
+    map.setTerrain(null);
+  }
+}
+
+terrainToggle.addEventListener('change', () => {
+  applyTerrain();
+  if (terrainToggle.checked && map.getPitch() < 25) {
+    map.easeTo({ pitch: 60, duration: 700 });
+  }
+});
+
+exaggeration.addEventListener('input', applyTerrain);
+
+// ---------------------------------------------------------------------------
+// Style switching
+// ---------------------------------------------------------------------------
+
+const styleSelect = document.getElementById('style-select');
+const styleNote = document.getElementById('style-note');
+
+styleNote.textContent = STYLE_NOTES.builtin;
+
+styleSelect.addEventListener('change', () => {
+  const key = styleSelect.value;
+  styleNote.textContent = STYLE_NOTES[key];
+  // diff: false forces a full style reload. A full reload proves that the
+  // catalog style is complete on its own.
+  map.setStyle(key === 'builtin' ? builtinStyle() : STYLE_URLS[key], { diff: false });
+});
+
+// Every setStyle call removes the terrain. This handler sets it again. A style
+// can declare its own terrain. terrain-3d.json does, and then the style drives
+// the controls.
+map.on('style.load', () => {
+  const declared = map.getTerrain();
+  if (declared) {
+    terrainToggle.checked = true;
+    if (typeof declared.exaggeration === 'number') {
+      exaggeration.value = String(declared.exaggeration);
+    }
+  }
+  applyTerrain();
+});
+
+// ---------------------------------------------------------------------------
+// Bookmarks
+// ---------------------------------------------------------------------------
+
+const bookmarks = document.getElementById('bookmarks');
+
+for (const place of BOOKMARKS) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = place.label;
+  button.title = place.hint;
+  button.addEventListener('click', () => {
+    if (place.pitch > 0 && !terrainToggle.checked) {
+      terrainToggle.checked = true;
+      applyTerrain();
+    }
+    map.flyTo({
+      center: place.center,
+      zoom: place.zoom,
+      pitch: place.pitch,
+      bearing: place.bearing,
+      duration: 2600,
+      essential: true,
+    });
+  });
+  bookmarks.appendChild(button);
+}
+</script>
+</body>
+</html>
