@@ -109,7 +109,7 @@
     {
       "name": "CAPIN",
       "type": "varchar",
-      "description": "Kind of capital, for example Administrative or De facto capita. Natural Earth sets it only for a country capital. The values are cut at 15 characters."
+      "description": "Kind of capital, such as Administrative or De facto capita. Natural Earth sets it only for a country capital. The values are cut at 15 characters."
     },
     {
       "name": "WORLDCITY",
@@ -180,12 +180,12 @@
     {
       "name": "RANK_MAX",
       "type": "integer",
-      "description": "Population rank from 0 to 14, calculated from POP_MAX with the formula that Natural Earth publishes. Rank 14 is more than 10 million people."
+      "description": "Population rank from 0 to 14, where 14 is more than 10 million people. Natural Earth calculates it from POP_MAX with a formula that it publishes."
     },
     {
       "name": "RANK_MIN",
       "type": "integer",
-      "description": "Population rank from 0 to 14, calculated from POP_MIN with the formula that Natural Earth publishes. Rank 14 is more than 10 million people."
+      "description": "Population rank from 0 to 14, where 14 is more than 10 million people. Natural Earth calculates it from POP_MIN with a formula that it publishes."
     },
     {
       "name": "MEGANAME",

@@ -54,7 +54,7 @@ curl 'https://data.sfgov.org/resource/ramy-di5m.json?$select=count(*)'
 | `zip_code` | varchar | Five-digit ZIP code as a string. |
 | `latitude` | varchar | Latitude as text. Prefer the geometry column. |
 | `address_number_suffix` | varchar | Street number suffix such as A, null for nearly all rows. |
-| `supdistpad` | varchar | Supervisor District number with zero padding, for example 01 or 02. |
+| `supdistpad` | varchar | Supervisor District number with zero padding, such as 01 or 02. |
 | `complete_landmark_name` | varchar | Landmark name for the few rows that carry one, Millennium Tower. |
 | `eas_fullid` | varchar | Unique row identifier, base id, sub id, and parcel link id joined with dashes. The only column unique per row. |
 | `direct_source` | varchar | Where the record entered the EAS, SF DBI, State of CA, or The Presidio Trust. |
@@ -77,7 +77,7 @@ curl 'https://data.sfgov.org/resource/ramy-di5m.json?$select=count(*)'
 | `data_updated_at` | timestamp with time zone | Record update timestamp, with a 1970 epoch sentinel on never-updated rows. |
 | `address_number` | varchar | Street number. |
 | `parcel_number` | varchar | Assessor parcel number, block plus lot. Null on 32 percent of rows, a parcel join drops them silently. |
-| `numbertext` | varchar | Supervisor District number as text, for example ONE or TWO. |
+| `numbertext` | varchar | Supervisor District number as text, such as ONE or TWO. |
 | `data_as_of` | timestamp with time zone | Snapshot timestamp of the upstream export, July 24, 2026 for every row here. |
 | `landmark_aliases` | varchar | Colloquial or official landmark name associated with the address. |
 | `geom` | geometry | Address point, WGS84 longitude and latitude. Units stack on their building's single point. |

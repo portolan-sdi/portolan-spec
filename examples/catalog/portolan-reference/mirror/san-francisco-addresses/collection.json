@@ -94,7 +94,7 @@
     {
       "name": "supdistpad",
       "type": "varchar",
-      "description": "Supervisor District number with zero padding, for example 01 or 02."
+      "description": "Supervisor District number with zero padding, such as 01 or 02."
     },
     {
       "name": "complete_landmark_name",
@@ -209,7 +209,7 @@
     {
       "name": "numbertext",
       "type": "varchar",
-      "description": "Supervisor District number as text, for example ONE or TWO."
+      "description": "Supervisor District number as text, such as ONE or TWO."
     },
     {
       "name": "data_as_of",

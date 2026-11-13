@@ -49,15 +49,15 @@ description because the source defines none. They are in
 | `SOVEREIGNT` | varchar | The owning sovereign state, which differs from ADMIN for territories such as Greenland (Denmark). |
 | `SOV_A3` | varchar | Natural Earth three-letter code of the sovereign state. Natural Earth states that the code is unique to its own coding system and somewhat follows the ISO alpha-3 codes. |
 | `TYPE` | varchar | Unit type, Sovereign country, Country, Dependency, Disputed, Indeterminate, or Sovereignty. |
-| `TLC` | varchar | Flag for the top-level-country (TLC) point of view. Natural Earth describes TLC as a superset of ISO. 176 rows hold 1 and one row is null. |
+| `TLC` | varchar | Flag for the top-level-country (TLC) point of view. Natural Earth describes TLC as a superset of ISO. The value is 1 in 176 rows and null in one row. |
 | `ADM0_A3` | varchar | Natural Earth's own three-letter country code. Never a sentinel value, and the join key to the populated places Collection. |
-| `GEOU_DIF` | integer | Flag that states if the geographic unit is different from its parent administrative unit. Natural Earth provides it so that a map does not repeat labels. Every row in this file holds 0. |
+| `GEOU_DIF` | integer | Flag that states if the geographic unit is different from its parent administrative unit. Natural Earth provides it so that a map does not repeat labels. The value is 0 in every row of this file. |
 | `GU_A3` | varchar | Natural Earth three-letter code of the geographic unit. Natural Earth states that the code is unique to its own coding system and somewhat follows the ISO alpha-3 codes. |
 | `SU_A3` | varchar | Natural Earth three-letter code of the administrative sub-unit. Natural Earth states that it is like an ISO alpha-3 code, but different. |
 | `NAME` | varchar | Short map label, for example Dem. Rep. Congo. |
 | `NAME_LONG` | varchar | Long-form name, for example Democratic Republic of the Congo. Differs from NAME on 21 rows. |
-| `NOTE_ADM0` | varchar | Short note that gives context to the sovereignty of the feature, for example Fr. or U.K. Null for most rows. |
-| `NOTE_BRK` | varchar | Note that gives context to the sovereignty of a breakaway or disputed feature, for example Self admin.; Claimed by Cyprus. Null for most rows. |
+| `NOTE_ADM0` | varchar | Short note that gives context to the sovereignty of the feature, such as Fr. or U.K. Null for most rows. |
+| `NOTE_BRK` | varchar | Note that gives context to the sovereignty of a breakaway or disputed feature, such as Self admin.; Claimed by Cyprus. Null for most rows. |
 | `NAME_SORT` | varchar | Name for sorted lists. Natural Earth provides it so that a list can ignore a prefix such as The. |
 | `MAPCOLOR7` | integer | Map color index. Natural Earth states that its map color derives from a US State Department political world map, where no neighboring countries have the same color and all territories of a sovereign state share one color. |
 | `MAPCOLOR8` | integer | Map color index. Natural Earth states that its map color derives from a US State Department political world map, where no neighboring countries have the same color and all territories of a sovereign state share one color. |
@@ -110,8 +110,8 @@ description because the source defines none. They are in
 | `NAME_ZH` | varchar | Name in Simplified Chinese. Natural Earth takes its localized names from Wikidata. |
 | `NAME_ZHT` | varchar | Name in Traditional Chinese. Natural Earth takes its localized names from Wikidata. |
 | `FCLASS_ISO` | varchar | Feature class from the ISO point of view. Natural Earth lists the values Admin-0 country, Admin-0 dependency, Admin-1 states provinces, and Unrecognized. |
-| `TLC_DIFF` | varchar | Flag that Natural Earth added with the top-level-country (TLC) point of view. Four rows hold 1 and the others are null. |
-| `FCLASS_TLC` | varchar | Feature class from the top-level-country (TLC) point of view. This file holds Admin-0 country, Admin-0 dependency, and Unrecognized. |
+| `TLC_DIFF` | varchar | Flag that Natural Earth added with the top-level-country (TLC) point of view. The value is 1 in 4 rows and null in the others. |
+| `FCLASS_TLC` | varchar | Feature class from the top-level-country (TLC) point of view. This file contains Admin-0 country, Admin-0 dependency, and Unrecognized. |
 | `FCLASS_US` | varchar | Feature class from the point of view of the United States. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class. |
 | `FCLASS_FR` | varchar | Feature class from the point of view of France. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class. |
 | `FCLASS_RU` | varchar | Feature class from the point of view of Russia. One of the Natural Earth FCLASS columns for alternate points of view. Null where that point of view sets no class. |

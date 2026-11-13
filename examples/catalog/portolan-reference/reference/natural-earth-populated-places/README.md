@@ -66,7 +66,7 @@ description because the source defines none. They are in
 | `NAMEALT` | varchar | Alternate names as a list, where Natural Earth finds them appropriate. |
 | `NAMEASCII` | varchar | ASCII fallback spelling of the name. |
 | `ADM0CAP` | integer | 1 marks a national capital, 200 rows in this file. |
-| `CAPIN` | varchar | Kind of capital, for example Administrative or De facto capita. Natural Earth sets it only for a country capital. The values are cut at 15 characters. |
+| `CAPIN` | varchar | Kind of capital, such as Administrative or De facto capita. Natural Earth sets it only for a country capital. The values are cut at 15 characters. |
 | `WORLDCITY` | integer | 1 flags 70 globally prominent cities. |
 | `MEGACITY` | integer | 1 flags the 462 places Natural Earth treats as megacities. |
 | `SOV0NAME` | varchar | Name of the Natural Earth sovereign state that the point falls in. |
@@ -77,8 +77,8 @@ description because the source defines none. They are in
 | `ISO_A2` | varchar | ISO alpha-2 code of the Natural Earth country that the point falls in. |
 | `POP_MAX` | bigint | Population of the metro area, LandScan derived. Tokyo carries 35,676,000. |
 | `POP_MIN` | bigint | Population of the city proper. Tokyo carries 8,336,599. |
-| `RANK_MAX` | integer | Population rank from 0 to 14, calculated from POP_MAX with the formula that Natural Earth publishes. Rank 14 is more than 10 million people. |
-| `RANK_MIN` | integer | Population rank from 0 to 14, calculated from POP_MIN with the formula that Natural Earth publishes. Rank 14 is more than 10 million people. |
+| `RANK_MAX` | integer | Population rank from 0 to 14, where 14 is more than 10 million people. Natural Earth calculates it from POP_MAX with a formula that it publishes. |
+| `RANK_MIN` | integer | Population rank from 0 to 14, where 14 is more than 10 million people. Natural Earth calculates it from POP_MIN with a formula that it publishes. |
 | `TIMEZONE` | varchar | IANA time zone name, empty for 114 rows. |
 | `MIN_ZOOM` | double | Suggested minimum web-map zoom for showing the place. |
 | `WIKIDATAID` | varchar | Wikidata QID, missing for 7 rows. |
