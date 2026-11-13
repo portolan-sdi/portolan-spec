@@ -38,26 +38,15 @@ Publishers MUST provide data as [GeoParquet 1.1](https://geoparquet.org/releases
 [GeoParquet 2.0](https://geoparquet.org/releases/v2.0.0/), or Parquet with native
 [`GEOMETRY` or `GEOGRAPHY`](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
 logical types.
+Publishers SHOULD use GeoParquet 2.0 when their tools can write it. It adds the
+`geo` metadata to the native types, and the `geo` metadata holds the CRS as
+PROJJSON. A file without a `geo` key SHOULD give the CRS of each geometry
+column as inline PROJJSON or a `projjson:<key>` reference in the native `crs`
+field. Readers can then resolve the CRS from the file alone.
 Publishers SHOULD follow the [Best Practices for Distributing
 GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so readers can query
 the data without a server. Files SHOULD be compressed to stay small, with `zstd`
 RECOMMENDED.
-
-A file with a native geospatial column is vector data, even without a `geo`
-metadata key. A validator MUST apply every requirement in this section to the
-file. Apache Iceberg writers commonly produce these files, so catalogs can
-publish an Iceberg table's data files directly.
-
-When a geometry column declares its CRS only through the native logical type's
-`crs` field, the value MUST use one of the four formats that the [Parquet
-geospatial specification](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
-suggests. These formats are inline PROJJSON, `projjson:<key>`,
-`<authority>:<code>`, and `srid:<identifier>`. An absent `crs` value means
-OGC:CRS84, as that specification defines.
-The value SHOULD be inline PROJJSON or a `projjson:<key>` reference. Readers
-can resolve either from the file alone. Values in `<authority>:<code>` or
-`srid:<identifier>` form require a CRS registry. A validator reports these
-values as warnings.
 
 Rows MUST be spatially ordered so nearby features are nearby in the file. This rule
 applies to every file, no matter how many row groups it has. A validator checks it

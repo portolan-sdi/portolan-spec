@@ -864,9 +864,15 @@ requirements:
     quote: >-
       Files SHOULD be compressed to stay small, with `zstd` RECOMMENDED.
 
-  # Numbered after the highest ID in open PRs (#188 uses PORTO-FMT-073). Before
-  # this change, the guide was part of PORTO-FMT-004.
-  - id: PORTO-FMT-083
+  - id: PORTO-FMT-080
+    severity: SHOULD
+    enforcement: process
+    file: specs/portolan/formats.md
+    quote: >-
+      Publishers SHOULD use GeoParquet 2.0 when their tools can write it.
+
+  # Before this change, the best-practices guide was part of PORTO-FMT-004.
+  - id: PORTO-FMT-082
     severity: SHOULD
     enforcement: process
     file: specs/portolan/formats.md
@@ -875,35 +881,14 @@ requirements:
       GeoParquet](https://guide.cloudnativegeo.org/geoparquet/) so readers can query
       the data without a server.
 
-  - id: PORTO-FMT-080
-    severity: MUST
-    enforcement: validator
-    file: specs/portolan/formats.md
-    quote: >-
-      A file with a native geospatial column is vector data, even without a `geo`
-      metadata key. A validator MUST apply every requirement in this section to the
-      file.
-
   - id: PORTO-FMT-081
-    severity: MUST
-    enforcement: validator
-    file: specs/portolan/formats.md
-    quote: >-
-      When a geometry column declares its CRS only through the native logical type's
-      `crs` field, the value MUST use one of the four formats that the [Parquet geospatial
-      specification](https://github.com/apache/parquet-format/blob/master/Geospatial.md)
-      suggests. These formats are inline PROJJSON, `projjson:<key>`,
-      `<authority>:<code>`, and `srid:<identifier>`.
-
-  - id: PORTO-FMT-082
     severity: SHOULD
     enforcement: validator
     file: specs/portolan/formats.md
     quote: >-
-      The value SHOULD be inline PROJJSON or a `projjson:<key>` reference. Readers
-      can resolve either from the file alone. Values in `<authority>:<code>` or
-      `srid:<identifier>` form require a CRS registry. A validator reports these values as
-      warnings.
+      A file without a `geo` key SHOULD give the CRS of each geometry
+      column as inline PROJJSON or a `projjson:<key>` reference in the native `crs`
+      field.
 
   - id: PORTO-FMT-006
     severity: MUST

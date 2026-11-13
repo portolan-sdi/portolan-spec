@@ -45,25 +45,23 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 ### Changed
 
 - **Portolan accepts native geospatial Parquet** (`PORTO-FMT-004`,
-  `PORTO-FMT-080` to `PORTO-FMT-082`,
+  `PORTO-FMT-080`, `PORTO-FMT-081`,
   [`specs/portolan/formats.md`](specs/portolan/formats.md)). Publishers can
   provide GeoParquet 1.1, GeoParquet 2.0, or Parquet with native geospatial
-  logical types and no `geo` key. Validators apply every vector requirement
-  to all three formats. This includes native Parquet files from Apache
-  Iceberg writers, which validators previously treated as tabular data
-  (portolan-sdi/rashid#200). When a geometry column declares its CRS only
-  through the native logical type's `crs` field, the value uses one of the
-  four formats that the Parquet geospatial specification suggests. An absent
-  value means OGC:CRS84. Readers can resolve inline PROJJSON and
-  `projjson:<key>` from the file alone. Registry codes such as `EPSG:4326`
-  produce warnings. Native statistics now cover `GEOGRAPHY` columns
-  (`PORTO-FMT-007`), and a file without a `geo` key meets the statistics
-  rule with native statistics alone (`PORTO-FMT-008`).
+  logical types and no `geo` key. A file with a native geometry column is
+  vector data, so the vector requirements apply to it. This includes native
+  Parquet files from Apache Iceberg writers, which validators previously
+  treated as tabular data (portolan-sdi/rashid#200). Publishers should use
+  GeoParquet 2.0 when their tools can write it. A file without a `geo` key
+  should give its CRS as inline PROJJSON or a `projjson:<key>` reference.
+  Native statistics now cover `GEOGRAPHY` columns (`PORTO-FMT-007`), and a
+  file without a `geo` key meets the statistics rule with native statistics
+  alone (`PORTO-FMT-008`).
 
 - **GeoParquet 2.0 links to the 2.0.0 release** instead of the release
   candidate (`PORTO-FMT-004`).
 
-- **The GeoParquet best-practices guide is a SHOULD** (`PORTO-FMT-083`).
+- **The GeoParquet best-practices guide is a SHOULD** (`PORTO-FMT-082`).
   Before this change, it was part of the `PORTO-FMT-004` MUST, which a
   validator cannot check.
 
@@ -137,7 +135,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 165 requirements, now 101 MUST, 45 SHOULD, and
+- **Requirements manifest**: 164 requirements, now 99 MUST, 46 SHOULD, and
   19 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source
