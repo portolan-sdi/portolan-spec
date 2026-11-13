@@ -1480,15 +1480,6 @@ requirements:
     quote: >-
       Every codec in the chain SHOULD have a JavaScript implementation.
 
-  - id: PORTO-ZARR-027
-    severity: SHOULD
-    enforcement: validator
-    status: incubating
-    file: specs/incubating/zarr.md
-    quote: >-
-      Every array SHOULD include the `crc32c` codec in the codec chain of its
-      chunks.
-
 exclusions:
   # RFC 2119 preamble: keyword mentions, not requirements.
   - file: specs/portolan/core.md
