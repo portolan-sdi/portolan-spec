@@ -51,8 +51,8 @@ browser build sets a global, so a classic script tag loads it. The
 
 The gem-15-catalog Collection has not had its first data publish, so the terrain
 PMTiles asset answers 404 today. The page checks for the asset on load and shows
-an explanatory banner instead of an empty map. Nothing in the page changes when
-the catalog publishes, because the published addresses stay the same. The
+an explanatory banner instead of an empty map. The page needs no edit when the catalog
+publishes, because the published addresses stay the same. The
 catalog repository is
 [portolan-mirrors/gem-15-catalog](https://github.com/portolan-mirrors/gem-15-catalog).
 
@@ -109,10 +109,12 @@ and the discussion in
 
 This example supplies evidence for that discussion. It proposes no rule. It
 shows one raster style that works, written as a plain MapLibre style document
-beside the data. It also shows two points the spec must
-settle. The first point is where an absolute color ramp belongs. The second point
-is where a client finds the encoding of an elevation asset. Portolan metadata
-expresses neither one today.
+beside the data. It also raises two questions for the spec:
+
+- Where does a style declare a ramp that maps color to absolute elevation?
+- Where does a client read the encoding of an elevation asset?
+
+Portolan metadata answers neither question today.
 
 ## Attribution
 
