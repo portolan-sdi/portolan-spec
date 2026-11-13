@@ -286,7 +286,7 @@ finding. Warnings and infos print without failing.
 Four passes run. The metadata pass checks the Portolan rules. The structural
 pass checks STAC 1.1.0 core validity and degrades to a warning when its
 schemas are unreachable. The schema pass validates every object against the
-working-copy schema at `../../stac/json-schema/v0.2.0/schema.json`, injected
+working-copy schema at `../../stac/json-schema/schema.json`, injected
 so the build tests this repo's schema rather than the published one. The data
 pass reads the built assets and checks checksum, size, format, COG internal
 overviews, COG band statistics including valid percent, and GeoParquet ordering,
@@ -464,12 +464,14 @@ committed. Its gate is errors and warnings, since rashid's own exit code fires
 on errors alone and a warning in a reference example is a real defect. The eight
 infos above are advisory and do not fail it.
 
-Two known gaps. `check_catalogs.py` validates against the profile schema bundled
-in the rashid wheel, while `validate.py` injects the working copy under `stac/`,
-so a change to `stac/json-schema/` is proven by the build rather than by CI. And
-`check_validate.py` is hardcoded to the `portolan-reference` tree, so a second catalog
-gets weekly coverage immediately but per-PR coverage only once that script is
-generalized.
+`check_catalogs.py` also passes the working-copy schema to rashid with
+`--schema-map <$id>=stac/json-schema/schema.json`, the same schema `validate.py`
+injects. On `main` that `$id` names the next, unreleased version, and no rashid
+wheel bundles it, so the bundled schema would only report `PTL-SCH-000`.
+
+One known gap. `check_validate.py` hardcodes the `portolan-reference` tree, so a
+second catalog gets weekly coverage immediately but per-PR coverage only once
+that script is generalized.
 
 ## Conventions
 

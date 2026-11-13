@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The STAC profile uses Contacts v1.0.0 instead of v0.1.1 (#53).
+- `json-schema/schema.json` is the one schema file. It is the draft of the next
+  version. Each released version is published from its git tag, and every
+  published schema keeps its bytes (#244).
 
 ## 0.2.0 - 2026-08-28
 
