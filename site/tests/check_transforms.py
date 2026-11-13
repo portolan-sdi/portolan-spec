@@ -272,6 +272,50 @@ def check_banner():
     assert "Read " not in no_release
 
 
+def check_navigation():
+    mapping = {
+        "README.md": "index.md",
+        "specs/portolan/core.md": "specs/portolan/core.md",
+        "specs/portolan/formats.md": "specs/portolan/formats.md",
+        "specs/best-practices/README.md": "specs/best-practices/index.md",
+        "specs/best-practices/styling.md": "specs/best-practices/styling.md",
+        "specs/incubating/README.md": "specs/incubating/index.md",
+        "specs/incubating/point-cloud.md": "specs/incubating/point-cloud.md",
+    }
+    nav = build.navigation(mapping, "next")
+    # Every entry is a group, because the sidebar renders top-level groups as sections.
+    assert all(isinstance(next(iter(item.values())), list) for item in nav)
+    groups = [next(iter(item)) for item in nav]
+    assert groups == [
+        "Specification",
+        "Best practices",
+        "Incubating",
+        "Project",
+        "Downloads",
+    ]
+    pages = [
+        page
+        for item in nav
+        for entries in item.values()
+        for entry in entries
+        for page in entry.values()
+    ]
+    # A reader meets the normative text first.
+    assert pages[:3] == [
+        "specs/portolan/core.md",
+        "specs/portolan/formats.md",
+        "requirements.md",
+    ]
+    assert nav[1]["Best practices"][0] == {"Overview": "specs/best-practices/index.md"}
+    assert {"Point cloud": "specs/incubating/point-cloud.md"} in nav[2]["Incubating"]
+    assert nav[3]["Project"][0] == {"Overview": "index.md"}
+    assert nav[4]["Downloads"] == [
+        {"PDF": "downloads/portolan-spec-next.pdf"},
+        {"EPUB": "downloads/portolan-spec-next.epub"},
+    ]
+    assert sorted(set(mapping.values()) - set(pages)) == []
+
+
 def check_tags():
     with patch.object(
         build,
@@ -579,6 +623,7 @@ if __name__ == "__main__":
     check_fences()
     check_requirements(args.ref)
     check_banner()
+    check_navigation()
     check_tags()
     check_output_guards()
     check_root_guards()

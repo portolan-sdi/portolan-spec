@@ -446,11 +446,16 @@ def html_path(directory: Path, page: str) -> Path:
 
 
 def navigation(mapping: dict[str, str], label: str) -> list:
+    # The sidebar shows each group as a section. The normative text comes
+    # first, so a reader meets core.md and formats.md before anything else.
     nav = [
-        {"Home": "index.md"},
-        {"Core": "specs/portolan/core.md"},
-        {"Formats": "specs/portolan/formats.md"},
-        {"Requirements": "requirements.md"},
+        {
+            "Specification": [
+                {"Core": "specs/portolan/core.md"},
+                {"Formats": "specs/portolan/formats.md"},
+                {"Requirements": "requirements.md"},
+            ]
+        },
     ]
     for title, prefix in [
         ("Best practices", "specs/best-practices/"),
@@ -472,12 +477,21 @@ def navigation(mapping: dict[str, str], label: str) -> list:
         )
     nav.extend(
         [
-            {"STAC profile": "stac/index.md"},
-            {"Examples": "examples/index.md"},
-            {"Changelog": "CHANGELOG.md"},
-            {"STAC changelog": "stac/CHANGELOG.md"},
-            {"PDF": f"downloads/portolan-spec-{label}.pdf"},
-            {"EPUB": f"downloads/portolan-spec-{label}.epub"},
+            {
+                "Project": [
+                    {"Overview": "index.md"},
+                    {"STAC profile": "stac/index.md"},
+                    {"Examples": "examples/index.md"},
+                    {"Changelog": "CHANGELOG.md"},
+                    {"STAC changelog": "stac/CHANGELOG.md"},
+                ]
+            },
+            {
+                "Downloads": [
+                    {"PDF": f"downloads/portolan-spec-{label}.pdf"},
+                    {"EPUB": f"downloads/portolan-spec-{label}.epub"},
+                ]
+            },
         ]
     )
     return nav
