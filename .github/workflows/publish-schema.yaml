@@ -1,10 +1,31 @@
 name: Publish Schema
 
+# Builds schemas.portolan-sdi.org from git alone and deploys it to GitHub
+# Pages. Each Portolan profile version comes from its release tag, so the
+# draft schema.json on main is never published. Each run rebuilds the whole
+# site, and a published URI never serves changed bytes.
+
 on:
   release:
     types:
       - published
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time. Every run rebuilds the full site, so a queued run
+# supersedes a pending one. An active deploy is never cancelled part way.
+concurrency:
+  group: publish-schema
+  cancel-in-progress: false
+
+env:
+  # Tags from before the one-file layout (#244). Each one stores its schema
+  # at stac/json-schema/<tag>/schema.json. Every later tag stores it at
+  # stac/json-schema/schema.json. Tags are frozen, so this list never grows.
+  LEGACY_TAGS: v0.1.0 v0.1.1 v0.1.2 v0.2.0
+  SCHEMA_HOST: https://schemas.portolan-sdi.org
 
 jobs:
   publish:
@@ -14,15 +35,20 @@ jobs:
     # them, and a release should not wait six hours to be told so.
     timeout-minutes: 15
     permissions:
-      pages: write
-      id-token: write
+      contents: read
+      pages: write # deploy-pages publishes the site
+      id-token: write # deploy-pages proves the run identity with OIDC
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history fetches every tag, and each tag holds one version.
+          fetch-depth: 0
+          persist-credentials: false
 
-      - name: Build site from tracked and pinned schema versions
+      - name: Build site from release tags and pinned extension schemas
         env:
           EVENT_NAME: ${{ github.event_name }}
           VERSION: ${{ github.ref_name }}
@@ -30,17 +56,50 @@ jobs:
           set -euo pipefail
 
           # schemas.portolan-sdi.org hosts one path segment per schema. The
-          # Portolan profile lives under /portolan/, rebuilt from the versions
-          # tracked in this repo under stac/json-schema/v<semver>/. The
+          # Portolan profile lives under /portolan/<tag>/, read from each
+          # vX.Y.Z tag with git, never from the working tree. The
           # portolan-sdi extension schemas live in their own repositories and
           # are pinned in stac/portolan-extensions.json; each pinned version is
           # fetched from its source repo at build time and served under
           # /<name>/<version>/. The site is never rebuilt from what is
           # currently deployed.
-          if [ "$EVENT_NAME" = "release" ] && [ ! -f "stac/json-schema/${VERSION}/schema.json" ]; then
-            echo "::error::stac/json-schema/${VERSION}/schema.json not found for release ${VERSION}"
+
+          mapfile -t TAGS < <(git tag --list 'v*' --sort=version:refname \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true)
+          if [ "${#TAGS[@]}" -eq 0 ]; then
+            echo "::error::no vX.Y.Z release tags found"
             exit 1
           fi
+
+          # The schema path inside tag $1.
+          schema_path() {
+            case " ${LEGACY_TAGS} " in
+              *" $1 "*) echo "stac/json-schema/$1/schema.json" ;;
+              *) echo "stac/json-schema/schema.json" ;;
+            esac
+          }
+
+          if [ "$EVENT_NAME" = "release" ]; then
+            found=false
+            for tag in "${TAGS[@]}"; do
+              if [ "$tag" = "$VERSION" ]; then found=true; fi
+            done
+            if [ "$found" != true ]; then
+              echo "::error::release ${VERSION} is not a vX.Y.Z tag"
+              exit 1
+            fi
+          fi
+
+          # Each tag must declare its own version in stac/package.json. On a
+          # release this is the check that the tag and the package agree.
+          for tag in "${TAGS[@]}"; do
+            declared=$(git cat-file blob "${tag}:stac/package.json" 2>/dev/null \
+              | jq -r .version) || declared=missing
+            if [ "$declared" != "${tag#v}" ]; then
+              echo "::error::tag ${tag} has version ${declared} in stac/package.json"
+              exit 1
+            fi
+          done
 
           MANIFEST=stac/portolan-extensions.json
 
@@ -81,14 +140,17 @@ jobs:
           HTMLEOF
           }
 
-          # Portolan profile: tracked schema versions.
+          # Portolan profile: one schema per release tag.
           mkdir -p _site/portolan
-          for dir in stac/json-schema/v*/; do
-            ver=$(basename "$dir")
-            mkdir -p "_site/portolan/${ver}"
-            cp "${dir}schema.json" "_site/portolan/${ver}/"
+          for tag in "${TAGS[@]}"; do
+            src=$(schema_path "$tag")
+            mkdir -p "_site/portolan/${tag}"
+            if ! git cat-file blob "${tag}:${src}" > "_site/portolan/${tag}/schema.json"; then
+              echo "::error::${src} not found at tag ${tag}"
+              exit 1
+            fi
           done
-          ls -d stac/json-schema/v*/ | xargs -n1 basename | jq -R . | jq -s . > _site/portolan/versions.json
+          printf '%s\n' "${TAGS[@]}" | jq -R . | jq -s . > _site/portolan/versions.json
           family_index "Portolan STAC Profile" "portolan-sdi/portolan-spec" _site/portolan/index.html
 
           # Extension schemas: pinned versions fetched from their source repos.
@@ -144,8 +206,74 @@ jobs:
           } > _site/index.html
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  verify:
+    needs: publish
+    runs-on: ubuntu-latest
+    # The check retries for ten minutes. Five more cover the checkout.
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Compare each served schema with its tagged bytes
+        run: |
+          set -euo pipefail
+
+          mapfile -t TAGS < <(git tag --list 'v*' --sort=version:refname \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true)
+          if [ "${#TAGS[@]}" -eq 0 ]; then
+            echo "::error::no vX.Y.Z release tags found"
+            exit 1
+          fi
+
+          # The schema path inside tag $1. Keep in step with the publish job.
+          schema_path() {
+            case " ${LEGACY_TAGS} " in
+              *" $1 "*) echo "stac/json-schema/$1/schema.json" ;;
+              *) echo "stac/json-schema/schema.json" ;;
+            esac
+          }
+
+          declare -A WANT
+          for tag in "${TAGS[@]}"; do
+            WANT[$tag]=$(git cat-file blob "${tag}:$(schema_path "$tag")" \
+              | sha256sum | cut -d' ' -f1)
+          done
+
+          # Pages can serve a cached copy for a few minutes after a deploy, so
+          # retry until every schema matches or ten minutes pass.
+          served=$(mktemp)
+          deadline=$((SECONDS + 600))
+          while :; do
+            stale=()
+            for tag in "${TAGS[@]}"; do
+              url="${SCHEMA_HOST}/portolan/${tag}/schema.json"
+              got=missing
+              if curl -sfL -o "$served" "$url"; then
+                got=$(sha256sum "$served" | cut -d' ' -f1)
+              fi
+              if [ "$got" != "${WANT[$tag]}" ]; then
+                stale+=("${tag} served=${got} tagged=${WANT[$tag]}")
+              fi
+            done
+            if [ "${#stale[@]}" -eq 0 ]; then
+              echo "All ${#TAGS[@]} schemas match their tags."
+              exit 0
+            fi
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              for line in "${stale[@]}"; do
+                echo "::error::${line}"
+              done
+              exit 1
+            fi
+            echo "${#stale[@]} schema(s) differ from their tags. Retrying in 30 s."
+            sleep 30
+          done
