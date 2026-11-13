@@ -1,0 +1,685 @@
+/* Portolan brand styles for the specification site.
+
+   The brand kit in portolan-ops owns every value. The sync copies
+   `_brand-vars.css` into this directory, and `mkdocs.yml` loads it before
+   this file. Read a role token such as `--color-accent` first. Reach for a
+   `--palette-*` token only when the intent is a literal brand color. A muted
+   ink is a `color-mix()` of ink and paper, as brand/PATTERN.md prescribes.
+
+   One exception: Zensical's theme defines its own `--color-background` as an
+   RGB triplet on `body`, which hides the brand token there. This file reads
+   `--palette-surface` for the page ground instead.
+
+   The page follows registry.portolan-sdi.org (portolan-registry
+   `site/style.css`): a cream header above a 2px ink rule, 17px Hanken
+   Grotesk at a 1.65 line height, mono kickers and table heads, and tables
+   ruled in ink with soft rules between rows.
+
+   Four standing rules shape this file. Light mode only. Square corners.
+   Flat surfaces separated by rules, not by cards or shadows. No gradients
+   anywhere. */
+
+/* The palette stylesheet sets Material's tokens on the scheme attribute of
+   `body`, so the overrides name that selector as well as `:root`. */
+:root,
+[data-md-color-scheme="default"] {
+  /* Material overrides */
+  --md-primary-fg-color: var(--color-accent);
+  --md-primary-fg-color--light: var(--color-accent);
+  --md-primary-fg-color--dark: var(--color-link-hover);
+  --md-primary-bg-color: var(--palette-surface);
+  --md-primary-bg-color--light: color-mix(
+    in srgb,
+    var(--palette-surface) 70%,
+    transparent
+  );
+  --md-accent-fg-color: var(--color-link-hover);
+  --md-accent-fg-color--transparent: color-mix(
+    in srgb,
+    var(--palette-primary) 10%,
+    transparent
+  );
+
+  --md-default-bg-color: var(--palette-surface);
+  --md-default-fg-color: var(--color-text);
+  --md-default-fg-color--light: color-mix(
+    in srgb,
+    var(--palette-ink) 72%,
+    var(--palette-surface)
+  );
+  --md-default-fg-color--lighter: color-mix(
+    in srgb,
+    var(--palette-ink) 45%,
+    var(--palette-surface)
+  );
+  --md-default-fg-color--lightest: var(--color-rule-soft);
+  --md-text-color: var(--color-text);
+  --md-typeset-color: var(--color-text);
+  --md-typeset-a-color: var(--color-link);
+  --md-typeset-table-color: var(--color-rule-soft);
+  --md-typeset-table-color--light: transparent;
+
+  /* Code sits on the page ground. A rule, not a fill, marks a block. */
+  --md-code-bg-color: transparent;
+  --md-code-fg-color: var(--color-text);
+
+  --md-footer-bg-color: var(--palette-surface);
+  --md-footer-bg-color--dark: var(--palette-surface);
+  --md-footer-fg-color: var(--color-text);
+  --md-footer-fg-color--light: color-mix(
+    in srgb,
+    var(--palette-ink) 72%,
+    var(--palette-surface)
+  );
+  --md-footer-fg-color--lighter: color-mix(
+    in srgb,
+    var(--palette-ink) 45%,
+    var(--palette-surface)
+  );
+
+  --md-shadow-z1: none;
+  --md-shadow-z2: none;
+  --md-shadow-z3: none;
+}
+
+/* Layout. The grid is narrower than Material's 61rem, so the text column
+   between the two sidebars holds about 70 characters. */
+.md-grid {
+  max-width: 55rem;
+}
+
+.md-main__inner {
+  margin-top: 1.5rem;
+}
+
+.md-content__inner {
+  max-width: 33em;
+  margin-bottom: 3rem;
+}
+
+/* Header: cream paper above a 2px ink rule, as on the registry. */
+.md-header {
+  --md-primary-bg-color: var(--color-text);
+  --md-primary-bg-color--light: color-mix(
+    in srgb,
+    var(--palette-ink) 60%,
+    var(--palette-surface)
+  );
+  background-color: var(--palette-surface);
+  color: var(--color-text);
+  box-shadow: none;
+  border-bottom: 2px solid var(--color-rule);
+}
+
+.md-header--shadow {
+  box-shadow: none;
+}
+
+.md-header__title {
+  font-weight: 600;
+}
+
+.md-header__button.md-logo {
+  padding: 0;
+  margin: 0.2rem 0.4rem 0.2rem 0.2rem;
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 1.2rem;
+  width: auto;
+}
+
+/* The version picker reads as a label in the mono register. */
+.md-version__current,
+.md-version__link {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+.md-version__current {
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  color: var(--color-accent);
+}
+
+.md-version__list {
+  border: 1px solid var(--color-rule);
+  border-radius: 0;
+  box-shadow: none;
+  background-color: var(--palette-surface);
+}
+
+/* Search in the header is a ruled box, not a fill, as the registry draws a
+   form control: square, a 1px ink rule, and a mono label in muted ink. Its
+   height matches the cap height and baseline of the site title beside it.
+   Focus draws a ruled outline in the accent, never a glow. */
+.md-search__button {
+  display: flex;
+  align-items: center;
+  height: 1.5rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: color-mix(in srgb, var(--palette-ink) 60%, var(--palette-surface));
+  background-color: transparent;
+  border: 1px solid var(--color-rule);
+  border-radius: 0;
+  box-shadow: none;
+  transition: none;
+}
+
+@media screen and (min-width: 45em) {
+  .md-search__button {
+    background-color: transparent;
+    border-radius: 0;
+  }
+}
+
+.md-search__button:hover,
+.md-search__button:focus {
+  color: var(--color-text);
+  background-color: transparent;
+  outline: none;
+}
+
+.md-search__button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.md-search__button::before {
+  top: 50%;
+  width: 0.8rem;
+  height: 0.8rem;
+  background-color: var(--color-text);
+  transform: translateY(-50%);
+}
+
+.md-search__button::after {
+  top: 50%;
+  padding: 0.1rem 0.25rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.5rem;
+  line-height: 1;
+  color: color-mix(in srgb, var(--palette-ink) 60%, var(--palette-surface));
+  background: transparent;
+  border: 1px solid var(--color-rule-soft);
+  border-radius: 0;
+  transform: translateY(-50%);
+}
+
+.md-search__output,
+.md-search-result__meta {
+  border-radius: 0;
+}
+
+/* Sidebars, in three levels. Group labels are mono capitals. Pages are sans,
+   indented under their group, and the current page carries a 2px ink rule
+   at its left. The contents on the right are smaller and in muted ink, so
+   they read as secondary to the page nav. */
+.md-nav {
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+.md-nav__link {
+  margin-top: 0.35em;
+}
+
+@media screen and (min-width: 60em) {
+  .md-nav--secondary {
+    font-size: 0.62rem;
+  }
+
+  .md-nav--secondary > .md-nav__title {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.55rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--palette-ink) 60%, var(--palette-surface));
+    background: var(--palette-surface);
+    box-shadow: none;
+  }
+
+  .md-nav--secondary .md-nav__link {
+    margin-top: 0.3em;
+    color: color-mix(in srgb, var(--palette-ink) 60%, var(--palette-surface));
+  }
+
+  .md-nav--secondary .md-nav__link:hover,
+  .md-nav--secondary .md-nav__link--active,
+  .md-nav--secondary .md-nav__link--passed {
+    color: var(--color-text);
+  }
+
+  .md-nav--secondary .md-nav__link--active {
+    font-weight: 600;
+  }
+}
+
+@media screen and (min-width: 76.25em) {
+  /* The header already names the site, so the drawer title at the top of
+     the sidebar is hidden. */
+  .md-nav--primary > .md-nav__title {
+    display: none;
+  }
+
+  /* Level 1: group labels. */
+  .md-nav--primary > .md-nav__list > .md-nav__item {
+    margin-top: 1.1em;
+  }
+
+  .md-nav--primary > .md-nav__list > .md-nav__item:first-child {
+    margin-top: 0;
+  }
+
+  .md-nav--primary > .md-nav__list > .md-nav__item > .md-nav__link {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-text);
+  }
+
+  .md-nav--primary > .md-nav__list > .md-nav__item > .md-nav__link:hover {
+    color: var(--color-link-hover);
+  }
+
+  /* Level 2: pages, indented under the group. */
+  .md-nav--primary .md-nav[data-md-level="1"] > .md-nav__list {
+    margin-top: 0.2em;
+  }
+
+  .md-nav--primary .md-nav[data-md-level="1"] > .md-nav__list > .md-nav__item {
+    padding: 0;
+  }
+
+  .md-nav--primary .md-nav[data-md-level="1"] .md-nav__link {
+    margin-top: 0;
+    padding: 0.25em 0 0.25em 0.6rem;
+    border-left: 2px solid transparent;
+    color: var(--color-text);
+  }
+
+  .md-nav--primary .md-nav[data-md-level="1"] .md-nav__link:hover {
+    color: var(--color-link-hover);
+  }
+
+  .md-nav--primary .md-nav[data-md-level="1"] .md-nav__link--active {
+    font-weight: 600;
+    border-left-color: var(--color-rule);
+  }
+}
+
+/* Mobile drawer: cream panels. Each title and the repository link sit above
+   an ink rule, like the header. */
+@media screen and (max-width: 76.234375em) {
+  .md-nav--primary .md-nav__title,
+  .md-nav--primary .md-nav__title[for="__drawer"] {
+    background-color: var(--palette-surface);
+    color: var(--color-text);
+    border-bottom: 2px solid var(--color-rule);
+  }
+
+  .md-nav__source {
+    background-color: var(--palette-surface);
+    color: var(--color-text);
+    border-bottom: 1px solid var(--color-rule);
+  }
+}
+
+/* Type. The registry sets 17px text at a 1.55 line height. Long normative
+   paragraphs get 1.65. */
+.md-typeset {
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+
+.md-typeset p,
+.md-typeset ul,
+.md-typeset ol {
+  margin-top: 0;
+  margin-bottom: 1.1em;
+}
+
+.md-typeset li {
+  margin-bottom: 0.4em;
+}
+
+.md-typeset li > p {
+  margin-bottom: 0.5em;
+}
+
+.kicker {
+  margin: 0 0 0.35rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.md-typeset h1 {
+  margin: 0 0 0.6em;
+  font-size: clamp(1.75em, 4vw, 2.35em);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+/* A section opens on an ink rule with clear space above it. */
+.md-typeset h2 {
+  margin: 2.2em 0 0.75em;
+  padding-top: 0.9em;
+  border-top: 1px solid var(--color-rule);
+  font-size: 1.4em;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+/* A permalink on the page title has no use. Hidden, it can still take a
+   line of its own when the title fills the measure. */
+.md-typeset h1 .headerlink {
+  display: none;
+}
+
+.md-typeset h1 + h2 {
+  margin-top: 0;
+}
+
+.md-typeset h3 {
+  margin: 2.2em 0 0.6em;
+  font-size: 1.15em;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0;
+  color: var(--color-text);
+}
+
+.md-typeset h4,
+.md-typeset h5,
+.md-typeset h6 {
+  margin: 1.8em 0 0.5em;
+  font-size: 1em;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--color-text);
+}
+
+.md-typeset strong {
+  font-weight: 600;
+}
+
+/* Links are underlined, as on the registry. */
+.md-typeset a {
+  color: var(--color-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+.md-typeset a:hover,
+.md-typeset a:focus-visible {
+  color: var(--color-link-hover);
+}
+
+.md-typeset a:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.md-typeset .headerlink {
+  text-decoration: none;
+}
+
+/* Inline code is mono on the page ground, with no chip behind it. */
+.md-typeset code {
+  padding: 0;
+  font-size: 0.85em;
+  border-radius: 0;
+}
+
+.md-typeset a code {
+  color: currentcolor;
+}
+
+/* The border of a code block is a structural rule, so it takes ink. The kit
+   reserves `rule_soft` for a separator inside a block that already has a
+   border. */
+.md-typeset pre {
+  border: 1px solid var(--color-rule);
+  border-radius: 0;
+  margin: 1.5em 0;
+}
+
+.md-typeset pre > code {
+  padding: 0.9em 1.1em;
+}
+
+[dir] .md-typeset blockquote {
+  padding-left: 1em;
+  border-left: 2px solid var(--color-rule);
+  color: var(--color-text);
+}
+
+/* Tables follow the registry: ink rules above and below, mono heads over an
+   ink rule, and soft rules between rows. No fill, no hover band. */
+.md-typeset table:not([class]) {
+  font-size: 0.85em;
+  line-height: 1.5;
+  background-color: transparent;
+  border: 0;
+  border-top: 1px solid var(--color-rule);
+  border-bottom: 1px solid var(--color-rule);
+  border-radius: 0;
+  border-collapse: collapse;
+}
+
+.md-typeset table:not([class]) th {
+  min-width: 0;
+  padding: 0.7em 1.2em 0.7em 0;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.78em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.md-typeset table:not([class]) td {
+  padding: 0.7em 1.2em 0.7em 0;
+  border-top: 1px solid var(--color-rule-soft);
+}
+
+/* A path in the first column wraps at its slashes, not inside a name. */
+.md-typeset table:not([class]) td:first-child code {
+  word-break: normal;
+}
+
+.md-typeset table:not([class]) tbody tr:first-child td {
+  border-top: 0;
+}
+
+.md-typeset table:not([class]) tbody tr:hover {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.md-typeset__scrollwrap {
+  margin: 1.5em 0;
+}
+
+.md-typeset__table {
+  padding: 0;
+}
+
+/* Admonitions, such as the draft notice, are a ruled strip with a mono
+   label, like the registry's stats band. */
+/* `[class]` matches the weight of Material's per-type border colors. */
+.md-typeset .admonition[class],
+.md-typeset details[class] {
+  margin: 0 0 2em;
+  padding: 0.75em 0;
+  font-size: 0.95em;
+  background-color: transparent;
+  border: 0;
+  border-top: 2px solid var(--color-rule);
+  border-bottom: 1px solid var(--color-rule);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.md-typeset .admonition > *,
+.md-typeset details > * {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.md-typeset .admonition > :last-child {
+  margin-bottom: 0;
+}
+
+[dir] .md-typeset .admonition-title,
+[dir] .md-typeset summary {
+  margin: 0 0 0.4em;
+  padding: 0;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-accent);
+  background-color: transparent;
+  border: 0;
+}
+
+.md-typeset .admonition-title::before,
+.md-typeset summary::before {
+  display: none;
+}
+
+.md-typeset .warning > .admonition-title,
+.md-typeset .warning > summary {
+  color: var(--color-warning);
+  background-color: transparent;
+}
+
+.md-typeset .danger > .admonition-title,
+.md-typeset .danger > summary {
+  color: var(--color-danger);
+  background-color: transparent;
+}
+
+/* Requirements page. Each PORTO ID opens on an ink rule, in the mono
+   register. Its metadata line is a small mono line, and the normative quote
+   below it is body text with an ink rule at its left. */
+.md-typeset h2[id^="porto-"] {
+  margin: 2.25em 0 0.35em;
+  padding-top: 1.1em;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.95em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.md-typeset h2[id^="porto-"] + p {
+  margin-bottom: 0.9em;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.72em;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--palette-ink) 72%, var(--palette-surface));
+}
+
+.md-typeset h2[id^="porto-"] + p strong {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.md-typeset h2[id^="porto-"] + p + blockquote {
+  margin: 0;
+}
+
+/* Corners are square everywhere. */
+.md-typeset .md-button,
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid.cards > ol > li,
+.md-typeset .grid > .card,
+.md-top,
+.md-tooltip,
+.md-clipboard {
+  border-radius: 0;
+}
+
+.md-top {
+  background-color: var(--palette-surface);
+  border: 1px solid var(--color-rule);
+  box-shadow: none;
+  color: var(--color-text);
+}
+
+.md-typeset .md-button {
+  font-weight: 500;
+  padding: 0.6rem 1.2rem;
+  margin: 0.25rem;
+}
+
+.md-typeset .md-button--primary {
+  background-color: var(--palette-primary);
+  border: 1px solid var(--palette-primary);
+  color: var(--palette-surface);
+}
+
+.md-typeset .md-button--primary:hover {
+  background-color: var(--color-link-hover);
+  border-color: var(--color-link-hover);
+  box-shadow: none;
+}
+
+.md-typeset .md-button:not(.md-button--primary) {
+  border: 1px solid var(--color-rule);
+  color: var(--color-text);
+}
+
+.md-typeset .md-button:not(.md-button--primary):hover {
+  background-color: var(--palette-primary);
+  border-color: var(--palette-primary);
+  color: var(--palette-surface);
+}
+
+/* Cards are bordered blocks, never raised ones. */
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid.cards > ol > li,
+.md-typeset .grid > .card {
+  border: 1px solid var(--color-rule);
+  transition: border-color 0.2s;
+}
+
+.md-typeset .grid.cards > ul > li:hover,
+.md-typeset .grid.cards > ol > li:hover,
+.md-typeset .grid > .card:hover {
+  border-color: var(--palette-primary);
+  box-shadow: none;
+}
+
+/* Footer: a 2px ink rule over cream, as on the registry. */
+.md-footer {
+  border-top: 2px solid var(--color-rule);
+}
+
+.md-footer-meta {
+  font-size: 0.65rem;
+}
+
+.md-footer-meta.md-typeset a {
+  color: var(--color-text);
+}
+
+.md-footer-meta.md-typeset a:hover {
+  color: var(--color-link-hover);
+}

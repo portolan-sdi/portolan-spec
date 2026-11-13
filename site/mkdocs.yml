@@ -1,0 +1,92 @@
+site_name: Portolan Specification
+site_description: The Portolan specification
+site_author: Nissim Lebovits
+site_url: https://spec.portolan-sdi.org/
+repo_name: portolan-sdi/portolan-spec
+repo_url: https://github.com/portolan-sdi/portolan-spec
+edit_uri: ""
+
+theme:
+  name: material
+  # Zensical builds this site. `classic` keeps the Material 9
+  # markup, so every `.md-*` selector in extra.css still applies.
+  variant: classic
+  # The header is cream paper above an ink rule, as on
+  # registry.portolan-sdi.org, so the mark and the favicon are both blue.
+  # The sync in portolan-ops owns the file.
+  logo: assets/images/portolan-logomark-4163cc.svg
+  favicon: assets/images/portolan-logomark-4163cc.svg
+  # Light mode only. The brand kit carries no dark theme and no toggle.
+  palette:
+    scheme: default
+    primary: custom
+    accent: custom
+  # Google Fonts serves both families. Hanken Grotesk sets prose and
+  # headlines. JetBrains Mono sets code, labels, data, and paths. The
+  # portolan-ops sync copies text files only, so self-hosted fonts wait for
+  # a binary transport. The brand's Cairo face is for Arabic. Add it when
+  # the site adds an Arabic page.
+  font:
+    text: Hanken Grotesk
+    code: JetBrains Mono
+  # The left sidebar holds the nav. Each top-level group is a collapsible
+  # item, and only the group of the current page opens, so the feature list
+  # leaves out `navigation.sections` and `navigation.expand`. Each group
+  # lists its overview as a named page, so `navigation.indexes` stays off.
+  # `toc.follow` keeps the current heading in view in the page contents.
+  # `toc.integrate` stays off: core.md has a long contents list, which would
+  # push the other groups below the fold and leave the right column empty.
+  features:
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+extra_css:
+  # Order is load-bearing. `_brand-vars.css` declares the tokens on
+  # `:root` and `extra.css` reads them. The sync in portolan-ops owns
+  # the first file.
+  - assets/stylesheets/_brand-vars.css
+  - assets/stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/portolan-sdi/portolan-spec
+      name: Portolan specification on GitHub
+
+plugins:
+  # Zensical builds the search index natively. It still reads this
+  # entry. Keep it, because MkDocs drops search when the `plugins` key
+  # exists and omits it. That keeps the rollback leg complete.
+  - search
+
+# This list is exhaustive on purpose. Both builders replace their
+# default set when this key exists. Add an extension here before you
+# use its syntax in a page.
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight
+  - pymdownx.snippets:
+      base_path: .
+      check_paths: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - tables
+  - toc:
+      permalink: true
+
+# Zensical validates links and anchors by default. State the level so
+# MkDocs, which defaults anchors to `info`, reports the same problems.
+validation:
+  links:
+    not_found: warn
+    anchors: warn
