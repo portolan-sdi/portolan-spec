@@ -11,10 +11,10 @@ theme:
   # Zensical builds this site. `classic` keeps the Material 9
   # markup, so every `.md-*` selector in extra.css still applies.
   variant: classic
-  # The header is a solid blue band, so the mark on it is cream. The
-  # favicon sits on a browser tab, so it is blue. The sync in
-  # portolan-ops owns both files.
-  logo: assets/images/portolan-logomark-fcfcfa.svg
+  # The header is cream paper above an ink rule, as on
+  # registry.portolan-sdi.org, so the mark and the favicon are both blue.
+  # The sync in portolan-ops owns the file.
+  logo: assets/images/portolan-logomark-4163cc.svg
   favicon: assets/images/portolan-logomark-4163cc.svg
   # Light mode only. The brand kit carries no dark theme and no toggle.
   palette:
@@ -29,9 +29,13 @@ theme:
   font:
     text: Hanken Grotesk
     code: JetBrains Mono
+  # The section nav sits in the left sidebar and the page contents on the
+  # right. With no tabs, `navigation.sections` renders each top-level group
+  # as a labelled block. Every group is one level deep, so
+  # `navigation.expand` has nothing to open. Each group lists its overview
+  # as a named page, so `navigation.indexes` stays off.
   features:
     - navigation.top
-    - navigation.tabs
     - navigation.sections
     - search.suggest
     - search.highlight
