@@ -42,6 +42,13 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   legend. Continuous rasters have no classes, and their styling is still
   under discussion (#41).
 
+- **Zarr has an incubating profile**
+  ([`specs/incubating/zarr.md`](specs/incubating/zarr.md)). It states the
+  rules for a Zarr v3 raster store. The requirements manifest holds them as
+  `PORTO-ZARR-001` to `PORTO-ZARR-026`, marked `status: incubating`. The
+  census leaves them out, because they are outside the conformance surface
+  (#132).
+
 ### Changed
 
 - **Portolan accepts native geospatial Parquet** (`PORTO-FMT-004`,

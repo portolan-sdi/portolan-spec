@@ -356,6 +356,10 @@ mirror. Item mirrors for other collection types, and STAC-GeoParquet mirrors cov
 entire catalog's collections, remain incubating. See
 [`specs/incubating/stac-geoparquet.md`](../incubating/stac-geoparquet.md).
 
+Zarr is a candidate raster format beside COG. The draft
+[Zarr profile](../incubating/zarr.md) states its rules, and it is not yet part
+of the conformance surface.
+
 Classified rasters are covered earlier in this section. Styling for continuous and multiband rasters
 is still under discussion in
 [`specs/incubating/raster-styling.md`](../incubating/raster-styling.md).
