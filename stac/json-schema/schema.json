@@ -404,17 +404,30 @@
         }
       }
     },
+    "source_asset": {
+      "$comment": "An asset with the source role is an upstream original. The format requirements do not apply to it (spec: Formats), so the format rules below skip it. The Assets rules in core.md still apply.",
+      "type": "object",
+      "required": ["roles"],
+      "properties": {
+        "roles": {
+          "type": "array",
+          "contains": {
+            "const": "source"
+          }
+        }
+      }
+    },
     "asset_https_alternate": {
-      "$comment": "Browsers cannot open s3 or other bucket URLs. An absolute href with a scheme other than https therefore needs an HTTPS URL for the same data in the asset's alternate field, from the alternate-assets extension (spec: Assets). The schema requires at least one alternate whose href is an https URL with a host. That the alternate serves the same data is checked by Portolan tooling.",
+      "$comment": "Browsers cannot open s3 or other bucket URLs. An absolute href with a scheme other than https therefore needs an HTTPS URL for the same data in the asset's alternate field, from the alternate-assets extension (spec: Assets). An href is absolute when it starts with an RFC 3986 scheme and a colon, so file:/x and C:/x are absolute. The schema requires at least one alternate whose href is an https URL with a nonempty host. That the alternate serves the same data is checked by Portolan tooling.",
       "type": "object",
       "if": {
         "required": ["href"],
         "properties": {
           "href": {
             "type": "string",
-            "pattern": "^[A-Za-z][A-Za-z0-9+.-]*://",
+            "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:",
             "not": {
-              "pattern": "^[Hh][Tt][Tt][Pp][Ss]://"
+              "pattern": "^[Hh][Tt][Tt][Pp][Ss]:"
             }
           }
         }
@@ -433,7 +446,7 @@
                   "properties": {
                     "href": {
                       "type": "string",
-                      "pattern": "^[Hh][Tt][Tt][Pp][Ss]://[^/?#]"
+                      "pattern": "^[Hh][Tt][Tt][Pp][Ss]://([^/?#@]*@)?([A-Za-z0-9._~%!$&'()*+,;=-]+|\\[[0-9A-Fa-f:.]+\\])(:[0-9]*)?([/?#]|$)"
                     }
                   }
                 }
@@ -444,60 +457,68 @@
       }
     },
     "data_asset_single_file": {
-      "$comment": "Each data asset links to only one file, so the href of an asset with the data role contains no '*' and no '[' (spec: Formats). To link to many files, a partitioned collection uses partition:glob. A '[' that encloses an IPv6 host is not a glob character. A query string is allowed.",
+      "$comment": "Each data asset links to only one file, so the href of an asset with the data role contains no '*' and no '[' (spec: Formats). The rule has no exception, so an IPv6 literal host fails too. To link to many files, a partitioned collection uses partition:glob. A query string is allowed. Source assets are exempt.",
       "type": "object",
       "if": {
-        "required": ["roles"],
-        "properties": {
-          "roles": {
-            "type": "array",
-            "contains": {
-              "const": "data"
+        "allOf": [
+          {
+            "required": ["roles"],
+            "properties": {
+              "roles": {
+                "type": "array",
+                "contains": {
+                  "const": "data"
+                }
+              }
+            }
+          },
+          {
+            "not": {
+              "$ref": "#/definitions/source_asset"
             }
           }
-        }
+        ]
       },
       "then": {
         "properties": {
           "href": {
             "type": "string",
             "not": {
-              "pattern": "\\*"
-            },
-            "anyOf": [
-              {
-                "not": {
-                  "pattern": "\\["
-                }
-              },
-              {
-                "pattern": "^[A-Za-z][A-Za-z0-9+.-]*://([^/?#@\\[]*@)?\\[[0-9A-Fa-f:.]+\\](:[0-9]*)?([/?#][^\\[]*)?$"
-              }
-            ]
+              "pattern": "[*\\[]"
+            }
           }
         }
       }
     },
     "pmtiles_asset_visual": {
-      "$comment": "A PMTiles asset, identified by its media type or a .pmtiles href, has the visual role (spec: PMTiles). The rule that its collection also refers to the GeoParquet data behind the PMTiles can depend on the collection's items, so Portolan tooling checks it.",
+      "$comment": "A PMTiles asset, identified by its media type or a .pmtiles extension at the end of the href path, has the visual role (spec: PMTiles). The query string and the fragment do not count. Source assets are exempt. The rule that its collection also refers to the GeoParquet data behind the PMTiles can depend on the collection's items, so Portolan tooling checks it.",
       "type": "object",
       "if": {
-        "anyOf": [
+        "allOf": [
           {
-            "required": ["type"],
-            "properties": {
-              "type": {
-                "const": "application/vnd.pmtiles"
+            "anyOf": [
+              {
+                "required": ["type"],
+                "properties": {
+                  "type": {
+                    "const": "application/vnd.pmtiles"
+                  }
+                }
+              },
+              {
+                "required": ["href"],
+                "properties": {
+                  "href": {
+                    "type": "string",
+                    "pattern": "^[^?#]*\\.[Pp][Mm][Tt][Ii][Ll][Ee][Ss]([?#]|$)"
+                  }
+                }
               }
-            }
+            ]
           },
           {
-            "required": ["href"],
-            "properties": {
-              "href": {
-                "type": "string",
-                "pattern": "\\.[Pp][Mm][Tt][Ii][Ll][Ee][Ss]([?#]|$)"
-              }
+            "not": {
+              "$ref": "#/definitions/source_asset"
             }
           }
         ]
@@ -560,64 +581,78 @@
       }
     },
     "class_holder": {
-      "$comment": "A single-band raster has its class list on the data asset. A multiband raster has each class list on the band it describes, in the STAC 1.1 bands array of the asset. An asset with no bands array counts as single-band.",
+      "$comment": "A single-band raster has its class list on the data asset. A multiband raster has each class list on the band it describes, in the STAC 1.1 bands array of the asset, never in raster:bands. An asset with no bands array counts as single-band. Source assets are exempt.",
       "type": "object",
-      "properties": {
-        "classification:classes": {
-          "$ref": "#/definitions/class_list"
-        },
-        "bands": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "classification:classes": {
-                "$ref": "#/definitions/class_list"
-              }
-            }
-          }
-        }
+      "if": {
+        "$ref": "#/definitions/source_asset"
       },
-      "allOf": [
-        {
-          "if": {
-            "required": ["bands"],
-            "properties": {
-              "bands": {
-                "type": "array",
-                "minItems": 2
+      "else": {
+        "properties": {
+          "classification:classes": {
+            "$ref": "#/definitions/class_list"
+          },
+          "bands": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "classification:classes": {
+                  "$ref": "#/definitions/class_list"
+                }
               }
             }
           },
-          "then": {
-            "not": {
-              "required": ["classification:classes"]
+          "raster:bands": {
+            "type": "array",
+            "$comment": "Class lists go in the STAC 1.1 bands array, not in the legacy raster:bands array.",
+            "items": {
+              "not": {
+                "required": ["classification:classes"]
+              }
             }
           }
         },
-        {
-          "if": {
-            "required": ["bands"],
-            "properties": {
-              "bands": {
-                "type": "array",
-                "maxItems": 1
+        "allOf": [
+          {
+            "if": {
+              "required": ["bands"],
+              "properties": {
+                "bands": {
+                  "type": "array",
+                  "minItems": 2
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": ["classification:classes"]
               }
             }
           },
-          "then": {
-            "properties": {
-              "bands": {
-                "items": {
-                  "not": {
-                    "required": ["classification:classes"]
+          {
+            "if": {
+              "required": ["bands"],
+              "properties": {
+                "bands": {
+                  "type": "array",
+                  "maxItems": 1
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "bands": {
+                  "items": {
+                    "not": {
+                      "required": ["classification:classes"]
+                    }
                   }
                 }
               }
             }
           }
-        }
-      ]
+        ]
+      }
     },
     "class_list": {
       "$comment": "Every class carries a non-empty human-readable title, in addition to the value and name that the classification extension defines.",

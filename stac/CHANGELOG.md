@@ -20,14 +20,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   classification schema, because the `v2.0.0` schema checks the asset and
   `raster:bands` only.
 - The schema checks the new rules that STAC JSON alone can show:
-  - A data asset `href` contains no `*` and no `[` outside an IPv6 host
-    (`PORTO-FMT-065`, #237).
-  - A PMTiles asset has the `visual` role (`PORTO-FMT-062`, #230).
+  - A data asset `href` contains no `*` and no `[`, so an IPv6 literal
+    host fails too (`PORTO-FMT-065`, #237).
+  - A PMTiles asset has the `visual` role (`PORTO-FMT-062`, #230). The
+    schema reads the `.pmtiles` extension from the `href` path only, not
+    from the query or the fragment.
   - Every item has an asset with the `data` role (`PORTO-CORE-083`, #203).
   - A single-band raster has its `classification:classes` on the asset, and
     a multiband raster has them on the band in `bands`. Every class has a
-    `title` (`PORTO-FMT-050`, `PORTO-FMT-052`, #222). The rules apply to
-    `assets` and `item_assets`.
+    `title` (`PORTO-FMT-050`, `PORTO-FMT-052`, #222). A class list in the
+    legacy `raster:bands` fails. The rules apply to `assets` and
+    `item_assets`.
+  - These format rules skip an asset with the `source` role
+    (`PORTO-FMT-045`).
   - `partition:glob` is an absolute URL whose scheme is not `http` or
     `https` (`PORTO-FMT-064`, #230, #237).
 
@@ -39,8 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   published schema keeps its bytes (#244).
 - The schema accepts an absolute asset `href` with a scheme other than
   `https`, such as `s3://`, if the asset's `alternate` field has an `https`
-  URL with a host (`PORTO-CORE-023`, `PORTO-CORE-087`, #240). Before, the
-  schema rejected every absolute `href` that was not `https`.
+  URL with a nonempty host (`PORTO-CORE-023`, `PORTO-CORE-087`, #240).
+  Before, the schema rejected every absolute `href` that was not `https`.
+  An `href` is absolute when it starts with a URI scheme and a colon, so
+  `file:/data/x.parquet` and `C:/data/x.parquet` need the alternate too.
 - The [partitioned collection example](examples/vector-partitioned-collection.json)
   has an `s3://` value for `partition:glob`, which the schema now requires
   (#245).
