@@ -445,9 +445,54 @@ def html_path(directory: Path, page: str) -> Path:
     return directory / page_url(page) / "index.html"
 
 
-def navigation(mapping: dict[str, str], label: str) -> list:
-    # The sidebar shows each group as a section. The normative text comes
-    # first, so a reader meets core.md and formats.md before anything else.
+# Capitalized words that stay capitalized in a sentence-case nav label.
+PROPER_NOUNS = {"Apache", "Git", "Iceberg", "Portolan"}
+
+
+def nav_label(heading: str) -> str:
+    """Sentence-case the page name in an H1 such as `Incubating — Point Cloud`.
+
+    Acronyms and mixed-case names, such as STAC, GeoTIFF, and GeoParquet, keep
+    their case. Each part of a hyphenated word follows the same rule.
+    """
+    title = heading.rsplit(" — ", 1)[-1].strip().removeprefix("The ")
+
+    def part(value: str, first: bool) -> str:
+        if first or value in PROPER_NOUNS or not re.fullmatch(r"[A-Z][a-z]+", value):
+            return value
+        return value.lower()
+
+    return " ".join(
+        "-".join(
+            part(piece, i == 0 and j == 0) for j, piece in enumerate(word.split("-"))
+        )
+        for i, word in enumerate(title.split())
+    )
+
+
+def page_heading(text: str) -> str | None:
+    """Return the plain text of the first H1 in a page."""
+    for token in toc(text):
+        if token["level"] == 1:
+            return html.unescape(re.sub(r"<[^>]*>", "", token["name"]))
+    return None
+
+
+def navigation(
+    mapping: dict[str, str], label: str, headings: dict[str, str] | None = None
+) -> list:
+    # Each group is a collapsible item in the sidebar. The normative text
+    # comes first, so a reader meets core.md and formats.md before the rest.
+    # `headings` maps a staged page to its H1, which names the page.
+    headings = headings or {}
+
+    def name(page: str) -> str:
+        if page.endswith("/index.md"):
+            return "Overview"
+        if page in headings:
+            return nav_label(headings[page])
+        return Path(page).stem.replace("-", " ").capitalize()
+
     nav = [
         {
             "Specification": [
@@ -463,18 +508,7 @@ def navigation(mapping: dict[str, str], label: str) -> list:
     ]:
         pages = sorted(p for p in mapping.values() if p.startswith(prefix))
         pages.sort(key=lambda p: not p.endswith("/index.md"))
-        nav.append(
-            {
-                title: [
-                    {
-                        Path(p).stem.replace("-", " ").capitalize()
-                        if not p.endswith("/index.md")
-                        else "Overview": p
-                    }
-                    for p in pages
-                ]
-            }
-        )
+        nav.append({title: [{name(p): p} for p in pages]})
     nav.extend(
         [
             {
@@ -858,7 +892,15 @@ def build(ref: str, label: str, out: Path, latest: str | None, font_dir: Path) -
             "site_url": f"{SITE_URL}/{label}/",
             "docs_dir": "docs",
             "site_dir": "html",
-            "nav": navigation(mapping, label),
+            "nav": navigation(
+                mapping,
+                label,
+                {
+                    target: heading
+                    for target in mapping.values()
+                    if (heading := page_heading((docs / target).read_text()))
+                },
+            ),
         }
         # Zensical 0.1.1 config.py and zensical_ui/templates/base.html support this provider.
         extra = {"version": {"provider": "mike"}}

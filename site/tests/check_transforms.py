@@ -281,9 +281,16 @@ def check_navigation():
         "specs/best-practices/styling.md": "specs/best-practices/styling.md",
         "specs/incubating/README.md": "specs/incubating/index.md",
         "specs/incubating/point-cloud.md": "specs/incubating/point-cloud.md",
+        "specs/incubating/stac-geoparquet.md": "specs/incubating/stac-geoparquet.md",
+        "specs/incubating/geotiff-stats-headers.md": "specs/incubating/geotiff-stats-headers.md",
     }
-    nav = build.navigation(mapping, "next")
-    # Every entry is a group, because the sidebar renders top-level groups as sections.
+    headings = {
+        "specs/incubating/stac-geoparquet.md": "Incubating — STAC-GeoParquet Beyond Raster Items",
+        "specs/incubating/geotiff-stats-headers.md": "Incubating — GeoTIFF Statistics Headers",
+        "specs/best-practices/index.md": "Best Practices",
+    }
+    nav = build.navigation(mapping, "next", headings)
+    # Every entry is a group, because each top-level group collapses in the sidebar.
     assert all(isinstance(next(iter(item.values())), list) for item in nav)
     groups = [next(iter(item)) for item in nav]
     assert groups == [
@@ -307,7 +314,32 @@ def check_navigation():
         "requirements.md",
     ]
     assert nav[1]["Best practices"][0] == {"Overview": "specs/best-practices/index.md"}
+    # A page without a heading falls back to its file name.
     assert {"Point cloud": "specs/incubating/point-cloud.md"} in nav[2]["Incubating"]
+    # A page with an H1 takes the sentence-cased name after the group prefix.
+    assert {
+        "STAC-GeoParquet beyond raster items": "specs/incubating/stac-geoparquet.md"
+    } in nav[2]["Incubating"]
+    assert {
+        "GeoTIFF statistics headers": "specs/incubating/geotiff-stats-headers.md"
+    } in nav[2]["Incubating"]
+    for heading, label in [
+        ("Best Practices — Git-Backed Catalogs", "Git-backed catalogs"),
+        ("Best Practices — The Grader", "Grader"),
+        ("Conversion Defaults", "Conversion defaults"),
+        (
+            "Incubating — Apache Iceberg tables over published GeoParquet",
+            "Apache Iceberg tables over published GeoParquet",
+        ),
+        ("COG and PMTiles Outputs", "COG and PMTiles outputs"),
+    ]:
+        assert build.nav_label(heading) == label, (heading, build.nav_label(heading))
+    assert (
+        build.page_heading(
+            "Intro\n\n```\n# not a heading\n```\n\n# Real &amp; `code`\n"
+        )
+        == "Real & code"
+    )
     assert nav[3]["Project"][0] == {"Overview": "index.md"}
     assert nav[4]["Downloads"] == [
         {"PDF": "downloads/portolan-spec-next.pdf"},
