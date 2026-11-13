@@ -171,8 +171,8 @@ header ordered so a reader can find the data it needs in an early range request.
 This is the baseline that
 [`rio cogeo validate`](https://cogeotiff.github.io/rio-cogeo/CLI/#validate) and
 rasterio treat as a COG.
-(Zarr is a candidate for support beside COG. Its draft profile is in
-[`specs/incubating/zarr.md`](../incubating/zarr.md).)
+(Formats such as GeoZarr are candidates for future support once default tooling can
+render and consume them.)
 How a raster collection is structured — one item per scene, with a single-COG
 collection handled as a single-file collection — is defined under [Raster
 Collections](core.md#raster-collections).
@@ -274,6 +274,10 @@ A collection containing only a single COG has no items and therefore publishes n
 mirror. Item mirrors for other collection types, and STAC-GeoParquet mirrors covering an
 entire catalog's collections, remain incubating. See
 [`specs/incubating/stac-geoparquet.md`](../incubating/stac-geoparquet.md).
+
+Zarr is a candidate raster format beside COG. The draft
+[Zarr profile](../incubating/zarr.md) states its rules, and it is not yet part
+of the conformance surface.
 
 Raster styling (colormaps, legends, continuous vs. categorical vs. multiband) is
 still under discussion — see
