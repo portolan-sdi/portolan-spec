@@ -1419,8 +1419,7 @@ requirements:
     status: incubating
     file: specs/incubating/zarr.md
     quote: >-
-      A store with partial coverage SHOULD carry an alpha band named `alpha`
-      instead.
+      A store with partial coverage SHOULD carry an alpha band instead.
 
   - id: PORTO-ZARR-020
     severity: MUST
