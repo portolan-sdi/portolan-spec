@@ -372,7 +372,7 @@ unvalidated, the same `check_catalogs.py` gate runs between the build and the
 upload, and afterwards the published `catalog.json` is refetched over HTTPS and
 its `id` checked.
 
-The product holds only these example catalogs. `data.source.coop` resolves a path
+The product contains only these example catalogs. `data.source.coop` resolves a path
 through a product record, so the product must exist for the public URL to serve
 what the S3 prefix holds. The layout is `<catalog id>/<namespace>`.
 

@@ -123,7 +123,7 @@ A catalog that only exists in git proves the bytes are right and proves nothing
 about how a client reads it, over HTTP range requests against a real object
 store. So each catalog is also published to the Source Cooperative product
 `portolan-mirrors/portolan-spec-examples` ("Portolan Specification Example
-Catalogs"). Each catalog sits at `<catalog id>/<namespace>/` in that product,
+Catalogs"). Each catalog is at `<catalog id>/<namespace>/` in that product,
 and the reference catalog is readable at
 <https://data.source.coop/portolan-mirrors/portolan-spec-examples/portolan-reference/main/catalog.json>.
 The constants that name the product are `REPO_PREFIX`, `PUBLIC_BASE`, and
