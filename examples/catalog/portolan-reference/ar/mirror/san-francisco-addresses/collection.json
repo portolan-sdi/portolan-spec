@@ -68,7 +68,8 @@
   "table:columns": [
     {
       "name": "fid",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "معرف المعلم الذي عينته GDAL عند قراءة المولد لطبقة المصدر. فريد داخل هذا الملف، وليس مفتاحا من المصدر."
     },
     {
       "name": "street_full_street_name",
@@ -92,7 +93,8 @@
     },
     {
       "name": "supdistpad",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رقم دائرة المشرف مع صفر بادئ، مثل 01 أو 02."
     },
     {
       "name": "complete_landmark_name",
@@ -131,7 +133,8 @@
     },
     {
       "name": "supdist",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم الكامل لدائرة مجلس المشرفين."
     },
     {
       "name": "eas_baseid",
@@ -150,11 +153,13 @@
     },
     {
       "name": "supname",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "اسم العائلة للمشرف الحالي على الدائرة."
     },
     {
       "name": "eas_address_id",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "تصفه DataSF بأنه المعرف الذي يحدد بصورة فريدة العنوان موضوع معاملة بيانات العنوان."
     },
     {
       "name": "street_type",
@@ -203,7 +208,8 @@
     },
     {
       "name": "numbertext",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رقم دائرة المشرف مكتوبا نصا، مثل ONE أو TWO."
     },
     {
       "name": "data_as_of",
@@ -212,7 +218,8 @@
     },
     {
       "name": "landmark_aliases",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "اسم المعلم البارز، الدارج أو الرسمي، المرتبط بالعنوان."
     },
     {
       "name": "geom",

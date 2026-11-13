@@ -60,7 +60,8 @@
   "table:columns": [
     {
       "name": "fid",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "معرف المعلم الذي عينته GDAL عند قراءة المولد لطبقة المصدر. فريد داخل هذا الملف، وليس مفتاحا من المصدر."
     },
     {
       "name": "featurecla",
@@ -81,7 +82,8 @@
     },
     {
       "name": "SOV_A3",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رمز Natural Earth من ثلاثة أحرف للدولة صاحبة السيادة. تذكر Natural Earth أن الرمز خاص بنظام ترميزها وأنه يتبع رموز ISO alpha-3 إلى حد ما."
     },
     {
       "name": "ADM0_DIF",
@@ -98,7 +100,8 @@
     },
     {
       "name": "TLC",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "علامة وجهة نظر الدول من المستوى الأعلى (TLC). تصف Natural Earth هذه المجموعة بأنها تشمل مجموعة ISO وتزيد عليها. يحمل 176 صفا القيمة 1 وصف واحد فارغ."
     },
     {
       "name": "ADMIN",
@@ -111,7 +114,8 @@
     },
     {
       "name": "GEOU_DIF",
-      "type": "integer"
+      "type": "integer",
+      "description": "علامة تبين هل تختلف الوحدة الجغرافية عن الوحدة الإدارية الأم. تقدمها Natural Earth حتى لا تكرر الخريطة التسميات. كل الصفوف في هذا الملف تحمل القيمة 0."
     },
     {
       "name": "GEOUNIT",
@@ -119,7 +123,8 @@
     },
     {
       "name": "GU_A3",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رمز Natural Earth من ثلاثة أحرف للوحدة الجغرافية. تذكر Natural Earth أن الرمز خاص بنظام ترميزها وأنه يتبع رموز ISO alpha-3 إلى حد ما."
     },
     {
       "name": "SU_DIF",
@@ -131,7 +136,8 @@
     },
     {
       "name": "SU_A3",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رمز Natural Earth من ثلاثة أحرف للوحدة الإدارية الفرعية. تذكر Natural Earth أنه يشبه رمز ISO alpha-3 لكنه مختلف عنه."
     },
     {
       "name": "BRK_DIFF",
@@ -181,15 +187,18 @@
     },
     {
       "name": "NOTE_ADM0",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "ملاحظة قصيرة توضح سياق السيادة على المعلم، مثل Fr. أو U.K. القيمة فارغة في معظم الصفوف."
     },
     {
       "name": "NOTE_BRK",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "ملاحظة توضح سياق السيادة على معلم منفصل أو متنازع عليه، مثل Self admin.; Claimed by Cyprus. القيمة فارغة في معظم الصفوف."
     },
     {
       "name": "NAME_SORT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم المخصص للقوائم المرتبة. تقدمه Natural Earth حتى تتجاهل القائمة بادئة مثل The."
     },
     {
       "name": "NAME_ALT",
@@ -197,19 +206,23 @@
     },
     {
       "name": "MAPCOLOR7",
-      "type": "integer"
+      "type": "integer",
+      "description": "فهرس لون الخريطة. تذكر Natural Earth أن لون الخريطة مشتق من خريطة سياسية للعالم أعدتها وزارة الخارجية الأمريكية، وفيها لا تحمل الدول المتجاورة اللون نفسه، وتشترك كل أقاليم الدولة صاحبة السيادة في لون واحد."
     },
     {
       "name": "MAPCOLOR8",
-      "type": "integer"
+      "type": "integer",
+      "description": "فهرس لون الخريطة. تذكر Natural Earth أن لون الخريطة مشتق من خريطة سياسية للعالم أعدتها وزارة الخارجية الأمريكية، وفيها لا تحمل الدول المتجاورة اللون نفسه، وتشترك كل أقاليم الدولة صاحبة السيادة في لون واحد."
     },
     {
       "name": "MAPCOLOR9",
-      "type": "integer"
+      "type": "integer",
+      "description": "فهرس لون الخريطة. تذكر Natural Earth أن لون الخريطة مشتق من خريطة سياسية للعالم أعدتها وزارة الخارجية الأمريكية، وفيها لا تحمل الدول المتجاورة اللون نفسه، وتشترك كل أقاليم الدولة صاحبة السيادة في لون واحد."
     },
     {
       "name": "MAPCOLOR13",
-      "type": "integer"
+      "type": "integer",
+      "description": "فهرس لون الخريطة. تذكر Natural Earth أن لون الخريطة مشتق من خريطة سياسية للعالم أعدتها وزارة الخارجية الأمريكية، وفيها لا تحمل الدول المتجاورة اللون نفسه، وتشترك كل أقاليم الدولة صاحبة السيادة في لون واحد."
     },
     {
       "name": "POP_EST",
@@ -301,7 +314,8 @@
     },
     {
       "name": "ADM0_ISO",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رمز الدولة من وجهة نظر ISO. غيرت Natural Earth اسمه من adm0_a3_iso في الإصدار 5.1.0."
     },
     {
       "name": "ADM0_DIFF",
@@ -309,7 +323,8 @@
     },
     {
       "name": "ADM0_TLC",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رمز الدولة من وجهة نظر الدول من المستوى الأعلى (TLC)، التي أضافتها Natural Earth في الإصدار 5.1.0."
     },
     {
       "name": "ADM0_A3_US",
@@ -484,15 +499,18 @@
     },
     {
       "name": "MIN_ZOOM",
-      "type": "double"
+      "type": "double",
+      "description": "أدنى مستوى تكبير في خرائط الويب لعرض المعلم. تضبطه Natural Earth لإسقاط Web Mercator."
     },
     {
       "name": "MIN_LABEL",
-      "type": "double"
+      "type": "double",
+      "description": "أدنى مستوى تكبير لعرض التسمية. تقدمه Natural Earth حيث تظهر التسمية بعد ظهور الشكل الهندسي."
     },
     {
       "name": "MAX_LABEL",
-      "type": "double"
+      "type": "double",
+      "description": "مستوى التكبير الذي يتوقف عنده عرض التسمية."
     },
     {
       "name": "LABEL_X",
@@ -516,243 +534,303 @@
     },
     {
       "name": "NAME_AR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة العربية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_BN",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة البنغالية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_DE",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الألمانية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_EN",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الإنجليزية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_ES",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الإسبانية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_FA",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الفارسية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_FR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الفرنسية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_EL",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة اليونانية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_HE",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة العبرية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_HI",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الهندية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_HU",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة المجرية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_ID",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الإندونيسية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_IT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الإيطالية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_JA",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة اليابانية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_KO",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الكورية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_NL",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الهولندية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_PL",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة البولندية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_PT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة البرتغالية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_RU",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الروسية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_SV",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة السويدية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_TR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة التركية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_UK",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الأوكرانية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_UR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الأردية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_VI",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الفيتنامية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_ZH",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الصينية المبسطة. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "NAME_ZHT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم باللغة الصينية التقليدية. تأخذ Natural Earth الأسماء المترجمة من Wikidata."
     },
     {
       "name": "FCLASS_ISO",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر ISO. تذكر Natural Earth القيم Admin-0 country وAdmin-0 dependency وAdmin-1 states provinces وUnrecognized."
     },
     {
       "name": "TLC_DIFF",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "علامة أضافتها Natural Earth مع وجهة نظر الدول من المستوى الأعلى (TLC). تحمل أربعة صفوف القيمة 1 والبقية فارغة."
     },
     {
       "name": "FCLASS_TLC",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر الدول من المستوى الأعلى (TLC). يحمل هذا الملف القيم Admin-0 country وAdmin-0 dependency وUnrecognized."
     },
     {
       "name": "FCLASS_US",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر الولايات المتحدة. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_FR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر فرنسا. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_RU",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر روسيا. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_ES",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر إسبانيا. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_CN",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر الصين. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_TW",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر تايوان. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_IN",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر الهند. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_NP",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر نيبال. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_PK",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر باكستان. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_DE",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر ألمانيا. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_GB",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر المملكة المتحدة. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_BR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر البرازيل. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_IL",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر إسرائيل. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_PS",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر فلسطين. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_SA",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر المملكة العربية السعودية. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_EG",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر مصر. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_MA",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر المغرب. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_PT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر البرتغال. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_AR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر الأرجنتين. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_JP",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر اليابان. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_KO",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر كوريا الجنوبية. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_VN",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر فيتنام. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_TR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر تركيا. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_ID",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر إندونيسيا. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_PL",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر بولندا. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_GR",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر اليونان. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_IT",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر إيطاليا. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_NL",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر هولندا. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_SE",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر السويد. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_BD",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر بنغلاديش. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "FCLASS_UA",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "فئة المعلم من وجهة نظر أوكرانيا. أحد أعمدة FCLASS التي تقدمها Natural Earth لوجهات النظر البديلة. القيمة فارغة حيث لا تحدد وجهة النظر فئة."
     },
     {
       "name": "geom",

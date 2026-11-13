@@ -61,11 +61,13 @@
   "table:columns": [
     {
       "name": "fid",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "Feature id that GDAL assigned when the generator read the source layer. Unique in this file. It is not an upstream key."
     },
     {
       "name": "OBJECTID",
-      "type": "integer"
+      "type": "integer",
+      "description": "Esri object ID that ArcGIS assigns to each row of the source layer. Unique in this file."
     },
     {
       "name": "SITE_NAME",
