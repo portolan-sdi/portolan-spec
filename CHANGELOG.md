@@ -44,6 +44,20 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **Spatial order keeps one normative rule, and its method moves to
+  incubating** (`PORTO-FMT-006`,
+  [`specs/incubating/spatial-order.md`](specs/incubating/spatial-order.md)).
+  Rows must still follow a spatial order. The 30% overlap and locality test
+  is removed, together with `PORTO-FMT-044`. That test failed well-sorted
+  files with few row groups. The incubating method measures pruning
+  efficiency: the share of a file's bytes that a typical query can skip,
+  compared with a reference grid. A file with eight or more row groups is
+  judged from its footer. Every other file is judged from its rows. The method
+  is not part of conformance, so validators report its result as a warning.
+  Its test vectors and calibration are in
+  [`specs/incubating/spatial-order/`](specs/incubating/spatial-order/)
+  (#188).
+
 - **Portolan accepts native geospatial Parquet** (`PORTO-FMT-004`,
   `PORTO-FMT-080`, `PORTO-FMT-081`,
   [`specs/portolan/formats.md`](specs/portolan/formats.md)). Publishers can
@@ -135,7 +149,7 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 164 requirements, now 99 MUST, 46 SHOULD, and
+- **Requirements manifest**: 163 requirements, now 98 MUST, 46 SHOULD, and
   19 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source
