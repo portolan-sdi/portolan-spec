@@ -8,7 +8,7 @@
 - [ملف المصدر الأصلي](https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif)
 - [صورة مصغرة](../../../raster/sample-scenes/thumbnail.png)
 
-## الرخصة (License)
+## الرخصة (license)
 
 CC0-1.0
 

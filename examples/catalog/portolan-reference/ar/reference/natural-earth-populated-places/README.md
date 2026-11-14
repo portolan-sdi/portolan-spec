@@ -13,7 +13,7 @@
 - [خريطة حرارية لكثافة الأماكن](../../../reference/natural-earth-populated-places/styles/density.json)
 - [صورة مصغرة](../../../reference/natural-earth-populated-places/thumbnail.png)
 
-## الرخصة (License)
+## الرخصة (license)
 
 CC0-1.0
 

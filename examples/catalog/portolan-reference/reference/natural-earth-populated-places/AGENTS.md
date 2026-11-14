@@ -23,7 +23,7 @@ Query the GeoParquet `data` asset in place with DuckDB spatial, read_parquet('na
 - 59 places carry POP_MAX below 1,000, mostly stations and outposts, so
   population filters silently drop real capitals of small territories.
 
-## Coordinate Reference System
+## Coordinate reference system
 
 EPSG:4326, WGS 84, a geographic coordinate reference system whose coordinates are in degrees.
 Planar distance functions return degrees, which are not ground units and vary with latitude. For real distances use a sphere or spheroid function, or transform to a projected CRS first.

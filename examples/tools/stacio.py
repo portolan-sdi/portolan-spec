@@ -447,13 +447,13 @@ def crs_block(crs: str, kind: str, geometry: str | None) -> list[str]:
     unit = _UNIT_PLURALS.get(d["unit"], d["unit"])
     geographic = d["kind"] == "geographic"
     return [
-        "## Coordinate Reference System",
+        "## Coordinate reference system",
         "",
         f"{d['code']}, {d['name']}, a {d['kind']} coordinate reference system "
         f"whose coordinates are in {unit}.",
         _raster_consequence(unit, geographic) if kind in ("raster", "raster-scenes")
         else _vector_consequence(geometry or "", unit, geographic),
-        "The `data` asset of each Item carries the same code as `proj:code`."
+        "The `data` asset of each Item has the same code as `proj:code`."
         if kind == "raster-scenes"
         else "The `data` asset carries the same code as `proj:code`.",
     ]
@@ -464,7 +464,7 @@ def provenance_block(spec: dict, providers: list[dict], facts: dict) -> list[str
     src = facts["src"]
     attribution = spec.get("attribution")
     lines = [
-        "## Provenance and License",
+        "## Provenance and license",
         "",
         f"License, {spec['license']}."
         + (f" Attribution, {attribution}." if attribution else ""),
@@ -561,7 +561,7 @@ def collection_readme_extra(spec: dict, facts: dict) -> list[str]:
             template += "\n\n{{join}}"
         template += "\n\n{{provenance}}"
     lines = render_template(template, blocks, f"{spec['id']} docs.readme")
-    if "## Provenance and License" not in lines:
+    if "## Provenance and license" not in lines:
         lines += [""] + blocks["provenance"]
     return lines
 
@@ -607,17 +607,20 @@ def readme_md(title: str, description: str, extra_lines: list[str]) -> str:
     return "\n".join(body)
 
 
-def agents_md(title: str, guidance: list[str]) -> str:
-    body = [f"# Agent Guidance, {title}", ""]
+def agents_md(title: str, guidance: list[str], heading: str | None = None) -> str:
+    """The AGENTS.md text. `heading` is the manifest `docs.agents_heading`, for
+    a Collection that states its own first heading."""
+    body = [f"# {heading or f'Agent Guidance, {title}'}", ""]
     body += guidance
     body.append("")
     return "\n".join(body)
 
 
 def write_sidecars(node_dir: Path, title: str, description: str,
-                   readme_extra: list[str], agents_lines: list[str]) -> None:
+                   readme_extra: list[str], agents_lines: list[str],
+                   agents_heading: str | None = None) -> None:
     (node_dir / "README.md").write_text(readme_md(title, description, readme_extra))
-    (node_dir / "AGENTS.md").write_text(agents_md(title, agents_lines))
+    (node_dir / "AGENTS.md").write_text(agents_md(title, agents_lines, agents_heading))
 
 
 SIDE_LINKS = [
@@ -863,7 +866,8 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
     }
     write_sidecars(coll_dir, spec["title"], spec["description"].strip(),
                    collection_readme_extra(spec, facts),
-                   collection_agents_lines(spec, facts))
+                   collection_agents_lines(spec, facts),
+                   (spec.get("docs") or {}).get("agents_heading"))
 
     return {"id": cid, "seg": seg, "title": spec["title"], "updated": prov.get("updated"),
             "license": spec["license"], "is_mirror": is_mirror, "source": src["url"],
@@ -1237,7 +1241,8 @@ def regen_docs(manifest: dict, out: Path, cache: Path) -> None:
         facts = _facts_from_collection(spec, coll, coll_dir)
         write_sidecars(coll_dir, spec["title"], spec["description"].strip(),
                        collection_readme_extra(spec, facts),
-                       collection_agents_lines(spec, facts))
+                       collection_agents_lines(spec, facts),
+                       (spec.get("docs") or {}).get("agents_heading"))
         _, is_mirror = resolve_providers(spec, manifest["host"])
         prov = spec.get("provenance", {}) or {}
         built.append({"id": spec["id"], "seg": seg, "title": spec["title"],

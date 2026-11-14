@@ -96,7 +96,7 @@ parcel centroids, and a third of rows carry no parcel link at all.
 Presence of a unit record says nothing about occupancy or mail
 deliverability.
 
-## Provenance and License
+## Provenance and license
 
 License, PDDL-1.0.
 Providers, City and County of San Francisco (producer, licensor), DataSF (processor), Portolan SDI (host).

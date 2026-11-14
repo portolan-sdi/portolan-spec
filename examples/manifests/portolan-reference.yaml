@@ -1747,7 +1747,7 @@ collections:
 
         ## Related Collections
 
-        [Sample Raster Scenes](../sample-scenes/AGENTS.md) holds the same
+        [Sample raster scenes](../sample-scenes/AGENTS.md) holds the same
         image cut into sixteen Items, for the multi-scene raster layout. The
         upstream fixture is tagged on the source asset with its checksum, and
         band statistics live in the STAC bands metadata and as GDAL
@@ -1755,7 +1755,7 @@ collections:
 
   - id: raster/sample-scenes
     kind: raster-scenes
-    title: Sample Raster Scenes
+    title: Sample raster scenes
     description: >-
       Sixteen small Cloud Optimized GeoTIFF scenes, modeled as STAC Items, with
       a stac-geoparquet item mirror. The scenes are a 4 by 4 grid cut from rasterio's RGB.byte.tif test fixture, derived from USGS
@@ -1789,6 +1789,8 @@ collections:
       Sixteen COG scenes as Items with an item mirror, for learning the
       multi-scene raster layout, not for analysis.
     docs:
+      # The Portolan prose rules ask for sentence case in a heading.
+      agents_heading: Agent guidance, sample raster scenes
       readme: |
         The multi-scene raster layout in its smallest form. The source image
         is [rasterio's](https://github.com/rasterio/rasterio) RGB.byte.tif
@@ -1808,13 +1810,13 @@ collections:
 
         Agents, [AGENTS.md](./AGENTS.md) covers how to search the scenes.
 
-        ## Quick Start
+        ## Quick start
 
         {{quickstart}}
 
-        ## Find the Scenes Over a Point
+        ## Find the scenes over a point
 
-        The item mirror answers a spatial question with one read. This query
+        One read of the item mirror is enough for a spatial search. This query
         returns the scenes whose footprint covers a point on Andros Island.
 
         ```sql
@@ -1835,8 +1837,8 @@ collections:
         {{provenance}}
       agents: |
         A reference for the multi-scene raster layout, sixteen Landsat-derived
-        RGB scenes over Andros Island in the Bahamas. Nothing here supports
-        analysis.
+        RGB scenes over Andros Island in the Bahamas. Do not use the scenes
+        for analysis.
 
         {{access}}
 
@@ -1848,11 +1850,12 @@ collections:
         - The Item geometry is the valid-data footprint, so the corner scenes
           do not fill their grid cell.
         - Each Item has `start_datetime` and `end_datetime` and a null
-          `datetime`. The range is a bound, not an acquisition date.
+          `datetime`. The range bounds the acquisition date, which upstream
+          does not record.
 
         {{crs}}
 
-        ## Tested Reads
+        ## Tested reads
 
         Count the scenes and read their footprints from the item mirror.
 
@@ -1873,7 +1876,7 @@ collections:
         print(da.shape)
         ```
 
-        ## Related Collections
+        ## Related collections
 
         [Sample Raster COG](../sample-cog/AGENTS.md) holds the same image as
         one COG with no Items. Use it for the single-file raster layout.

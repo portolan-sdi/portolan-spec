@@ -1,8 +1,8 @@
-# Agent Guidance, Sample Raster Scenes
+# Agent guidance, sample raster scenes
 
 A reference for the multi-scene raster layout, sixteen Landsat-derived
-RGB scenes over Andros Island in the Bahamas. Nothing here supports
-analysis.
+RGB scenes over Andros Island in the Bahamas. Do not use the scenes
+for analysis.
 
 Find scenes with the item mirror, read_parquet('items.parquet') in DuckDB or GeoPandas, one row for each Item. Then read the COG `data` asset of the Item you need with rasterio or rioxarray. Do not fetch each Item JSON to search. For a quick preview use the thumbnail asset.
 
@@ -14,15 +14,16 @@ Find scenes with the item mirror, read_parquet('items.parquet') in DuckDB or Geo
 - The Item geometry is the valid-data footprint, so the corner scenes
   do not fill their grid cell.
 - Each Item has `start_datetime` and `end_datetime` and a null
-  `datetime`. The range is a bound, not an acquisition date.
+  `datetime`. The range bounds the acquisition date, which upstream
+  does not record.
 
-## Coordinate Reference System
+## Coordinate reference system
 
 EPSG:32618, WGS 84 / UTM zone 18N, a projected coordinate reference system whose coordinates are in metres.
 Pixel size is in metres, so cell size and any distance read off the grid are already in metres. Web maps need a warp to EPSG:3857, and joining to data in degrees needs EPSG:4326 first.
-The `data` asset of each Item carries the same code as `proj:code`.
+The `data` asset of each Item has the same code as `proj:code`.
 
-## Tested Reads
+## Tested reads
 
 Count the scenes and read their footprints from the item mirror.
 
@@ -43,7 +44,7 @@ da = rioxarray.open_rasterio(
 print(da.shape)
 ```
 
-## Related Collections
+## Related collections
 
 [Sample Raster COG](../sample-cog/AGENTS.md) holds the same image as
 one COG with no Items. Use it for the single-file raster layout.

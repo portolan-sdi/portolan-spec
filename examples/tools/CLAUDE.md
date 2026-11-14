@@ -22,7 +22,7 @@ from the modules beside them, so they stay runnable on their own.
 | `common.py` | Shared helpers, subprocess runner, checksums, value formatting |
 | `fetch.py` | Downloads sources into `.cache` and unpacks zipped shapefiles |
 | `convert.py` | Format conversions, vector to GeoParquet, raster to COG, CSV to Parquet |
-| `scenes.py` | The `raster-scenes` path. Cuts one raster into a grid of scene COGs, writes one Item per scene with its valid-data footprint, and writes the Hilbert-sorted `items.parquet` item mirror |
+| `scenes.py` | The `raster-scenes` path. Cuts a raster into a grid of scene COGs. Each scene is an Item with its valid-data footprint, and `items.parquet` is their Hilbert-sorted item mirror |
 | `derivatives.py` | PMTiles tiles and data-driven MapLibre styles |
 | `thumbnails.py` | Web Mercator preview rendering over the tile basemap fetched by `tiles.py` |
 | `tiles.py` | XYZ basemap tile fetch and mosaic for thumbnails |
@@ -175,7 +175,7 @@ Each entry in `collections`.
 - `join?`. Tabular only. `{column, target, target_column, target_file, note?}`. Emits the README join section and a runnable DuckDB example, which formats.md requires whenever geometry and attributes live in separate files. `target_file` is relative to the Collection directory.
 - `blurb?`. One line for the catalog-level collections tables. Falls back to the first sentence of `description`.
 - `metadata?`. `{url, media_type, title, standard?, filename?}`. Mirrors an upstream machine-readable metadata record, for example an ISO 19115 record from a GeoNetwork registry, into the Collection directory and attaches it as a `metadata`-role asset with real `file:size` and `file:checksum`. Mirrored rather than linked because a registry regenerates its XML and a checksum pinned to bytes the catalog does not control rots, the live-endpoint rule again. The fetch happens once, an existing local copy is reused.
-- `docs?`. `{readme?, agents?}`. Markdown templates for the Collection sidecars, the heart of the golden-example documentation. Each is near-final markdown whose structure and voice the manifest author controls per collection, with `{{placeholder}}` lines expanding to generated blocks that cannot drift from the built assets. README templates may use `{{quickstart}}` (the one tested open-it snippet, chosen by kind), `{{schema}}` (a table of the described columns from `table:columns`), `{{join}}` (the tabular join section), and `{{provenance}}` (the license and provenance block core.md requires, appended automatically when the template omits it). AGENTS templates may use `{{access}}` (the one-line access guidance). Both surfaces may use `{{crs}}` (the coordinate reference system and what follows from it), which is offered only where the built `data` asset carries a `proj:code`. A placeholder the surface does not offer fails the build, whether it is a typo or a `{{crs}}` on a non-geospatial Collection, since either would otherwise publish literally or silently vanish. Without templates a minimal default skeleton is emitted, so a bare manifest still builds a conformant catalog.
+- `docs?`. `{readme?, agents?, agents_heading?}`. `agents_heading` replaces the first heading of AGENTS.md, for a Collection that needs sentence case there. Markdown templates for the Collection sidecars, the heart of the golden-example documentation. Each is near-final markdown whose structure and voice the manifest author controls per collection, with `{{placeholder}}` lines expanding to generated blocks that cannot drift from the built assets. README templates may use `{{quickstart}}` (the one tested open-it snippet, chosen by kind), `{{schema}}` (a table of the described columns from `table:columns`), `{{join}}` (the tabular join section), and `{{provenance}}` (the license and provenance block core.md requires, appended automatically when the template omits it). AGENTS templates may use `{{access}}` (the one-line access guidance). Both surfaces may use `{{crs}}` (the coordinate reference system and what follows from it), which is offered only where the built `data` asset carries a `proj:code`. A placeholder the surface does not offer fails the build, whether it is a typo or a `{{crs}}` on a non-geospatial Collection, since either would otherwise publish literally or silently vanish. Without templates a minimal default skeleton is emitted, so a bare manifest still builds a conformant catalog.
 
 ## Provenance is derived, not declared
 
@@ -318,7 +318,7 @@ not try to make the output silent.
 
 - `PTL-PRO-002` on all nine Collections, a missing `canonical` link. core.md
   makes `canonical` a conditional MUST, owed only when the upstream publishes its
-  own STAC catalog. None of these upstreams does, checked directly and
+  own STAC catalog. None of these eight upstreams does, checked directly and
   against all of STAC Index, so the condition never triggers and there is no URL
   to point at. rashid scores it info precisely because metadata cannot settle the
   question. Inventing a link would be worse than the finding.

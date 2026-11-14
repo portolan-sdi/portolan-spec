@@ -29,7 +29,7 @@
       "rel": "child",
       "href": "./sample-scenes/collection.json",
       "type": "application/json",
-      "title": "Sample Raster Scenes"
+      "title": "Sample raster scenes"
     },
     {
       "rel": "agents",

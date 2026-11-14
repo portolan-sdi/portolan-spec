@@ -1,4 +1,4 @@
-# Sample Raster Scenes
+# Sample raster scenes
 
 Sixteen small Cloud Optimized GeoTIFF scenes, modeled as STAC Items, with a stac-geoparquet item mirror. The scenes are a 4 by 4 grid cut from rasterio's RGB.byte.tif test fixture, derived from USGS Landsat 7 imagery over Andros Island in the Bahamas, in UTM zone 18N (EPSG:32618).
 
@@ -20,7 +20,7 @@ The Collection has two parts.
 
 Agents, [AGENTS.md](./AGENTS.md) covers how to search the scenes.
 
-## Quick Start
+## Quick start
 
 ```python
 import geopandas as gpd
@@ -31,9 +31,9 @@ print(items[["id", "geometry"]].head())
 
 `items.parquet` is the item mirror, a stac-geoparquet file with one row for each Item, so one read returns every scene footprint. Each scene is a Cloud Optimized GeoTIFF in its own Item directory. Paths are relative to this directory, and the same code works against the published URL.
 
-## Find the Scenes Over a Point
+## Find the scenes over a point
 
-The item mirror answers a spatial question with one read. This query
+One read of the item mirror is enough for a spatial search. This query
 returns the scenes whose footprint covers a point on Andros Island.
 
 ```sql
@@ -51,7 +51,7 @@ upstream, so each Item has a time range and no `datetime`. The range
 starts at the Landsat 7 launch and ends when the file entered the
 rasterio repository.
 
-## Provenance and License
+## Provenance and license
 
 License, CC0-1.0.
 Providers, rasterio (producer, licensor), Portolan SDI (host).

@@ -16,7 +16,7 @@ Read the COG `data` asset with rioxarray.open_rasterio("sample-cog.tif", masked=
 - Eastings run 101,985 to 339,315 meters, far west of the UTM zone 18
   central meridian. Legal values, they just look odd.
 
-## Coordinate Reference System
+## Coordinate reference system
 
 EPSG:32618, WGS 84 / UTM zone 18N, a projected coordinate reference system whose coordinates are in metres.
 Pixel size is in metres, so cell size and any distance read off the grid are already in metres. Web maps need a warp to EPSG:3857, and joining to data in degrees needs EPSG:4326 first.
@@ -54,7 +54,7 @@ print(float(da.sel(band=3).mean()))
 
 ## Related Collections
 
-[Sample Raster Scenes](../sample-scenes/AGENTS.md) holds the same
+[Sample raster scenes](../sample-scenes/AGENTS.md) holds the same
 image cut into sixteen Items, for the multi-scene raster layout. The
 upstream fixture is tagged on the source asset with its checksum, and
 band statistics live in the STAC bands metadata and as GDAL

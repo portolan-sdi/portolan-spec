@@ -8,7 +8,7 @@
     "https://stac-extensions.github.io/language/v1.0.0/schema.json"
   ],
   "id": "raster/sample-scenes",
-  "title": "Sample Raster Scenes",
+  "title": "Sample raster scenes",
   "description": "Sixteen small Cloud Optimized GeoTIFF scenes, modeled as STAC Items, with a stac-geoparquet item mirror. The scenes are a 4 by 4 grid cut from rasterio's RGB.byte.tif test fixture, derived from USGS Landsat 7 imagery over Andros Island in the Bahamas, in UTM zone 18N (EPSG:32618).",
   "license": "CC0-1.0",
   "keywords": [
@@ -60,7 +60,7 @@
     "geoparquet-items": {
       "href": "./items.parquet",
       "type": "application/vnd.apache.parquet",
-      "title": "Sample Raster Scenes item mirror (stac-geoparquet)",
+      "title": "Sample raster scenes item mirror (stac-geoparquet)",
       "roles": [
         "collection-mirror"
       ],

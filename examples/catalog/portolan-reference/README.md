@@ -25,7 +25,7 @@ the joins between Collections.
 | [Netherlands Provinces](./boundaries/netherlands-provinces/README.md) | 12 polygons | The 12 provinces from the cadastral registry, boundaries that reproduce the national statistics office's official areas to one decimal. |
 | [San Francisco Addresses (EAS)](./mirror/san-francisco-addresses/README.md) | 5,000 points | A fixed 5,000-record extract of San Francisco's 388,550-record master address database, kept small on purpose for spec demonstration. |
 | [Sample Raster COG](./raster/sample-cog/README.md) | 3-band raster | A 1 MB Landsat-derived reference COG for learning and testing cloud-optimized raster access, not for analysis. |
-| [Sample Raster Scenes](./raster/sample-scenes/README.md) | 16 3-band raster scenes | Sixteen COG scenes as Items with an item mirror, for learning the multi-scene raster layout, not for analysis. |
+| [Sample raster scenes](./raster/sample-scenes/README.md) | 16 3-band raster scenes | Sixteen COG scenes as Items with an item mirror, for learning the multi-scene raster layout, not for analysis. |
 | [Eurostat Electricity Prices for Household Consumers](./tabular/eurostat-electricity-prices/README.md) | 65,466 rows | 65,412 semi-annual household electricity prices for 41 European countries from 2007 on, the official record of the 2022 energy crisis. |
 
 ## Where the Data Comes From
@@ -41,5 +41,5 @@ Netherlands Provinces is built from the [PDOK Bestuurlijke Gebieden 2026 (GeoPac
 San Francisco Addresses (EAS) tracks the [DataSF San Francisco Addresses with Units (GeoJSON, 5k extract)](https://data.sfgov.org/resource/ramy-di5m.geojson?$limit=5000&$order=:id), a live endpoint refetched on every build rather than pinned, licensed PDDL-1.0.
 
 Sample Raster COG is built from the [rasterio RGB.byte.tif test fixture (GeoTIFF)](https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif), pinned by checksum and licensed CC0-1.0.
-Sample Raster Scenes is built from the [rasterio RGB.byte.tif test fixture (GeoTIFF)](https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif), pinned by checksum and licensed CC0-1.0.
+Sample raster scenes is built from the [rasterio RGB.byte.tif test fixture (GeoTIFF)](https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif), pinned by checksum and licensed CC0-1.0.
 Eurostat Electricity Prices for Household Consumers tracks the [Eurostat nrg_pc_204 electricity prices (SDMX-CSV)](https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/nrg_pc_204/?format=SDMX-CSV&compressed=false), a live endpoint refetched on every build rather than pinned, licensed CC-BY-4.0.

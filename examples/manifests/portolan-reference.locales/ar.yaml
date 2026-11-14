@@ -7,7 +7,7 @@ language:
 messages:
   collections: المجموعات
   data_files: ملفات البيانات
-  license: الرخصة (License)
+  license: الرخصة (license)
   source: المصدر وسجل المنشأ (Source and provenance)
   last_synced: آخر مزامنة
   detailed_english: التفاصيل باللغة الإنجليزية

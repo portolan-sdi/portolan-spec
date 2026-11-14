@@ -319,7 +319,7 @@ def check_crs_block_is_derived_not_authored() -> None:
     # gets its linear unit and a geographic one gets the degrees warning
     # without anything in a manifest saying so.
     proj = "\n".join(crs_block("EPSG:28992", "vector", "polygon"))
-    assert "## Coordinate Reference System" in proj, proj
+    assert "## Coordinate reference system" in proj, proj
     assert "EPSG:28992, Amersfoort / RD New" in proj, proj
     assert "projected" in proj and "metres" in proj, proj
     geog = "\n".join(crs_block("EPSG:4269", "vector", "polygon"))
