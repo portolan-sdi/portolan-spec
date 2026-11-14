@@ -396,7 +396,13 @@ def check_committed_agents_docs_state_their_crs() -> None:
     assert colls, "no committed collections found"
     for path in colls:
         coll = json.loads(Path(path).read_text())
-        code = coll["assets"]["data"].get("proj:code")
+        data = coll["assets"].get("data")
+        if data is None:
+            # A raster-scenes Collection keeps its data in its Items.
+            item = next(l for l in coll["links"] if l["rel"] == "item")
+            data = json.loads(
+                (Path(path).parent / item["href"]).read_text())["assets"]["data"]
+        code = data.get("proj:code")
         agents = (Path(path).parent / "AGENTS.md").read_text()
         cid = coll["id"]
         if code:

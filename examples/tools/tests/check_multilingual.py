@@ -275,6 +275,18 @@ def _check_translations_match_overlay(
             assert len(source_links) == len(translated_links), path
             for source_link, link in zip(source_links, translated_links, strict=True):
                 rel = link["rel"]
+                if rel == "item":
+                    # An Item title comes from the overlay `item_title`
+                    # template, and the locale tree has its own Item.
+                    row, column = Path(link["href"]).stem.rsplit("-r", 1)[1].split("c")
+                    expected = meta["item_title"].format(row=row, column=column)
+                    assert link["title"] == expected, f"stale item title in {path}"
+                    assert link["href"] == source_link["href"], path
+                    item = json.loads((path.parent / link["href"]).read_text())
+                    assert item["properties"]["title"] == expected, (
+                        f"stale Item title under {path}"
+                    )
+                    continue
                 if rel in ("alternate", "child") or "title" not in link:
                     continue
                 link_override = (

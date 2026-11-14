@@ -1,0 +1,127 @@
+{
+  "type": "Feature",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
+  ],
+  "id": "sample-scenes-r2c1",
+  "collection": "raster/sample-scenes",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -78.711828,
+          24.541092
+        ],
+        [
+          -78.342218,
+          24.549749
+        ],
+        [
+          -78.355233,
+          25.033968
+        ],
+        [
+          -78.598656,
+          25.028266
+        ],
+        [
+          -78.604118,
+          25.011896
+        ],
+        [
+          -78.670061,
+          24.731549
+        ],
+        [
+          -78.709509,
+          24.562798
+        ],
+        [
+          -78.711988,
+          24.546501
+        ],
+        [
+          -78.711828,
+          24.541092
+        ]
+      ]
+    ]
+  },
+  "bbox": [
+    -78.711988,
+    24.541092,
+    -78.342218,
+    25.033968
+  ],
+  "properties": {
+    "title": "Scene row 2, column 1",
+    "datetime": null,
+    "start_datetime": "1999-04-15T00:00:00Z",
+    "end_datetime": "2013-11-30T23:59:59Z"
+  },
+  "assets": {
+    "data": {
+      "href": "./sample-scenes-r2c1.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "title": "Scene row 2, column 1 (COG)",
+      "roles": [
+        "data"
+      ],
+      "bands": [
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 3.0,
+            "maximum": 255.0,
+            "mean": 20.8248,
+            "stddev": 25.5737,
+            "valid_percent": 52.2798
+          }
+        },
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 10.0,
+            "maximum": 255.0,
+            "mean": 83.0669,
+            "stddev": 26.5822,
+            "valid_percent": 52.2798
+          }
+        },
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 10.0,
+            "maximum": 255.0,
+            "mean": 105.2521,
+            "stddev": 29.8832,
+            "valid_percent": 52.2798
+          }
+        }
+      ],
+      "proj:code": "EPSG:32618",
+      "file:size": 43553,
+      "file:checksum": "12204483e7c646f1a2c252069f6bfbf0d955e0f67cc69724e4f621ef341134ea87d7"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "collection",
+      "href": "../collection.json",
+      "type": "application/json"
+    }
+  ]
+}

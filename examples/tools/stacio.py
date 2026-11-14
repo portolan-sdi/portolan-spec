@@ -24,6 +24,10 @@ from convert import (
     bbox_wgs84_raster, to_table_parquet, table_columns,
 )
 from derivatives import make_pmtiles, author_styles, CATEGORICAL_VARIANTS
+from scenes import (
+    MIRROR_KEY, MIRROR_NAME, build_items, items_extent, read_items,
+    write_items_parquet,
+)
 from thumbnails import (
     make_thumbnail_vector, make_thumbnail_raster, build_thumb_ctx, _thumb_desc,
 )
@@ -292,6 +296,21 @@ def quickstart_block(kind: str, data_name: str) -> list[str]:
             "against the published URL streams only the bytes it needs over HTTP "
             "range requests. Pass masked=True so nodata reads as NaN.",
         ]
+    if kind == "raster-scenes":
+        return [
+            "```python",
+            "import geopandas as gpd",
+            "",
+            f'items = gpd.read_parquet("{data_name}")',
+            'print(items[["id", "geometry"]].head())',
+            "```",
+            "",
+            f"`{data_name}` is the item mirror, a stac-geoparquet file with one "
+            "row for each Item, so one read returns every scene footprint. Each "
+            "scene is a Cloud Optimized GeoTIFF in its own Item directory. Paths "
+            "are relative to this directory, and the same code works against the "
+            "published URL.",
+        ]
     # tabular
     return [
         "```python",
@@ -319,6 +338,11 @@ def access_line(kind: str, data_name: str, has_visual: bool, has_thumb: bool) ->
                 "masked=True) or rasterio. It serves windowed reads and overviews "
                 "over HTTP range requests, so read the window you need rather than "
                 "the whole file.")
+    elif kind == "raster-scenes":
+        line = (f"Find scenes with the item mirror, read_parquet('{data_name}') "
+                "in DuckDB or GeoPandas, one row for each Item. Then read the "
+                "COG `data` asset of the Item you need with rasterio or "
+                "rioxarray. Do not fetch each Item JSON to search.")
     else:
         line = (f"Query the Parquet `data` asset in place with DuckDB, "
                 f"read_parquet('{data_name}'), or load it with pandas.")
@@ -427,9 +451,11 @@ def crs_block(crs: str, kind: str, geometry: str | None) -> list[str]:
         "",
         f"{d['code']}, {d['name']}, a {d['kind']} coordinate reference system "
         f"whose coordinates are in {unit}.",
-        _raster_consequence(unit, geographic) if kind == "raster"
+        _raster_consequence(unit, geographic) if kind in ("raster", "raster-scenes")
         else _vector_consequence(geometry or "", unit, geographic),
-        "The `data` asset carries the same code as `proj:code`.",
+        "The `data` asset of each Item carries the same code as `proj:code`."
+        if kind == "raster-scenes"
+        else "The `data` asset carries the same code as `proj:code`.",
     ]
 
 
@@ -452,6 +478,10 @@ def provenance_block(spec: dict, providers: list[dict], facts: dict) -> list[str
     elif kind == "raster":
         lines.append(f"Bands, {len(facts['bands'])}. CRS, {facts['crs']}. "
                      f"Cloud-native asset, {facts['data_name']} (COG).")
+    elif kind == "raster-scenes":
+        lines.append(f"Scenes, {facts['n']:,}, one COG for each Item. Bands, "
+                     f"{len(facts['bands'])}. CRS, {facts['crs']}. Item mirror, "
+                     f"{facts['data_name']} (stac-geoparquet).")
     else:
         lines.append(f"Rows, {facts['n']:,}. Columns, {len(facts['cols'])}. "
                      f"Cloud-native asset, {facts['data_name']} (Parquet).")
@@ -716,6 +746,37 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
             assets["thumbnail"] = asset(th, MEDIA["png"], ["thumbnail"], _thumb_desc(thumb))
         cols = []
 
+    elif kind == "raster-scenes":
+        # core.md, a collection of many rasters models each scene as an Item
+        # with its COG as an item asset, so this collection has no `data`
+        # asset of its own. The source is cut into the manifest `grid`.
+        interval = spec["scene_interval"]
+        items = build_items(local, coll_dir, cid, spec["item_title"], depth,
+                            spec["grid"], interval)
+        mirror = coll_dir / MIRROR_NAME
+        n = write_items_parquet(items, mirror)
+        data_name = MIRROR_NAME
+        code = items[0]["assets"]["data"]["proj:code"]
+        bands = items[0]["assets"]["data"]["bands"]
+        bbox = items_extent(items)
+        # PORTO-FMT-041, this one registration is the whole requirement.
+        assets[MIRROR_KEY] = asset(
+            mirror, MEDIA["parquet"], ["collection-mirror"],
+            f"{spec['title']} item mirror (stac-geoparquet)",
+            {"description": "A stac-geoparquet copy of the Items of this "
+                            "Collection, one row for each Item. The rows are "
+                            "in Hilbert curve order of the Item bbox center."})
+        add_source_asset(assets, local, src)
+        links += [link("item", f"./{i['id']}/{i['id']}.json", "application/geo+json",
+                       i["properties"]["title"]) for i in items]
+        exts += [PROJ_EXT]
+        if deriv.get("thumbnail", True):
+            th = coll_dir / "thumbnail.png"
+            tbbox = spec.get("thumbnail_bbox") or bbox
+            make_thumbnail_raster(local, th, tbbox, thumb)
+            assets["thumbnail"] = asset(th, MEDIA["png"], ["thumbnail"], _thumb_desc(thumb))
+        cols = []
+
     elif kind == "tabular":
         data_pq = coll_dir / f"{stem}.parquet"
         data_name = data_pq.name
@@ -845,6 +906,8 @@ def _contents_label(c: dict) -> str:
         return f"{c['n']:,} {c.get('geometry') or 'feature'}s"
     if c["kind"] == "raster":
         return f"{c['bands']}-band raster"
+    if c["kind"] == "raster-scenes":
+        return f"{c['n']:,} {c['bands']}-band raster scenes"
     return f"{c['n']:,} rows"
 
 
@@ -1090,9 +1153,21 @@ def build_catalog(manifest: dict, out: Path, cache: Path, only: str | None) -> N
 
 
 # --------------------------------------------------------------- docs-only regen
-def _facts_from_collection(spec: dict, coll: dict) -> dict:
+def _facts_from_collection(spec: dict, coll: dict, coll_dir: Path) -> dict:
     """Rebuild the sidecar facts from a committed collection.json."""
     assets = coll["assets"]
+    if spec["kind"] == "raster-scenes":
+        # The scenes are Items, so the built facts come from the first Item
+        # and the item links, not from a collection-level `data` asset.
+        items = read_items(coll_dir, coll)
+        data = items[0]["assets"]["data"]
+        return {
+            "kind": spec["kind"], "data_name": MIRROR_NAME, "n": len(items),
+            "cols": [], "bands": data.get("bands", []), "crs": data.get("proj:code"),
+            "aoi": spec.get("bbox"), "has_visual": False,
+            "has_thumb": "thumbnail" in assets, "src": spec["source"],
+            "providers": coll["providers"], "join": {},
+        }
     data = assets["data"]
     data_name = data["href"].removeprefix("./")
     cols = describe_columns(coll.get("table:columns", []), spec.get("columns") or {})
@@ -1107,6 +1182,28 @@ def _facts_from_collection(spec: dict, coll: dict) -> dict:
         "has_visual": "visual" in assets, "has_thumb": "thumbnail" in assets,
         "src": spec["source"], "providers": coll["providers"], "join": join,
     }
+
+
+def _refresh_catalog(path: Path, title: str, description: str, colls: list[dict],
+                     children: list[dict] | None) -> None:
+    """Refresh the manifest-owned fields of a committed catalog.json, its
+    title, description, and `updated`, and its `child` links when given.
+
+    This lets `--only <id>` followed by `--docs-only` add one Collection to a
+    committed tree. A full build does the same work but also fetches each live
+    upstream again, which changes the binary assets of unrelated Collections."""
+    cat = json.loads(path.read_text())
+    cat["title"], cat["description"] = title, description
+    updates = [c["updated"] for c in colls if c.get("updated")]
+    if updates:
+        cat["updated"] = max(updates)
+    if children is not None:
+        links = cat["links"]
+        first = next((i for i, l in enumerate(links) if l["rel"] == "child"), len(links))
+        rest = [l for l in links if l["rel"] != "child"]
+        at = min(first, len(rest))
+        cat["links"] = rest[:at] + children + rest[at:]
+    path.write_text(json.dumps(cat, ensure_ascii=False, indent=2) + "\n")
 
 
 def regen_docs(manifest: dict, out: Path, cache: Path) -> None:
@@ -1137,7 +1234,7 @@ def regen_docs(manifest: dict, out: Path, cache: Path) -> None:
             coll.setdefault("extent", {})["temporal"] = {"interval": [spec["temporal"]]}
         add_metadata_asset(coll["assets"], spec, coll_dir, cache)
         coll_path.write_text(json.dumps(coll, ensure_ascii=False, indent=2) + "\n")
-        facts = _facts_from_collection(spec, coll)
+        facts = _facts_from_collection(spec, coll, coll_dir)
         write_sidecars(coll_dir, spec["title"], spec["description"].strip(),
                        collection_readme_extra(spec, facts),
                        collection_agents_lines(spec, facts))
@@ -1161,6 +1258,12 @@ def regen_docs(manifest: dict, out: Path, cache: Path) -> None:
             gtitle, gdesc, colls, nested=False, templates=templates,
             where=f"catalogs.{gseg}")
         write_sidecars(out / gseg, gtitle, gdesc, readme, agents)
+        _refresh_catalog(
+            out / gseg / "catalog.json", gtitle, gdesc, colls,
+            [link("child", f"./{c['seg'][-1]}/collection.json", "application/json",
+                  c["title"]) for c in colls])
+    _refresh_catalog(out / "catalog.json", manifest["title"],
+                     manifest["description"].strip(), built, None)
     readme, agents = catalog_sidecar_bodies(
         manifest["title"], manifest["description"].strip(), built,
         nested=True, templates=manifest.get("docs") or {}, where="docs")

@@ -25,7 +25,10 @@ STRUCTURAL_RELS = frozenset({"root", "parent", "child"})
 SIDECAR_RELS = frozenset({"agents", "describedby"})
 # `child` takes its title from the target node and `alternate` from the locale
 # it points at, so neither is translated through the `link_titles` table.
-UNTRANSLATED_RELS = frozenset({"alternate", "child"})
+UNTRANSLATED_RELS = frozenset({"alternate", "child", "item"})
+# The suffix scenes.py gives an Item id, the grid row and column of the scene.
+# A locale fills its `item_title` template from these two numbers.
+ITEM_GRID = re.compile(r"-r(\d+)c(\d+)$")
 # Asset roles in the order a title is chosen from, most specific first.
 ASSET_ROLES = ("data", "visual", "thumbnail", "source", "metadata", "style")
 # Directories the source tree owns at the root of a catalog, beside the group
@@ -312,6 +315,12 @@ def _check_node_coverage(
                 )
             if obj.get("type") != "Collection":
                 continue
+            has_items = any(l.get("rel") == "item" for l in obj.get("links", []))
+            if has_items and not _has_text(meta.get("item_title")):
+                raise ValueError(
+                    f"{lp} must give an item_title to a Collection that has "
+                    f"Items, {path.as_posix()}"
+                )
             columns = obj.get("table:columns") or []
             described = {
                 column["name"] for column in columns if column.get("description")
@@ -471,10 +480,13 @@ def _localize_object(
         href = localized.get("href", "")
         if rel in SIDECAR_RELS:
             localized["hreflang"] = code
-        elif rel not in STRUCTURAL_RELS and _is_local(href):
+        elif rel not in STRUCTURAL_RELS and rel != "item" and _is_local(href):
             target = (source_node.parent / href).resolve()
             localized["href"] = _relative_href(target_node.parent, target)
-        if rel == "child":
+        if rel == "item":
+            # Each locale tree has its own Items, so the href stays as it is.
+            localized["title"] = _item_title(meta, href)
+        elif rel == "child":
             child_source = (source_node.parent / href).resolve()
             child_rel = child_source.relative_to(out.resolve())
             localized["title"] = all_titles[code][child_rel]
@@ -492,18 +504,65 @@ def _localize_object(
     return obj
 
 
+def _item_title(meta: dict, href: str) -> str:
+    """Return the translated title of the Item that `href` points at."""
+    match = ITEM_GRID.search(Path(href).stem)
+    if not match:
+        raise ValueError(f"item href has no grid row and column, {href}")
+    return meta["item_title"].format(row=match.group(1), column=match.group(2)).strip()
+
+
+def _write_items(
+    source: dict, source_node: Path, target_node: Path, meta: dict, messages: dict
+) -> None:
+    """Write one translated Item for each `item` link of a Collection.
+
+    A validator requires an `item` link to point at an Item that the
+    Collection contains, so a locale tree cannot link to the Items of the
+    source tree. The translated Item has the translated title. Its assets
+    point back at the data beside the source Item.
+    """
+    for link in source.get("links", []):
+        if link.get("rel") != "item":
+            continue
+        source_item = source_node.parent / link["href"]
+        target_item = target_node.parent / link["href"]
+        item = json.loads(source_item.read_text())
+        title = _item_title(meta, link["href"])
+        item["properties"]["title"] = title
+        for key, asset in item.get("assets", {}).items():
+            if _is_local(asset.get("href", "")):
+                target = (source_item.parent / asset["href"]).resolve()
+                asset["href"] = _relative_href(target_item.parent, target)
+            asset["title"] = _asset_title(key, asset, messages, {})
+        target_item.parent.mkdir(parents=True, exist_ok=True)
+        _write_json(target_item, item)
+
+
 def _english_sidecar_href(target_node: Path, source_node: Path, name: str) -> str:
     return _relative_href(target_node.parent, source_node.with_name(name))
 
 
-def _crs_lines(source: dict, messages: dict) -> list[str]:
+def _data_proj_code(obj: dict, node: Path) -> str | None:
+    """Return the `proj:code` of the `data` asset of a Collection. A Collection
+    whose data is in its Items has no such asset, so the first Item gives it."""
+    data = (obj.get("assets") or {}).get("data")
+    if data is None:
+        item = next((l for l in obj.get("links", []) if l.get("rel") == "item"), None)
+        if item is None:
+            return None
+        data = json.loads((node.parent / item["href"]).read_text())["assets"]["data"]
+    return data.get("proj:code")
+
+
+def _crs_lines(source: dict, source_node: Path, messages: dict) -> list[str]:
     """Return the CRS section of a localized AGENTS.md.
 
     The code comes from the `data` asset, so the section cannot drift from the
     data. The full explanation stays in the English AGENTS.md, which the reader
     reaches through the link at the end of the file.
     """
-    code = ((source.get("assets") or {}).get("data") or {}).get("proj:code")
+    code = _data_proj_code(source, source_node)
     if not code:
         return []
     return ["", f"## {messages['crs_heading']}", "", code, "", messages["crs_note"]]
@@ -562,7 +621,7 @@ def _write_sidecars(
         "",
         messages["agent_intro"],
     ]
-    agent_lines += _crs_lines(source, messages)
+    agent_lines += _crs_lines(source, source_node, messages)
     agent_lines += ["", f"[{messages['detailed_english']}]({english_agents})", ""]
     target_node.with_name("AGENTS.md").write_text("\n".join(agent_lines))
 
@@ -691,3 +750,5 @@ def build_translations(manifest: dict, manifest_path: Path, out: Path) -> None:
             )
             _write_json(target_node, obj)
             _write_sidecars(obj, source_objects[path], target_node, source_node, locale)
+            _write_items(source_objects[path], source_node, target_node,
+                         _metadata(locale, path), locale["messages"])

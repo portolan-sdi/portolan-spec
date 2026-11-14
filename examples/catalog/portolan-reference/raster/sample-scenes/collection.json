@@ -1,0 +1,240 @@
+{
+  "type": "Collection",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://schemas.portolan-sdi.org/portolan/v0.2.0/schema.json",
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/language/v1.0.0/schema.json"
+  ],
+  "id": "raster/sample-scenes",
+  "title": "Sample Raster Scenes",
+  "description": "Sixteen small Cloud Optimized GeoTIFF scenes, modeled as STAC Items, with a stac-geoparquet item mirror. The scenes are a 4 by 4 grid cut from rasterio's RGB.byte.tif test fixture, derived from USGS Landsat 7 imagery over Andros Island in the Bahamas, in UTM zone 18N (EPSG:32618).",
+  "license": "CC0-1.0",
+  "keywords": [
+    "raster",
+    "cog",
+    "items",
+    "stac-geoparquet",
+    "item mirror"
+  ],
+  "providers": [
+    {
+      "name": "rasterio",
+      "url": "https://github.com/rasterio/rasterio",
+      "roles": [
+        "producer",
+        "licensor"
+      ]
+    },
+    {
+      "name": "Portolan SDI",
+      "url": "https://github.com/portolan-sdi",
+      "email": "portolan@googlegroups.com",
+      "roles": [
+        "host"
+      ]
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -78.869179,
+          23.611024,
+          -76.6578,
+          25.510302
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "1999-04-15T00:00:00Z",
+          "2013-11-30T23:59:59Z"
+        ]
+      ]
+    }
+  },
+  "assets": {
+    "geoparquet-items": {
+      "href": "./items.parquet",
+      "type": "application/vnd.apache.parquet",
+      "title": "Sample Raster Scenes item mirror (stac-geoparquet)",
+      "roles": [
+        "collection-mirror"
+      ],
+      "file:size": 23113,
+      "file:checksum": "1220f4d225d380c3283be7acd627d7d4dc3550d3d0ea8918004c378c01b1e4dfc1cc",
+      "description": "A stac-geoparquet copy of the Items of this Collection, one row for each Item. The rows are in Hilbert curve order of the Item bbox center."
+    },
+    "source": {
+      "href": "https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif",
+      "type": "image/tiff",
+      "title": "rasterio RGB.byte.tif test fixture (GeoTIFF)",
+      "roles": [
+        "source"
+      ],
+      "file:size": 1745956,
+      "file:checksum": "1220d7cbe932c7ed74a627706a9e9df99f706df3e5abc7d45a49e9d00677a6b09eb4"
+    },
+    "thumbnail": {
+      "href": "./thumbnail.png",
+      "type": "image/png",
+      "title": "Preview thumbnail over a light basemap. © OpenStreetMap contributors © CARTO.",
+      "roles": [
+        "thumbnail"
+      ],
+      "file:size": 274580,
+      "file:checksum": "122040300647023ab50de5fec3f8e38c43fe6489583667525b591ca0d517dd0ec419"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r1c1/sample-scenes-r1c1.json",
+      "type": "application/geo+json",
+      "title": "Scene row 1, column 1"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r1c2/sample-scenes-r1c2.json",
+      "type": "application/geo+json",
+      "title": "Scene row 1, column 2"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r1c3/sample-scenes-r1c3.json",
+      "type": "application/geo+json",
+      "title": "Scene row 1, column 3"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r1c4/sample-scenes-r1c4.json",
+      "type": "application/geo+json",
+      "title": "Scene row 1, column 4"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r2c1/sample-scenes-r2c1.json",
+      "type": "application/geo+json",
+      "title": "Scene row 2, column 1"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r2c2/sample-scenes-r2c2.json",
+      "type": "application/geo+json",
+      "title": "Scene row 2, column 2"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r2c3/sample-scenes-r2c3.json",
+      "type": "application/geo+json",
+      "title": "Scene row 2, column 3"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r2c4/sample-scenes-r2c4.json",
+      "type": "application/geo+json",
+      "title": "Scene row 2, column 4"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r3c1/sample-scenes-r3c1.json",
+      "type": "application/geo+json",
+      "title": "Scene row 3, column 1"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r3c2/sample-scenes-r3c2.json",
+      "type": "application/geo+json",
+      "title": "Scene row 3, column 2"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r3c3/sample-scenes-r3c3.json",
+      "type": "application/geo+json",
+      "title": "Scene row 3, column 3"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r3c4/sample-scenes-r3c4.json",
+      "type": "application/geo+json",
+      "title": "Scene row 3, column 4"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r4c1/sample-scenes-r4c1.json",
+      "type": "application/geo+json",
+      "title": "Scene row 4, column 1"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r4c2/sample-scenes-r4c2.json",
+      "type": "application/geo+json",
+      "title": "Scene row 4, column 2"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r4c3/sample-scenes-r4c3.json",
+      "type": "application/geo+json",
+      "title": "Scene row 4, column 3"
+    },
+    {
+      "rel": "item",
+      "href": "./sample-scenes-r4c4/sample-scenes-r4c4.json",
+      "type": "application/geo+json",
+      "title": "Scene row 4, column 4"
+    },
+    {
+      "rel": "via",
+      "href": "https://github.com/rasterio/rasterio/blob/main/tests/data/RGB.byte.tif",
+      "type": "text/html",
+      "title": "Original source"
+    },
+    {
+      "rel": "agents",
+      "href": "./AGENTS.md",
+      "type": "text/markdown",
+      "title": "Guidance for AI agents",
+      "hreflang": "en"
+    },
+    {
+      "rel": "describedby",
+      "href": "./README.md",
+      "type": "text/markdown",
+      "title": "Human-readable documentation",
+      "hreflang": "en"
+    },
+    {
+      "rel": "alternate",
+      "href": "../../ar/raster/sample-scenes/collection.json",
+      "type": "application/json",
+      "title": "Arabic",
+      "hreflang": "ar"
+    }
+  ],
+  "updated": "2026-11-14T00:00:00Z",
+  "language": {
+    "code": "en",
+    "name": "English"
+  },
+  "languages": [
+    {
+      "code": "ar",
+      "name": "العربية",
+      "alternate": "Arabic",
+      "dir": "rtl"
+    }
+  ]
+}

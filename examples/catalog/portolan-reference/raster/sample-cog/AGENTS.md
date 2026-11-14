@@ -54,7 +54,8 @@ print(float(da.sel(band=3).mean()))
 
 ## Related Collections
 
-None. This is the catalog's only raster and joins to nothing. The
+[Sample Raster Scenes](../sample-scenes/AGENTS.md) holds the same
+image cut into sixteen Items, for the multi-scene raster layout. The
 upstream fixture is tagged on the source asset with its checksum, and
 band statistics live in the STAC bands metadata and as GDAL
 STATISTICS_* tags in the file header, written by the same build.
