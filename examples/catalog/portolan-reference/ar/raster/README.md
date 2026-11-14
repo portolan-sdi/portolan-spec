@@ -5,5 +5,6 @@
 ## المجموعات
 
 - [نموذج بيانات نقطية بصيغة COG](sample-cog/README.md)
+- [نموذج مشاهد نقطية](sample-scenes/README.md)
 
 [التفاصيل باللغة الإنجليزية](../../raster/README.md)

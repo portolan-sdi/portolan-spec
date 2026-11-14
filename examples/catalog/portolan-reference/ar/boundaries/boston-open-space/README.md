@@ -13,7 +13,7 @@
 - [محمية بشكل دائم أو غير محمية](../../../boundaries/boston-open-space/styles/protection.json)
 - [صورة مصغرة](../../../boundaries/boston-open-space/thumbnail.png)
 
-## الرخصة (License)
+## الرخصة (license)
 
 PDDL-1.0
 

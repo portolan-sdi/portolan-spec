@@ -13,7 +13,7 @@
 - [القارات مع أسماء الدول](../../../reference/natural-earth-countries/styles/labeled.json)
 - [صورة مصغرة](../../../reference/natural-earth-countries/thumbnail.png)
 
-## الرخصة (License)
+## الرخصة (license)
 
 CC0-1.0
 

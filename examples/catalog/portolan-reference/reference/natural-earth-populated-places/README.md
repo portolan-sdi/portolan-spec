@@ -84,7 +84,7 @@ metro area and `POP_MIN` the city proper, so ranking cities without
 picking one deliberately mixes definitions. Names repeat, Mérida,
 Portland, and Valencia each appear twice, so use `NE_ID` as the key.
 
-## Provenance and License
+## Provenance and license
 
 License, CC0-1.0.
 Providers, Natural Earth (producer, licensor), Portolan SDI (host).

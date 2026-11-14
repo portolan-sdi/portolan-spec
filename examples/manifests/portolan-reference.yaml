@@ -1747,10 +1747,139 @@ collections:
 
         ## Related Collections
 
-        None. This is the catalog's only raster and joins to nothing. The
+        [Sample raster scenes](../sample-scenes/AGENTS.md) holds the same
+        image cut into sixteen Items, for the multi-scene raster layout. The
         upstream fixture is tagged on the source asset with its checksum, and
         band statistics live in the STAC bands metadata and as GDAL
         STATISTICS_* tags in the file header, written by the same build.
+
+  - id: raster/sample-scenes
+    kind: raster-scenes
+    title: Sample raster scenes
+    description: >-
+      Sixteen small Cloud Optimized GeoTIFF scenes, modeled as STAC Items, with
+      a stac-geoparquet item mirror. The scenes are a 4 by 4 grid cut from rasterio's RGB.byte.tif test fixture, derived from USGS
+      Landsat 7 imagery over Andros Island in the Bahamas, in UTM zone 18N
+      (EPSG:32618).
+    keywords: [raster, cog, items, stac-geoparquet, item mirror]
+    # Same file and same license reasoning as raster/sample-cog above.
+    license: CC0-1.0
+    source:
+      url: https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif
+      media_type: image/tiff
+      title: rasterio RGB.byte.tif test fixture (GeoTIFF)
+      stable: true
+    providers:
+      - {name: rasterio, url: https://github.com/rasterio/rasterio, roles: [producer, licensor]}
+    provenance:
+      via: https://github.com/rasterio/rasterio/blob/main/tests/data/RGB.byte.tif
+      updated: "2026-11-14T00:00:00Z"
+    # The source is cut into this grid, and each cell with a valid pixel
+    # becomes one Item.
+    grid: {columns: 4, rows: 4}
+    # The title of each Item. The generator fills in the row and the column.
+    item_title: "Scene row {row}, column {column}"
+    # The acquisition date is unrecorded upstream. Landsat 7 launched on April
+    # 15, 1999, and the file entered the rasterio repository in November 2013,
+    # so every scene falls between those two dates.
+    scene_interval: ["1999-04-15T00:00:00Z", "2013-11-30T23:59:59Z"]
+    temporal: ["1999-04-15T00:00:00Z", "2013-11-30T23:59:59Z"]
+    derivatives: {thumbnail: true}
+    blurb: >-
+      Sixteen COG scenes as Items with an item mirror, for learning the
+      multi-scene raster layout, not for analysis.
+    docs:
+      # The Portolan prose rules ask for sentence case in a heading.
+      agents_heading: Agent guidance, sample raster scenes
+      readme: |
+        The multi-scene raster layout in its smallest form. The source image
+        is [rasterio's](https://github.com/rasterio/rasterio) RGB.byte.tif
+        test fixture, the same file as the
+        [Sample Raster COG](../sample-cog/README.md) Collection. Here a 4 by
+        4 grid cuts it into sixteen scenes of about 198 by 180 pixels.
+
+        The Collection has two parts.
+
+        - Each scene is a STAC Item in its own directory, with its Cloud
+          Optimized GeoTIFF as the `data` asset. The Item geometry is the
+          valid-data footprint of the scene, so a corner scene has a
+          triangle or a trapezoid, not the grid cell.
+        - `items.parquet` is the item mirror, a stac-geoparquet copy of the
+          sixteen Items with the `collection-mirror` role. The rows are in
+          Hilbert curve order.
+
+        Agents, [AGENTS.md](./AGENTS.md) covers how to search the scenes.
+
+        ## Quick start
+
+        {{quickstart}}
+
+        ## Find the scenes over a point
+
+        One read of the item mirror is enough for a spatial search. This query
+        returns the scenes whose footprint covers a point on Andros Island.
+
+        ```sql
+        INSTALL spatial; LOAD spatial;
+        SELECT id, assets.data.href AS cog
+        FROM read_parquet('items.parquet')
+        WHERE ST_Contains(geometry, ST_Point(-77.9, 24.7));
+        ```
+
+        ## Limitations
+
+        A layout example, not imagery for analysis. The scenes are small
+        cuts of one 300 meter test image. The acquisition date is unrecorded
+        upstream, so each Item has a time range and no `datetime`. The range
+        starts at the Landsat 7 launch and ends when the file entered the
+        rasterio repository.
+
+        {{provenance}}
+      agents: |
+        A reference for the multi-scene raster layout, sixteen Landsat-derived
+        RGB scenes over Andros Island in the Bahamas. Do not use the scenes
+        for analysis.
+
+        {{access}}
+
+        ## Quirks
+
+        - The Collection has no `data` asset. The pixels are in the `data`
+          asset of each Item.
+        - Nodata is 0 in each scene. Read with masking on.
+        - The Item geometry is the valid-data footprint, so the corner scenes
+          do not fill their grid cell.
+        - Each Item has `start_datetime` and `end_datetime` and a null
+          `datetime`. The range bounds the acquisition date, which upstream
+          does not record.
+
+        {{crs}}
+
+        ## Tested reads
+
+        Count the scenes and read their footprints from the item mirror.
+
+        ```python
+        import geopandas as gpd
+
+        items = gpd.read_parquet("items.parquet")
+        print(len(items), items.total_bounds.round(2))
+        ```
+
+        Read one scene with masking on.
+
+        ```python
+        import rioxarray
+
+        da = rioxarray.open_rasterio(
+            "sample-scenes-r2c2/sample-scenes-r2c2.tif", masked=True)
+        print(da.shape)
+        ```
+
+        ## Related collections
+
+        [Sample Raster COG](../sample-cog/AGENTS.md) holds the same image as
+        one COG with no Items. Use it for the single-file raster layout.
 
   # ------------------------------------------------------------------ tabular/
   - id: tabular/eurostat-electricity-prices

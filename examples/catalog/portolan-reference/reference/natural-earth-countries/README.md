@@ -100,7 +100,7 @@ have no polygon at all. Population and GDP are 2019 estimates. Upstream
 publishes no formal accuracy figures, and the last cultural release was
 in May 2022.
 
-## Provenance and License
+## Provenance and license
 
 License, CC0-1.0.
 Providers, Natural Earth (producer, licensor), Portolan SDI (host).

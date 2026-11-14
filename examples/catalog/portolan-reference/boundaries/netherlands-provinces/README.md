@@ -83,7 +83,7 @@ questions belong to the BRK itself. The Caribbean Netherlands,
 Bonaire, Sint Eustatius, and Saba, belongs to no province and is not
 here.
 
-## Provenance and License
+## Provenance and license
 
 License, CC-BY-4.0. Attribution, Kadaster / PDOK.
 Providers, Kadaster (producer, licensor), PDOK (processor), Portolan SDI (host).

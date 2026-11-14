@@ -13,7 +13,7 @@
 - [خريطة حرارية لكثافة العناوين](../../../mirror/san-francisco-addresses/styles/density.json)
 - [صورة مصغرة](../../../mirror/san-francisco-addresses/thumbnail.png)
 
-## الرخصة (License)
+## الرخصة (license)
 
 PDDL-1.0
 

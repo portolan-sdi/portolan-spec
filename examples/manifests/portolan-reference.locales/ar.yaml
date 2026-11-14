@@ -7,7 +7,7 @@ language:
 messages:
   collections: المجموعات
   data_files: ملفات البيانات
-  license: الرخصة (License)
+  license: الرخصة (license)
   source: المصدر وسجل المنشأ (Source and provenance)
   last_synced: آخر مزامنة
   detailed_english: التفاصيل باللغة الإنجليزية
@@ -306,6 +306,18 @@ collections:
       ملف GeoTIFF صغير ومحسن للسحابة بثلاث حزم من بيانات اختبار rasterio.
       تعرض الصورة جزيرة أندروس في جزر البهاما ضمن UTM 18N.
     keywords: [بيانات نقطية, COG, نموذج, RGB, GeoTIFF]
+  raster/sample-scenes:
+    title: نموذج مشاهد نقطية
+    description: >-
+      ستة عشر مشهدا صغيرا بصيغة COG في صورة عناصر STAC، مع مرآة عناصر بصيغة
+      stac-geoparquet. المشاهد شبكة 4 في 4 مقطوعة من
+      صورة اختبار rasterio فوق جزيرة أندروس في جزر البهاما ضمن UTM 18N.
+    keywords: [بيانات نقطية, COG, عناصر, stac-geoparquet, مرآة العناصر]
+    item_title: "المشهد، الصف {row}، العمود {column}"
+    assets:
+      geoparquet-items:
+        title: مرآة العناصر (stac-geoparquet)
+        description: "نسخة stac-geoparquet من عناصر هذه المجموعة، بصف واحد لكل عنصر. الصفوف مرتبة حسب منحنى هيلبرت لمركز المربع المحيط بكل عنصر."
   tabular/eurostat-electricity-prices:
     title: أسعار كهرباء الأسر من Eurostat
     description: >-

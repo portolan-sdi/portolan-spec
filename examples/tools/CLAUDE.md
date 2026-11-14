@@ -22,6 +22,7 @@ from the modules beside them, so they stay runnable on their own.
 | `common.py` | Shared helpers, subprocess runner, checksums, value formatting |
 | `fetch.py` | Downloads sources into `.cache` and unpacks zipped shapefiles |
 | `convert.py` | Format conversions, vector to GeoParquet, raster to COG, CSV to Parquet |
+| `scenes.py` | The `raster-scenes` path. Cuts a raster into a grid of scene COGs. Each scene is an Item with its valid-data footprint, and `items.parquet` is their Hilbert-sorted item mirror |
 | `derivatives.py` | PMTiles tiles and data-driven MapLibre styles |
 | `thumbnails.py` | Web Mercator preview rendering over the tile basemap fetched by `tiles.py` |
 | `tiles.py` | XYZ basemap tile fetch and mosaic for thumbnails |
@@ -30,7 +31,7 @@ from the modules beside them, so they stay runnable on their own.
 | `validate.py` | Thin adapter over rashid, the canonical validator. Runs its metadata, structural, schema, and data passes over the built catalog |
 | `check_catalogs.py` | Entrypoint. Runs rashid over every committed catalog with the data pass on, reading the rashid pin out of `build.py`'s PEP 723 header |
 | `publish_catalogs.py` | Entrypoint. Uploads a built catalog to Source Cooperative, and tears a pull request's preview down |
-| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_docs.py`, `check_fetch.py`, `check_styles.py`, `check_multilingual.py`, and `check_translation_guards.py`, plus `run_all.py` which runs the lot |
+| `tests/` | Standalone `uv run` checks, `check_compliance.py`, `check_web_output.py`, `check_validate.py`, `check_tiles.py`, `check_thumb_geoms.py`, `check_thumbnails.py`, `check_cog.py`, `check_scenes.py`, `check_docs.py`, `check_fetch.py`, `check_styles.py`, `check_multilingual.py`, and `check_translation_guards.py`, plus `run_all.py` which runs the lot |
 
 Inputs and outputs live under `examples/`, not here.
 
@@ -81,6 +82,7 @@ uv run examples/tools/tests/check_tiles.py
 uv run examples/tools/tests/check_thumb_geoms.py
 uv run examples/tools/tests/check_thumbnails.py
 uv run examples/tools/tests/check_cog.py
+uv run examples/tools/tests/check_scenes.py
 uv run examples/tools/tests/check_docs.py
 uv run examples/tools/tests/check_fetch.py
 uv run examples/tools/tests/check_styles.py
@@ -147,7 +149,7 @@ Top level of each file in `manifests/`.
 Each entry in `collections`.
 
 - `id`. A path like `boundaries/us-counties`. The first segment is the nested Catalog, the last is the Collection id.
-- `kind`. One of `vector`, `raster`, `tabular`. Selects the conversion path.
+- `kind`. One of `vector`, `raster`, `raster-scenes`, `tabular`. Selects the conversion path.
 - `geometry`. `polygon`, `point`, or `line`. Vector only, drives style and thumbnail paint.
 - `title`, `description`, `keywords`, `license`, `attribution?`.
 - `license_url?`. Required only when `license` is `other`. The URL of the license text. The generator emits the mandatory `rel: license` link from it.
@@ -155,6 +157,9 @@ Each entry in `collections`.
 - `providers`. List of `{name, url, roles}`. Roles are `producer`, `licensor`, `processor`, `host`.
 - `provenance`. `{via?, canonical?, updated?}`.
 - `temporal`. `[start, end_or_null]`.
+- `grid`. `{columns, rows}`. `raster-scenes` only. The source raster is cut into this grid, and each cell with a valid pixel becomes one Item.
+- `item_title`. `raster-scenes` only. The Item title template, with `{row}` and `{column}` placeholders. Each locale overlay gives its own `item_title`.
+- `scene_interval`. `[start, end]`. `raster-scenes` only. The time range of every scene, written to each Item as `start_datetime` and `end_datetime`.
 - `thumbnail_bbox?`. `[minx, miny, maxx, maxy]`. Frames the preview only, not the data. Use it for antimeridian-spanning data.
 - `derivatives`. `{pmtiles, thumbnail}`. Booleans that toggle the PMTiles and thumbnail outputs.
 - `style?`. Per-Collection paint, `{color, outline, opacity, variants}`. Drives both the MapLibre styles and the thumbnail paint. Each entry in `variants` is a dict, `{name, title?, description?, type, ...}`, becoming one `styles/<name>.json` and one `style-<name>` asset with the `title` and `description` carried onto the asset and into the style body. The FIRST variant is the default style, is what the thumbnail renders, and is the one whose asset carries the `default` role alongside `style`. Variant types:
@@ -170,7 +175,7 @@ Each entry in `collections`.
 - `join?`. Tabular only. `{column, target, target_column, target_file, note?}`. Emits the README join section and a runnable DuckDB example, which formats.md requires whenever geometry and attributes live in separate files. `target_file` is relative to the Collection directory.
 - `blurb?`. One line for the catalog-level collections tables. Falls back to the first sentence of `description`.
 - `metadata?`. `{url, media_type, title, standard?, filename?}`. Mirrors an upstream machine-readable metadata record, for example an ISO 19115 record from a GeoNetwork registry, into the Collection directory and attaches it as a `metadata`-role asset with real `file:size` and `file:checksum`. Mirrored rather than linked because a registry regenerates its XML and a checksum pinned to bytes the catalog does not control rots, the live-endpoint rule again. The fetch happens once, an existing local copy is reused.
-- `docs?`. `{readme?, agents?}`. Markdown templates for the Collection sidecars, the heart of the golden-example documentation. Each is near-final markdown whose structure and voice the manifest author controls per collection, with `{{placeholder}}` lines expanding to generated blocks that cannot drift from the built assets. README templates may use `{{quickstart}}` (the one tested open-it snippet, chosen by kind), `{{schema}}` (a table of the described columns from `table:columns`), `{{join}}` (the tabular join section), and `{{provenance}}` (the license and provenance block core.md requires, appended automatically when the template omits it). AGENTS templates may use `{{access}}` (the one-line access guidance). Both surfaces may use `{{crs}}` (the coordinate reference system and what follows from it), which is offered only where the built `data` asset carries a `proj:code`. A placeholder the surface does not offer fails the build, whether it is a typo or a `{{crs}}` on a non-geospatial Collection, since either would otherwise publish literally or silently vanish. Without templates a minimal default skeleton is emitted, so a bare manifest still builds a conformant catalog.
+- `docs?`. `{readme?, agents?, agents_heading?}`. `agents_heading` replaces the first heading of AGENTS.md, for a Collection that needs sentence case there. Markdown templates for the Collection sidecars, the heart of the golden-example documentation. Each is near-final markdown whose structure and voice the manifest author controls per collection, with `{{placeholder}}` lines expanding to generated blocks that cannot drift from the built assets. README templates may use `{{quickstart}}` (the one tested open-it snippet, chosen by kind), `{{schema}}` (a table of the described columns from `table:columns`), `{{join}}` (the tabular join section), and `{{provenance}}` (the license and provenance block core.md requires, appended automatically when the template omits it). AGENTS templates may use `{{access}}` (the one-line access guidance). Both surfaces may use `{{crs}}` (the coordinate reference system and what follows from it), which is offered only where the built `data` asset carries a `proj:code`. A placeholder the surface does not offer fails the build, whether it is a typo or a `{{crs}}` on a non-geospatial Collection, since either would otherwise publish literally or silently vanish. Without templates a minimal default skeleton is emitted, so a bare manifest still builds a conformant catalog.
 
 ## Provenance is derived, not declared
 
@@ -191,7 +196,7 @@ distributor". Portolan SDI serves every asset in the tree and produced none of
 the data, so naming an upstream producer as host would be false. The official
 branch can only be exercised by a catalog whose publisher originates the data.
 `canonical` is owed only when the upstream publishes its own STAC, and none of
-these eight do, so the eight PTL-PRO-002 infos are the correct outcome, not
+these nine do, so the nine PTL-PRO-002 infos are the correct outcome, not
 something to silence with a link to a landing page or an ISO record.
 
 - `resolve_providers` guarantees exactly one host provider, moved to the last position, and raises if a manifest lists more than one. `validate` gates both this host-order rule and the `license: other` link rule, failing the build if either is violated.
@@ -208,6 +213,7 @@ rot. `add_source_asset` is the single gate.
 
 - `vector`. `to_geoparquet` converts with DuckDB spatial, preserving the source CRS or the manifest `output_crs`, and also builds a WGS84 GeoPackage for the bbox, the PMTiles feed, the thumbnail, and style sampling. It then writes the canonical asset as a web-optimized GeoParquet 2.0 file with geoparquet-io's web profile (native geometry type, per row group GeospatialStatistics, a retained covering bbox column for page-level pruning, a Parquet page index, Hilbert ordering, and byte-targeted fetch-sized row groups). Derivatives read the WGS84 GeoPackage, not the 2.0 output. Optional PMTiles come from a DuckDB GeoJSONSeq export into tippecanoe, with a web-map-links `pmtiles` link. Optional MapLibre styles are authored by `author_styles` from the real field values and read the PMTiles. The collection carries `table:columns` from a DuckDB `DESCRIBE`, geometry column included, alongside `table:primary_geometry` and `table:row_count`; the table extension scopes those to Collection fields and Item Properties, and `PORTO-FMT-046` asks a vector collection for them there rather than on the asset. The `data` asset carries `proj:code` derived from the real output CRS. Both the table and projection extensions are declared.
 - `raster`. `to_cog` builds the COG with rasterio, preserving the source CRS or warping to the manifest `output_crs`. Band statistics come from rasterio and numpy and go in STAC 1.1 core `bands`, minimum, maximum, mean, stddev, and valid percent, and `proj:code` carries the real output CRS through the projection extension. The same values are embedded as GDAL `STATISTICS_*` band tags, which is where rashid reads them. Overview depth is left to rio-cogeo rather than pinned, see the gotcha below.
+- `raster-scenes`. `build_items` cuts the source into the manifest `grid` and writes one Item per cell that has a valid pixel, each in its own directory with its COG as the `data` asset, which is how core.md asks a multi-scene raster Collection to be modeled. Each scene goes through the same `to_cog` as the `raster` kind, so it keeps the source CRS and nodata and carries embedded statistics. The Item geometry is the valid-data footprint, the convex hull of the valid pixels, per `PORTO-FMT-074`. `write_items_parquet` then writes the stac-geoparquet item mirror at `items.parquet`, with the rows in Hilbert curve order, registered with the `collection-mirror` role per `PORTO-FMT-040` to `043`. The Collection has no `data` asset. The overview COG that `PORTO-FMT-067` recommends is not built, see the gotcha below.
 - `tabular`. `to_table_parquet` reads the CSV with DuckDB and writes Parquet. Columns are described with the table extension. No geometry, the spatial extent is the whole world and spatial rules are relaxed.
 
 A Collection whose manifest sets `attribution` declares the attribution extension and carries a top-level `attribution` field.
@@ -240,10 +246,13 @@ Each locale overlay is one YAML file with the same node IDs as the manifest.
 - `catalog`, `catalogs`, `collections`. `{title, description, keywords?, assets?, links?, columns?}` per node. Every node the manifest declares needs an entry.
 - `collections.<id>.assets`. `{asset key: {title?, description?}}`. A shared role requires a per-key title. Each source asset description requires a translated description.
 - `<node>.links`. `{rel: {source href: title}}`. Repeated titled links with one relation require per-link titles.
+- `collections.<id>.item_title`. Required for a Collection that has Items. The translated Item title template, with `{row}` and `{column}`.
 - `collections.<id>.columns`. `{column name: description}`. Required for every described `table:columns` entry. Column names stay unchanged.
 
 A locale tree holds only `.json` and `.md` files, and its assets point back at
-the data beside the English node. It translates `table:columns` descriptions and
+the data beside the English node. A Collection that has Items gets one
+translated Item per source Item, because a validator requires an `item` link to
+point at an Item the Collection contains. It translates `table:columns` descriptions and
 concise sidecars. Each localized AGENTS.md names the CRS its `data` asset carries
 and links the detailed English guidance.
 
@@ -263,6 +272,8 @@ onto the canvas with `rasterio.features`. Rasters are warped on top with
 
 ## Gotchas, learned the hard way
 
+- The `raster-scenes` kind builds no overview COG. `PORTO-FMT-067` recommends one with the `visual` and `overview` roles, and the rashid range pinned in `build.py` reports `PTL-VIZ-002` for a `visual` asset that has no style. An overview COG has no style, so the asset would fail the gate. A later rashid exempts it and reports `PTL-VIZ-007` when the overview is missing. Add the overview when the pin moves to that release.
+- An item mirror with fewer than 200 rows gets no spatial-order verdict from rashid, so a wrong row order passes. `tests/check_scenes.py` compares the committed mirror rows with the Hilbert order of the Items.
 - The final vector write goes through geoparquet-io, pinned to the PR #573 fork commit, the only path that emits a Parquet page index together with native GeoParquet 2.0 GeospatialStatistics. DuckDB and ogr2ogr cannot write the page index.
 - GeoJSON is always WGS84 and silently drops any target SRS. The thumbnail path reads the WGS84 GeoPackage intermediate and reprojects it to EPSG:3857 with DuckDB spatial in `_mercator_geoms`, so the Mercator projection survives.
 - Zip sources are extracted before reading, because GDAL `/vsizip` keys off a `.zip` suffix that the cached filename does not have.
@@ -302,10 +313,10 @@ uv run --with "rashid[data]>=0.1.8,<0.2.0" \
   rashid check --schema examples/catalog/portolan-reference
 ```
 
-The build is clean apart from eight infos, which are expected and terminal. Do
+The build is clean apart from nine infos, which are expected and terminal. Do
 not try to make the output silent.
 
-- `PTL-PRO-002` on all eight Collections, a missing `canonical` link. core.md
+- `PTL-PRO-002` on all nine Collections, a missing `canonical` link. core.md
   makes `canonical` a conditional MUST, owed only when the upstream publishes its
   own STAC catalog. None of these eight upstreams does, checked directly and
   against all of STAC Index, so the condition never triggers and there is no URL
@@ -461,7 +472,7 @@ header with `tomllib`, so the validator that checks a catalog is the validator
 that built it and there is no second pin to drift. It is generic over every tree
 under `examples/catalog/`, so a new manifest is covered as soon as its output is
 committed. Its gate is errors and warnings, since rashid's own exit code fires
-on errors alone and a warning in a reference example is a real defect. The eight
+on errors alone and a warning in a reference example is a real defect. The nine
 infos above are advisory and do not fail it.
 
 Two known gaps. `check_catalogs.py` validates against the profile schema bundled

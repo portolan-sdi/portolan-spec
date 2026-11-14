@@ -92,7 +92,7 @@ visibly cut corners, and small offshore islands may be missing
 entirely. Boundaries are the January 1, 2023 vintage, so data keyed to
 other years can mismatch, Connecticut above all.
 
-## Provenance and License
+## Provenance and license
 
 License, CC0-1.0.
 Providers, U.S. Census Bureau (producer, licensor), Portolan SDI (host).

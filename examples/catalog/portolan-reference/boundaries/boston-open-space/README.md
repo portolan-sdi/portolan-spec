@@ -92,7 +92,7 @@ snapshot from July 2026 of a continuously edited layer, and it carries
 no stable public identifier, so joins to later versions go through
 `SITE_NAME` or space.
 
-## Provenance and License
+## Provenance and license
 
 License, PDDL-1.0.
 Providers, City of Boston (producer, licensor), Portolan SDI (host).
