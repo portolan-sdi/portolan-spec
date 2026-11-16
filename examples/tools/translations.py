@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 
 import yaml
 
+from common import item_grid
 from config import LANGUAGE_EXT
 
 
@@ -26,9 +27,6 @@ SIDECAR_RELS = frozenset({"agents", "describedby"})
 # `child` takes its title from the target node and `alternate` from the locale
 # it points at, so neither is translated through the `link_titles` table.
 UNTRANSLATED_RELS = frozenset({"alternate", "child", "item"})
-# The suffix scenes.py gives an Item id, the grid row and column of the scene.
-# A locale fills its `item_title` template from these two numbers.
-ITEM_GRID = re.compile(r"-r(\d+)c(\d+)$")
 # Asset roles in the order a title is chosen from, most specific first.
 ASSET_ROLES = ("data", "visual", "thumbnail", "source", "metadata", "style")
 # Directories the source tree owns at the root of a catalog, beside the group
@@ -506,10 +504,12 @@ def _localize_object(
 
 def _item_title(meta: dict, href: str) -> str:
     """Return the translated title of the Item that `href` points at."""
-    match = ITEM_GRID.search(Path(href).stem)
-    if not match:
+    # A locale fills its `item_title` template from the grid row and column.
+    grid = item_grid(Path(href).stem)
+    if grid is None:
         raise ValueError(f"item href has no grid row and column, {href}")
-    return meta["item_title"].format(row=match.group(1), column=match.group(2)).strip()
+    row, column = grid
+    return meta["item_title"].format(row=row, column=column).strip()
 
 
 def _write_items(

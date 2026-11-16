@@ -13,10 +13,14 @@ and locale overlays. This comparison detects a tree that lacks a rebuild.
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from common import item_grid  # noqa: E402
 
 
 REPO = Path(__file__).resolve().parent.parent.parent.parent
@@ -285,7 +289,9 @@ def _check_translations_match_overlay(
                 if rel == "item":
                     # An Item title comes from the overlay `item_title`
                     # template, and the locale tree has its own Item.
-                    row, column = Path(link["href"]).stem.rsplit("-r", 1)[1].split("c")
+                    grid = item_grid(Path(link["href"]).stem)
+                    assert grid is not None, f"item href has no grid suffix in {path}"
+                    row, column = grid
                     expected = meta["item_title"].format(row=row, column=column)
                     assert link["title"] == expected, f"stale item title in {path}"
                     assert link["href"] == source_link["href"], path

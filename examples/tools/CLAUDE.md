@@ -156,10 +156,9 @@ Each entry in `collections`.
 - `source`. `{url, media_type, title, layer?, stable}`. The true original upstream file. `stable: false` marks a live endpoint.
 - `providers`. List of `{name, url, roles}`. Roles are `producer`, `licensor`, `processor`, `host`.
 - `provenance`. `{via?, canonical?, updated?}`.
-- `temporal`. `[start, end_or_null]`.
+- `temporal`. `[start, end_or_null]`. A `raster-scenes` Collection needs a closed `[start, end]`. Each Item gets it as `start_datetime` and `end_datetime`.
 - `grid`. `{columns, rows}`. `raster-scenes` only. The source raster is cut into this grid, and each cell with a valid pixel becomes one Item.
 - `item_title`. `raster-scenes` only. The Item title template, with `{row}` and `{column}` placeholders. Each locale overlay gives its own `item_title`.
-- `scene_interval`. `[start, end]`. `raster-scenes` only. The time range of every scene, written to each Item as `start_datetime` and `end_datetime`.
 - `thumbnail_bbox?`. `[minx, miny, maxx, maxy]`. Frames the preview only, not the data. Use it for antimeridian-spanning data.
 - `derivatives`. `{pmtiles, thumbnail}`. Booleans that toggle the PMTiles and thumbnail outputs.
 - `style?`. Per-Collection paint, `{color, outline, opacity, variants}`. Drives both the MapLibre styles and the thumbnail paint. Each entry in `variants` is a dict, `{name, title?, description?, type, ...}`, becoming one `styles/<name>.json` and one `style-<name>` asset with the `title` and `description` carried onto the asset and into the style body. The FIRST variant is the default style, is what the thumbnail renders, and is the one whose asset carries the `default` role alongside `style`. Variant types:

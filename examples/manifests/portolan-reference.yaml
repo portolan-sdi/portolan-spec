@@ -1782,7 +1782,6 @@ collections:
     # The acquisition date is unrecorded upstream. Landsat 7 launched on April
     # 15, 1999, and the file entered the rasterio repository in November 2013,
     # so every scene falls between those two dates.
-    scene_interval: ["1999-04-15T00:00:00Z", "2013-11-30T23:59:59Z"]
     temporal: ["1999-04-15T00:00:00Z", "2013-11-30T23:59:59Z"]
     derivatives: {thumbnail: true}
     blurb: >-

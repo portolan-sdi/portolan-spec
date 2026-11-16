@@ -753,7 +753,12 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         # core.md, a collection of many rasters models each scene as an Item
         # with its COG as an item asset, so this collection has no `data`
         # asset of its own. The source is cut into the manifest `grid`.
-        interval = spec["scene_interval"]
+        # Every scene shares the Collection temporal extent, so the manifest
+        # states the range once and the two cannot disagree.
+        interval = spec.get("temporal")
+        if not interval or len(interval) != 2 or None in interval:
+            raise ValueError(f"{cid} needs a closed `temporal` [start, end] "
+                             "for its scenes")
         items = build_items(local, coll_dir, cid, spec["item_title"], depth,
                             spec["grid"], interval)
         mirror = coll_dir / MIRROR_NAME

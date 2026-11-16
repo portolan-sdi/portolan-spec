@@ -2,9 +2,24 @@
 from __future__ import annotations
 
 import hashlib
+import re
 import subprocess
 from pathlib import Path
 from typing import Any
+
+# A raster-scenes Item id ends in its grid row and column, 1-based.
+ITEM_GRID = re.compile(r"-r(\d+)c(\d+)$")
+
+
+def item_id(stem: str, row: int, column: int) -> str:
+    """The id of the scene Item at a 1-based grid row and column."""
+    return f"{stem}-r{row}c{column}"
+
+
+def item_grid(name: str) -> tuple[int, int] | None:
+    """The 1-based (row, column) that an Item id or file stem ends in, or None."""
+    match = ITEM_GRID.search(name)
+    return (int(match.group(1)), int(match.group(2))) if match else None
 
 
 def run(cmd: list[str], **kw: Any) -> subprocess.CompletedProcess:

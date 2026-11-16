@@ -20,7 +20,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
-from common import filesize, multihash
+from common import filesize, item_id, multihash
 from config import FILE_EXT, MEDIA, PROJ_EXT, STAC_VERSION
 from convert import bands_from_cog, proj_code, to_cog
 
@@ -127,8 +127,8 @@ def build_items(src_tif: Path, coll_dir: Path, cid: str, item_title: str, depth:
     as `start_datetime` and `end_datetime` with a null `datetime`.
 
     `item_title` is the manifest template for the Item title, with `{row}` and
-    `{column}` placeholders. The Item id ends in `-r<row>c<column>`, and
-    translations.py reads the row and the column back from that suffix."""
+    `{column}` placeholders. `common.item_id` builds the Item id, and
+    `common.item_grid` reads the row and the column back from it."""
     import rasterio
 
     stem = cid.split("/")[-1]
@@ -136,7 +136,7 @@ def build_items(src_tif: Path, coll_dir: Path, cid: str, item_title: str, depth:
         cells = grid_windows(src.width, src.height, grid["columns"], grid["rows"])
     items = []
     for row, col, window in cells:
-        iid = f"{stem}-r{row + 1}c{col + 1}"
+        iid = item_id(stem, row + 1, col + 1)
         item_dir = coll_dir / iid
         cog = item_dir / f"{iid}.tif"
         write_scene_cog(src_tif, window, cog)
