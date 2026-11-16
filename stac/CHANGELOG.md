@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The extension registry lists the [Storage](https://github.com/stac-extensions/storage)
+  extension at `v2.0.0`, SHOULD for partition globs on an S3-compatible
+  service other than Amazon S3. It lists the
+  [Datacube](https://github.com/stac-extensions/datacube) extension at
+  `v2.3.0`, MUST for a Zarr store with more than one data variable. The spec
+  text already required both (#265).
+
 - The extension registry lists the [Classification](https://github.com/stac-extensions/classification)
   extension at `v2.0.0`, SHOULD for classified rasters, with
   `classification:classes` on the asset for a single-band raster and on the
