@@ -514,14 +514,16 @@ def _item_title(meta: dict, href: str) -> str:
 
 def _write_items(
     source: dict, source_node: Path, target_node: Path, meta: dict, messages: dict
-) -> None:
+) -> list[dict]:
     """Write one translated Item for each `item` link of a Collection.
 
     A validator requires an `item` link to point at an Item that the
     Collection contains, so a locale tree cannot link to the Items of the
     source tree. The translated Item has the translated title. Its assets
-    point back at the data beside the source Item.
+    point back at the data beside the source Item. Returns the translated
+    Items.
     """
+    items = []
     for link in source.get("links", []):
         if link.get("rel") != "item":
             continue
@@ -537,6 +539,33 @@ def _write_items(
             asset["title"] = _asset_title(key, asset, messages, {})
         target_item.parent.mkdir(parents=True, exist_ok=True)
         _write_json(target_item, item)
+        items.append(item)
+    return items
+
+
+def _write_mirror(obj: dict, items: list[dict], target_node: Path) -> None:
+    """Write the item mirror of a translated Collection beside it.
+
+    PORTO-FMT-042 requires the mirror to hold the Items of its Collection. The
+    translated Collection has its own Items with translated titles, so it
+    cannot use the mirror of the source Collection.
+    """
+    mirror = next((a for a in (obj.get("assets") or {}).values()
+                   if "collection-mirror" in a.get("roles", [])), None)
+    if mirror is None:
+        return
+    # Only a Collection with a mirror needs these imports, and scenes needs
+    # the raster stack.
+    from common import filesize, multihash
+    from scenes import MIRROR_NAME, write_items_parquet
+
+    if not items:
+        raise ValueError(f"{target_node} has an item mirror and no Items")
+    path = target_node.parent / MIRROR_NAME
+    write_items_parquet(items, path)
+    mirror["href"] = f"./{MIRROR_NAME}"
+    mirror["file:size"] = filesize(path)
+    mirror["file:checksum"] = multihash(path)
 
 
 def _english_sidecar_href(target_node: Path, source_node: Path, name: str) -> str:
@@ -748,7 +777,8 @@ def build_translations(manifest: dict, manifest_path: Path, out: Path) -> None:
                 locale["messages"]["language_names"],
                 out,
             )
+            items = _write_items(source_objects[path], source_node, target_node,
+                                 _metadata(locale, path), locale["messages"])
+            _write_mirror(obj, items, target_node)
             _write_json(target_node, obj)
             _write_sidecars(obj, source_objects[path], target_node, source_node, locale)
-            _write_items(source_objects[path], source_node, target_node,
-                         _metadata(locale, path), locale["messages"])

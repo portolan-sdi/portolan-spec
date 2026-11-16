@@ -159,7 +159,30 @@ def check_committed() -> int:
                 assert [row["bbox"][k] for k in ("xmin", "ymin", "xmax", "ymax")] == item["bbox"]
                 assert row["assets"]["data"]["file:checksum"] == \
                     item["assets"]["data"]["file:checksum"]
+            root = EXAMPLES / "catalog" / manifest.stem
+            for tree in [coll_dir, *sorted(root.glob(f"*/{spec['id']}"))]:
+                _check_mirror_hrefs(tree)
     return count
+
+
+def _check_mirror_hrefs(coll_dir: Path) -> None:
+    """Each row of a mirror must resolve its hrefs against the mirror file, and
+    must match the Item that its `self` link points at."""
+    coll = json.loads((coll_dir / "collection.json").read_text())
+    assert coll["assets"][MIRROR_KEY]["href"] == f"./{MIRROR_NAME}", coll_dir
+    item_hrefs = {l["href"] for l in coll["links"] if l["rel"] == "item"}
+    rows = pq.ParquetFile(coll_dir / MIRROR_NAME).read().select(
+        ["id", "assets", "links", "title"]).to_pylist()
+    assert {next(l["href"] for l in r["links"] if l["rel"] == "self") for r in rows} \
+        == item_hrefs, f"{coll_dir} mirror rows are not the Items of the Collection"
+    for row in rows:
+        hrefs = [a["href"] for a in row["assets"].values() if a] + \
+            [l["href"] for l in row["links"]]
+        for href in hrefs:
+            assert (coll_dir / href).resolve().is_file(), f"{coll_dir} mirror {row['id']} {href}"
+        self_href = next(l["href"] for l in row["links"] if l["rel"] == "self")
+        item = json.loads((coll_dir / self_href).read_text())
+        assert row["title"] == item["properties"]["title"], (coll_dir, row["id"])
 
 
 def main() -> int:

@@ -4,7 +4,7 @@
 
 ## ملفات البيانات
 
-- [مرآة العناصر (stac-geoparquet)](../../../raster/sample-scenes/items.parquet)
+- [مرآة العناصر (stac-geoparquet)](./items.parquet)
 - [ملف المصدر الأصلي](https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif)
 - [صورة مصغرة](../../../raster/sample-scenes/thumbnail.png)
 

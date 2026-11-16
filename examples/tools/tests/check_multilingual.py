@@ -194,6 +194,13 @@ def _check_language_tree(root: Path, manifest: dict, locales: dict[str, dict]) -
                     continue
                 target = (path.parent / asset["href"]).resolve()
                 assert target.is_file(), f"broken asset in {path}: {asset['href']}"
+                # The item mirror holds the translated Items, so each language
+                # tree has its own. Every other asset is shared.
+                if "collection-mirror" in asset.get("roles", []):
+                    assert target.parent == path.parent, (
+                        f"the mirror of {path} is not beside it: {target}"
+                    )
+                    continue
                 assert root / code not in target.parents, (
                     f"duplicated asset in {code}: {target}"
                 )
@@ -305,6 +312,16 @@ def check_translations_match_their_overlay() -> None:
         _check_translations_match_overlay(root, manifest, locales)
 
 
+def _is_item_mirror(path: Path) -> bool:
+    """An item mirror is metadata, the translated Items in stac-geoparquet."""
+    collection = path.with_name("collection.json")
+    if not collection.is_file():
+        return False
+    assets = json.loads(collection.read_text()).get("assets", {}).values()
+    return any(a.get("href") == f"./{path.name}" and "collection-mirror" in a.get("roles", [])
+               for a in assets)
+
+
 def check_translation_trees_hold_metadata_only() -> None:
     allowed = {".json", ".md"}
     cases = _translation_cases()
@@ -315,6 +332,7 @@ def check_translation_trees_hold_metadata_only() -> None:
                 path
                 for path in (root / code).rglob("*")
                 if path.is_file() and path.suffix not in allowed
+                and not _is_item_mirror(path)
             ]
             assert not unexpected, f"translated tree contains data files: {unexpected}"
 

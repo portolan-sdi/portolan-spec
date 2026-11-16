@@ -37,10 +37,12 @@ the data, so there is no honest way to present one of these as official. No
 Collection carries a `canonical` link either, because that is owed only when the
 upstream publishes its own STAC, and none of these nine do.
 
-Every Collection carries a cloud-native canonical data Asset with its own real
-`file:size` and sha2-256 multihash `file:checksum`. The five whose upstream is a
-directly downloadable file also cite that original as a `source`-role Asset. The
-other three upstreams are live API endpoints, so they are referenced by URL only,
+Eight Collections carry a cloud-native canonical data Asset with its own real
+`file:size` and sha2-256 multihash `file:checksum`. The multi-scene raster
+Collection keeps its data in its Items. Each Item has one COG `data` Asset with
+the same two fields, and the Collection has an `items.parquet` item mirror. The
+six whose upstream is a directly downloadable file also cite that original as a
+`source`-role Asset. The other three upstreams are live API endpoints, so they are referenced by URL only,
 which the spec asks for and which keeps a checksum off bytes this catalog does
 not control. Every node has a `README.md` with runnable code for opening the data
 and an `AGENTS.md` with guidance for agents.

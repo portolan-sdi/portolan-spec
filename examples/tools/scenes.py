@@ -14,7 +14,9 @@ from __future__ import annotations
 
 import json
 import logging
+import posixpath
 import tempfile
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -223,9 +225,39 @@ def hilbert_sorted(items: list[dict]) -> list[dict]:
     return sorted(items, key=lambda i: (hilbert_key(i["bbox"], extent), i["id"]))
 
 
+def item_href(item: dict) -> str:
+    """The href of an Item from its Collection directory."""
+    return f"./{item['id']}/{item['id']}.json"
+
+
+def _is_relative(href: str) -> bool:
+    return "://" not in href and not href.startswith("/")
+
+
+def mirror_row(item: dict) -> dict:
+    """Return a copy of `item` with its hrefs relative to the Collection
+    directory, where the mirror file is.
+
+    An Item file has hrefs relative to its own directory. A row of the mirror
+    has no directory of its own, so a client resolves its hrefs against the
+    mirror file. The copy also gets a `self` link to the Item file."""
+    row = deepcopy(item)
+    base = posixpath.dirname(item_href(item))
+    for value in list(row.get("assets", {}).values()) + row.get("links", []):
+        href = value.get("href", "")
+        if _is_relative(href):
+            path = posixpath.normpath(posixpath.join(base, href))
+            value["href"] = path if path.startswith("..") else f"./{path}"
+    row["links"] = [l for l in row.get("links", []) if l.get("rel") != "self"]
+    row["links"].insert(0, {"rel": "self", "href": item_href(item),
+                            "type": "application/geo+json"})
+    return row
+
+
 def write_items_parquet(items: list[dict], out: Path, row_group_size: int = 1024) -> int:
     """Write the stac-geoparquet item mirror, one row per Item, in Hilbert
-    order. Returns the row count.
+    order. Returns the row count. Each row is `mirror_row` of its Item, so
+    its hrefs resolve against `out`.
 
     PORTO-FMT-043 applies the GeoParquet rules to this file. The
     stac-geoparquet writer does not sort rows, so this function sorts them
@@ -241,7 +273,8 @@ def write_items_parquet(items: list[dict], out: Path, row_group_size: int = 1024
 
     # The import sets the root logger to INFO, which prints a line per batch.
     logging.getLogger("stac_geoparquet").setLevel(logging.WARNING)
-    table = stac_geoparquet.arrow.parse_stac_items_to_arrow(hilbert_sorted(items)).read_all()
+    table = stac_geoparquet.arrow.parse_stac_items_to_arrow(
+        [mirror_row(i) for i in hilbert_sorted(items)]).read_all()
     out.parent.mkdir(parents=True, exist_ok=True)
     stac_geoparquet.arrow.to_parquet(
         table.to_reader(max_chunksize=row_group_size), out, compression="zstd")

@@ -64,8 +64,8 @@
       "roles": [
         "collection-mirror"
       ],
-      "file:size": 23113,
-      "file:checksum": "1220f4d225d380c3283be7acd627d7d4dc3550d3d0ea8918004c378c01b1e4dfc1cc",
+      "file:size": 23462,
+      "file:checksum": "1220f5335cba09bf813a736e0e0ec0003c61c0f6af4277a87be9e1333a28747062e5",
       "description": "A stac-geoparquet copy of the Items of this Collection, one row for each Item. The rows are in Hilbert curve order of the Item bbox center."
     },
     "source": {
