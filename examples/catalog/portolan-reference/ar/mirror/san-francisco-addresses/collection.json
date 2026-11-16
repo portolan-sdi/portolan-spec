@@ -68,7 +68,8 @@
   "table:columns": [
     {
       "name": "fid",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "معرف المعلم الذي عينته GDAL عند قراءة المولد لطبقة المصدر. فريد داخل هذا الملف، وليس مفتاحا من المصدر."
     },
     {
       "name": "street_full_street_name",
@@ -92,7 +93,8 @@
     },
     {
       "name": "supdistpad",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رقم دائرة المشرف مع صفر بادئ، مثل 01 أو 02."
     },
     {
       "name": "complete_landmark_name",
@@ -102,7 +104,7 @@
     {
       "name": "eas_fullid",
       "type": "varchar",
-      "description": "معرف صف فريد يتكون من المعرف الأساسي والفرعي ومعرف رابط القطعة مفصولة بشرطات. وهو العمود الوحيد الفريد لكل صف."
+      "description": "معرف صف يتكون من المعرف الأساسي والفرعي ومعرف رابط القطعة مفصولة بشرطات. فريد داخل هذا الملف، مثل fid."
     },
     {
       "name": "direct_source",
@@ -131,7 +133,8 @@
     },
     {
       "name": "supdist",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم الكامل لدائرة مجلس المشرفين."
     },
     {
       "name": "eas_baseid",
@@ -150,11 +153,13 @@
     },
     {
       "name": "supname",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "الاسم الكامل لمشرف الدائرة عند نشر المصدر. قد لا يكون محدثا."
     },
     {
       "name": "eas_address_id",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "معرف DataSF للعنوان موضوع معاملة بيانات العنوان. قد يكون للعنوان الواحد أكثر من صف، لذلك قد تتكرر القيمة في هذا الملف."
     },
     {
       "name": "street_type",
@@ -203,7 +208,8 @@
     },
     {
       "name": "numbertext",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "رقم دائرة المشرف مكتوبا نصا، مثل ONE أو TWO."
     },
     {
       "name": "data_as_of",
@@ -212,7 +218,8 @@
     },
     {
       "name": "landmark_aliases",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "أسماء المعلم البارز، الدارجة أو الرسمية، المرتبطة بالعنوان، في صورة مصفوفة Postgres نصية، مثل {\"One Rincon Hill\"}."
     },
     {
       "name": "geom",

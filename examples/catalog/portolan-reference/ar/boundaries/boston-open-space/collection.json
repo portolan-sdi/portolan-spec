@@ -61,11 +61,13 @@
   "table:columns": [
     {
       "name": "fid",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "معرف المعلم الذي عينته GDAL عند قراءة المولد لطبقة المصدر. فريد داخل هذا الملف، وليس مفتاحا من المصدر."
     },
     {
       "name": "OBJECTID",
-      "type": "integer"
+      "type": "integer",
+      "description": "معرف الكائن في Esri الذي يعينه ArcGIS لكل صف في طبقة المصدر. فريد داخل هذا الملف."
     },
     {
       "name": "SITE_NAME",

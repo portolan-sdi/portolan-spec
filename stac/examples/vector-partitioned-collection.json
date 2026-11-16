@@ -10,7 +10,7 @@
   ],
   "id": "buildings",
   "title": "Buildings of Andalusia",
-  "description": "Building footprints for Andalusia, Spain, partitioned by province into one GeoParquet file per province. All partitions can be read at once with the glob pattern `https://data.example.org/andalusia/buildings/*/*.parquet`.",
+  "description": "Building footprints for Andalusia, Spain, partitioned by province into one GeoParquet file per province. All partitions can be read at once with the glob pattern `s3://example-bucket/andalusia/buildings/*/*.parquet`.",
   "license": "CC-BY-4.0",
   "updated": "2026-07-15T09:30:00Z",
   "keywords": [
@@ -29,7 +29,7 @@
     }
   ],
   "partition:file_count": 8,
-  "partition:glob": "https://data.example.org/andalusia/buildings/*/*.parquet",
+  "partition:glob": "s3://example-bucket/andalusia/buildings/*/*.parquet",
   "providers": [
     {
       "name": "Dirección General del Catastro",

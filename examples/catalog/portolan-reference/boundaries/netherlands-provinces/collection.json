@@ -69,7 +69,8 @@
   "table:columns": [
     {
       "name": "fid",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "Feature id from the source GeoPackage layer, 1 to 12. Unique in this file."
     },
     {
       "name": "identificatie",

@@ -43,6 +43,8 @@ The `data` asset is GeoParquet 2.0 with a native geometry type and a covering bb
 
 | Column | Type | Description |
 |---|---|---|
+| `fid` | bigint | Feature id that GDAL assigned when the generator read the source layer. Unique in this file. It is not an upstream key. |
+| `OBJECTID` | integer | Esri object ID that ArcGIS assigns to each row of the source layer. Unique in this file. |
 | `SITE_NAME` | varchar | Best-known or official site name. Multi-parcel sites carry Roman numeral suffixes, Stony Brook Reservation I and II. |
 | `OWNERSHIP` | varchar | Fee owner where known. City of Boston, Commonwealth of Massachusetts, private owners, and agency abbreviations like BRA and BNAN. |
 | `PROTECTION` | varchar | Slash-separated legal protection instruments. A97 is Article 97 of the Massachusetts Constitution, the strongest. Free text, match with LIKE. |
@@ -63,7 +65,7 @@ The `data` asset is GeoParquet 2.0 with a native geometry type and a covering bb
 | `geom` | geometry | Site geometry, WGS84 longitude and latitude. |
 | `bbox` | struct(xmin double, ymin double, xmax double, ymax double) | Per-feature bounding box struct, the GeoParquet covering. |
 
-The table has 21 columns in all. The full list with types lives in `table:columns` on the collection.
+The same descriptions live in `table:columns` on the collection, so tools that read STAC see them too.
 
 ## Protection and Access Are Columns, Not Assumptions
 

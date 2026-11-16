@@ -603,9 +603,11 @@ def _write_sidecars(
     target_node: Path,
     source_node: Path,
     locale: dict,
+    meta: dict | None = None,
 ) -> None:
     messages = locale["messages"]
     lines = [f"# {obj['title']}", "", obj["description"], ""]
+    schema_note = (meta or {}).get("schema_note")
     if obj["type"] == "Catalog":
         children = [link for link in obj["links"] if link.get("rel") == "child"]
         lines += [f"## {messages['collections']}", ""]
@@ -617,6 +619,13 @@ def _write_sidecars(
         lines += [f"## {messages['data_files']}", ""]
         for asset in obj.get("assets", {}).values():
             lines.append(f"- [{asset['title']}]({asset['href']})")
+        if schema_note:
+            # The English README has the full schema table. The note carries a
+            # fact about the schema that a reader needs in this language too.
+            if "schema" not in messages:
+                raise ValueError(f"{target_node} has a schema_note and the "
+                                 "locale messages have no schema heading")
+            lines += ["", f"## {messages['schema']}", "", schema_note.strip()]
         lines += [
             "",
             f"## {messages['license']}",
@@ -781,4 +790,5 @@ def build_translations(manifest: dict, manifest_path: Path, out: Path) -> None:
                                  _metadata(locale, path), locale["messages"])
             _write_mirror(obj, items, target_node)
             _write_json(target_node, obj)
-            _write_sidecars(obj, source_objects[path], target_node, source_node, locale)
+            _write_sidecars(obj, source_objects[path], target_node, source_node, locale,
+                            _metadata(locale, path))

@@ -68,7 +68,8 @@
   "table:columns": [
     {
       "name": "fid",
-      "type": "bigint"
+      "type": "bigint",
+      "description": "Feature id that GDAL assigned when the generator read the source layer. Unique in this file. It is not an upstream key."
     },
     {
       "name": "street_full_street_name",
@@ -92,7 +93,8 @@
     },
     {
       "name": "supdistpad",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Supervisor District number with zero padding, such as 01 or 02."
     },
     {
       "name": "complete_landmark_name",
@@ -102,7 +104,7 @@
     {
       "name": "eas_fullid",
       "type": "varchar",
-      "description": "Unique row identifier, base id, sub id, and parcel link id joined with dashes. The only column unique per row."
+      "description": "Row identifier, base id, sub id, and parcel link id joined with dashes. Unique in this file, as fid is."
     },
     {
       "name": "direct_source",
@@ -131,7 +133,8 @@
     },
     {
       "name": "supdist",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Full name of the Supervisorial District."
     },
     {
       "name": "eas_baseid",
@@ -150,11 +153,13 @@
     },
     {
       "name": "supname",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Full name of the Supervisor of the District when the source was published. It can be out of date."
     },
     {
       "name": "eas_address_id",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "DataSF id of the address that is the object of the address data transaction. One address can have more than one row, so the value can repeat in this file."
     },
     {
       "name": "street_type",
@@ -203,7 +208,8 @@
     },
     {
       "name": "numbertext",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Supervisor District number as text, such as ONE or TWO."
     },
     {
       "name": "data_as_of",
@@ -212,7 +218,8 @@
     },
     {
       "name": "landmark_aliases",
-      "type": "varchar"
+      "type": "varchar",
+      "description": "Colloquial or official landmark names associated with the address, as a Postgres array literal, such as {\"One Rincon Hill\"}."
     },
     {
       "name": "geom",
