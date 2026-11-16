@@ -37,7 +37,8 @@ the data, so there is no honest way to present one of these as official. No
 Collection carries a `canonical` link either, because that is owed only when the
 upstream publishes its own STAC, and none of these nine do.
 
-Eight Collections carry a cloud-native canonical data Asset with its own real
+Each Collection except the multi-scene raster Collection carries a cloud-native
+canonical data Asset with its own real
 `file:size` and sha2-256 multihash `file:checksum`. The multi-scene raster
 Collection keeps its data in its Items. Each Item has one COG `data` Asset with
 the same two fields, and the Collection has an `items.parquet` item mirror. The
