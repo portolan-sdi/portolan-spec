@@ -97,7 +97,8 @@ catalog remains valid.
 A validator applies the requirements of one specification version to a whole
 catalog. A validator MAY apply the requirements of the newest version it
 supports, whatever version an object declares. A validator that does this
-reports the declared version, so readers can tell which requirements applied.
+reports the version whose requirements it applied and the version the object
+declares.
 
 Declaring the Portolan extension is a claim of conformance, not proof of it. An
 object conforms to this specification only by passing the Portolan validator.

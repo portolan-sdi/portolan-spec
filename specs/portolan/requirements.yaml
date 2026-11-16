@@ -109,14 +109,6 @@ requirements:
       differs from the root catalog's; such a mismatch is a warning, not an
       error, and a mixed-version catalog remains valid.
 
-  - id: PORTO-CORE-011
-    severity: MUST
-    enforcement: process
-    file: specs/portolan/core.md
-    quote: >-
-      The metadata passes MUST be executable without reading asset data; the
-      data pass MAY be run independently.
-
   - id: PORTO-CORE-089
     severity: MAY
     enforcement: validator
@@ -124,6 +116,14 @@ requirements:
     quote: >-
       A validator MAY apply the requirements of the newest version it
       supports, whatever version an object declares.
+
+  - id: PORTO-CORE-011
+    severity: MUST
+    enforcement: process
+    file: specs/portolan/core.md
+    quote: >-
+      The metadata passes MUST be executable without reading asset data; the
+      data pass MAY be run independently.
 
   - id: PORTO-CORE-012
     severity: MAY

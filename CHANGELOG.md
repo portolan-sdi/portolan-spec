@@ -16,7 +16,8 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   [`specs/portolan/core.md`](specs/portolan/core.md#conformance-and-versioning)).
   A validator can check every object against the newest specification version
   it supports, whatever version the object declares. It then reports the
-  declared version (#264).
+  version whose requirements it applied and the version the object declares
+  (#264).
 
 - **Collections of multiple rasters should have an overview COG**
   (`PORTO-FMT-067` through `PORTO-FMT-072`). This applies to two or more
