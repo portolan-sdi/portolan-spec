@@ -224,8 +224,8 @@ bands from the embedded minimum and maximum, and a single-band raster goes
 through the same path as a multiband one. Without the statistics they fall
 back to the full range of the data type, and the rendered output is washed
 out or black. Clients also ignore statistics that cover only some bands. An
-8-bit band displays correctly without rescaling, and a classified raster
-renders from its color table, so those files work without statistics.
+8-bit band displays correctly without rescaling. A classified raster renders
+from its color table. Both display correctly without statistics.
 Statistics still help every raster. A desktop tool such as QGIS or GDAL
 computes missing statistics from the pixels, and over HTTP that computation
 approaches a full read of the file.
