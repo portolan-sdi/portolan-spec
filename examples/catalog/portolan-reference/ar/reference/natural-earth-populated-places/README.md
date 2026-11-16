@@ -13,6 +13,10 @@
 - [خريطة حرارية لكثافة الأماكن](../../../reference/natural-earth-populated-places/styles/density.json)
 - [صورة مصغرة](../../../reference/natural-earth-populated-places/thumbnail.png)
 
+## المخطط (Schema)
+
+لا تنشر Natural Earth قاموس بيانات. ولا يزال [طلب إنشاء قاموس](https://github.com/nvkelso/natural-earth-vector/issues/153) مفتوحا. يصف الملف الأعمدة التي يتوفر لها مصدر موثوق فقط. ولا يحمل باقي الأعمدة أي وصف.
+
 ## الرخصة (License)
 
 CC0-1.0

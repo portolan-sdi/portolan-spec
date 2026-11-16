@@ -35,8 +35,9 @@ The `data` asset is GeoParquet 2.0 with a native geometry type and a covering bb
 
 ## Schema
 
-Natural Earth publishes no data dictionary, and its maintainer
-[declined to write one](https://github.com/nvkelso/natural-earth-vector/issues/153).
+Natural Earth publishes no data dictionary. The
+[request for one](https://github.com/nvkelso/natural-earth-vector/issues/153)
+is still open.
 The table lists every column that has a description. A description
 comes from the Natural Earth release notes, changelog, or maintainer,
 or from values that this file shows. The other columns have no
@@ -57,7 +58,7 @@ description because the source defines none. They are in
 | `NAME` | varchar | Short map label, for example Dem. Rep. Congo. |
 | `NAME_LONG` | varchar | Long-form name, for example Democratic Republic of the Congo. Differs from NAME on 21 rows. |
 | `NOTE_ADM0` | varchar | Short note that gives context to the sovereignty of the feature, such as Fr. or U.K. Null for most rows. |
-| `NOTE_BRK` | varchar | Note that gives context to the sovereignty of a breakaway or disputed feature, such as Self admin.; Claimed by Cyprus. Null for most rows. |
+| `NOTE_BRK` | varchar | Note that gives context to the sovereignty of a breakaway or disputed feature, such as a self-administered status or the country that claims it. Null for most rows. |
 | `NAME_SORT` | varchar | Name for sorted lists. Natural Earth provides it so that a list can ignore a prefix such as The. |
 | `MAPCOLOR7` | integer | Map color index. Natural Earth states that its map color derives from a US State Department political world map, where no neighboring countries have the same color and all territories of a sovereign state share one color. |
 | `MAPCOLOR8` | integer | Map color index. Natural Earth states that its map color derives from a US State Department political world map, where no neighboring countries have the same color and all territories of a sovereign state share one color. |

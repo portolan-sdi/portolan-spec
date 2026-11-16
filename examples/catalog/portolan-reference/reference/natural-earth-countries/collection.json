@@ -193,7 +193,7 @@
     {
       "name": "NOTE_BRK",
       "type": "varchar",
-      "description": "Note that gives context to the sovereignty of a breakaway or disputed feature, such as Self admin.; Claimed by Cyprus. Null for most rows."
+      "description": "Note that gives context to the sovereignty of a breakaway or disputed feature, such as a self-administered status or the country that claims it. Null for most rows."
     },
     {
       "name": "NAME_SORT",

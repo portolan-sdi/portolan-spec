@@ -287,7 +287,7 @@ collections:
       SU_A3: "Natural Earth three-letter code of the administrative sub-unit. Natural Earth states that it is like an ISO alpha-3 code, but different."
       GEOU_DIF: "Flag that states if the geographic unit is different from its parent administrative unit. Natural Earth provides it so that a map does not repeat labels. The value is 0 in every row of this file."
       NOTE_ADM0: "Short note that gives context to the sovereignty of the feature, such as Fr. or U.K. Null for most rows."
-      NOTE_BRK: "Note that gives context to the sovereignty of a breakaway or disputed feature, such as Self admin.; Claimed by Cyprus. Null for most rows."
+      NOTE_BRK: "Note that gives context to the sovereignty of a breakaway or disputed feature, such as a self-administered status or the country that claims it. Null for most rows."
       NAME_SORT: "Name for sorted lists. Natural Earth provides it so that a list can ignore a prefix such as The."
       MAPCOLOR7: "Map color index. Natural Earth states that its map color derives from a US State Department political world map, where no neighboring countries have the same color and all territories of a sovereign state share one color."
       MAPCOLOR8: "Map color index. Natural Earth states that its map color derives from a US State Department political world map, where no neighboring countries have the same color and all territories of a sovereign state share one color."
@@ -387,8 +387,9 @@ collections:
 
         ## Schema
 
-        Natural Earth publishes no data dictionary, and its maintainer
-        [declined to write one](https://github.com/nvkelso/natural-earth-vector/issues/153).
+        Natural Earth publishes no data dictionary. The
+        [request for one](https://github.com/nvkelso/natural-earth-vector/issues/153)
+        is still open.
         The table lists every column that has a description. A description
         comes from the Natural Earth release notes, changelog, or maintainer,
         or from values that this file shows. The other columns have no
@@ -598,9 +599,9 @@ collections:
       geom: Point geometry, WGS84 longitude and latitude. Use it instead of the legacy LATITUDE and LONGITUDE columns.
       bbox: Per-feature bounding box struct, the GeoParquet covering.
       fid: "Feature id that GDAL assigned when the generator read the source layer. Unique in this file. It is not an upstream key."
-      NAMEPAR: "Other name in common use. Natural Earth sets it only when one such name exists."
-      NAMEALT: "Alternate names as a list, where Natural Earth finds them appropriate."
-      CAPIN: "Kind of capital, such as Administrative or De facto capita. Natural Earth sets it only for a country capital. The values are cut at 15 characters."
+      NAMEPAR: "Another name for the place. For a scientific station, it holds the country or territory that runs the station. Null for most rows."
+      NAMEALT: "Alternate names, where Natural Earth finds them appropriate. Most values hold one name. A value with more than one name separates them with a pipe character (|)."
+      CAPIN: "Kind of capital, such as Administrative or De facto capita. It is set mostly for country capitals, and a few other rows also have it, such as UN Headquarters. The values are cut at 15 characters."
       SOV0NAME: "Name of the Natural Earth sovereign state that the point falls in."
       SOV_A3: "Code of the Natural Earth sovereign state that the point falls in."
       ISO_A2: "ISO alpha-2 code of the Natural Earth country that the point falls in."
@@ -707,8 +708,9 @@ collections:
 
         ## Schema
 
-        Natural Earth publishes no data dictionary, and its maintainer
-        [declined to write one](https://github.com/nvkelso/natural-earth-vector/issues/153).
+        Natural Earth publishes no data dictionary. The
+        [request for one](https://github.com/nvkelso/natural-earth-vector/issues/153)
+        is still open.
         The table lists every column that has a description. A description
         comes from the Natural Earth release notes, changelog, or maintainer,
         or from values that this file shows. The other columns have no
@@ -1602,7 +1604,7 @@ collections:
       A fixed 5,000-record extract of San Francisco's 388,550-record master
       address database, kept small on purpose for spec demonstration.
     columns:
-      eas_fullid: Unique row identifier, base id, sub id, and parcel link id joined with dashes. The only column unique per row.
+      eas_fullid: "Row identifier, base id, sub id, and parcel link id joined with dashes. Unique in this file, as fid is."
       eas_baseid: Identifier of the base address, the building. Units share it, so count distinct eas_baseid for buildings.
       eas_subid: Identifier of the sub-address, a unit or apartment, within its base.
       address: Full address string, with the unit as a hash suffix when present.
@@ -1629,12 +1631,12 @@ collections:
       geom: Address point, WGS84 longitude and latitude. Units stack on their building's single point.
       bbox: Per-feature bounding box struct, the GeoParquet covering.
       fid: "Feature id that GDAL assigned when the generator read the source layer. Unique in this file. It is not an upstream key."
-      eas_address_id: "DataSF describes it as the id that uniquely identifies the address that is the object of the address data transaction."
+      eas_address_id: "DataSF id of the address that is the object of the address data transaction. One address can have more than one row, so the value can repeat in this file."
       supdist: "Full name of the Supervisorial District."
       supdistpad: "Supervisor District number with zero padding, such as 01 or 02."
       numbertext: "Supervisor District number as text, such as ONE or TWO."
-      supname: "Last name of the current Supervisor of the District."
-      landmark_aliases: "Colloquial or official landmark name associated with the address."
+      supname: "Full name of the Supervisor of the District when the source was published. It can be out of date."
+      landmark_aliases: 'Colloquial or official landmark names associated with the address, as a Postgres array literal, such as {"One Rincon Hill"}.'
     docs:
       readme: |
         Five thousand records from the

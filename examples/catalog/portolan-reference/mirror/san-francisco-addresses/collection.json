@@ -104,7 +104,7 @@
     {
       "name": "eas_fullid",
       "type": "varchar",
-      "description": "Unique row identifier, base id, sub id, and parcel link id joined with dashes. The only column unique per row."
+      "description": "Row identifier, base id, sub id, and parcel link id joined with dashes. Unique in this file, as fid is."
     },
     {
       "name": "direct_source",
@@ -154,12 +154,12 @@
     {
       "name": "supname",
       "type": "varchar",
-      "description": "Last name of the current Supervisor of the District."
+      "description": "Full name of the Supervisor of the District when the source was published. It can be out of date."
     },
     {
       "name": "eas_address_id",
       "type": "varchar",
-      "description": "DataSF describes it as the id that uniquely identifies the address that is the object of the address data transaction."
+      "description": "DataSF id of the address that is the object of the address data transaction. One address can have more than one row, so the value can repeat in this file."
     },
     {
       "name": "street_type",
@@ -219,7 +219,7 @@
     {
       "name": "landmark_aliases",
       "type": "varchar",
-      "description": "Colloquial or official landmark name associated with the address."
+      "description": "Colloquial or official landmark names associated with the address, as a Postgres array literal, such as {\"One Rincon Hill\"}."
     },
     {
       "name": "geom",

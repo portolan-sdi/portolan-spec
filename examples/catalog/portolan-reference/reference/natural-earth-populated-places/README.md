@@ -48,8 +48,9 @@ ORDER BY POP_MAX DESC LIMIT 5;
 
 ## Schema
 
-Natural Earth publishes no data dictionary, and its maintainer
-[declined to write one](https://github.com/nvkelso/natural-earth-vector/issues/153).
+Natural Earth publishes no data dictionary. The
+[request for one](https://github.com/nvkelso/natural-earth-vector/issues/153)
+is still open.
 The table lists every column that has a description. A description
 comes from the Natural Earth release notes, changelog, or maintainer,
 or from values that this file shows. The other columns have no
@@ -62,11 +63,11 @@ description because the source defines none. They are in
 | `SCALERANK` | integer | Importance rank 0 to 10, 0 most important. Filter on it to thin labels by zoom. |
 | `FEATURECLA` | varchar | What kind of place this is. Admin-0 capital, Admin-1 capital, Populated place, Scientific station, and four rarer classes. |
 | `NAME` | varchar | Display name with diacritics, for example Neuquén. Not unique, several city names repeat across countries. |
-| `NAMEPAR` | varchar | Other name in common use. Natural Earth sets it only when one such name exists. |
-| `NAMEALT` | varchar | Alternate names as a list, where Natural Earth finds them appropriate. |
+| `NAMEPAR` | varchar | Another name for the place. For a scientific station, it holds the country or territory that runs the station. Null for most rows. |
+| `NAMEALT` | varchar | Alternate names, where Natural Earth finds them appropriate. Most values hold one name. A value with more than one name separates them with a pipe character (|). |
 | `NAMEASCII` | varchar | ASCII fallback spelling of the name. |
 | `ADM0CAP` | integer | 1 marks a national capital, 200 rows in this file. |
-| `CAPIN` | varchar | Kind of capital, such as Administrative or De facto capita. Natural Earth sets it only for a country capital. The values are cut at 15 characters. |
+| `CAPIN` | varchar | Kind of capital, such as Administrative or De facto capita. It is set mostly for country capitals, and a few other rows also have it, such as UN Headquarters. The values are cut at 15 characters. |
 | `WORLDCITY` | integer | 1 flags 70 globally prominent cities. |
 | `MEGACITY` | integer | 1 flags the 462 places Natural Earth treats as megacities. |
 | `SOV0NAME` | varchar | Name of the Natural Earth sovereign state that the point falls in. |

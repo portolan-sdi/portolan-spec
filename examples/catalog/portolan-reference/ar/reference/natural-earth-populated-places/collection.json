@@ -89,12 +89,12 @@
     {
       "name": "NAMEPAR",
       "type": "varchar",
-      "description": "اسم آخر شائع الاستخدام. تضعه Natural Earth فقط عند وجود اسم واحد من هذا النوع."
+      "description": "اسم آخر للمكان. في محطة علمية يحمل اسم الدولة أو الإقليم الذي يدير المحطة. القيمة فارغة في معظم الصفوف."
     },
     {
       "name": "NAMEALT",
       "type": "varchar",
-      "description": "قائمة بالأسماء البديلة، حيث ترى Natural Earth ذلك مناسبا."
+      "description": "أسماء بديلة، حيث ترى Natural Earth ذلك مناسبا. تحمل معظم القيم اسما واحدا. وتفصل القيمة التي تحمل أكثر من اسم بينها بالحرف (|)."
     },
     {
       "name": "NAMEASCII",
@@ -109,7 +109,7 @@
     {
       "name": "CAPIN",
       "type": "varchar",
-      "description": "نوع العاصمة، مثل Administrative أو De facto capita. تضعه Natural Earth لعاصمة الدولة فقط. القيم مقطوعة عند 15 حرفا."
+      "description": "نوع العاصمة، مثل Administrative أو De facto capita. تضعه Natural Earth غالبا لعواصم الدول، ويحمله عدد قليل من الصفوف الأخرى، مثل UN Headquarters. القيم مقطوعة عند 15 حرفا."
     },
     {
       "name": "WORLDCITY",
