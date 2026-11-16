@@ -45,6 +45,7 @@ with nine planning regions, so this file carries GEOIDs 09110 through
 
 | Column | Type | Description |
 |---|---|---|
+| `fid` | bigint | Feature id that GDAL assigned when the generator read the source layer. Unique in this file. It is not an upstream key. |
 | `STATEFP` | varchar | Two-digit state or territory FIPS code as a zero-padded string. |
 | `COUNTYFP` | varchar | Three-digit county FIPS code, unique within its state. |
 | `COUNTYNS` | varchar | Eight-digit ANSI (GNIS) code, the permanent identifier that survives FIPS reassignment. |
@@ -60,7 +61,7 @@ with nine planning regions, so this file carries GEOIDs 09110 through
 | `geom` | geometry('epsg:4269') | County geometry clipped to the shoreline, NAD83 longitude and latitude. |
 | `bbox` | struct(xmin double, ymin double, xmax double, ymax double) | Per-feature bounding box struct, the GeoParquet covering. |
 
-The table has 15 columns in all. The full list with types lives in `table:columns` on the collection.
+The same descriptions live in `table:columns` on the collection, so tools that read STAC see them too.
 
 ## Join Census Data
 
