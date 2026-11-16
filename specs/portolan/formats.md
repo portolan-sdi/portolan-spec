@@ -346,10 +346,6 @@ an alpha band, in each scene, so that clients don't draw empty pixels as
 black. Publishers SHOULD also use each scene's valid-data footprint as its item
 geometry.
 
-Raster styling (colormaps, legends, continuous vs. categorical vs. multiband) is
-still under discussion — see
-[`specs/incubating/raster-styling.md`](../incubating/raster-styling.md).
-
 ## Tabular (Non-Geospatial)
 
 Portolan supports non-geospatial tabular data as companion data to a catalog's
