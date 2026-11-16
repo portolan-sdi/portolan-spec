@@ -122,8 +122,8 @@ requirements:
     enforcement: process
     file: specs/portolan/core.md
     quote: >-
-      `versions.json` is a tooling artifact and is NOT REQUIRED in a catalog
-      for v0.1.
+      `versions.json` is a tooling artifact and is NOT REQUIRED in a
+      catalog.
 
   - id: PORTO-CORE-013
     severity: MUST
