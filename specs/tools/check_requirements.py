@@ -22,6 +22,10 @@ sentence it governs, so the check needs no markup inside the markdown:
    changelog, so before this check the census drifted every time a
    requirement landed without a release (#150).
 
+An entry with ``status: incubating`` anchors a requirement in a document under
+specs/incubating/. Checks 1 and 2 cover it. The census in check 3 leaves it
+out, because it is outside the conformance surface.
+
 Exclusions cover uppercase keyword mentions that are not requirements (for
 example, prose explaining the RFC 2119 conventions themselves).
 
@@ -58,7 +62,10 @@ KEYWORD = re.compile(
     r"\b(MUST NOT|MUST|SHOULD NOT|SHOULD|MAY|REQUIRED|RECOMMENDED|OPTIONAL)\b"
 )
 SEVERITIES = {"MUST", "SHOULD", "MAY"}
-ID_PATTERN = re.compile(r"^PORTO-(CORE|FMT)-\d{3}$")
+ID_PATTERN = re.compile(r"^PORTO-(CORE|FMT|ZARR)-\d{3}$")
+# An incubating requirement is outside the conformance surface, so the
+# changelog census does not count it.
+INCUBATING = "incubating"
 
 
 def normalize(text: str) -> str:
@@ -86,9 +93,10 @@ def census_errors(manifest: dict) -> list[str]:
     if not matches:
         return []
     claimed = tuple(int(group) for group in matches[0].groups())
-    counts = collections.Counter(e["severity"] for e in manifest["requirements"])
+    counted = [e for e in manifest["requirements"] if e.get("status") != INCUBATING]
+    counts = collections.Counter(e["severity"] for e in counted)
     actual = (
-        len(manifest["requirements"]),
+        len(counted),
         counts["MUST"],
         counts["SHOULD"],
         counts["MAY"],
@@ -124,6 +132,11 @@ def main() -> int:
         seen_ids.add(rid)
         if sev not in SEVERITIES:
             errors.append(f"{rid}: severity {sev!r} not in {sorted(SEVERITIES)}")
+        status = entry.get("status")
+        if status not in (None, INCUBATING):
+            errors.append(f"{rid}: status {status!r} is not {INCUBATING!r}")
+        if (status == INCUBATING) != rel.startswith("specs/incubating/"):
+            errors.append(f"{rid}: status and file disagree about incubation")
 
         if rel not in texts:
             texts[rel] = normalize((ROOT / rel).read_text())

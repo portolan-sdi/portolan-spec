@@ -335,6 +335,10 @@ mirror. The catalog index, a STAC-GeoParquet file with a row for each catalog an
 collection of a catalog, is incubating. See
 [`specs/incubating/stac-geoparquet.md`](../incubating/stac-geoparquet.md).
 
+Zarr is a candidate raster format beside COG. The draft
+[Zarr profile](../incubating/zarr.md) states its rules, and it is not yet part
+of the conformance surface.
+
 ### Imagery
 
 For satellite and aerial imagery, publishers SHOULD declare nodata, or include

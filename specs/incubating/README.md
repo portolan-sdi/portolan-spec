@@ -15,5 +15,6 @@ its incubating doc is removed. Debate happens in GitHub issues and PRs.
 | [`point-cloud.md`](point-cloud.md) | Deferred — awaiting a COPC reference implementation |
 | [`geotiff-stats-headers.md`](geotiff-stats-headers.md) | Encoding detail for the (normative) COG statistics requirement |
 | [`spatial-order.md`](spatial-order.md) | Open — how a validator measures spatial order; graduates after the v0.3 release ([#188](https://github.com/portolan-sdi/portolan-spec/pull/188)) |
+| [`zarr.md`](zarr.md) | Open — draft profile for Zarr raster stores, awaiting implementations ([#132](https://github.com/portolan-sdi/portolan-spec/issues/132)) |
 | [`iceberg.md`](iceberg.md) | Open — how a catalog publishes an Iceberg table over its GeoParquet ([#200](https://github.com/portolan-sdi/portolan-spec/issues/200)) |
 | [`stac-geoparquet.md`](stac-geoparquet.md) | Partly graduated — raster item mirrors are normative; the catalog index is experimental, in use, and follows upstream ([#44](https://github.com/portolan-sdi/portolan-spec/issues/44)) |
