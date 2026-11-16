@@ -600,7 +600,7 @@ collections:
       bbox: Per-feature bounding box struct, the GeoParquet covering.
       fid: "Feature id that GDAL assigned when the generator read the source layer. Unique in this file. It is not an upstream key."
       NAMEPAR: "Another name for the place. For a scientific station, it holds the country or territory that runs the station. Null for most rows."
-      NAMEALT: "Alternate names, where Natural Earth finds them appropriate. Most values hold one name. A value with more than one name separates them with a pipe character (|)."
+      NAMEALT: "Alternate names, where Natural Earth finds them appropriate. Most values contain one name. A value with more than one name separates them with a pipe character (|)."
       CAPIN: "Kind of capital, such as Administrative or De facto capita. It is set mostly for country capitals, and a few other rows also have it, such as UN Headquarters. The values are cut at 15 characters."
       SOV0NAME: "Name of the Natural Earth sovereign state that the point falls in."
       SOV_A3: "Code of the Natural Earth sovereign state that the point falls in."

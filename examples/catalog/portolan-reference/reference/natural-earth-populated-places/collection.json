@@ -94,7 +94,7 @@
     {
       "name": "NAMEALT",
       "type": "varchar",
-      "description": "Alternate names, where Natural Earth finds them appropriate. Most values hold one name. A value with more than one name separates them with a pipe character (|)."
+      "description": "Alternate names, where Natural Earth finds them appropriate. Most values contain one name. A value with more than one name separates them with a pipe character (|)."
     },
     {
       "name": "NAMEASCII",

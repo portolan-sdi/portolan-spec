@@ -64,7 +64,7 @@ description because the source defines none. They are in
 | `FEATURECLA` | varchar | What kind of place this is. Admin-0 capital, Admin-1 capital, Populated place, Scientific station, and four rarer classes. |
 | `NAME` | varchar | Display name with diacritics, for example Neuquén. Not unique, several city names repeat across countries. |
 | `NAMEPAR` | varchar | Another name for the place. For a scientific station, it holds the country or territory that runs the station. Null for most rows. |
-| `NAMEALT` | varchar | Alternate names, where Natural Earth finds them appropriate. Most values hold one name. A value with more than one name separates them with a pipe character (|). |
+| `NAMEALT` | varchar | Alternate names, where Natural Earth finds them appropriate. Most values contain one name. A value with more than one name separates them with a pipe character (|). |
 | `NAMEASCII` | varchar | ASCII fallback spelling of the name. |
 | `ADM0CAP` | integer | 1 marks a national capital, 200 rows in this file. |
 | `CAPIN` | varchar | Kind of capital, such as Administrative or De facto capita. It is set mostly for country capitals, and a few other rows also have it, such as UN Headquarters. The values are cut at 15 characters. |

@@ -13,7 +13,7 @@
 - [القارات مع أسماء الدول](../../../reference/natural-earth-countries/styles/labeled.json)
 - [صورة مصغرة](../../../reference/natural-earth-countries/thumbnail.png)
 
-## المخطط (Schema)
+## المخطط
 
 لا تنشر Natural Earth قاموس بيانات. ولا يزال [طلب إنشاء قاموس](https://github.com/nvkelso/natural-earth-vector/issues/153) مفتوحا. يصف الملف الأعمدة التي يتوفر لها مصدر موثوق فقط. ولا يحمل باقي الأعمدة أي وصف.
 
