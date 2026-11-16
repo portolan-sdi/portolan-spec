@@ -8,7 +8,7 @@ ligt_in_provincie_code.
 
 Query the GeoParquet `data` asset in place with DuckDB spatial, read_parquet('netherlands-provinces.parquet'), or load it with GeoPandas. It streams over HTTP range requests, so query the published URL directly rather than downloading first. For rendering use the visual PMTiles asset with its MapLibre styles.
 
-## Coordinate Reference System
+## Coordinate reference system
 
 EPSG:28992, Amersfoort / RD New, a projected coordinate reference system whose coordinates are in metres.
 Planar distance and area functions return metres and square metres directly, so no geodesic correction is needed. Web maps and anything joined to data in degrees need a transform to EPSG:4326 first.

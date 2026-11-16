@@ -1,0 +1,111 @@
+{
+  "type": "Feature",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
+  ],
+  "id": "sample-scenes-r3c3",
+  "collection": "raster/sample-scenes",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -77.745963,
+          24.077091
+        ],
+        [
+          -77.165002,
+          24.086424
+        ],
+        [
+          -77.173257,
+          24.571155
+        ],
+        [
+          -77.756427,
+          24.56161
+        ],
+        [
+          -77.745963,
+          24.077091
+        ]
+      ]
+    ]
+  },
+  "bbox": [
+    -77.756427,
+    24.077091,
+    -77.165002,
+    24.571155
+  ],
+  "properties": {
+    "title": "Scene row 3, column 3",
+    "datetime": null,
+    "start_datetime": "1999-04-15T00:00:00Z",
+    "end_datetime": "2013-11-30T23:59:59Z"
+  },
+  "assets": {
+    "data": {
+      "href": "./sample-scenes-r3c3.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "title": "Scene row 3, column 3 (COG)",
+      "roles": [
+        "data"
+      ],
+      "bands": [
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 1.0,
+            "maximum": 255.0,
+            "mean": 34.7377,
+            "stddev": 39.2378,
+            "valid_percent": 99.8213
+          }
+        },
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 1.0,
+            "maximum": 255.0,
+            "mean": 40.3471,
+            "stddev": 41.1506,
+            "valid_percent": 99.8242
+          }
+        },
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 1.0,
+            "maximum": 255.0,
+            "mean": 42.2275,
+            "stddev": 40.289,
+            "valid_percent": 99.8639
+          }
+        }
+      ],
+      "proj:code": "EPSG:32618",
+      "file:size": 74258,
+      "file:checksum": "1220b7eaaa141536984d222b5e975b47155d86b1d4a0ad182711423717d21f7df46f"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "collection",
+      "href": "../collection.json",
+      "type": "application/json"
+    }
+  ]
+}

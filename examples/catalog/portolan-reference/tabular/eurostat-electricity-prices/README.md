@@ -95,7 +95,7 @@ Romania's 59 percent jump in late 2025 is a cap ending, not a market
 shock. Data before 2007 lives in a separate, methodologically
 incompatible table, never splice them.
 
-## Provenance and License
+## Provenance and license
 
 License, CC-BY-4.0. Attribution, Source, Eurostat.
 Providers, Eurostat (producer, licensor), Portolan SDI (host).

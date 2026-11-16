@@ -26,6 +26,12 @@
       "title": "Sample Raster COG"
     },
     {
+      "rel": "child",
+      "href": "./sample-scenes/collection.json",
+      "type": "application/json",
+      "title": "Sample raster scenes"
+    },
+    {
       "rel": "agents",
       "href": "./AGENTS.md",
       "type": "text/markdown",
@@ -47,7 +53,7 @@
       "hreflang": "ar"
     }
   ],
-  "updated": "2026-07-21T00:00:00Z",
+  "updated": "2026-11-14T00:00:00Z",
   "language": {
     "code": "en",
     "name": "English"

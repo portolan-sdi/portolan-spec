@@ -10,6 +10,9 @@
 #   "rashid[data]>=0.1.8,<0.2.0",
 #   "rio-cogeo>=5.3",
 #   "Pillow>=11",
+#   # Writes the item mirror. Its Arrow schema and Parquet defaults set the
+#   # bytes, and so the file:checksum, of each items.parquet.
+#   "stac-geoparquet>=0.8.3,<0.9",
 # ]
 # ///
 """
@@ -27,7 +30,8 @@ output against the committed Portolan schema.
 
 The generator is a small set of plain sibling modules under examples/tools/, run
 through this build.py entrypoint. config holds the static constants, common the
-shared helpers, fetch the downloader, convert the format conversions,
+shared helpers, fetch the downloader, convert the format conversions, scenes
+the raster-scenes path that cuts one raster into Items with an item mirror,
 derivatives the PMTiles and MapLibre styles, thumbnails the previews, stacio the
 STAC assembly and catalog builders, translations the alternate-language trees,
 and validate the conformance checks.

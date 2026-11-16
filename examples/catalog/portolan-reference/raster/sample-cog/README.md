@@ -63,7 +63,7 @@ conclusion about the Bahamas should be drawn from these pixels. About
 a third of the image is a nodata collar from the rotated scene
 footprint.
 
-## Provenance and License
+## Provenance and license
 
 License, CC0-1.0.
 Providers, rasterio (producer, licensor), Portolan SDI (host).

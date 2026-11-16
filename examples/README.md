@@ -17,6 +17,8 @@ It exercises every major case in the spec.
   document their columns with the table extension and declare their CRS with
   the projection extension.
 - A raster Collection, Cloud Optimized GeoTIFF with per-band statistics.
+- A multi-scene raster Collection, sixteen COG scenes modeled as Items, with
+  valid-data footprints and a stac-geoparquet item mirror.
 - A tabular, non-geospatial Collection, plain Parquet with documented columns
   and a runnable DuckDB example joining it to a geometry Collection, which the
   spec asks for whenever geometry and attributes live in separate files.
@@ -33,12 +35,15 @@ an organization hosting data it did not produce is a mirror even when it is the
 primary distributor. Portolan SDI serves every asset here and produced none of
 the data, so there is no honest way to present one of these as official. No
 Collection carries a `canonical` link either, because that is owed only when the
-upstream publishes its own STAC, and none of these eight do.
+upstream publishes its own STAC, and none of these nine do.
 
-Every Collection carries a cloud-native canonical data Asset with its own real
-`file:size` and sha2-256 multihash `file:checksum`. The five whose upstream is a
-directly downloadable file also cite that original as a `source`-role Asset. The
-other three upstreams are live API endpoints, so they are referenced by URL only,
+Each Collection except the multi-scene raster Collection carries a cloud-native
+canonical data Asset with its own real
+`file:size` and sha2-256 multihash `file:checksum`. The multi-scene raster
+Collection keeps its data in its Items. Each Item has one COG `data` Asset with
+the same two fields, and the Collection has an `items.parquet` item mirror. The
+six whose upstream is a directly downloadable file also cite that original as a
+`source`-role Asset. The other three upstreams are live API endpoints, so they are referenced by URL only,
 which the spec asks for and which keeps a checksum off bytes this catalog does
 not control. Every node has a `README.md` with runnable code for opening the data
 and an `AGENTS.md` with guidance for agents.

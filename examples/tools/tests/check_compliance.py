@@ -319,7 +319,7 @@ def check_crs_block_is_derived_not_authored() -> None:
     # gets its linear unit and a geographic one gets the degrees warning
     # without anything in a manifest saying so.
     proj = "\n".join(crs_block("EPSG:28992", "vector", "polygon"))
-    assert "## Coordinate Reference System" in proj, proj
+    assert "## Coordinate reference system" in proj, proj
     assert "EPSG:28992, Amersfoort / RD New" in proj, proj
     assert "projected" in proj and "metres" in proj, proj
     geog = "\n".join(crs_block("EPSG:4269", "vector", "polygon"))
@@ -396,7 +396,13 @@ def check_committed_agents_docs_state_their_crs() -> None:
     assert colls, "no committed collections found"
     for path in colls:
         coll = json.loads(Path(path).read_text())
-        code = coll["assets"]["data"].get("proj:code")
+        data = coll["assets"].get("data")
+        if data is None:
+            # A raster-scenes Collection keeps its data in its Items.
+            item = next(l for l in coll["links"] if l["rel"] == "item")
+            data = json.loads(
+                (Path(path).parent / item["href"]).read_text())["assets"]["data"]
+        code = data.get("proj:code")
         agents = (Path(path).parent / "AGENTS.md").read_text()
         cid = coll["id"]
         if code:

@@ -1,0 +1,139 @@
+{
+  "type": "Feature",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json"
+  ],
+  "id": "sample-scenes-r3c1",
+  "collection": "raster/sample-scenes",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -78.827325,
+          24.053839
+        ],
+        [
+          -78.329539,
+          24.065493
+        ],
+        [
+          -78.342218,
+          24.549749
+        ],
+        [
+          -78.711828,
+          24.541092
+        ],
+        [
+          -78.714705,
+          24.538315
+        ],
+        [
+          -78.717342,
+          24.527426
+        ],
+        [
+          -78.725251,
+          24.494757
+        ],
+        [
+          -78.735792,
+          24.451199
+        ],
+        [
+          -78.803943,
+          24.159957
+        ],
+        [
+          -78.819614,
+          24.091915
+        ],
+        [
+          -78.827406,
+          24.056543
+        ],
+        [
+          -78.827325,
+          24.053839
+        ]
+      ]
+    ]
+  },
+  "bbox": [
+    -78.827406,
+    24.053839,
+    -78.329539,
+    24.549749
+  ],
+  "properties": {
+    "title": "المشهد، الصف 3، العمود 1",
+    "datetime": null,
+    "start_datetime": "1999-04-15T00:00:00Z",
+    "end_datetime": "2013-11-30T23:59:59Z"
+  },
+  "assets": {
+    "data": {
+      "href": "../../../../raster/sample-scenes/sample-scenes-r3c1/sample-scenes-r3c1.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "title": "البيانات",
+      "roles": [
+        "data"
+      ],
+      "bands": [
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 1.0,
+            "maximum": 255.0,
+            "mean": 14.3096,
+            "stddev": 22.425,
+            "valid_percent": 74.2057
+          }
+        },
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 6.0,
+            "maximum": 255.0,
+            "mean": 54.1795,
+            "stddev": 26.4311,
+            "valid_percent": 74.2283
+          }
+        },
+        {
+          "data_type": "uint8",
+          "statistics": {
+            "minimum": 13.0,
+            "maximum": 255.0,
+            "mean": 76.2544,
+            "stddev": 27.733,
+            "valid_percent": 74.2283
+          }
+        }
+      ],
+      "proj:code": "EPSG:32618",
+      "file:size": 52201,
+      "file:checksum": "1220bbf3d360ab23e57f3f9126421e2fdb6633570c1719d49c9cd461ebac9a8d00ba"
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "../../../catalog.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "parent",
+      "href": "../collection.json",
+      "type": "application/json"
+    },
+    {
+      "rel": "collection",
+      "href": "../collection.json",
+      "type": "application/json"
+    }
+  ]
+}

@@ -14,7 +14,7 @@
 - [أنواع ما يعادل المقاطعة](../../../boundaries/us-counties/styles/county-types.json)
 - [صورة مصغرة](../../../boundaries/us-counties/thumbnail.png)
 
-## الرخصة (License)
+## الرخصة (license)
 
 CC0-1.0
 

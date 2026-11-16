@@ -16,6 +16,7 @@ match scales before spatial joins.
 - Netherlands Provinces, 12 polygons, guide at ./boundaries/netherlands-provinces/AGENTS.md
 - San Francisco Addresses (EAS), 5,000 points, guide at ./mirror/san-francisco-addresses/AGENTS.md
 - Sample Raster COG, 3-band raster, guide at ./raster/sample-cog/AGENTS.md
+- Sample raster scenes, 16 3-band raster scenes, guide at ./raster/sample-scenes/AGENTS.md
 - Eurostat Electricity Prices for Household Consumers, 65,466 rows, guide at ./tabular/eurostat-electricity-prices/AGENTS.md
 
 ## Translation

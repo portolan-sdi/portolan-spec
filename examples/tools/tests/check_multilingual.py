@@ -13,10 +13,14 @@ and locale overlays. This comparison detects a tree that lacks a rebuild.
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from common import item_grid  # noqa: E402
 
 
 REPO = Path(__file__).resolve().parent.parent.parent.parent
@@ -194,6 +198,13 @@ def _check_language_tree(root: Path, manifest: dict, locales: dict[str, dict]) -
                     continue
                 target = (path.parent / asset["href"]).resolve()
                 assert target.is_file(), f"broken asset in {path}: {asset['href']}"
+                # The item mirror holds the translated Items, so each language
+                # tree has its own. Every other asset is shared.
+                if "collection-mirror" in asset.get("roles", []):
+                    assert target.parent == path.parent, (
+                        f"the mirror of {path} is not beside it: {target}"
+                    )
+                    continue
                 assert root / code not in target.parents, (
                     f"duplicated asset in {code}: {target}"
                 )
@@ -275,6 +286,20 @@ def _check_translations_match_overlay(
             assert len(source_links) == len(translated_links), path
             for source_link, link in zip(source_links, translated_links, strict=True):
                 rel = link["rel"]
+                if rel == "item":
+                    # An Item title comes from the overlay `item_title`
+                    # template, and the locale tree has its own Item.
+                    grid = item_grid(Path(link["href"]).stem)
+                    assert grid is not None, f"item href has no grid suffix in {path}"
+                    row, column = grid
+                    expected = meta["item_title"].format(row=row, column=column)
+                    assert link["title"] == expected, f"stale item title in {path}"
+                    assert link["href"] == source_link["href"], path
+                    item = json.loads((path.parent / link["href"]).read_text())
+                    assert item["properties"]["title"] == expected, (
+                        f"stale Item title under {path}"
+                    )
+                    continue
                 if rel in ("alternate", "child") or "title" not in link:
                     continue
                 link_override = (
@@ -293,6 +318,16 @@ def check_translations_match_their_overlay() -> None:
         _check_translations_match_overlay(root, manifest, locales)
 
 
+def _is_item_mirror(path: Path) -> bool:
+    """An item mirror is metadata, the translated Items in stac-geoparquet."""
+    collection = path.with_name("collection.json")
+    if not collection.is_file():
+        return False
+    assets = json.loads(collection.read_text()).get("assets", {}).values()
+    return any(a.get("href") == f"./{path.name}" and "collection-mirror" in a.get("roles", [])
+               for a in assets)
+
+
 def check_translation_trees_hold_metadata_only() -> None:
     allowed = {".json", ".md"}
     cases = _translation_cases()
@@ -303,6 +338,7 @@ def check_translation_trees_hold_metadata_only() -> None:
                 path
                 for path in (root / code).rglob("*")
                 if path.is_file() and path.suffix not in allowed
+                and not _is_item_mirror(path)
             ]
             assert not unexpected, f"translated tree contains data files: {unexpected}"
 

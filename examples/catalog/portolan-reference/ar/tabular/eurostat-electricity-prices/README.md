@@ -6,7 +6,7 @@
 
 - [البيانات](../../../tabular/eurostat-electricity-prices/eurostat-electricity-prices.parquet)
 
-## الرخصة (License)
+## الرخصة (license)
 
 CC-BY-4.0
 

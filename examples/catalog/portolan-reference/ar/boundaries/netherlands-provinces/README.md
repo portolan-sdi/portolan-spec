@@ -14,7 +14,7 @@
 - [صورة مصغرة](../../../boundaries/netherlands-provinces/thumbnail.png)
 - [البيانات الوصفية الأصلية](../../../boundaries/netherlands-provinces/iso19115.xml)
 
-## الرخصة (License)
+## الرخصة (license)
 
 CC-BY-4.0
 
