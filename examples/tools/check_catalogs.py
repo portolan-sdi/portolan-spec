@@ -28,7 +28,8 @@ main that URI is the next version, which no rashid release bundles yet, so the
 bundled schema would only report PTL-SCH-000.
 
 The gate is errors and warnings. rashid's own exit code fires on errors only, and
-a warning is a real defect in a reference example. Infos are advisory and do not
+a warning is a real defect in a reference example. The one accepted warning is
+PTL-DAT-020 on the Natural Earth columns that the source does not describe. Infos are advisory and do not
 fail the run. The reference catalog reports eight PTL-PRO-002 infos, which are
 expected and terminal, see examples/tools/CLAUDE.md.
 
@@ -126,6 +127,12 @@ def run_rashid(requirement: str, mapping: str, catalog: Path) -> dict:
     return json.loads(completed.stdout)
 
 
+# Warnings the reference catalog accepts. PTL-DAT-020 reports a table column
+# with no description. Natural Earth documents only some of its columns, and
+# the spec says not to write placeholder descriptions.
+ACCEPTED_WARNINGS = {"PTL-DAT-020"}
+
+
 def report(catalog: Path, data: dict, root: Path) -> bool:
     """Print one catalog's findings. True when it passes the gate."""
     print(f"::group::{catalog.relative_to(root)}")
@@ -139,7 +146,13 @@ def report(catalog: Path, data: dict, root: Path) -> bool:
         f"{data['info_count']} info(s) across {data['files_checked']} files."
     )
     print("::endgroup::")
-    return data["error_count"] + data["warning_count"] == 0
+    blocking = [
+        finding
+        for finding in data["findings"]
+        if finding["severity"] == "error"
+        or (finding["severity"] == "warning" and finding["rule_id"] not in ACCEPTED_WARNINGS)
+    ]
+    return not blocking
 
 
 def write_step_summary(rows: list[tuple[Path, dict, bool]]) -> None:

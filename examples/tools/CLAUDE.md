@@ -476,7 +476,9 @@ header with `tomllib`, so the validator that checks a catalog is the validator
 that built it and there is no second pin to drift. It is generic over every tree
 under `examples/catalog/`, so a new manifest is covered as soon as its output is
 committed. Its gate is errors and warnings, since rashid's own exit code fires
-on errors alone and a warning in a reference example is a real defect. The nine
+on errors alone and a warning in a reference example is a real defect. The one
+accepted warning is `PTL-DAT-020` on the Natural Earth columns that the source
+does not describe. The nine
 infos above are advisory and do not fail it.
 
 `check_catalogs.py` also passes the working-copy schema to rashid with
