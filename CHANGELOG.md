@@ -11,6 +11,14 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Added
 
+- **A validator may apply the newest version's requirements**
+  (`PORTO-CORE-089`,
+  [`specs/portolan/core.md`](specs/portolan/core.md#conformance-and-versioning)).
+  A validator can check every object against the newest specification version
+  it supports, whatever version the object declares. It then reports the
+  version whose requirements it applied and the version the object declares
+  (#264).
+
 - **Collections of multiple rasters should have an overview COG**
   (`PORTO-FMT-067` through `PORTO-FMT-072`). This applies to two or more
   rasters with the same bands and time period that together cover a much
@@ -159,8 +167,8 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
   extent** (`PORTO-FMT-018`). Paths for `temporal` and `attribute`
   partitions do not need to indicate spatial extent (#196).
 
-- **Requirements manifest**: 163 requirements, now 98 MUST, 46 SHOULD, and
-  19 MAY.
+- **Requirements manifest**: 164 requirements, now 98 MUST, 46 SHOULD, and
+  20 MAY.
 
 - **PMTiles assets need the `visual` role and a reference to their source
   GeoParquet data in the same collection** (`PORTO-FMT-062`). Use an asset
