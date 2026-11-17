@@ -1,7 +1,10 @@
 name: Publish Catalogs
 
-# Builds an example catalog from its manifest and publishes it to the Portolan
-# repository on Source Cooperative, so the example is readable at a real URL.
+# Publishes the committed example catalog tree to the Portolan repository on
+# Source Cooperative, so the example is readable at a real URL. It uploads the
+# files in git as they are and builds nothing, so the published bytes and every
+# file:checksum match git. A data refresh is a reviewed pull request that runs
+# examples/tools/build.py and commits the result.
 # A catalog that only exists in git proves the bytes are right but proves
 # nothing about how a client reads it, over HTTP range requests against a real
 # object store. This closes that gap.
@@ -9,10 +12,11 @@ name: Publish Catalogs
 # Every manifest under examples/manifests/ becomes a matrix entry, so adding a
 # new catalog is adding a YAML file and nothing else.
 #
-# It runs when a manifest, a generator module, or a committed rebuild lands on
-# main, since each changes the bytes a catalog is made of, on every pull request,
-# and on demand for a single catalog or a dry run. The build refetches five
-# third-party sources, so it is not on every push.
+# It runs when a committed rebuild, a manifest, or a generator module lands on
+# main, on every pull request that touches them, and on demand for a single
+# catalog or a dry run. A manifest or generator change publishes the same
+# committed bytes until a rebuild is committed. The generator modules also
+# hold the rashid pin that the validation gate reads.
 #
 # The target is the portolan-mirrors/portolan-spec-examples product on Source
 # Cooperative. See examples/tools/CLAUDE.md.
@@ -22,7 +26,7 @@ name: Publish Catalogs
 #   pull request N          -> .../<catalog id>/PRs/N/, deleted when it closes
 #
 # On a pull request it also comments the review links, one comment per catalog
-# rewritten in place on each push, so a reviewer opens the built catalog in
+# rewritten in place on each push, so a reviewer opens the published catalog in
 # STAC Browser rather than reading a diff of Parquet, COG, and PMTiles.
 #
 # The job signs in with GitHub OIDC as the Source Cooperative service account
@@ -118,7 +122,7 @@ jobs:
   publish:
     needs: discover
     # A pull request from a fork gets no OIDC token, so the job would run the
-    # whole build and then fail at the sign-in. Skip it instead. Everything
+    # validation and then fail at the sign-in. Skip it instead. Everything
     # that validates a fork's change still runs in examples-checks.yaml, which
     # needs no credentials.
     if: >-
@@ -143,15 +147,6 @@ jobs:
         with:
           persist-credentials: false
 
-      # In noble's universe repo, so no source build. Only the vector path uses
-      # it, for the PMTiles derivatives.
-      - name: Install tippecanoe
-        run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends tippecanoe
-          tippecanoe --version
-
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
@@ -159,34 +154,9 @@ jobs:
           # key has to follow the scripts rather than a lockfile.
           cache-dependency-glob: 'examples/tools/**/*.py'
 
-      # The upstream downloads dominate the build. Keyed on the manifest, since
-      # that is what names the sources.
-      - name: Cache the upstream downloads
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: examples/.cache
-          key: sources-${{ matrix.catalog }}-${{ hashFiles(format('examples/manifests/{0}.*', matrix.catalog)) }}
-          restore-keys: sources-${{ matrix.catalog }}-
-
-      - name: Build the catalog
-        env:
-          CATALOG: ${{ matrix.catalog }}
-        run: |
-          set -euo pipefail
-          # Build into a clean tree. The committed one is a snapshot, and a
-          # collection dropped from the manifest would otherwise survive there
-          # and get published as though it were still current.
-          rm -rf "examples/catalog/${CATALOG}"
-          # The rashid pin bump and the rashid release land in the same pull
-          # request. A restored uv cache can hold a PyPI index page from
-          # before that version exists, and the resolve then fails. Refresh
-          # the one package. See #155.
-          uv run --refresh-package rashid \
-            examples/tools/build.py --catalog "$CATALOG"
-
       # Nothing unvalidated reaches a public URL. Errors and warnings both fail,
       # the same gate the weekly catalog-upstream run applies.
-      - name: Validate the built catalog
+      - name: Validate the committed catalog
         env:
           CATALOG: ${{ matrix.catalog }}
         run: uv run examples/tools/check_catalogs.py --catalog "$CATALOG"
@@ -197,9 +167,8 @@ jobs:
       # is the one the service account trusts. The proxy accepts any region,
       # but the AWS CLI does not sign without one.
       #
-      # It runs after the build on purpose. The credentials last one hour and
-      # nothing renews them, so the clock starts here rather than before a
-      # build that can take most of that hour.
+      # It runs after the validation on purpose. The credentials last one hour
+      # and nothing renews them, so the clock starts here.
       #
       # AWS_ENDPOINT_URL is not exported for the job. publish_catalogs.py runs
       # the AWS CLI it pins and passes it the proxy on every call.
@@ -225,7 +194,7 @@ jobs:
           uv run examples/tools/publish_catalogs.py "${ARGS[@]}"
 
       # A reviewer cannot read a diff of Parquet, COG, and PMTiles and tell
-      # whether the catalog is sound. This puts the built tree one click away,
+      # whether the catalog is sound. This puts the published tree one click away,
       # rendered, so review is looking at a map rather than at base64.
       #
       # One comment per catalog, marked and rewritten in place, so a pull
@@ -271,7 +240,7 @@ jobs:
             echo "- [**Browse the files**](${REPO_URL}) on Source Cooperative"
             echo "- [Root \`catalog.json\`](${PUBLIC_URL}catalog.json)"
             echo
-            echo "${FILES} files, ${SIZE}. Rebuilt and republished on every push to"
+            echo "${FILES} files, ${SIZE}. Republished on every push to"
             echo "this pull request, and deleted when it closes."
           } > comment.md
 

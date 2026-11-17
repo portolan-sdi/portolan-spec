@@ -77,7 +77,7 @@ uv run examples/tools/build.py --catalog portolan-reference   # one catalog
 uv run examples/tools/build.py --only boundaries/us-counties   # one Collection
 ```
 
-Prerequisites on your PATH, `tippecanoe` and `uv`. The whole generator, vector
+Prerequisites on your PATH, `tippecanoe` 2.79.0 and `uv`. The whole generator, vector
 and raster conversion and thumbnails alike, runs on DuckDB spatial, rasterio,
 and rio-cogeo, not the GDAL CLI, so no GDAL command-line install is needed.
 The generator downloads each source once into a git-ignored cache, converts
@@ -137,7 +137,7 @@ them. The product must stay public, because `data.source.coop` serves nothing
 for a product it has no record of.
 
 CI publishes on every push to `main` that changes a manifest, a generator module,
-or a committed rebuild, since each changes the bytes a catalog is made of. A pull
+or a committed rebuild. It uploads the committed tree as is and builds nothing. A pull
 request gets its own preview under `PRs/<number>/`, torn down when it closes, and
 a comment linking it in [STAC Browser](https://browser.portolan-sdi.org/) so
 review can open the catalog rather than read a diff of Parquet and COG.

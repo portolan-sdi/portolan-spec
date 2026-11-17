@@ -70,6 +70,20 @@ geoparquet-io) on the fly. The whole generator, data path and thumbnails
 alike, runs on DuckDB spatial, rasterio, and rio-cogeo, none of it shells out
 to the GDAL CLI, so the only prerequisites on PATH are `tippecanoe` and `uv`.
 
+`publish-catalogs.yaml` uploads the committed tree as is and builds nothing. A
+data refresh is a reviewed pull request that runs
+`uv run --locked --script examples/tools/build.py` with `tippecanoe` 2.79.0 and
+commits the result. `build.py.lock` pins every package, so the run is
+repeatable. After you change the header, run
+`uv lock --script examples/tools/build.py`. Ubuntu's apt package is older, so
+build `tippecanoe` from its tag:
+
+```bash
+git clone --depth 1 --branch 2.79.0 https://github.com/felt/tippecanoe.git
+make -C tippecanoe -j && sudo make -C tippecanoe install
+tippecanoe --version   # tippecanoe v2.79.0
+```
+
 The test scripts run the same way, and `run_all.py` runs all of them, reporting
 every result rather than stopping at the first failure. That is what CI runs.
 
@@ -379,14 +393,14 @@ depends on five third-party servers, so gating merges on it would block work
 whenever one of them is briefly down, which says nothing about the PR. A failure
 opens an issue instead, or comments on the open one.
 
-`.github/workflows/publish-catalogs.yaml` builds each manifest and uploads the
-result to the `portolan-mirrors/portolan-spec-examples` product on Source Cooperative with
+`.github/workflows/publish-catalogs.yaml` uploads each committed catalog tree as
+is to the `portolan-mirrors/portolan-spec-examples` product on Source Cooperative with
 `examples/tools/publish_catalogs.py`, so an example is readable at a real URL rather
 than only in git. It runs when a manifest, a generator module, or a committed
 rebuild lands on main, on every pull request, and on demand for one catalog or
 as a dry run. Transfers go through the AWS CLI, pinned in the script's header
 and run as `python -m awscli`. Nothing reaches a public URL
-unvalidated, the same `check_catalogs.py` gate runs between the build and the
+unvalidated, the same `check_catalogs.py` gate runs before the
 upload, and afterwards the published `catalog.json` is refetched over HTTPS and
 its `id` checked.
 
