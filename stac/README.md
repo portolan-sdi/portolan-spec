@@ -57,8 +57,10 @@ Requirement keywords per BCP 14; a conditional MUST applies only when its condit
 | [Vector][] | `https://stac-extensions.github.io/vector/v0.1.0/schema.json`               | **MUST**    | When layer-level detail is provided |
 | [Partition][] | `https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json`              | **MUST**    | Partitioned collections: `partition:scheme`, `partition:keys`, `partition:glob` (spec: Partitioned Collections) |
 | [Alternate Assets][] | `https://stac-extensions.github.io/alternate-assets/v1.2.0/schema.json`     | **MUST**    | When an absolute asset `href` isn't `https`: add an `https` alternate. For an `https` `href`, SHOULD add `s3://` alternates (spec: Assets) |
+| [Datacube][] | `https://stac-extensions.github.io/datacube/v2.3.0/schema.json`            | **MUST**    | Zarr stores with more than one data variable: `cube:variables` (spec: [Zarr](../specs/incubating/zarr.md), incubating) |
 | [Table][] | `https://stac-extensions.github.io/table/v1.2.0/schema.json`                | SHOULD      | Vector and tabular collections: document columns with `table:columns` |
 | [Classification][] | `https://stac-extensions.github.io/classification/v2.0.0/schema.json`       | SHOULD      | Classified (categorical) rasters, with `classification:classes` on the asset for one band and on the band in `bands` for more bands (spec: Raster, Classified rasters) |
+| [Storage][] | `https://stac-extensions.github.io/storage/v2.0.0/schema.json`             | SHOULD      | Partition globs on an S3-compatible service other than Amazon S3: a `storage:schemes` entry with `type: custom-s3` (spec: Partitioned Collections) |
 | [Render][] | `https://stac-extensions.github.io/render/v2.0.0/schema.json`               | SHOULD      | Continuous rasters rendering from source (draw-time colorization) |
 | [Projection][] | `https://stac-extensions.github.io/projection/v2.0.0/schema.json`           | MAY         | CRS / projection of the data |
 | [Scientific][] | `https://stac-extensions.github.io/scientific/v1.0.0/schema.json`           | MAY         | Citation / DOI |
@@ -84,6 +86,8 @@ As the profile grows, per-format requirement sets (vector, raster, tabular) may 
 [Alternate Assets]: https://github.com/stac-extensions/alternate-assets
 [Render]: https://github.com/stac-extensions/render
 [Classification]: https://github.com/stac-extensions/classification
+[Datacube]: https://github.com/stac-extensions/datacube
+[Storage]: https://github.com/stac-extensions/storage
 [Scientific]: https://github.com/stac-extensions/scientific
 [Contacts]: https://github.com/stac-extensions/contacts
 [Attribution]: https://github.com/stac-extensions/attribution
