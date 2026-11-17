@@ -51,6 +51,9 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ### Changed
 
+- **`versions.json` stays optional in every version** (`PORTO-CORE-012`).
+  The sentence no longer limits the statement to v0.1 (#266).
+
 - **Spatial order keeps one normative rule, and its method moves to
   incubating** (`PORTO-FMT-006`,
   [`specs/incubating/spatial-order.md`](specs/incubating/spatial-order.md)).
