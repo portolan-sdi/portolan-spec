@@ -16,7 +16,7 @@ requirements = [
     { name = "pillow", specifier = "==13.0.0" },
     { name = "pyarrow", specifier = "==26.0.1" },
     { name = "pyyaml", specifier = ">=6.0.3" },
-    { name = "rashid", extras = ["data"], git = "https://github.com/portolan-sdi/rashid.git?rev=14e2479bcb32a52adc386cee3cc0bfd6b0b61c94" },
+    { name = "rashid", extras = ["data"], specifier = ">=0.4.0,<0.5.0" },
     { name = "rasterio", specifier = "==1.5.2" },
     { name = "rio-cogeo", specifier = "==7.0.4" },
     { name = "stac-geoparquet", specifier = "==0.8.3" },
@@ -1263,8 +1263,8 @@ wheels = [
 
 [[package]]
 name = "rashid"
-version = "0.3.0"
-source = { git = "https://github.com/portolan-sdi/rashid.git?rev=14e2479bcb32a52adc386cee3cc0bfd6b0b61c94#14e2479bcb32a52adc386cee3cc0bfd6b0b61c94" }
+version = "0.4.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
     { name = "jsonschema" },
@@ -1279,6 +1279,10 @@ dependencies = [
     { name = "rio-cogeo" },
     { name = "shapely" },
     { name = "tzdata", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/29/17/c93d9f75cd1be13acff817a2839cf9157b5eed0e5adc76261d70ec99bde4/rashid-0.4.0.tar.gz", hash = "sha256:8e034631f8ea609be48cfc4ff205a982209d58b3b5e1fc91968840f8b61a71ca", size = 868876, upload-time = "2026-11-17T13:08:17.036Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b5/5e/2fb419f4761b828c55ba804da196113ee93900756d203bd3f63836100ee1/rashid-0.4.0-py3-none-any.whl", hash = "sha256:f1c8400601ced4c31c3931273b8303215cd57c9ff726727e49e1cbaaa77c577d", size = 299821, upload-time = "2026-11-17T13:08:15.378Z" },
 ]
 
 [[package]]
