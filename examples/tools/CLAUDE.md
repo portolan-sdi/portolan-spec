@@ -149,7 +149,7 @@ misbehaves on this geometry.
 Top level of each file in `manifests/`.
 
 - `id`, `title`, `description`. Root Catalog identity.
-- `schema_uri`. Must equal the pinned v0.3.0 URI. `load_manifest` asserts this.
+- `schema_uri`. Must equal the pinned v0.4.0 URI. `load_manifest` asserts this.
 - `host`. `{name, url, email}`. Appended as the `host`-role provider on mirror Collections.
 - `catalogs`. Map from the first id segment to `{title, description, readme?, agents?}` for each nested Catalog. The optional `readme` and `agents` are markdown templates like the per-collection `docs` below.
 - `docs?`. `{readme?, agents?}` markdown templates for the root Catalog sidecars. Catalog-level templates may use `{{collections}}` (the table of contents the best-practices page asks for), `{{sources}}` (licenses, provenance, upstream list), and `{{agents_index}}` (per-child pointers to each AGENTS.md). Without a template a default skeleton with those blocks is emitted.
@@ -326,7 +326,7 @@ proven by running rashid directly, without the adapter. Do that before publishin
 rebuild.
 
 ```bash
-uv run --with "rashid[data] @ git+https://github.com/portolan-sdi/rashid.git@14e2479bcb32a52adc386cee3cc0bfd6b0b61c94" \
+uv run --with "rashid[data]>=0.4.0,<0.5.0" \
   rashid check --schema examples/catalog/portolan-reference
 ```
 
@@ -367,9 +367,8 @@ entirely, four send no CORS header, and none sends
 party servers. The spec scopes those MUSTs to the catalog's own assets as of
 PORTO-CORE-073, so a validator does not probe an upstream host.
 
-rashid is pinned in `build.py`'s PEP 723 header, currently to the git commit
-`rashid[data] @ git+https://github.com/portolan-sdi/rashid.git@14e2479bcb32a52adc386cee3cc0bfd6b0b61c94`.
-The commit pin is temporary until the rashid release for v0.3.0. Bumping the Portolan schema is a
+rashid is pinned in `build.py`'s PEP 723 header, currently
+`rashid[data]>=0.4.0,<0.5.0`. Bumping the Portolan schema is a
 coordinated change across this repo and rashid, update the local schema,
 regenerate the reference catalog, re-vendor fixtures into rashid, then bump the
 rashid pin here.
