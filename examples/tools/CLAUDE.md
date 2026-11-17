@@ -160,7 +160,7 @@ Each entry in `collections`.
 - `grid`. `{columns, rows}`. `raster-scenes` only. The source raster is cut into this grid, and each cell with a valid pixel becomes one Item.
 - `item_title`. `raster-scenes` only. The Item title template, with `{row}` and `{column}` placeholders. Each locale overlay gives its own `item_title`.
 - `item_data_description`. `raster-scenes` only. The description of the `data` asset of each Item. Each locale overlay gives its own.
-- `asset_descriptions?`. `{asset key: description}`. One sentence per asset that says what the file holds, which core.md asks of every asset. A key the Collection does not have fails the build. Style assets take theirs from `style.variants`.
+- `asset_descriptions?`. `{asset key: description}`. One sentence per asset that says what the file contains, which core.md asks of every asset. A key the Collection does not have fails the build. Style assets take theirs from `style.variants`.
 - `thumbnail_bbox?`. `[minx, miny, maxx, maxy]`. Frames the preview only, not the data. Use it for antimeridian-spanning data.
 - `derivatives`. `{pmtiles, thumbnail}`. Booleans that toggle the PMTiles and thumbnail outputs.
 - `style?`. Per-Collection paint, `{color, outline, opacity, variants}`. Drives both the MapLibre styles and the thumbnail paint. Each entry in `variants` is a dict, `{name, title?, description?, type, ...}`, becoming one `styles/<name>.json` and one `style-<name>` asset with the `title` and `description` carried onto the asset and into the style body. The FIRST variant is the default style, is what the thumbnail renders, and is the one whose asset carries the `default` role alongside `style`. Variant types:
