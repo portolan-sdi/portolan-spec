@@ -1,18 +1,23 @@
 # /// script
-# requires-python = ">=3.12"
+# requires-python = "==3.12.*"
 # dependencies = [
+#   # Every package that writes catalog bytes is pinned exactly, and build.py.lock
+#   # pins the rest, so a local build and the publish workflow write the same
+#   # bytes. Run `uv lock --script examples/tools/build.py` after a change here.
 #   "pyyaml>=6.0.3",
-#   "duckdb>=1.5.5,<2",
+#   "duckdb==1.5.6",
 #   "jsonschema>=4.26.0",
-#   "pyarrow>=25",
+#   "pyarrow==26.0.1",
 #   "geoparquet-io @ git+https://github.com/yharby/geoparquet-io.git@f27e53108910f19bd74a9ff4be5c7d97b104753c",
-#   "rasterio>=1.5",
+#   "rasterio==1.5.2",
 #   "rashid[data] @ git+https://github.com/portolan-sdi/rashid.git@14e2479bcb32a52adc386cee3cc0bfd6b0b61c94",
-#   "rio-cogeo>=5.3",
-#   "Pillow>=11",
+#   "rio-cogeo==7.0.4",
+#   "Pillow==13.0.0",
+#   # The thumbnail renderer computes pixels with it.
+#   "numpy==2.5.5",
 #   # Writes the item mirror. Its Arrow schema and Parquet defaults set the
 #   # bytes, and so the file:checksum, of each items.parquet.
-#   "stac-geoparquet>=0.8.3,<0.9",
+#   "stac-geoparquet==0.8.3",
 # ]
 # ///
 """
@@ -36,7 +41,7 @@ derivatives the PMTiles and MapLibre styles, thumbnails the previews, stacio the
 STAC assembly and catalog builders, translations the alternate-language trees,
 and validate the conformance checks.
 
-Prerequisites (FOSS, on PATH): tippecanoe and uv. The data and thumbnail paths
+Prerequisites (FOSS, on PATH): tippecanoe 2.79.0 and uv. The data and thumbnail paths
 run on DuckDB spatial, rasterio, and rio-cogeo, which vendor their own GDAL
 inside their wheels, so no GDAL command-line install is needed.
 
