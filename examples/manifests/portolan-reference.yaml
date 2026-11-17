@@ -1998,8 +1998,9 @@ collections:
     derivatives: {thumbnail: true}
     # What each asset file holds, PORTO-CORE-088.
     asset_descriptions:
-      source: "The rasterio RGB.byte.tif test image, the 3-band 8-bit GeoTIFF that the scenes are cut from."
+      source: "The rasterio RGB.byte.tif test image, the 3-band 8-bit GeoTIFF that the scenes and the overview are made from."
       thumbnail: "A PNG of the whole image over a light basemap."
+      overview: "All sixteen scenes in one image at a quarter of their resolution, as 8-bit RGB in Web Mercator (EPSG:3857)."
     blurb: >-
       Sixteen COG scenes as Items with an item mirror, for learning the
       multi-scene raster layout, not for analysis.
@@ -2013,7 +2014,7 @@ collections:
         [Sample Raster COG](../sample-cog/README.md) Collection. Here a 4 by
         4 grid cuts it into sixteen scenes of about 198 by 180 pixels.
 
-        The Collection has two parts.
+        The Collection has three parts.
 
         - Each scene is a STAC Item in its own directory, with its Cloud
           Optimized GeoTIFF as the `data` asset. The Item geometry is the
@@ -2022,6 +2023,10 @@ collections:
         - `items.parquet` is the item mirror, a stac-geoparquet copy of the
           sixteen Items with the `collection-mirror` role. The rows are in
           Hilbert curve order.
+        - `overview.tif` is the overview COG, with the `visual` and
+          `overview` roles. It shows all sixteen scenes in one 8-bit RGB
+          image in Web Mercator, at a quarter of their resolution, so a
+          client can show the whole area without reading each scene.
 
         Agents, [AGENTS.md](./AGENTS.md) covers how to search the scenes.
 

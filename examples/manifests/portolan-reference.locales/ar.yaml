@@ -535,9 +535,12 @@ collections:
     item_data_description: "خلية واحدة من الشبكة 4 في 4 مقطوعة من صورة RGB، بصيغة COG بثلاثة نطاقات بعمق 8 بت ضمن UTM 18N."
     assets:
       source:
-        description: "صورة الاختبار RGB.byte.tif من rasterio، وهي ملف GeoTIFF بثلاثة نطاقات بعمق 8 بت قطعت منه المشاهد."
+        description: "صورة الاختبار RGB.byte.tif من rasterio، وهي ملف GeoTIFF بثلاثة نطاقات بعمق 8 بت صنعت منه المشاهد والصورة العامة."
       thumbnail:
         description: "صورة PNG للصورة كاملة فوق خريطة أساس فاتحة."
+      overview:
+        title: "صورة عامة للمشاهد (COG)"
+        description: "المشاهد الستة عشر كلها في صورة واحدة بربع دقتها، بصيغة RGB بعمق 8 بت وفق Web Mercator (EPSG:3857)."
       geoparquet-items:
         title: مرآة العناصر (stac-geoparquet)
         description: "نسخة stac-geoparquet من عناصر هذه المجموعة، بصف واحد لكل عنصر. الصفوف مرتبة حسب منحنى هيلبرت لمركز المربع المحيط بكل عنصر."

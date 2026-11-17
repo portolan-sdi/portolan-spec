@@ -39,7 +39,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 from scenes import (  # noqa: E402
     MIRROR_KEY, MIRROR_NAME, build_items, grid_windows, hilbert_sorted,
-    read_items, valid_footprint, write_items_parquet,
+    read_items, valid_footprint, write_items_parquet, write_overview,
 )
 
 EXAMPLES = HERE.parent.parent
@@ -98,6 +98,12 @@ def check_build(tmp: Path) -> None:
         assert item["assets"]["data"]["proj:code"] == "EPSG:32618"
         assert item["assets"]["data"]["description"] == "One scene."
         assert item["links"][0]["href"] == "../../../catalog.json"
+    overview = tmp / "overview.tif"
+    write_overview(src, overview)
+    with rasterio.open(overview) as ds:
+        # PORTO-FMT-070 and 071, 8-bit RGB in a web map projection.
+        assert ds.count == 3 and set(ds.dtypes) == {"uint8"}, ds.dtypes
+        assert ds.crs.to_epsg() == 3857 and ds.width < 64, (ds.crs, ds.width)
     # A cell on the diagonal is half valid, so its footprint is a triangle.
     diagonal = next(i for i in items if i["id"] == "scenes-r1c1")
     ring = diagonal["geometry"]["coordinates"][0]

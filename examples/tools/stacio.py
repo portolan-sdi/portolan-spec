@@ -26,7 +26,7 @@ from convert import (
 from derivatives import make_pmtiles, author_styles, CATEGORICAL_VARIANTS
 from scenes import (
     MIRROR_KEY, MIRROR_NAME, build_items, items_extent, read_items,
-    write_items_parquet,
+    write_items_parquet, write_overview,
 )
 from thumbnails import (
     make_thumbnail_vector, make_thumbnail_raster, build_thumb_ctx, _thumb_desc,
@@ -788,6 +788,15 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
                             "Collection, one row for each Item. The rows are "
                             "in Hilbert curve order of the Item bbox center."})
         add_source_asset(assets, local, src)
+        # PORTO-FMT-067 to 072, an 8-bit RGB overview COG in Web Mercator, with
+        # the time span of the scenes it shows.
+        overview = coll_dir / "overview.tif"
+        write_overview(local, overview)
+        assets["overview"] = asset(
+            overview, MEDIA["cog"], ["visual", "overview"],
+            f"{spec['title']} overview (COG)",
+            {"proj:code": "EPSG:3857", "start_datetime": interval[0],
+             "end_datetime": interval[1]})
         links += [link("item", f"./{i['id']}/{i['id']}.json", "application/geo+json",
                        i["properties"]["title"]) for i in items]
         exts += [PROJ_EXT]

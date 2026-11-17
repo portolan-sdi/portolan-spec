@@ -3,12 +3,9 @@
 core.md asks a collection of many rasters to model each scene as an Item with
 its COG as an item asset. formats.md then asks that collection for an item
 mirror at `items.parquet` (PORTO-FMT-040 to 043) and for a valid-data footprint
-as each item geometry (PORTO-FMT-074). This module builds them from one source
-raster and the manifest `grid`.
-
-It does not build the overview COG that PORTO-FMT-067 recommends. The rashid
-range pinned in build.py reports PTL-VIZ-002 for a `visual` asset that has no
-style, and an overview COG has none.
+as each item geometry (PORTO-FMT-074), and for an overview COG of the whole
+mosaic (PORTO-FMT-067 to 072). This module builds them from one source raster
+and the manifest `grid`.
 """
 from __future__ import annotations
 
@@ -115,6 +112,28 @@ def write_scene_cog(src_tif: Path, window, out_tif: Path) -> None:
         with rasterio.open(staged, "w", **meta) as dst:
             dst.write(data)
         to_cog(staged, out_tif, None)
+
+
+def write_overview(src_tif: Path, out_tif: Path, factor: int = 4) -> None:
+    """Write the overview COG of the mosaic, the source at 1/`factor` of its
+    resolution, warped to Web Mercator. The scenes are cut from this source,
+    so the overview shows the same pixels."""
+    import rasterio
+    from rasterio.enums import Resampling
+
+    with rasterio.open(src_tif) as src:
+        width, height = src.width // factor, src.height // factor
+        data = src.read(out_shape=(src.count, height, width),
+                        resampling=Resampling.average)
+        meta = src.profile.copy()
+        meta.update(driver="GTiff", width=width, height=height,
+                    transform=src.transform * src.transform.scale(
+                        src.width / width, src.height / height))
+    with tempfile.TemporaryDirectory() as tmp:
+        staged = Path(tmp) / "overview.tif"
+        with rasterio.open(staged, "w", **meta) as dst:
+            dst.write(data)
+        to_cog(staged, out_tif, "EPSG:3857")
 
 
 def build_items(src_tif: Path, coll_dir: Path, cid: str, item_title: str,
