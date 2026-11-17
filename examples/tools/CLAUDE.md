@@ -149,7 +149,7 @@ misbehaves on this geometry.
 Top level of each file in `manifests/`.
 
 - `id`, `title`, `description`. Root Catalog identity.
-- `schema_uri`. Must equal the pinned v0.2.0 URI. `load_manifest` asserts this.
+- `schema_uri`. Must equal the pinned v0.3.0 URI. `load_manifest` asserts this.
 - `host`. `{name, url, email}`. Appended as the `host`-role provider on mirror Collections.
 - `catalogs`. Map from the first id segment to `{title, description, readme?, agents?}` for each nested Catalog. The optional `readme` and `agents` are markdown templates like the per-collection `docs` below.
 - `docs?`. `{readme?, agents?}` markdown templates for the root Catalog sidecars. Catalog-level templates may use `{{collections}}` (the table of contents the best-practices page asks for), `{{sources}}` (licenses, provenance, upstream list), and `{{agents_index}}` (per-child pointers to each AGENTS.md). Without a template a default skeleton with those blocks is emitted.
