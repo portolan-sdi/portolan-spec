@@ -310,7 +310,7 @@ proven by running rashid directly, without the adapter. Do that before publishin
 rebuild.
 
 ```bash
-uv run --with "rashid[data]>=0.1.8,<0.2.0" \
+uv run --with "rashid[data] @ git+https://github.com/portolan-sdi/rashid.git@14e2479bcb32a52adc386cee3cc0bfd6b0b61c94" \
   rashid check --schema examples/catalog/portolan-reference
 ```
 
@@ -351,11 +351,12 @@ entirely, four send no CORS header, and none sends
 party servers. The spec scopes those MUSTs to the catalog's own assets as of
 PORTO-CORE-073, so a validator does not probe an upstream host.
 
-rashid comes from PyPI, pinned to a compatible range in `build.py`'s PEP 723
-header, currently `rashid[data]>=0.1.8,<0.2.0`. Bumping the Portolan schema is a
+rashid is pinned in `build.py`'s PEP 723 header, currently to the git commit
+`rashid[data] @ git+https://github.com/portolan-sdi/rashid.git@14e2479bcb32a52adc386cee3cc0bfd6b0b61c94`.
+The commit pin is temporary until the rashid release for v0.3.0. Bumping the Portolan schema is a
 coordinated change across this repo and rashid, update the local schema,
 regenerate the reference catalog, re-vendor fixtures into rashid, then bump the
-rashid range here.
+rashid pin here.
 
 ## What CI runs, and why it is split in three
 
