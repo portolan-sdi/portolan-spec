@@ -285,8 +285,12 @@ def check_navigation():
         "specs/incubating/point-cloud.md": "specs/incubating/point-cloud.md",
         "specs/incubating/stac-geoparquet.md": "specs/incubating/stac-geoparquet.md",
         "specs/incubating/geotiff-stats-headers.md": "specs/incubating/geotiff-stats-headers.md",
+        "specs/incubating/spatial-order.md": "specs/incubating/spatial-order.md",
+        "specs/incubating/spatial-order/calibration/README.md": "specs/incubating/spatial-order/calibration/index.md",
+        "specs/incubating/zarr/notes/README.md": "specs/incubating/zarr/notes/index.md",
     }
     headings = {
+        "specs/incubating/spatial-order/calibration/index.md": "Calibration of the pruning-efficiency thresholds",
         "specs/incubating/stac-geoparquet.md": "Incubating — STAC-GeoParquet Beyond Raster Items",
         "specs/incubating/geotiff-stats-headers.md": "Incubating — GeoTIFF Statistics Headers",
         "specs/best-practices/index.md": "Best Practices",
@@ -316,6 +320,19 @@ def check_navigation():
         "requirements.md",
     ]
     assert nav[1]["Best practices"][0] == {"Overview": "specs/best-practices/index.md"}
+    # Only the README at the top of a group is its overview. A README in a
+    # subdirectory takes its H1 and sorts with the other pages.
+    incubating = nav[2]["Incubating"]
+    assert incubating[0] == {"Overview": "specs/incubating/index.md"}
+    assert [next(iter(entry)) for entry in incubating].count("Overview") == 1
+    calibration = {
+        "Calibration of the pruning-efficiency thresholds": "specs/incubating/spatial-order/calibration/index.md"
+    }
+    assert incubating.index(calibration) == 1 + incubating.index(
+        {"Spatial order": "specs/incubating/spatial-order.md"}
+    )
+    # Without an H1, that README falls back to its directory name.
+    assert {"Notes": "specs/incubating/zarr/notes/index.md"} in incubating
     # A page without a heading falls back to its file name.
     assert {"Point cloud": "specs/incubating/point-cloud.md"} in nav[2]["Incubating"]
     # A page with an H1 takes the sentence-cased name after the group prefix.
@@ -334,6 +351,10 @@ def check_navigation():
             "Apache Iceberg tables over published GeoParquet",
         ),
         ("COG and PMTiles Outputs", "COG and PMTiles outputs"),
+        (
+            "Incubating: STAC-GeoParquet catalog index",
+            "STAC-GeoParquet catalog index",
+        ),
     ]:
         assert build.nav_label(heading) == label, (heading, build.nav_label(heading))
     assert (

@@ -452,10 +452,13 @@ PROPER_NOUNS = {"Apache", "Git", "Iceberg", "Portolan"}
 def nav_label(heading: str) -> str:
     """Sentence-case the page name in an H1 such as `Incubating — Point Cloud`.
 
-    Acronyms and mixed-case names, such as STAC, GeoTIFF, and GeoParquet, keep
-    their case. Each part of a hyphenated word follows the same rule.
+    The v0.3.0 catalog index page puts a colon after `Incubating`, so the
+    label drops that prefix too. Acronyms and mixed-case names, such as STAC,
+    GeoTIFF, and GeoParquet, keep their case. Each part of a hyphenated word
+    follows the same rule.
     """
-    title = heading.rsplit(" — ", 1)[-1].strip().removeprefix("The ")
+    title = heading.rsplit(" — ", 1)[-1].strip()
+    title = title.removeprefix("Incubating: ").removeprefix("The ")
 
     def part(value: str, first: bool) -> str:
         if first or value in PROPER_NOUNS or not re.fullmatch(r"[A-Z][a-z]+", value):
@@ -486,12 +489,16 @@ def navigation(
     # `headings` maps a staged page to its H1, which names the page.
     headings = headings or {}
 
-    def name(page: str) -> str:
-        if page.endswith("/index.md"):
+    def name(page: str, overview: str) -> str:
+        # Only the README at the top of a group is its overview. A README in
+        # a subdirectory is a page of its own, so its H1 names it.
+        if page == overview:
             return "Overview"
         if page in headings:
             return nav_label(headings[page])
-        return Path(page).stem.replace("-", " ").capitalize()
+        path = Path(page)
+        stem = path.parent.name if path.name == "index.md" else path.stem
+        return stem.replace("-", " ").capitalize()
 
     nav = [
         {
@@ -507,8 +514,9 @@ def navigation(
         ("Incubating", "specs/incubating/"),
     ]:
         pages = sorted(p for p in mapping.values() if p.startswith(prefix))
-        pages.sort(key=lambda p: not p.endswith("/index.md"))
-        nav.append({title: [{name(p): p} for p in pages]})
+        overview = prefix + "index.md"
+        pages.sort(key=lambda p: p != overview)
+        nav.append({title: [{name(p, overview): p} for p in pages]})
     nav.extend(
         [
             {
