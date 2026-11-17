@@ -299,6 +299,9 @@ def _check_translations_match_overlay(
                     assert item["properties"]["title"] == expected, (
                         f"stale Item title under {path}"
                     )
+                    assert item["assets"]["data"]["description"] == (
+                        meta["item_data_description"].strip()
+                    ), f"stale Item asset description under {path}"
                     continue
                 if rel in ("alternate", "child") or "title" not in link:
                     continue

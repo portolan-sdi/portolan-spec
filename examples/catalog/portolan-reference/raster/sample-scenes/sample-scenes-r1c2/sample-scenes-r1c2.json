@@ -63,6 +63,7 @@
       "href": "./sample-scenes-r1c2.tif",
       "type": "image/tiff; application=geotiff; profile=cloud-optimized",
       "title": "Scene row 1, column 2 (COG)",
+      "description": "One cell of the 4 by 4 grid cut from the RGB image, as a 3-band 8-bit COG in UTM zone 18N.",
       "roles": [
         "data"
       ],
@@ -99,8 +100,8 @@
         }
       ],
       "proj:code": "EPSG:32618",
-      "file:size": 68652,
-      "file:checksum": "12203c6c3118239ff9a0cf50fbea20aa742649336e54929f68a11235c587926dd48d"
+      "file:size": 67403,
+      "file:checksum": "122016cf0c6a45e509ab2195ecca4965362842f28d3b2d4530937609c25a906392a9"
     }
   },
   "links": [

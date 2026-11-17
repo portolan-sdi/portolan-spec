@@ -719,7 +719,8 @@
       ],
       "file:size": 618506,
       "file:checksum": "1220acfc4c9abd3e9302626b384b41d7c74c62cc5026289d3aee3bca35a0c13ee5f0",
-      "proj:code": "EPSG:4326"
+      "proj:code": "EPSG:4326",
+      "description": "The 1,251 place points with their attribute columns, in WGS84 longitude and latitude."
     },
     "source": {
       "href": "https://naciscdn.org/naturalearth/50m/cultural/ne_50m_populated_places.zip",
@@ -729,7 +730,8 @@
         "source"
       ],
       "file:size": 553649,
-      "file:checksum": "12209022c3be867be79c44bd6fc6ff4dcc210e85ffee13b033bf4d1d87d83c9ee6b4"
+      "file:checksum": "12209022c3be867be79c44bd6fc6ff4dcc210e85ffee13b033bf4d1d87d83c9ee6b4",
+      "description": "The Natural Earth 1:50m populated places Shapefile, zipped, as Natural Earth publishes it."
     },
     "style-places": {
       "href": "./styles/places.json",
@@ -795,7 +797,8 @@
         "thumbnail"
       ],
       "file:size": 134432,
-      "file:checksum": "12200c8eae74720f9c14bb0899345884fe1be9dac78a437bd096fc4f30736e35d19a"
+      "file:checksum": "12200c8eae74720f9c14bb0899345884fe1be9dac78a437bd096fc4f30736e35d19a",
+      "description": "A PNG map of the place points over a light basemap."
     }
   },
   "links": [

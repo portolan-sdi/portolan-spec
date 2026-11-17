@@ -82,8 +82,8 @@ def check_build(tmp: Path) -> None:
     src = tmp / "source.tif"
     _source(src)
     coll_dir = tmp / "raster" / "scenes"
-    items = build_items(src, coll_dir, "raster/scenes", "Scene {row}-{column}", 2,
-                        {"columns": 4, "rows": 4}, INTERVAL)
+    items = build_items(src, coll_dir, "raster/scenes", "Scene {row}-{column}",
+                        "One scene.", 2, {"columns": 4, "rows": 4}, INTERVAL)
     # The 6 cells above the diagonal have no valid pixel, so they get no Item.
     assert len(items) == 10, len(items)
     ids = [i["id"] for i in items]
@@ -96,6 +96,7 @@ def check_build(tmp: Path) -> None:
         assert item["properties"]["datetime"] is None
         assert item["properties"]["start_datetime"] == INTERVAL[0]
         assert item["assets"]["data"]["proj:code"] == "EPSG:32618"
+        assert item["assets"]["data"]["description"] == "One scene."
         assert item["links"][0]["href"] == "../../../catalog.json"
     # A cell on the diagonal is half valid, so its footprint is a triangle.
     diagonal = next(i for i in items if i["id"] == "scenes-r1c1")

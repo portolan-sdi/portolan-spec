@@ -71,6 +71,12 @@ collections:
       مفتوحا. يصف الملف الأعمدة التي يتوفر لها مصدر موثوق فقط.
       ولا يحمل باقي الأعمدة أي وصف.
     assets:
+      data:
+        description: "مضلعات الدول البالغ عددها 177 مع أعمدة سماتها، بخطي الطول والعرض وفق WGS84."
+      source:
+        description: "ملف Shapefile لدول Admin 0 من Natural Earth بمقياس 1:110 مليون، مضغوطا كما تنشره Natural Earth."
+      thumbnail:
+        description: "خريطة PNG للدول ملونة حسب القارة فوق خريطة أساس فاتحة."
       style-continents:
         title: الدول حسب القارة
         description: "تستخدم كل قارة لونا واحدا من لوحة ألوان الكتالوج. يشمل ذلك مجموعة Seven seas (open ocean) التي يضع فيها Natural Earth الأراضي الفرنسية الجنوبية والقطبية الجنوبية."
@@ -199,6 +205,12 @@ collections:
       مفتوحا. يصف الملف الأعمدة التي يتوفر لها مصدر موثوق فقط.
       ولا يحمل باقي الأعمدة أي وصف.
     assets:
+      data:
+        description: "نقاط الأماكن البالغ عددها 1,251 مع أعمدة سماتها، بخطي الطول والعرض وفق WGS84."
+      source:
+        description: "ملف Shapefile للأماكن المأهولة من Natural Earth بمقياس 1:50 مليون، مضغوطا كما تنشره Natural Earth."
+      thumbnail:
+        description: "خريطة PNG لنقاط الأماكن فوق خريطة أساس فاتحة."
       style-places:
         title: الأماكن المأهولة
         description: "يعرض النمط جميع الأماكن البالغ عددها 1251 كنقاط موحدة باللون الأحمر الدافئ."
@@ -310,6 +322,14 @@ collections:
       تنشر المجموعة الحدود المبسطة بصيغة GeoParquet مع المصدر الأصلي.
     keywords: [حدود, مقاطعات, الولايات المتحدة, تعداد, TIGER]
     assets:
+      data:
+        description: "مضلعات المقاطعات وما يعادلها البالغ عددها 3,235 مع رموز FIPS وأسمائها، وفق NAD83 (EPSG:4269)."
+      source:
+        description: "ملف Shapefile لحدود المقاطعات الخرائطية لعام 2023 بمقياس 1:500,000، مضغوطا كما ينشره مكتب الإحصاء الأمريكي."
+      visual:
+        description: "بلاطات متجهة لمضلعات المقاطعات لخرائط الويب، في طبقة واحدة اسمها us-counties."
+      thumbnail:
+        description: "خريطة PNG لمضلعات المقاطعات فوق خريطة أساس فاتحة."
       style-states:
         title: المقاطعات حسب الولاية
         description: "يلون النمط كل مقاطعة حسب STATE_NAME من لوحة ألوان الكتالوج. تنتج الفسيفساء الكلاسيكية حدود الولايات من تعبئة المقاطعات."
@@ -348,6 +368,12 @@ collections:
       تحتوي المجموعة على 1012 مضلعا بصيغ GeoParquet وPMTiles.
     keywords: [مساحات مفتوحة, حدائق, بوسطن, ترفيه, حدود]
     assets:
+      data:
+        description: "مضلعات المساحات المفتوحة البالغ عددها 1,012 مع أعمدة سماتها، بخطي الطول والعرض وفق WGS84."
+      visual:
+        description: "بلاطات متجهة لمضلعات المساحات المفتوحة لخرائط الويب، في طبقة واحدة اسمها boston-open-space."
+      thumbnail:
+        description: "خريطة PNG لمضلعات المساحات المفتوحة فوق خريطة أساس فاتحة."
       style-types:
         title: المساحات المفتوحة حسب النوع
         description: "يفصل TypeLong بين الحدائق وطرق الحدائق والمحميات والمقابر والمناطق البرية الحضرية والساحات والحدائق المجتمعية."
@@ -392,6 +418,16 @@ collections:
       تنشر المجموعة GeoParquet وPMTiles مع أنماط خرائط.
     keywords: [حدود, مقاطعات, هولندا, إداري, PDOK]
     assets:
+      data:
+        description: "مضلعات المقاطعات الاثنتي عشرة مع أسمائها ورموزها، وفق الشبكة الوطنية الهولندية (EPSG:28992)."
+      source:
+        description: "ملف GeoPackage من PDOK للحدود الإدارية لعام 2026، وفيه الطبقة provinciegebied التي تؤخذ منها المقاطعات."
+      visual:
+        description: "بلاطات متجهة لمضلعات المقاطعات لخرائط الويب، في طبقة واحدة اسمها netherlands-provinces."
+      thumbnail:
+        description: "خريطة PNG لمضلعات المقاطعات فوق خريطة أساس فاتحة."
+      metadata:
+        description: "سجل البيانات الوصفية ISO 19115 لبيانات BRK Bestuurlijke Gebieden من Nationaal Georegister، بصيغة XML."
       style-provinces:
         title: المقاطعات حسب الاسم
         description: "يعرض النمط المقاطعات الاثنتي عشرة بلون واحد من لوحة الألوان لكل مقاطعة."
@@ -420,6 +456,12 @@ collections:
       تنشر المجموعة عينة من 5000 سجل بصيغ GeoParquet وPMTiles.
     keywords: [عناوين, نقاط, سان فرانسيسكو, DataSF, EAS]
     assets:
+      data:
+        description: "نقاط العناوين البالغ عددها 5,000 مع أعمدة سماتها، بخطي الطول والعرض وفق WGS84."
+      visual:
+        description: "بلاطات متجهة لنقاط العناوين لخرائط الويب، في طبقة واحدة اسمها san-francisco-addresses."
+      thumbnail:
+        description: "خريطة PNG لنقاط العناوين فوق خريطة أساس فاتحة."
       style-addresses:
         title: نقاط العناوين
         description: "يعرض النمط جميع سجلات العناوين الخمسة آلاف في العينة كنقاط موحدة."
@@ -475,6 +517,13 @@ collections:
       ملف GeoTIFF صغير ومحسن للسحابة بثلاث حزم من بيانات اختبار rasterio.
       تعرض الصورة جزيرة أندروس في جزر البهاما ضمن UTM 18N.
     keywords: [بيانات نقطية, COG, نموذج, RGB, GeoTIFF]
+    assets:
+      data:
+        description: "الصورة بثلاثة نطاقات RGB بعمق 8 بت ضمن UTM 18N، مع إحصاءات النطاقات في ترويسة الملف."
+      source:
+        description: "صورة الاختبار RGB.byte.tif من rasterio، وهي ملف GeoTIFF بثلاثة نطاقات بعمق 8 بت صنع منه ملف COG."
+      thumbnail:
+        description: "صورة PNG للصورة فوق خريطة أساس فاتحة."
   raster/sample-scenes:
     title: نموذج مشاهد نقطية
     description: >-
@@ -483,7 +532,12 @@ collections:
       صورة اختبار rasterio فوق جزيرة أندروس في جزر البهاما ضمن UTM 18N.
     keywords: [بيانات نقطية, COG, عناصر, stac-geoparquet, مرآة العناصر]
     item_title: "المشهد، الصف {row}، العمود {column}"
+    item_data_description: "خلية واحدة من الشبكة 4 في 4 مقطوعة من صورة RGB، بصيغة COG بثلاثة نطاقات بعمق 8 بت ضمن UTM 18N."
     assets:
+      source:
+        description: "صورة الاختبار RGB.byte.tif من rasterio، وهي ملف GeoTIFF بثلاثة نطاقات بعمق 8 بت قطعت منه المشاهد."
+      thumbnail:
+        description: "صورة PNG للصورة كاملة فوق خريطة أساس فاتحة."
       geoparquet-items:
         title: مرآة العناصر (stac-geoparquet)
         description: "نسخة stac-geoparquet من عناصر هذه المجموعة، بصف واحد لكل عنصر. الصفوف مرتبة حسب منحنى هيلبرت لمركز المربع المحيط بكل عنصر."
@@ -493,6 +547,9 @@ collections:
       أسعار كهرباء نصف سنوية للأسر حسب البلد وفئة الاستهلاك والضريبة والعملة.
       تنشر المجموعة جدول nrg_pc_204 بصيغة Parquet للربط مع خريطة NUTS 0.
     keywords: [طاقة, كهرباء, أسعار, Eurostat, بيانات جدولية]
+    assets:
+      data:
+        description: "صفوف جدول Eurostat ‏nrg_pc_204، بسعر واحد لكل دولة أو مجموعة دول ونصف سنة وفئة استهلاك ومستوى ضريبة وعملة."
     columns:
       DATAFLOW: "معرف تدفق البيانات في Eurostat، وهو القيمة الثابتة ESTAT nrg_pc_204 بالإصدار 1.0."
       LAST UPDATE: "قيمة ثابتة عند طابع زمني واحد من عام 2019 لكل صف في هذه النسخة، رغم امتداد البيانات إلى 2025. لا يعتمد عليها، فلا تستخرج منها حداثة البيانات."

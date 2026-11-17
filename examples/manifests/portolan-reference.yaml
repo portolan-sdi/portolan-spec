@@ -255,6 +255,11 @@ collections:
           type: categorical
           field: CONTINENT
           labels: {field: NAME, size: 10}
+    # What each asset file holds, PORTO-CORE-088.
+    asset_descriptions:
+      data: "The 177 country polygons with their attribute columns, in WGS84 longitude and latitude."
+      source: "The Natural Earth 1:110m Admin 0 countries Shapefile, zipped, as Natural Earth publishes it."
+      thumbnail: "A PNG map of the countries coloured by continent over a light basemap."
     blurb: >-
       177 country polygons at world scale, the public domain basemap behind
       most web choropleths.
@@ -575,6 +580,11 @@ collections:
             A MapLibre heatmap layer over the points, showing where the curated
             selection concentrates.
           type: heatmap
+    # What each asset file holds, PORTO-CORE-088.
+    asset_descriptions:
+      data: "The 1,251 place points with their attribute columns, in WGS84 longitude and latitude."
+      source: "The Natural Earth 1:50m populated places Shapefile, zipped, as Natural Earth publishes it."
+      thumbnail: "A PNG map of the place points over a light basemap."
     blurb: >-
       1,251 curated city and town points with population estimates, from Tokyo
       to Antarctic research stations.
@@ -878,6 +888,12 @@ collections:
             cities, and Connecticut's planning regions.
           type: categorical
           field: LSAD
+    # What each asset file holds, PORTO-CORE-088.
+    asset_descriptions:
+      data: "The 3,235 county and equivalent polygons with their FIPS codes and names, in NAD83 (EPSG:4269)."
+      source: "The Census Bureau cartographic boundary Shapefile of 2023 counties at 1:500,000, zipped, as the Census Bureau publishes it."
+      visual: "Vector tiles of the county polygons for web maps, in one layer named us-counties."
+      thumbnail: "A PNG map of the county polygons over a light basemap."
     blurb: >-
       All 3,235 county and equivalent boundaries as of January 1, 2023,
       keyed by the FIPS codes that unlock US county statistics.
@@ -1124,6 +1140,11 @@ collections:
                          "Protected forever", "#1b5e20",
                          "Not protected", "#bdbdbd",
                          "#fdd835"]
+    # What each asset file holds, PORTO-CORE-088.
+    asset_descriptions:
+      data: "The 1,012 open space polygons with their attribute columns, in WGS84 longitude and latitude."
+      visual: "Vector tiles of the open space polygons for web maps, in one layer named boston-open-space."
+      thumbnail: "A PNG map of the open space polygons over a light basemap."
     blurb: >-
       1,012 open space polygons of conservation and recreation interest,
       regardless of ownership, from Franklin Park to community gardens.
@@ -1378,6 +1399,13 @@ collections:
       media_type: application/vnd.iso.19139+xml
       title: ISO 19115 metadata record, BRK Bestuurlijke Gebieden (Nationaal Georegister)
       standard: iso-19115
+    # What each asset file holds, PORTO-CORE-088.
+    asset_descriptions:
+      data: "The 12 province polygons with their names and codes, in the Dutch national grid (EPSG:28992)."
+      source: "The PDOK GeoPackage of 2026 administrative boundaries, with the provinciegebied layer that the provinces come from."
+      visual: "Vector tiles of the province polygons for web maps, in one layer named netherlands-provinces."
+      thumbnail: "A PNG map of the province polygons over a light basemap."
+      metadata: "The ISO 19115 metadata record of the BRK Bestuurlijke Gebieden data from the Nationaal Georegister, as XML."
     blurb: >-
       The 12 provinces from the cadastral registry, boundaries that reproduce
       the national statistics office's official areas to one decimal.
@@ -1600,6 +1628,11 @@ collections:
             A MapLibre heatmap over the sample. Density reflects the sample's
             internal ordering, not San Francisco, see the README caveat.
           type: heatmap
+    # What each asset file holds, PORTO-CORE-088.
+    asset_descriptions:
+      data: "The 5,000 address points with their attribute columns, in WGS84 longitude and latitude."
+      visual: "Vector tiles of the address points for web maps, in one layer named san-francisco-addresses."
+      thumbnail: "A PNG map of the address points over a light basemap."
     blurb: >-
       A fixed 5,000-record extract of San Francisco's 388,550-record master
       address database, kept small on purpose for spec demonstration.
@@ -1808,6 +1841,11 @@ collections:
     # 15, 1999, so that is the honest lower bound, stated in the docs too.
     temporal: ["1999-04-15T00:00:00Z", null]
     derivatives: {thumbnail: true}
+    # What each asset file holds, PORTO-CORE-088.
+    asset_descriptions:
+      data: "The 3-band 8-bit RGB image in UTM zone 18N, with band statistics in its header."
+      source: "The rasterio RGB.byte.tif test image, the 3-band 8-bit GeoTIFF that the COG is made from."
+      thumbnail: "A PNG of the image over a light basemap."
     blurb: >-
       A 1 MB Landsat-derived reference COG for learning and testing
       cloud-optimized raster access, not for analysis.
@@ -1951,11 +1989,17 @@ collections:
     grid: {columns: 4, rows: 4}
     # The title of each Item. The generator fills in the row and the column.
     item_title: "Scene row {row}, column {column}"
+    # The description of the data asset of each Item.
+    item_data_description: "One cell of the 4 by 4 grid cut from the RGB image, as a 3-band 8-bit COG in UTM zone 18N."
     # The acquisition date is unrecorded upstream. Landsat 7 launched on April
     # 15, 1999, and the file entered the rasterio repository in November 2013,
     # so every scene falls between those two dates.
     temporal: ["1999-04-15T00:00:00Z", "2013-11-30T23:59:59Z"]
     derivatives: {thumbnail: true}
+    # What each asset file holds, PORTO-CORE-088.
+    asset_descriptions:
+      source: "The rasterio RGB.byte.tif test image, the 3-band 8-bit GeoTIFF that the scenes are cut from."
+      thumbnail: "A PNG of the whole image over a light basemap."
     blurb: >-
       Sixteen COG scenes as Items with an item mirror, for learning the
       multi-scene raster layout, not for analysis.
@@ -2112,6 +2156,9 @@ collections:
       OBS_VALUE: The observed electricity price in the stated currency per kilowatt-hour.
       OBS_FLAG: Observation status, e estimated, p provisional, d definition differs, null for 98 percent of rows.
       CONF_STATUS: Confidentiality status, entirely null in this snapshot.
+    # What each asset file holds, PORTO-CORE-088.
+    asset_descriptions:
+      data: "The rows of Eurostat table nrg_pc_204, one price for each country or country group, half year, consumption band, tax level, and currency."
     blurb: >-
       65,412 semi-annual household electricity prices for 41 European
       countries from 2007 on, the official record of the 2022 energy crisis.

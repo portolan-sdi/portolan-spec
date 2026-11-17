@@ -117,8 +117,9 @@ def write_scene_cog(src_tif: Path, window, out_tif: Path) -> None:
         to_cog(staged, out_tif, None)
 
 
-def build_items(src_tif: Path, coll_dir: Path, cid: str, item_title: str, depth: int,
-                grid: dict, interval: list[str]) -> list[dict]:
+def build_items(src_tif: Path, coll_dir: Path, cid: str, item_title: str,
+                data_description: str, depth: int, grid: dict,
+                interval: list[str]) -> list[dict]:
     """Cut the source into the manifest grid and write one Item per scene, each
     with its COG beside it. Returns the Items in grid order.
 
@@ -127,7 +128,8 @@ def build_items(src_tif: Path, coll_dir: Path, cid: str, item_title: str, depth:
     as `start_datetime` and `end_datetime` with a null `datetime`.
 
     `item_title` is the manifest template for the Item title, with `{row}` and
-    `{column}` placeholders. `common.item_id` builds the Item id, and
+    `{column}` placeholders, and `data_description` the description of each
+    Item's `data` asset. `common.item_id` builds the Item id, and
     `common.item_grid` reads the row and the column back from it."""
     import rasterio
 
@@ -166,6 +168,7 @@ def build_items(src_tif: Path, coll_dir: Path, cid: str, item_title: str, depth:
                     "href": f"./{cog.name}",
                     "type": MEDIA["cog"],
                     "title": f"{title} (COG)",
+                    "description": data_description,
                     "roles": ["data"],
                     "bands": bands_from_cog(cog),
                     "proj:code": code,

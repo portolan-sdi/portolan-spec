@@ -196,6 +196,18 @@ def add_metadata_asset(assets: dict, spec: dict, coll_dir: Path, cache: Path) ->
                                roles, meta["title"])
 
 
+def add_asset_descriptions(assets: dict, spec: dict) -> None:
+    """Set the manifest `asset_descriptions` on the assets they name.
+
+    core.md asks every asset for a description. What a file holds is
+    catalog-specific, so the prose comes from the manifest. An unknown key
+    fails the build rather than vanish."""
+    for key, text in (spec.get("asset_descriptions") or {}).items():
+        if key not in assets:
+            raise ValueError(f"{spec['id']} describes asset {key!r}, which it does not have")
+        assets[key]["description"] = text.strip()
+
+
 def add_source_asset(assets: dict, local: Path, spec_source: dict) -> None:
     """Attach the `source` Asset, but only for a stable upstream download.
 
@@ -759,7 +771,8 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         if not interval or len(interval) != 2 or None in interval:
             raise ValueError(f"{cid} needs a closed `temporal` [start, end] "
                              "for its scenes")
-        items = build_items(local, coll_dir, cid, spec["item_title"], depth,
+        items = build_items(local, coll_dir, cid, spec["item_title"],
+                            spec["item_data_description"].strip(), depth,
                             spec["grid"], interval)
         mirror = coll_dir / MIRROR_NAME
         n = write_items_parquet(items, mirror)
@@ -802,6 +815,7 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         raise ValueError(f"unknown kind {kind}")
 
     add_metadata_asset(assets, spec, coll_dir, cache)
+    add_asset_descriptions(assets, spec)
 
     # structural + provenance links
     root_href = "../" * depth + "catalog.json"
@@ -1242,6 +1256,7 @@ def regen_docs(manifest: dict, out: Path, cache: Path) -> None:
         if spec.get("temporal"):
             coll.setdefault("extent", {})["temporal"] = {"interval": [spec["temporal"]]}
         add_metadata_asset(coll["assets"], spec, coll_dir, cache)
+        add_asset_descriptions(coll["assets"], spec)
         coll_path.write_text(json.dumps(coll, ensure_ascii=False, indent=2) + "\n")
         facts = _facts_from_collection(spec, coll, coll_dir)
         write_sidecars(coll_dir, spec["title"], spec["description"].strip(),

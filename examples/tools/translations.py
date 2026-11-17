@@ -314,11 +314,12 @@ def _check_node_coverage(
             if obj.get("type") != "Collection":
                 continue
             has_items = any(l.get("rel") == "item" for l in obj.get("links", []))
-            if has_items and not _has_text(meta.get("item_title")):
-                raise ValueError(
-                    f"{lp} must give an item_title to a Collection that has "
-                    f"Items, {path.as_posix()}"
-                )
+            for field in ("item_title", "item_data_description"):
+                if has_items and not _has_text(meta.get(field)):
+                    raise ValueError(
+                        f"{lp} must give an {field} to a Collection that has "
+                        f"Items, {path.as_posix()}"
+                    )
             columns = obj.get("table:columns") or []
             described = {
                 column["name"] for column in columns if column.get("description")
@@ -519,7 +520,8 @@ def _write_items(
 
     A validator requires an `item` link to point at an Item that the
     Collection contains, so a locale tree cannot link to the Items of the
-    source tree. The translated Item has the translated title. Its assets
+    source tree. The translated Item has the translated title, and its asset
+    has the translated `item_data_description`. Its assets
     point back at the data beside the source Item. Returns the translated
     Items.
     """
@@ -537,6 +539,8 @@ def _write_items(
                 target = (source_item.parent / asset["href"]).resolve()
                 asset["href"] = _relative_href(target_item.parent, target)
             asset["title"] = _asset_title(key, asset, messages, {})
+            if "description" in asset:
+                asset["description"] = meta["item_data_description"].strip()
         target_item.parent.mkdir(parents=True, exist_ok=True)
         _write_json(target_item, item)
         items.append(item)
