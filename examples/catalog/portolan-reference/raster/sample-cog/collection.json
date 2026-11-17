@@ -98,7 +98,8 @@
           }
         }
       ],
-      "proj:code": "EPSG:32618"
+      "proj:code": "EPSG:32618",
+      "description": "The 3-band 8-bit RGB image in UTM zone 18N, with band statistics in its header."
     },
     "source": {
       "href": "https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif",
@@ -108,7 +109,8 @@
         "source"
       ],
       "file:size": 1745956,
-      "file:checksum": "1220d7cbe932c7ed74a627706a9e9df99f706df3e5abc7d45a49e9d00677a6b09eb4"
+      "file:checksum": "1220d7cbe932c7ed74a627706a9e9df99f706df3e5abc7d45a49e9d00677a6b09eb4",
+      "description": "The rasterio RGB.byte.tif test image, the 3-band 8-bit GeoTIFF that the COG is made from."
     },
     "thumbnail": {
       "href": "./thumbnail.png",
@@ -118,7 +120,8 @@
         "thumbnail"
       ],
       "file:size": 243153,
-      "file:checksum": "12203f05e92e5b77ab80d92d7e319053dfa48f00ce72d05f8c7251959b88dbd57971"
+      "file:checksum": "12203f05e92e5b77ab80d92d7e319053dfa48f00ce72d05f8c7251959b88dbd57971",
+      "description": "A PNG of the image over a light basemap."
     }
   },
   "links": [

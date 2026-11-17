@@ -159,6 +159,8 @@ Each entry in `collections`.
 - `temporal`. `[start, end_or_null]`. A `raster-scenes` Collection needs a closed `[start, end]`. Each Item gets it as `start_datetime` and `end_datetime`.
 - `grid`. `{columns, rows}`. `raster-scenes` only. The source raster is cut into this grid, and each cell with a valid pixel becomes one Item.
 - `item_title`. `raster-scenes` only. The Item title template, with `{row}` and `{column}` placeholders. Each locale overlay gives its own `item_title`.
+- `item_data_description`. `raster-scenes` only. The description of the `data` asset of each Item. Each locale overlay gives its own.
+- `asset_descriptions?`. `{asset key: description}`. One sentence per asset that says what the file contains, which core.md asks of every asset. A key the Collection does not have fails the build. Style assets take theirs from `style.variants`.
 - `thumbnail_bbox?`. `[minx, miny, maxx, maxy]`. Frames the preview only, not the data. Use it for antimeridian-spanning data.
 - `derivatives`. `{pmtiles, thumbnail}`. Booleans that toggle the PMTiles and thumbnail outputs.
 - `style?`. Per-Collection paint, `{color, outline, opacity, variants}`. Drives both the MapLibre styles and the thumbnail paint. Each entry in `variants` is a dict, `{name, title?, description?, type, ...}`, becoming one `styles/<name>.json` and one `style-<name>` asset with the `title` and `description` carried onto the asset and into the style body. The FIRST variant is the default style, is what the thumbnail renders, and is the one whose asset carries the `default` role alongside `style`. Variant types:
@@ -212,7 +214,7 @@ rot. `add_source_asset` is the single gate.
 
 - `vector`. `to_geoparquet` converts with DuckDB spatial, preserving the source CRS or the manifest `output_crs`, and also builds a WGS84 GeoPackage for the bbox, the PMTiles feed, the thumbnail, and style sampling. It then writes the canonical asset as a web-optimized GeoParquet 2.0 file with geoparquet-io's web profile (native geometry type, per row group GeospatialStatistics, a retained covering bbox column for page-level pruning, a Parquet page index, Hilbert ordering, and byte-targeted fetch-sized row groups). Derivatives read the WGS84 GeoPackage, not the 2.0 output. Optional PMTiles come from a DuckDB GeoJSONSeq export into tippecanoe, with a web-map-links `pmtiles` link. Optional MapLibre styles are authored by `author_styles` from the real field values and read the PMTiles. The collection carries `table:columns` from a DuckDB `DESCRIBE`, geometry column included, alongside `table:primary_geometry` and `table:row_count`; the table extension scopes those to Collection fields and Item Properties, and `PORTO-FMT-046` asks a vector collection for them there rather than on the asset. The `data` asset carries `proj:code` derived from the real output CRS. Both the table and projection extensions are declared.
 - `raster`. `to_cog` builds the COG with rasterio, preserving the source CRS or warping to the manifest `output_crs`. Band statistics come from rasterio and numpy and go in STAC 1.1 core `bands`, minimum, maximum, mean, stddev, and valid percent, and `proj:code` carries the real output CRS through the projection extension. The same values are embedded as GDAL `STATISTICS_*` band tags, which is where rashid reads them. Overview depth is left to rio-cogeo rather than pinned, see the gotcha below.
-- `raster-scenes`. `build_items` cuts the source into the manifest `grid` and writes one Item per cell that has a valid pixel, each in its own directory with its COG as the `data` asset, which is how core.md asks a multi-scene raster Collection to be modeled. Each scene goes through the same `to_cog` as the `raster` kind, so it keeps the source CRS and nodata and carries embedded statistics. The Item geometry is the valid-data footprint, the convex hull of the valid pixels, per `PORTO-FMT-074`. `write_items_parquet` then writes the stac-geoparquet item mirror at `items.parquet`, with the rows in Hilbert curve order, registered with the `collection-mirror` role per `PORTO-FMT-040` to `043`. The Collection has no `data` asset. The overview COG that `PORTO-FMT-067` recommends is not built, see the gotcha below.
+- `raster-scenes`. `build_items` cuts the source into the manifest `grid` and writes one Item per cell that has a valid pixel, each in its own directory with its COG as the `data` asset, which is how core.md asks a multi-scene raster Collection to be modeled. Each scene goes through the same `to_cog` as the `raster` kind, so it keeps the source CRS and nodata and carries embedded statistics. The Item geometry is the valid-data footprint, the convex hull of the valid pixels, per `PORTO-FMT-074`. `write_items_parquet` then writes the stac-geoparquet item mirror at `items.parquet`, with the rows in Hilbert curve order, registered with the `collection-mirror` role per `PORTO-FMT-040` to `043`. `write_overview` writes `overview.tif`, the overview COG that `PORTO-FMT-067` to `072` ask for, with the `visual` and `overview` roles. It is the source at a quarter of its resolution, warped to Web Mercator, with the scenes' time range. The Collection has no `data` asset.
 - `tabular`. `to_table_parquet` reads the CSV with DuckDB and writes Parquet. Columns are described with the table extension. No geometry, the spatial extent is the whole world and spatial rules are relaxed.
 
 A Collection whose manifest sets `attribution` declares the attribution extension and carries a top-level `attribution` field.
@@ -246,6 +248,7 @@ Each locale overlay is one YAML file with the same node IDs as the manifest.
 - `collections.<id>.assets`. `{asset key: {title?, description?}}`. A shared role requires a per-key title. Each source asset description requires a translated description.
 - `<node>.links`. `{rel: {source href: title}}`. Repeated titled links with one relation require per-link titles.
 - `collections.<id>.item_title`. Required for a Collection that has Items. The translated Item title template, with `{row}` and `{column}`.
+- `collections.<id>.item_data_description`. Required for a Collection that has Items. The translated description of each Item's `data` asset.
 - `collections.<id>.columns`. `{column name: description}`. Required for every described `table:columns` entry. Column names stay unchanged.
 
 A locale tree holds only `.json` and `.md` files, and its assets point back at
@@ -271,7 +274,6 @@ onto the canvas with `rasterio.features`. Rasters are warped on top with
 
 ## Gotchas, learned the hard way
 
-- The `raster-scenes` kind builds no overview COG. `PORTO-FMT-067` recommends one with the `visual` and `overview` roles, and the rashid range pinned in `build.py` reports `PTL-VIZ-002` for a `visual` asset that has no style. An overview COG has no style, so the asset would fail the gate. A later rashid exempts it and reports `PTL-VIZ-007` when the overview is missing. Add the overview when the pin moves to that release.
 - An Item file has hrefs relative to its own directory, and a mirror row has no directory of its own. `mirror_row` rewrites each row so its hrefs resolve against `items.parquet`, and adds a `self` link to the Item file. `tests/check_scenes.py` checks that each row href resolves to a file, in the source tree and in each language tree.
 - Each language tree has its own `items.parquet`, because `PORTO-FMT-042` requires the mirror to contain the Items of its Collection, and the translated Items have translated titles. `translations._write_mirror` writes it. This is the one non-JSON, non-Markdown file in a language tree, and `tests/check_multilingual.py` allows it only as a `collection-mirror` asset.
 - An item mirror with fewer than 200 rows gets no spatial-order verdict from rashid, so a wrong row order passes. `tests/check_scenes.py` compares the committed mirror rows with the Hilbert order of the Items.
@@ -298,7 +300,7 @@ finding. Warnings and infos print without failing.
 Four passes run. The metadata pass checks the Portolan rules. The structural
 pass checks STAC 1.1.0 core validity and degrades to a warning when its
 schemas are unreachable. The schema pass validates every object against the
-working-copy schema at `../../stac/json-schema/v0.2.0/schema.json`, injected
+working-copy schema at `../../stac/json-schema/schema.json`, injected
 so the build tests this repo's schema rather than the published one. The data
 pass reads the built assets and checks checksum, size, format, COG internal
 overviews, COG band statistics including valid percent, and GeoParquet ordering,
@@ -310,7 +312,7 @@ proven by running rashid directly, without the adapter. Do that before publishin
 rebuild.
 
 ```bash
-uv run --with "rashid[data]>=0.1.8,<0.2.0" \
+uv run --with "rashid[data] @ git+https://github.com/portolan-sdi/rashid.git@14e2479bcb32a52adc386cee3cc0bfd6b0b61c94" \
   rashid check --schema examples/catalog/portolan-reference
 ```
 
@@ -351,11 +353,12 @@ entirely, four send no CORS header, and none sends
 party servers. The spec scopes those MUSTs to the catalog's own assets as of
 PORTO-CORE-073, so a validator does not probe an upstream host.
 
-rashid comes from PyPI, pinned to a compatible range in `build.py`'s PEP 723
-header, currently `rashid[data]>=0.1.8,<0.2.0`. Bumping the Portolan schema is a
+rashid is pinned in `build.py`'s PEP 723 header, currently to the git commit
+`rashid[data] @ git+https://github.com/portolan-sdi/rashid.git@14e2479bcb32a52adc386cee3cc0bfd6b0b61c94`.
+The commit pin is temporary until the rashid release for v0.3.0. Bumping the Portolan schema is a
 coordinated change across this repo and rashid, update the local schema,
 regenerate the reference catalog, re-vendor fixtures into rashid, then bump the
-rashid range here.
+rashid pin here.
 
 ## What CI runs, and why it is split in three
 
@@ -473,15 +476,19 @@ header with `tomllib`, so the validator that checks a catalog is the validator
 that built it and there is no second pin to drift. It is generic over every tree
 under `examples/catalog/`, so a new manifest is covered as soon as its output is
 committed. Its gate is errors and warnings, since rashid's own exit code fires
-on errors alone and a warning in a reference example is a real defect. The nine
+on errors alone and a warning in a reference example is a real defect. The one
+accepted warning is `PTL-DAT-020` on the Natural Earth columns that the source
+does not describe. The nine
 infos above are advisory and do not fail it.
 
-Two known gaps. `check_catalogs.py` validates against the profile schema bundled
-in the rashid wheel, while `validate.py` injects the working copy under `stac/`,
-so a change to `stac/json-schema/` is proven by the build rather than by CI. And
-`check_validate.py` is hardcoded to the `portolan-reference` tree, so a second catalog
-gets weekly coverage immediately but per-PR coverage only once that script is
-generalized.
+`check_catalogs.py` also passes the working-copy schema to rashid with
+`--schema-map <$id>=stac/json-schema/schema.json`, the same schema `validate.py`
+injects. On `main` that `$id` names the next, unreleased version, and no rashid
+wheel bundles it, so the bundled schema would only report `PTL-SCH-000`.
+
+One known gap. `check_validate.py` hardcodes the `portolan-reference` tree, so a
+second catalog gets weekly coverage immediately but per-PR coverage only once
+that script is generalized.
 
 ## Conventions
 

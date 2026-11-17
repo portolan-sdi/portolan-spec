@@ -73,16 +73,15 @@ def validate(out: Path, schema_path: Path) -> None:
     pass against the working-copy schema, and the data pass over local assets.
     Prints every finding and raises SystemExit when rashid reports an error.
     """
-    from rashid import validate as rashid_validate
+    from rashid import ValidationOptions, validate as rashid_validate
 
-    report = rashid_validate(
-        out,
+    report = rashid_validate(out, options=ValidationOptions(
         structural=True,
         schema=True,
         schema_validator=_local_schema_validator(schema_path),
         data=True,
         data_validator=_local_only_data_validator(),
-    )
+    ))
     for finding in report.findings:
         print(
             f"  {finding.rule_id} {finding.severity.value} {finding.path}: {finding.message}",

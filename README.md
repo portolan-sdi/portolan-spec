@@ -166,13 +166,44 @@ the verdicts it returned before.
 break to MAJOR. A relaxation breaks tools alone, and every catalog that
 conformed still conforms, so MINOR carries the signal at the right cost.
 
-**A released schema is immutable.** Once a version is tagged, the JSON Schema
-served at its URI never changes, so a catalog validates the same way in a year
-as on the day it was published. Editing the schema means adding a new version
-directory under [`stac/json-schema/`](stac/json-schema/), even for a change the
-prose treats as a clarification. The publish workflow rebuilds
-`schemas.portolan-sdi.org` from every tracked version directory on each release,
-so an in-place edit would republish the old URI with new rules.
+**A released schema is immutable.** Each release is a git tag, `vX.Y.Z`, and
+the tag contains the JSON Schema for that version. The schema served at a
+released URI never changes, so a catalog validates the same way in a year as on
+the day it was published. Never move or delete a release tag.
+[`publish-schema.yaml`](.github/workflows/publish-schema.yaml) rebuilds
+`schemas.portolan-sdi.org` from the release tags alone and reads each schema
+from its tag.
+
+**`main` holds the draft of the next version.**
+[`stac/json-schema/schema.json`](stac/json-schema/schema.json) is the one schema
+file on `main`. The `version` field in [`stac/package.json`](stac/package.json)
+names the next release, and every Portolan schema URI on `main` uses that
+version. Nothing is served at that URI until its tag exists. The site never
+serves the draft. So the `main` preview of the reference catalog, which
+[`publish-catalogs.yaml`](.github/workflows/publish-catalogs.yaml) publishes,
+declares a schema URI that does not resolve before the release.
+
+### Releasing
+
+A release follows these steps, in this order:
+
+1. Open a release PR that updates [`CHANGELOG.md`](CHANGELOG.md) and
+   [`stac/CHANGELOG.md`](stac/CHANGELOG.md). Check the version against the bump
+   policy. If every change since the last release is non-breaking, move
+   `version` and every schema URI to the next PATCH version in the same PR.
+2. Merge the release PR. Tag the merge commit `v` plus the version, such as
+   `v0.3.0`, and publish a GitHub release from the tag.
+3. The release runs `publish-schema.yaml`. The workflow fails unless `version`
+   in the tagged `stac/package.json` equals the tag without its `v`. After the
+   deploy, it compares each served schema with its tagged bytes by SHA-256.
+4. Release [rashid](https://github.com/portolan-sdi/rashid) with the new
+   schema. Its `scripts/vendor_spec_fixtures.py` reads each release tag. Then
+   bump the rashid pin in [`examples/tools/build.py`](examples/tools/build.py)
+   and
+   [`examples/tools/tests/check_validate.py`](examples/tools/tests/check_validate.py).
+5. Open one PR that moves `version` in `stac/package.json` and every Portolan
+   schema URI to the next MINOR version. `npm test` in `stac/` lists each URI
+   that still references the old version.
 
 ## Contributing
 
@@ -186,8 +217,10 @@ behind Portolan.
   stabilize, and **guidance and philosophy** live in
   [`specs/best-practices/`](specs/best-practices/).
 
-When a change is normative, bump the spec version per the
-[bump policy](#versioning) in the same PR.
+A normative change does not bump the version, because `main` already names the
+next release. Edit [`stac/json-schema/schema.json`](stac/json-schema/schema.json)
+in the same PR as the prose it enforces. The [release steps](#releasing) set the
+version.
 
 ### Companion validator PRs
 
@@ -205,6 +238,12 @@ Companion-PR: portolan-sdi/rashid#123
 CI verifies the reference. Editorial changes with no conformance impact (typos,
 wording, formatting) can skip the requirement with the `no-validator-change`
 label.
+
+A spec PR can merge before rashid releases its companion PR. The checks in
+this repository validate against the local
+[`stac/json-schema/schema.json`](stac/json-schema/schema.json), not the schema
+bundled in a rashid release. rashid bundles the new schema in the release that
+follows the spec tag, as the [release steps](#releasing) describe.
 
 ## Community
 

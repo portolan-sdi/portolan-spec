@@ -855,7 +855,8 @@
       ],
       "file:size": 280650,
       "file:checksum": "122060be40dbafd2491ccf1627ae848b3a035bc082de7d8130a885033856ac3c3c86",
-      "proj:code": "EPSG:4326"
+      "proj:code": "EPSG:4326",
+      "description": "The 177 country polygons with their attribute columns, in WGS84 longitude and latitude."
     },
     "source": {
       "href": "https://naciscdn.org/naturalearth/110m/cultural/ne_110m_admin_0_countries.zip",
@@ -865,7 +866,8 @@
         "source"
       ],
       "file:size": 214976,
-      "file:checksum": "12200f243aeac8ac6cf26f0417285b0bd33ac47f1b5bdb719fd3e0df37d03ea37110"
+      "file:checksum": "12200f243aeac8ac6cf26f0417285b0bd33ac47f1b5bdb719fd3e0df37d03ea37110",
+      "description": "The Natural Earth 1:110m Admin 0 countries Shapefile, zipped, as Natural Earth publishes it."
     },
     "style-continents": {
       "href": "./styles/continents.json",
@@ -931,7 +933,8 @@
         "thumbnail"
       ],
       "file:size": 71048,
-      "file:checksum": "12205fda9e12c86f1dbc13fcf9778afd2f0895fcf2ea0826b522af2a004874ce2de2"
+      "file:checksum": "12205fda9e12c86f1dbc13fcf9778afd2f0895fcf2ea0826b522af2a004874ce2de2",
+      "description": "A PNG map of the countries coloured by continent over a light basemap."
     }
   },
   "links": [

@@ -134,7 +134,8 @@
         "data"
       ],
       "file:size": 162919,
-      "file:checksum": "122051a96f8677c374f6b54cb6e876dcf6af33bc2982b52c9445d0c9a857240b6477"
+      "file:checksum": "122051a96f8677c374f6b54cb6e876dcf6af33bc2982b52c9445d0c9a857240b6477",
+      "description": "صفوف جدول Eurostat ‏nrg_pc_204، بسعر واحد لكل دولة أو مجموعة دول ونصف سنة وفئة استهلاك ومستوى ضريبة وعملة."
     }
   },
   "links": [

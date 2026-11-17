@@ -120,7 +120,8 @@
       ],
       "file:size": 872875,
       "file:checksum": "12204041b0c384032ead2a68bf154bc35c7806cb906c6604a453d99ecd5e1dc8b374",
-      "proj:code": "EPSG:28992"
+      "proj:code": "EPSG:28992",
+      "description": "مضلعات المقاطعات الاثنتي عشرة مع أسمائها ورموزها، وفق الشبكة الوطنية الهولندية (EPSG:28992)."
     },
     "source": {
       "href": "https://service.pdok.nl/kadaster/brk-bestuurlijke-gebieden/atom/downloads/BestuurlijkeGebieden_2026.gpkg",
@@ -130,7 +131,8 @@
         "source"
       ],
       "file:size": 14495744,
-      "file:checksum": "12201efa5bbed78bb5aa9d918d48bcabcd9a3c0e816671545e42cd68be057b8423e6"
+      "file:checksum": "12201efa5bbed78bb5aa9d918d48bcabcd9a3c0e816671545e42cd68be057b8423e6",
+      "description": "ملف GeoPackage من PDOK للحدود الإدارية لعام 2026، وفيه الطبقة provinciegebied التي تؤخذ منها المقاطعات."
     },
     "visual": {
       "href": "../../../boundaries/netherlands-provinces/netherlands-provinces.pmtiles",
@@ -140,7 +142,8 @@
         "visual"
       ],
       "file:size": 435122,
-      "file:checksum": "1220a7a9d30cbd97f9a92161530a4f335aa50db1307ce24ab7d16f7de668595d519e"
+      "file:checksum": "1220a7a9d30cbd97f9a92161530a4f335aa50db1307ce24ab7d16f7de668595d519e",
+      "description": "بلاطات متجهة لمضلعات المقاطعات لخرائط الويب، في طبقة واحدة اسمها netherlands-provinces."
     },
     "style-provinces": {
       "href": "../../../boundaries/netherlands-provinces/styles/provinces.json",
@@ -195,7 +198,8 @@
         "thumbnail"
       ],
       "file:size": 188545,
-      "file:checksum": "12203e5bed76be1af81a77828cebf137805a4168848e56289de7d197eb7341ebb2b0"
+      "file:checksum": "12203e5bed76be1af81a77828cebf137805a4168848e56289de7d197eb7341ebb2b0",
+      "description": "خريطة PNG لمضلعات المقاطعات فوق خريطة أساس فاتحة."
     },
     "metadata": {
       "href": "../../../boundaries/netherlands-provinces/iso19115.xml",
@@ -206,7 +210,8 @@
         "iso-19115"
       ],
       "file:size": 40942,
-      "file:checksum": "122039561f53e91b85883209646f809d8ff6a3976eb6539528d8e4802c5689f75fe7"
+      "file:checksum": "122039561f53e91b85883209646f809d8ff6a3976eb6539528d8e4802c5689f75fe7",
+      "description": "سجل البيانات الوصفية ISO 19115 لبيانات BRK Bestuurlijke Gebieden من Nationaal Georegister، بصيغة XML."
     }
   },
   "links": [

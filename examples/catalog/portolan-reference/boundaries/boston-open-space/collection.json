@@ -177,7 +177,8 @@
       ],
       "file:size": 1188770,
       "file:checksum": "122012852a6892d9f47810b6ad54959b22b840bdfbb118b136a25cc6dd7da41d3cff",
-      "proj:code": "EPSG:4326"
+      "proj:code": "EPSG:4326",
+      "description": "The 1,012 open space polygons with their attribute columns, in WGS84 longitude and latitude."
     },
     "visual": {
       "href": "./boston-open-space.pmtiles",
@@ -187,7 +188,8 @@
         "visual"
       ],
       "file:size": 989217,
-      "file:checksum": "1220db3d459dc821db7adf739ad0afee9682a3b94f8d467c564c343dcb159a2b3281"
+      "file:checksum": "1220db3d459dc821db7adf739ad0afee9682a3b94f8d467c564c343dcb159a2b3281",
+      "description": "Vector tiles of the open space polygons for web maps, in one layer named boston-open-space."
     },
     "style-types": {
       "href": "./styles/types.json",
@@ -253,7 +255,8 @@
         "thumbnail"
       ],
       "file:size": 377459,
-      "file:checksum": "122061292d50d6b52d5452897669fe629173564b49f0d2538de5605331a323299fb0"
+      "file:checksum": "122061292d50d6b52d5452897669fe629173564b49f0d2538de5605331a323299fb0",
+      "description": "A PNG map of the open space polygons over a light basemap."
     }
   },
   "links": [

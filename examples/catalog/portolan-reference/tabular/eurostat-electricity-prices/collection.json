@@ -134,7 +134,8 @@
         "data"
       ],
       "file:size": 162919,
-      "file:checksum": "122051a96f8677c374f6b54cb6e876dcf6af33bc2982b52c9445d0c9a857240b6477"
+      "file:checksum": "122051a96f8677c374f6b54cb6e876dcf6af33bc2982b52c9445d0c9a857240b6477",
+      "description": "The rows of Eurostat table nrg_pc_204, one price for each country or country group, half year, consumption band, tax level, and currency."
     }
   },
   "links": [

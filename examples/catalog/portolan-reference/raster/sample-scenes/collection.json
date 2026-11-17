@@ -64,8 +64,8 @@
       "roles": [
         "collection-mirror"
       ],
-      "file:size": 23462,
-      "file:checksum": "1220f5335cba09bf813a736e0e0ec0003c61c0f6af4277a87be9e1333a28747062e5",
+      "file:size": 24157,
+      "file:checksum": "1220f3fcc679654deb692cd4539ff507866671c1960d0d4b498a6dce63c2c9a4969a",
       "description": "A stac-geoparquet copy of the Items of this Collection, one row for each Item. The rows are in Hilbert curve order of the Item bbox center."
     },
     "source": {
@@ -76,7 +76,23 @@
         "source"
       ],
       "file:size": 1745956,
-      "file:checksum": "1220d7cbe932c7ed74a627706a9e9df99f706df3e5abc7d45a49e9d00677a6b09eb4"
+      "file:checksum": "1220d7cbe932c7ed74a627706a9e9df99f706df3e5abc7d45a49e9d00677a6b09eb4",
+      "description": "The rasterio RGB.byte.tif test image, the 3-band 8-bit GeoTIFF that the scenes and the overview are made from."
+    },
+    "overview": {
+      "href": "./overview.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "title": "Sample raster scenes overview (COG)",
+      "roles": [
+        "visual",
+        "overview"
+      ],
+      "file:size": 62966,
+      "file:checksum": "1220643be97c5825b8365f1fcbb0be2bb42717578ffbd7a3a47373f63036f304b5c7",
+      "proj:code": "EPSG:3857",
+      "start_datetime": "1999-04-15T00:00:00Z",
+      "end_datetime": "2013-11-30T23:59:59Z",
+      "description": "All sixteen scenes in one image at a quarter of their resolution, as 8-bit RGB in Web Mercator (EPSG:3857)."
     },
     "thumbnail": {
       "href": "./thumbnail.png",
@@ -85,8 +101,9 @@
       "roles": [
         "thumbnail"
       ],
-      "file:size": 274580,
-      "file:checksum": "122040300647023ab50de5fec3f8e38c43fe6489583667525b591ca0d517dd0ec419"
+      "file:size": 299812,
+      "file:checksum": "122021d192adefa7aea3b96ce8ff90bab28e66e90302dcdff66dcf06d38af006fb75",
+      "description": "A PNG of the whole image over a light basemap."
     }
   },
   "links": [

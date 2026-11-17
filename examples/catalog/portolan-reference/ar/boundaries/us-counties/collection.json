@@ -147,7 +147,8 @@
       ],
       "file:size": 7043980,
       "file:checksum": "12204cebf3e79848686820e2122491d1051e35caea5c17baef25f20217ea26e06753",
-      "proj:code": "EPSG:4269"
+      "proj:code": "EPSG:4269",
+      "description": "مضلعات المقاطعات وما يعادلها البالغ عددها 3,235 مع رموز FIPS وأسمائها، وفق NAD83 (EPSG:4269)."
     },
     "source": {
       "href": "https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_500k.zip",
@@ -157,7 +158,8 @@
         "source"
       ],
       "file:size": 11630077,
-      "file:checksum": "122099d6597b1fc7767deef62e01d28d8b5dcbd578e151855f7dc0d173cbf5bf0868"
+      "file:checksum": "122099d6597b1fc7767deef62e01d28d8b5dcbd578e151855f7dc0d173cbf5bf0868",
+      "description": "ملف Shapefile لحدود المقاطعات الخرائطية لعام 2023 بمقياس 1:500,000، مضغوطا كما ينشره مكتب الإحصاء الأمريكي."
     },
     "visual": {
       "href": "../../../boundaries/us-counties/us-counties.pmtiles",
@@ -167,7 +169,8 @@
         "visual"
       ],
       "file:size": 4564130,
-      "file:checksum": "12207b1ded32a1575ad3c27432aba77c3dac2697c9a4bcd2cdf448b4cb7c03dca318"
+      "file:checksum": "12207b1ded32a1575ad3c27432aba77c3dac2697c9a4bcd2cdf448b4cb7c03dca318",
+      "description": "بلاطات متجهة لمضلعات المقاطعات لخرائط الويب، في طبقة واحدة اسمها us-counties."
     },
     "style-states": {
       "href": "../../../boundaries/us-counties/styles/states.json",
@@ -233,7 +236,8 @@
         "thumbnail"
       ],
       "file:size": 73106,
-      "file:checksum": "1220820dc6da8d8576602a5e7f69f8272ee3e6a1264c2938d1640292eb14f329918b"
+      "file:checksum": "1220820dc6da8d8576602a5e7f69f8272ee3e6a1264c2938d1640292eb14f329918b",
+      "description": "خريطة PNG لمضلعات المقاطعات فوق خريطة أساس فاتحة."
     }
   },
   "links": [

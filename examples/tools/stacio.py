@@ -26,7 +26,7 @@ from convert import (
 from derivatives import make_pmtiles, author_styles, CATEGORICAL_VARIANTS
 from scenes import (
     MIRROR_KEY, MIRROR_NAME, build_items, items_extent, read_items,
-    write_items_parquet,
+    write_items_parquet, write_overview,
 )
 from thumbnails import (
     make_thumbnail_vector, make_thumbnail_raster, build_thumb_ctx, _thumb_desc,
@@ -194,6 +194,18 @@ def add_metadata_asset(assets: dict, spec: dict, coll_dir: Path, cache: Path) ->
     roles = ["metadata"] + ([meta["standard"]] if meta.get("standard") else [])
     assets["metadata"] = asset(dest, meta.get("media_type", "application/xml"),
                                roles, meta["title"])
+
+
+def add_asset_descriptions(assets: dict, spec: dict) -> None:
+    """Set the manifest `asset_descriptions` on the assets they name.
+
+    core.md asks every asset for a description. What a file holds is
+    catalog-specific, so the prose comes from the manifest. An unknown key
+    fails the build rather than vanish."""
+    for key, text in (spec.get("asset_descriptions") or {}).items():
+        if key not in assets:
+            raise ValueError(f"{spec['id']} describes asset {key!r}, which it does not have")
+        assets[key]["description"] = text.strip()
 
 
 def add_source_asset(assets: dict, local: Path, spec_source: dict) -> None:
@@ -759,7 +771,8 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         if not interval or len(interval) != 2 or None in interval:
             raise ValueError(f"{cid} needs a closed `temporal` [start, end] "
                              "for its scenes")
-        items = build_items(local, coll_dir, cid, spec["item_title"], depth,
+        items = build_items(local, coll_dir, cid, spec["item_title"],
+                            spec["item_data_description"].strip(), depth,
                             spec["grid"], interval)
         mirror = coll_dir / MIRROR_NAME
         n = write_items_parquet(items, mirror)
@@ -775,6 +788,15 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
                             "Collection, one row for each Item. The rows are "
                             "in Hilbert curve order of the Item bbox center."})
         add_source_asset(assets, local, src)
+        # PORTO-FMT-067 to 072, an 8-bit RGB overview COG in Web Mercator, with
+        # the time span of the scenes it shows.
+        overview = coll_dir / "overview.tif"
+        write_overview(local, overview)
+        assets["overview"] = asset(
+            overview, MEDIA["cog"], ["visual", "overview"],
+            f"{spec['title']} overview (COG)",
+            {"proj:code": "EPSG:3857", "start_datetime": interval[0],
+             "end_datetime": interval[1]})
         links += [link("item", f"./{i['id']}/{i['id']}.json", "application/geo+json",
                        i["properties"]["title"]) for i in items]
         exts += [PROJ_EXT]
@@ -802,6 +824,7 @@ def build_collection(spec: dict, host: dict, out_root: Path, cache: Path,
         raise ValueError(f"unknown kind {kind}")
 
     add_metadata_asset(assets, spec, coll_dir, cache)
+    add_asset_descriptions(assets, spec)
 
     # structural + provenance links
     root_href = "../" * depth + "catalog.json"
@@ -1242,6 +1265,7 @@ def regen_docs(manifest: dict, out: Path, cache: Path) -> None:
         if spec.get("temporal"):
             coll.setdefault("extent", {})["temporal"] = {"interval": [spec["temporal"]]}
         add_metadata_asset(coll["assets"], spec, coll_dir, cache)
+        add_asset_descriptions(coll["assets"], spec)
         coll_path.write_text(json.dumps(coll, ensure_ascii=False, indent=2) + "\n")
         facts = _facts_from_collection(spec, coll, coll_dir)
         write_sidecars(coll_dir, spec["title"], spec["description"].strip(),

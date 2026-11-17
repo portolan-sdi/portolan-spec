@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // The package.json version is the single source of truth for the profile
 // version, and https://schemas.portolan-sdi.org/portolan/v<version>/schema.json is the
-// single canonical schema URI. The schema for the current version must exist
-// under json-schema/, and every Portolan schema URI — in the schema itself,
-// the profile README, the examples, and the spec documents — must match the
-// canonical one exactly, host included.
+// single canonical schema URI. json-schema/schema.json holds the schema for
+// that version, and every Portolan schema URI — in the schema itself, the
+// profile README, the examples, and the spec documents — must match the
+// canonical one exactly, host included. On main the version names the next
+// release, so the URI is a draft until its tag exists.
 'use strict';
 
 const fs = require('fs');
@@ -34,9 +35,15 @@ for (const [name, ext] of Object.entries(extensions)) {
 let failed = false;
 const fail = (msg) => { failed = true; console.error(`✗ ${msg}`); };
 
-const schemaPath = path.join(root, 'json-schema', `v${version}`, 'schema.json');
+const schemaPath = path.join(root, 'json-schema', 'schema.json');
 if (!fs.existsSync(schemaPath)) {
-  fail(`json-schema/v${version}/schema.json not found (package.json version is ${version})`);
+  fail('json-schema/schema.json not found');
+} else {
+  // The file name carries no version, so the schema's $id binds it to one.
+  const id = JSON.parse(fs.readFileSync(schemaPath, 'utf8')).$id;
+  if (typeof id !== 'string' || id.replace(/#$/, '') !== canonical) {
+    fail(`json-schema/schema.json has $id ${id}, expected ${canonical}#`);
+  }
 }
 
 const files = [

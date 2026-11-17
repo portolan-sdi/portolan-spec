@@ -8,7 +8,7 @@ test fixture, the same file as the
 [Sample Raster COG](../sample-cog/README.md) Collection. Here a 4 by
 4 grid cuts it into sixteen scenes of about 198 by 180 pixels.
 
-The Collection has two parts.
+The Collection has three parts.
 
 - Each scene is a STAC Item in its own directory, with its Cloud
   Optimized GeoTIFF as the `data` asset. The Item geometry is the
@@ -17,6 +17,10 @@ The Collection has two parts.
 - `items.parquet` is the item mirror, a stac-geoparquet copy of the
   sixteen Items with the `collection-mirror` role. The rows are in
   Hilbert curve order.
+- `overview.tif` is the overview COG, with the `visual` and
+  `overview` roles. It shows all sixteen scenes in one 8-bit RGB
+  image in Web Mercator, at a quarter of their resolution, so a
+  client can show the whole area without reading each scene.
 
 Agents, [AGENTS.md](./AGENTS.md) covers how to search the scenes.
 

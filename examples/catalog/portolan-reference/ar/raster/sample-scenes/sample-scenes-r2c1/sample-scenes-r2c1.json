@@ -67,6 +67,7 @@
       "href": "../../../../raster/sample-scenes/sample-scenes-r2c1/sample-scenes-r2c1.tif",
       "type": "image/tiff; application=geotiff; profile=cloud-optimized",
       "title": "البيانات",
+      "description": "خلية واحدة من الشبكة 4 في 4 مقطوعة من صورة RGB، بصيغة COG بثلاثة نطاقات بعمق 8 بت ضمن UTM 18N.",
       "roles": [
         "data"
       ],
@@ -103,8 +104,8 @@
         }
       ],
       "proj:code": "EPSG:32618",
-      "file:size": 43553,
-      "file:checksum": "12204483e7c646f1a2c252069f6bfbf0d955e0f67cc69724e4f621ef341134ea87d7"
+      "file:size": 43111,
+      "file:checksum": "12207e840f091881fec184ce3c08140b96f01460197aee4b5839e549a202d3b1c086"
     }
   },
   "links": [

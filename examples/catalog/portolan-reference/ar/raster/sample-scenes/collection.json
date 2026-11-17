@@ -64,8 +64,8 @@
       "roles": [
         "collection-mirror"
       ],
-      "file:size": 23560,
-      "file:checksum": "1220e4018ed52e7b3fa410ab710aa4e7a4a2bf76d2c6f6548a7d28de77db740c4abd",
+      "file:size": 24541,
+      "file:checksum": "12207018c14296b8c8d54ba2bfeab5da9c607d124e74beacc610d8d7f45eeea5b22d",
       "description": "نسخة stac-geoparquet من عناصر هذه المجموعة، بصف واحد لكل عنصر. الصفوف مرتبة حسب منحنى هيلبرت لمركز المربع المحيط بكل عنصر."
     },
     "source": {
@@ -76,7 +76,23 @@
         "source"
       ],
       "file:size": 1745956,
-      "file:checksum": "1220d7cbe932c7ed74a627706a9e9df99f706df3e5abc7d45a49e9d00677a6b09eb4"
+      "file:checksum": "1220d7cbe932c7ed74a627706a9e9df99f706df3e5abc7d45a49e9d00677a6b09eb4",
+      "description": "صورة الاختبار RGB.byte.tif من rasterio، وهي ملف GeoTIFF بثلاثة نطاقات بعمق 8 بت صنعت منه المشاهد والصورة العامة."
+    },
+    "overview": {
+      "href": "../../../raster/sample-scenes/overview.tif",
+      "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+      "title": "صورة عامة للمشاهد (COG)",
+      "roles": [
+        "visual",
+        "overview"
+      ],
+      "file:size": 62966,
+      "file:checksum": "1220643be97c5825b8365f1fcbb0be2bb42717578ffbd7a3a47373f63036f304b5c7",
+      "proj:code": "EPSG:3857",
+      "start_datetime": "1999-04-15T00:00:00Z",
+      "end_datetime": "2013-11-30T23:59:59Z",
+      "description": "المشاهد الستة عشر كلها في صورة واحدة بربع دقتها، بصيغة RGB بعمق 8 بت وفق Web Mercator (EPSG:3857)."
     },
     "thumbnail": {
       "href": "../../../raster/sample-scenes/thumbnail.png",
@@ -85,8 +101,9 @@
       "roles": [
         "thumbnail"
       ],
-      "file:size": 274580,
-      "file:checksum": "122040300647023ab50de5fec3f8e38c43fe6489583667525b591ca0d517dd0ec419"
+      "file:size": 299812,
+      "file:checksum": "122021d192adefa7aea3b96ce8ff90bab28e66e90302dcdff66dcf06d38af006fb75",
+      "description": "صورة PNG للصورة كاملة فوق خريطة أساس فاتحة."
     }
   },
   "links": [

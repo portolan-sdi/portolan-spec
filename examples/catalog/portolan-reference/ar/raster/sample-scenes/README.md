@@ -6,6 +6,7 @@
 
 - [مرآة العناصر (stac-geoparquet)](./items.parquet)
 - [ملف المصدر الأصلي](https://raw.githubusercontent.com/rasterio/rasterio/main/tests/data/RGB.byte.tif)
+- [صورة عامة للمشاهد (COG)](../../../raster/sample-scenes/overview.tif)
 - [صورة مصغرة](../../../raster/sample-scenes/thumbnail.png)
 
 ## الرخصة (license)

@@ -147,7 +147,8 @@
       ],
       "file:size": 7043980,
       "file:checksum": "12204cebf3e79848686820e2122491d1051e35caea5c17baef25f20217ea26e06753",
-      "proj:code": "EPSG:4269"
+      "proj:code": "EPSG:4269",
+      "description": "The 3,235 county and equivalent polygons with their FIPS codes and names, in NAD83 (EPSG:4269)."
     },
     "source": {
       "href": "https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_500k.zip",
@@ -157,7 +158,8 @@
         "source"
       ],
       "file:size": 11630077,
-      "file:checksum": "122099d6597b1fc7767deef62e01d28d8b5dcbd578e151855f7dc0d173cbf5bf0868"
+      "file:checksum": "122099d6597b1fc7767deef62e01d28d8b5dcbd578e151855f7dc0d173cbf5bf0868",
+      "description": "The Census Bureau cartographic boundary Shapefile of 2023 counties at 1:500,000, zipped, as the Census Bureau publishes it."
     },
     "visual": {
       "href": "./us-counties.pmtiles",
@@ -167,7 +169,8 @@
         "visual"
       ],
       "file:size": 4564130,
-      "file:checksum": "12207b1ded32a1575ad3c27432aba77c3dac2697c9a4bcd2cdf448b4cb7c03dca318"
+      "file:checksum": "12207b1ded32a1575ad3c27432aba77c3dac2697c9a4bcd2cdf448b4cb7c03dca318",
+      "description": "Vector tiles of the county polygons for web maps, in one layer named us-counties."
     },
     "style-states": {
       "href": "./styles/states.json",
@@ -233,7 +236,8 @@
         "thumbnail"
       ],
       "file:size": 73106,
-      "file:checksum": "1220820dc6da8d8576602a5e7f69f8272ee3e6a1264c2938d1640292eb14f329918b"
+      "file:checksum": "1220820dc6da8d8576602a5e7f69f8272ee3e6a1264c2938d1640292eb14f329918b",
+      "description": "A PNG map of the county polygons over a light basemap."
     }
   },
   "links": [
