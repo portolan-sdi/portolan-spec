@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
@@ -41,7 +41,7 @@ jobs:
       # pinned to an exact version while checkout above can float. What raises
       # it is .github/dependabot.yml, since an exact pin is only safe while
       # something keeps it current.
-      - uses: astral-sh/setup-uv@v10.3.3
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
           # Each check_*.py carries its own PEP 723 dependencies, so the cache

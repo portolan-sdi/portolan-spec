@@ -13,8 +13,8 @@
     "format-examples": "stac-node-validator examples/*.json --schemaMap \"https://schemas.portolan-sdi.org/portolan/v$npm_package_version/schema.json=./json-schema/schema.json;https://schemas.portolan-sdi.org/incubating/partition/v1.0.0/schema.json=./.schema-cache/incubating/partition/v1.0.0/schema.json;https://stac-extensions.github.io/table/v1.2.0/schema.json=./.schema-cache/stac-extensions/table/v1.2.0/schema.json;https://stac-extensions.github.io/classification/v2.0.0/schema.json=./.schema-cache/stac-extensions/classification/v2.0.0/schema.json\" --format"
   },
   "devDependencies": {
-    "ajv": "^8.17.1",
-    "stac-node-validator": "^1.3.2",
+    "ajv": "8.20.0",
+    "stac-node-validator": "1.3.2",
     "remark-cli": "^12.0.0",
     "remark-lint": "^10.0.0",
     "remark-preset-lint-consistent": "^6.0.0",
