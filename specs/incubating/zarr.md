@@ -20,9 +20,9 @@ version. The requirements below carry `PORTO-ZARR` IDs in the
 A Zarr store is a hierarchy of groups and arrays under one root URL. The
 requirements in this document apply to the store that the asset `href` points
 to, as a standard Zarr v3 reader reads it over HTTP. The storage system behind
-that URL is not constrained. An Icechunk repository served as plain Zarr v3
-can conform. Virtual stores are out of scope for this version of
-the profile.
+that URL is not constrained. An Icechunk repository conforms as an
+[Icechunk asset](#icechunk). Virtual stores are out of scope for this version
+of the profile.
 
 This document uses these terms:
 
@@ -58,6 +58,23 @@ A convention is identified by its UUID.
   rules of the STAC Zarr Best Practices, with media type
   `application/vnd.zarr; version=3`.
 - An `s3://` href MAY be given beside the `https` one.
+
+## Icechunk
+
+An Icechunk asset gives the href of an Icechunk repository, which a reader opens
+with an Icechunk library rather than a plain Zarr reader.
+
+- An Icechunk asset MUST have the media type `application/vnd.zarr+icechunk`
+  in place of the media type in [Access](#access).
+- The repository MUST use version 2 of the Icechunk storage format.
+- The asset href MUST be the root of the repository, the prefix that holds
+  the `repo` file.
+- The `main` branch MUST hold the version of the data that the collection
+  describes.
+
+The other rules of this profile apply to the Zarr hierarchy at the tip of
+`main`. The `https` and cross-origin rule in [Access](#access) applies to every
+file of the repository.
 
 ## Grid
 
@@ -148,6 +165,9 @@ qualify.
 
 ## Open questions
 
+- No field of an Icechunk asset specifies a branch, tag, or snapshot other
+  than `main`. The STAC Zarr Best Practices use a ZEP 8 URL to select a tag,
+  but few tools read it.
 - The 4-chunk and 8-sample thresholds are provisional. Tests against real
   stores can move them.
 - The render extension has no field that ties a `renders` entry to one
