@@ -1730,8 +1730,8 @@ requirements:
     status: incubating
     file: specs/incubating/zarr.md
     quote: >-
-      Its href MUST be the root of the repository, the prefix that holds the
-      `repo` file.
+      The asset href MUST be the root of the repository, the prefix that holds
+      the `repo` file.
 
   - id: PORTO-ZARR-029
     severity: MUST
@@ -1741,6 +1741,14 @@ requirements:
     quote: >-
       The `main` branch MUST hold the version of the data that the collection
       describes.
+
+  - id: PORTO-ZARR-030
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      The repository MUST use version 2 of the Icechunk storage format.
 
 exclusions:
   # RFC 2119 preamble: keyword mentions, not requirements.

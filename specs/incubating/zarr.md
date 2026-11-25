@@ -66,15 +66,15 @@ with an Icechunk library rather than a plain Zarr reader.
 
 - An Icechunk asset MUST have the media type `application/vnd.zarr+icechunk`
   in place of the media type in [Access](#access).
-- Its href MUST be the root of the repository, the prefix that holds the
-  `repo` file.
+- The repository MUST use version 2 of the Icechunk storage format.
+- The asset href MUST be the root of the repository, the prefix that holds
+  the `repo` file.
 - The `main` branch MUST hold the version of the data that the collection
   describes.
 
 The other rules of this profile apply to the Zarr hierarchy at the tip of
-`main`. The rules in [Access](#access) apply to every file of the repository.
-A validator that reads the repository over HTTP starts from its `repo` file,
-as it starts from `zarr.json` for a plain Zarr store.
+`main`. The `https` and cross-origin rule in [Access](#access) applies to every
+file of the repository.
 
 ## Grid
 
