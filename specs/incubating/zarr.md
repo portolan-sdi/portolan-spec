@@ -20,9 +20,9 @@ version. The requirements below carry `PORTO-ZARR` IDs in the
 A Zarr store is a hierarchy of groups and arrays under one root URL. The
 requirements in this document apply to the store that the asset `href` points
 to, as a standard Zarr v3 reader reads it over HTTP. The storage system behind
-that URL is not constrained. An Icechunk repository can conform in two ways:
-served as plain Zarr v3, or as an [Icechunk asset](#icechunk). Virtual stores
-are out of scope for this version of the profile.
+that URL is not constrained. An Icechunk repository conforms as an
+[Icechunk asset](#icechunk). Virtual stores are out of scope for this version
+of the profile.
 
 This document uses these terms:
 
