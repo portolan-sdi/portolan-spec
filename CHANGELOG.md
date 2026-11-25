@@ -9,6 +9,14 @@ under the pre-1.0 bump policy described in the [README](README.md#versioning).
 
 ## Unreleased
 
+### Added
+
+- **The incubating Zarr profile accepts an Icechunk asset**
+  ([`specs/incubating/zarr.md`](specs/incubating/zarr.md#icechunk)). A reader
+  opens the repository's `main` branch with an Icechunk library. The asset has
+  the media type `application/vnd.zarr+icechunk`, and the other Zarr rules
+  apply at the tip of `main` (`PORTO-ZARR-027` to `PORTO-ZARR-029`, #132).
+
 ## 0.3.0 - 2026-11-17
 
 ### Added

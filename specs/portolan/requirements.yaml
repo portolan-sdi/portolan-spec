@@ -1715,6 +1715,33 @@ requirements:
     quote: >-
       Every codec in the chain SHOULD have a JavaScript implementation.
 
+  - id: PORTO-ZARR-027
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      An Icechunk asset MUST have the media type `application/vnd.zarr+icechunk`
+      in place of the media type in [Access](#access).
+
+  - id: PORTO-ZARR-028
+    severity: MUST
+    enforcement: validator
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      Its href MUST be the root of the repository, the prefix that holds the
+      `repo` file.
+
+  - id: PORTO-ZARR-029
+    severity: MUST
+    enforcement: process
+    status: incubating
+    file: specs/incubating/zarr.md
+    quote: >-
+      The `main` branch MUST hold the version of the data that the collection
+      describes.
+
 exclusions:
   # RFC 2119 preamble: keyword mentions, not requirements.
   - file: specs/portolan/core.md
